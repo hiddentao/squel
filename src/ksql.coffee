@@ -23,10 +23,12 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ###
 
-# An SQL WHERE clause expression builder.
+# An SQL expression builder.
 #
-# This works by building up the expression as a hierarchical tree of nodes. The toString() method then traverses this
-# tree in order to build the final expression string.
+# SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
+#
+# This builder works by building up the expression as a hierarchical tree of nodes. The toString() method then
+# traverses this tree in order to build the final expression string.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class kSqlExpression

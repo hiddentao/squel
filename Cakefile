@@ -49,4 +49,4 @@ task 'tests', 'Run the tests', ->
     build_js -> run_tests -> "All done"
 
 task 'build', 'Build the project', ->
-    build_coffee -> build_docs -> "All done"
+    build_js -> build_docs -> "All done"
