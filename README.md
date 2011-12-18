@@ -25,6 +25,15 @@ do the following inside the project folder:
     $ npm install
     $ node_modules/.bin/cake docs
 
+## Testing
+
+Tests are found in the `test/` folder and are run using vows:
+
+    $ npm install
+    $ node_modules/.bin/cake tests
+
+If you wish to submit a pull request please update and/or create new tests for any changes you make and ensure all the
+tests pass.
 
 ---
 
