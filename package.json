@@ -1,0 +1,21 @@
+{
+  "name": "ksql",
+  "description": "SQL query string builder",
+  "version": "1.0.0",
+  "author": "Ramesh Nair <ram@hiddentao.com>",
+  "contributors": [
+    { "name": "Ramesh Nair", "email": "ram@hiddentao.com" }
+  ],
+  "dependencies": {
+    "coffee-script": ">= 1.2.0"
+  },
+  "devDependencies": {
+    "docco": ">= 0.3.0",
+    "vows": ">= 0.6.0"
+  },
+  "keywords": ["sql", "builder", "nodejs"],
+  "main": "ksql",
+  "scripts": {},
+  "bin": {},
+  "engines": { "node": ">= 0.4.0" }
+}
