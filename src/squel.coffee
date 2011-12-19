@@ -102,8 +102,6 @@ class Expression
 
 
     # Get the final fully constructed expression string.
-    #
-    # This will throw an error if begin() has previously been called without being followed by a call to end()
     toString: =>
         if null isnt @current.parent
             throw new Error "end() needs to be called"
@@ -129,6 +127,33 @@ class Expression
 
 
 
+# Sanitize the given alias.
+sanitizeAlias = (alias) ->
+    if alias and "string" isnt typeof alias
+        throw new Error "alias must be a string"
+    alias
+
+# Sanitize the given condition.
+sanitizeCondition = (condition) ->
+    if "Expression" isnt typeof condition or "string" isnt typeof condition
+        throw new Error "condition must be a string or Expression instance"
+    # If it's an expression builder instance then convert it to string form.
+    if "Expression" is typeof condition
+        condition = condition.toString()
+    condition
+
+# Sanitize the given table definition.
+sanitizeTable = (table) ->
+    if "string" isnt typeof table
+        throw new Error "table name must be a string"
+    table
+
+# Sanitize the given field definition.
+sanitizeField = (field) ->
+    if "string" isnt typeof field
+        throw new Error "field must be a string"
+    field
+
 
 # A SELECT query builder.
 #
@@ -136,13 +161,17 @@ class Expression
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Select
-    tables = []
-    fields = []
-    joins = []
-    where = null
+    tables: null
+    fields: null
+    joins: null
+    wheres: null
 
-    constructor ->
-        @where = new Expression()
+    constructor: ->
+        @tables = []
+        @fields = []
+        @joins = []
+        @wheres = []
+
 
         # Add a JOIN with the given table.
         #
@@ -153,10 +182,13 @@ class Select
         # 'alias' is an optional alias for the table name.
         #
         # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
-        #
-        #
-        # Note
-        @join = (type = 'inner', table, alias = null, condition = null) =>
+        # an expression builder then it will only get evaluated during the final query string construction phase in
+        # toString().
+        @join = (type, table, alias, condition) =>
+            table = sanitizeTable(table)
+            alias = sanitizeAlias(alias) if alias
+            condition = sanitizeCondition(condition) if condition
+
             @joins.push
                 type: type
                 table: table
@@ -168,58 +200,64 @@ class Select
     # Specify table to read data from.
     #
     # An alias may also be specified for the table.
-    @table = (name, alias = null) =>
+    from: (table, alias = null) =>
+        table = sanitizeTable(table)
+        alias = sanitizeAlias(alias) if alias
+
         @tables.push
-            name: name
+            name: table
             alias: alias
         @
 
-    # Specify one or more fields to read from the table and return in the final result set.
+
+    # Specify a field to read from the table and return in the final result set.
     #
     # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
     # e.g. DATE_FORMAT(a.started, "%H")
     #
     # An alias may also be specified for this field.
-    @field = (field, alias = null) =>
+    field: (field, alias = null) =>
+        field = sanitizeField(field)
+        alias = sanitizeAlias(alias) if alias
+
         @fields.push
             field: field
             alias: alias
         @
 
 
-    # Alias of join() with type set to 'left'
+    # Add an INNER JOIN with the given table.
+    join: (table, alias = null, condition = null) =>
+        @join 'INNER', table, alias, condition
+
+
+    # Add a LEFT JOIN with the given table.
+    left_join: (table, alias = null, condition = null) =>
+        @join 'LEFT', table, alias, condition
+
+
+    # Add a RIGHT JOIN with the given table.
+    right_join: (table, alias = null, condition = null) =>
+        @join 'RIGHT', table, alias, condition
+
+
+    # Add an OUTER JOIN with the given table.
+    outer_join: (table, alias = null, condition = null) =>
+        @join 'OUTER', table, alias, condition
+
+
+    # Add a WHERE condition to the query.
     #
-    # @return this object instance for chaining purposes.
-    @left_join = (table, alias = null, condition = null) =>
-        join 'left', table, alias, condition
+    # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
+    where: (condition) =>
+        condition = sanitizeCondition(condition)
+        @wheres.push condition
+        @
 
 
-    # Alias of join() with type set to 'right'
-    #
-    # @return this object instance for chaining purposes.
-    @right_join = (table, alias = null, condition = null) =>
-        join 'right', table, alias, condition
-
-
-    # Alias of join() with type set to 'outer'
-    #
-    # @return this object instance for chaining purposes.
-    @outer_join = (table, alias = null, condition = null) =>
-        join 'outer', table, alias, condition
-
-
-    # Begin a compound AND expression as part of the WHERE clause
-    #
-    # @return this object instance for chaining purposes.
-    @begin_and_where = (table, alias = null, condition = null) =>
-
-        join 'outer', table, alias, condition
-
-
-    # Get fully constructed SQL query string
-    #
-    # @return the constructed query string.
-    @toString = =>
+    # Get the final fully constructed query string.
+    toString: =>
+        ""
 
 
 

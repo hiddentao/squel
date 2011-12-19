@@ -9,7 +9,7 @@ binpath = path.join __dirname, 'node_modules/.bin/'
 stream_data_handler = (data) -> print data.toString()
 
 
-build_js = (callback) ->
+compile_js = (callback) ->
     options = [
         '-c'
         '-j'
@@ -20,6 +20,11 @@ build_js = (callback) ->
     coffee.stdout.on 'data', stream_data_handler
     coffee.stderr.on 'data', stream_data_handler
     coffee.on 'exit', (status) -> callback?() if status is 0
+
+
+build_js = (callback) ->
+    compile_js callback
+
 
 
 build_docs = (callback) ->
@@ -37,6 +42,7 @@ build_docs = (callback) ->
 run_tests = (callback) ->
     options = [
         'test/expression.coffee'
+        'test/select.coffee'
         '--spec'
     ]
     vows = spawn "#{binpath}/vows", options

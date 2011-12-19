@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Expression, Select,
+  var Expression, Select, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeTable,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Expression = (function() {
@@ -128,27 +128,59 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
+  sanitizeAlias = function(alias) {
+    if (alias && "string" !== typeof alias) {
+      throw new Error("alias must be a string");
+    }
+    return alias;
+  };
+
+  sanitizeCondition = function(condition) {
+    if ("Expression" !== typeof condition || "string" !== typeof condition) {
+      throw new Error("condition must be a string or Expression instance");
+    }
+    if ("Expression" === typeof condition) condition = condition.toString();
+    return condition;
+  };
+
+  sanitizeTable = function(table) {
+    if ("string" !== typeof table) throw new Error("table name must be a string");
+    return table;
+  };
+
+  sanitizeField = function(field) {
+    if ("string" !== typeof field) throw new Error("field must be a string");
+    return field;
+  };
+
   Select = (function() {
-    var fields, joins, tables, where,
-      _this = this;
 
-    function Select() {}
+    Select.prototype.tables = null;
 
-    tables = [];
+    Select.prototype.fields = null;
 
-    fields = [];
+    Select.prototype.joins = null;
 
-    joins = [];
+    Select.prototype.wheres = null;
 
-    where = null;
-
-    constructor(function() {
+    function Select() {
+      this.toString = __bind(this.toString, this);
+      this.where = __bind(this.where, this);
+      this.outer_join = __bind(this.outer_join, this);
+      this.right_join = __bind(this.right_join, this);
+      this.left_join = __bind(this.left_join, this);
+      this.join = __bind(this.join, this);
+      this.field = __bind(this.field, this);
+      this.from = __bind(this.from, this);
       var _this = this;
-      this.where = new Expression();
-      return this.join = function(type, table, alias, condition) {
-        if (type == null) type = 'inner';
-        if (alias == null) alias = null;
-        if (condition == null) condition = null;
+      this.tables = [];
+      this.fields = [];
+      this.joins = [];
+      this.wheres = [];
+      this.join = function(type, table, alias, condition) {
+        table = sanitizeTable(table);
+        if (alias) alias = sanitizeAlias(alias);
+        if (condition) condition = sanitizeCondition(condition);
         _this.joins.push({
           type: type,
           table: table,
@@ -157,55 +189,67 @@ OTHER DEALINGS IN THE SOFTWARE.
         });
         return _this;
       };
-    });
+    }
 
-    Select.table = function(name, alias) {
+    Select.prototype.from = function(table, alias) {
       if (alias == null) alias = null;
-      Select.tables.push({
-        name: name,
+      table = sanitizeTable(table);
+      if (alias) alias = sanitizeAlias(alias);
+      this.tables.push({
+        name: table,
         alias: alias
       });
-      return Select;
+      return this;
     };
 
-    Select.field = function(field, alias) {
+    Select.prototype.field = function(field, alias) {
       if (alias == null) alias = null;
-      Select.fields.push({
+      field = sanitizeField(field);
+      if (alias) alias = sanitizeAlias(alias);
+      this.fields.push({
         field: field,
         alias: alias
       });
-      return Select;
+      return this;
     };
 
-    Select.left_join = function(table, alias, condition) {
+    Select.prototype.join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return join('left', table, alias, condition);
+      return this.join('INNER', table, alias, condition);
     };
 
-    Select.right_join = function(table, alias, condition) {
+    Select.prototype.left_join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return join('right', table, alias, condition);
+      return this.join('LEFT', table, alias, condition);
     };
 
-    Select.outer_join = function(table, alias, condition) {
+    Select.prototype.right_join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return join('outer', table, alias, condition);
+      return this.join('RIGHT', table, alias, condition);
     };
 
-    Select.begin_and_where = function(table, alias, condition) {
+    Select.prototype.outer_join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return join('outer', table, alias, condition);
+      return this.join('OUTER', table, alias, condition);
     };
 
-    Select.toString = function() {};
+    Select.prototype.where = function(condition) {
+      condition = sanitizeCondition(condition);
+      this.wheres.push(condition);
+      return this;
+    };
+
+    Select.prototype.toString = function() {
+      return "";
+    };
 
     return Select;
 
-  }).call(this);
+  })();
 
   if (typeof module !== "undefined" && module !== null) {
     module.exports = {

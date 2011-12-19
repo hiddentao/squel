@@ -27,10 +27,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-squel = (require "../squel")
+expr = (require "../squel").expr
 
 
-suite = vows.describe("SQL expression builder")
+suite = vows.describe("Expression builder")
 
 
 # Get class name of given object.
@@ -43,7 +43,7 @@ getObjectClassName = (obj) ->
 
 
 funcAssertObjInstance = (obj) ->
-    assert.equal getObjectClassName(obj), getObjectClassName(squel.expr())
+    assert.equal getObjectClassName(obj), getObjectClassName(expr())
 
 contextAssertObjInstance = (topic) ->
     topic: topic
@@ -77,25 +77,25 @@ contextEndThrowsBeginError = ->
 
 suite.addBatch
     'when the builder is initialized':
-        topic: squel.expr()
+        topic: expr()
         'calling toString() gives an empty string': (builder) ->
             assert.isEmpty builder.toString()
         'then when end() gets called': contextEndThrowsBeginError()
     'when and_begin() gets called':
-        topic: squel.expr().and_begin()
+        topic: expr().and_begin()
         'the object instance is returned': funcAssertObjInstance
         'then when toString() gets called': contextToStringThrowsEndError()
     'when and_begin() gets called followed by end()':
-        topic: squel.expr().and_begin().end()
+        topic: expr().and_begin().end()
         'the object instance is returned': funcAssertObjInstance
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
     'when or_begin() gets called':
-        topic: squel.expr().or_begin()
+        topic: expr().or_begin()
         'the object instance is returned': funcAssertObjInstance
         'then when toString() is called':  contextToStringThrowsEndError()
     'when or_begin() gets called followed by end()':
-        topic: squel.expr().or_begin().end()
+        topic: expr().or_begin().end()
         'the object instance is returned': funcAssertObjInstance
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
@@ -106,8 +106,8 @@ contextBadArgError = (func, arg) ->
     topic: ->
         try
             switch func
-                when 'and' then squel.expr().and(arg)
-                when 'or' then squel.expr().or(arg)
+                when 'and' then expr().and(arg)
+                when 'or' then expr().or(arg)
                 else throw new Error "Unrecognized func: #{func}"
         catch err
             return err
@@ -120,7 +120,7 @@ suite.addBatch
     'when calling and() with an array argument': contextBadArgError('and',  [])
     'when calling and() with an object argument': contextBadArgError('and',  {a:'a'})
     'when calling and() with a function argument': contextBadArgError('and',  () -> return 'a')
-    'when calling and() with a string argument': contextAssertObjInstance squel.expr().and("test")
+    'when calling and() with a string argument': contextAssertObjInstance expr().and("test")
 
 
 
@@ -129,7 +129,7 @@ suite.addBatch
     'when calling or() with an array argument': contextBadArgError('or', [])
     'when calling or() with an object argument': contextBadArgError('or', {a:'a'})
     'when calling or() with a function argument': contextBadArgError('or', () -> return 'a')
-    'when calling or() with a string argument': contextAssertObjInstance squel.expr().or("test")
+    'when calling or() with a string argument': contextAssertObjInstance expr().or("test")
 
 
 
@@ -137,7 +137,7 @@ suite.addBatch
 
 suite.addBatch
     'when and("test = 3") is called':
-        topic: squel.expr().and("test = 3")
+        topic: expr().and("test = 3")
         'then when toString() is called': contextAssertStringEqual("test = 3")
         'then when and("flight = \'4\'") is called':
             topic: (obj) -> obj.and("flight = '4'")
@@ -151,7 +151,7 @@ suite.addBatch
 
 suite.addBatch
     'when or("test = 3") is called':
-        topic: squel.expr().or("test = 3")
+        topic: expr().or("test = 3")
         'then when toString() is called': contextAssertStringEqual "test = 3"
         'then when or("flight = \'4\'") is called':
             topic: (obj) -> obj.or("flight = '4'")
@@ -165,7 +165,7 @@ suite.addBatch
 
 suite.addBatch
     'when or("test = 3") is called':
-        topic: squel.expr().or("test = 3")
+        topic: expr().or("test = 3")
         'then when and_begin() is called':
             topic: (obj) -> obj.and_begin()
             'then when or("inner = 1") is called':
