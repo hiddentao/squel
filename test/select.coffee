@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao)
+Copyright (c) 2012 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -23,7 +23,6 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ###
 
-# Tests for the SQL expression builder.
 
 vows = require "vows"
 assert = require "assert"
