@@ -23,21 +23,47 @@ contextAssertStringEqual = (expectedStr) ->
         assert.strictEqual str, expectedStr
     ret
 
+contextToStringThrowsEndError = ->
+    topic: (obj) ->
+        try
+            obj.toString()
+        catch err
+            return err
+    'an error gets thrown': (err) ->
+        assert.strictEqual err.toString(), "Error: end() needs to be called"
+
+contextEndThrowsBeginError = ->
+    topic: (obj) ->
+        try
+            obj.end()
+        catch err
+            return err
+    'an error gets thrown': (err) ->
+        assert.strictEqual err.toString(), "Error: begin() needs to be called"
+
+
 
 suite.addBatch
     'when the builder is initialized':
         topic: new kSqlExpression()
         'calling toString() gives an empty string': (builder) ->
             assert.isEmpty builder.toString()
-        'calling end() throws an error': (builder) ->
-            assert.throws builder.end, Error
-    'when begin() gets called':
-        topic: new kSqlExpression().begin()
+        'then when end() gets called': contextEndThrowsBeginError()
+    'when and_begin() gets called':
+        topic: new kSqlExpression().and_begin()
         'the object instance is returned': funcAssertObjInstance
-        'calling toString() throws an error':  (obj) ->
-            assert.throws obj.toString, Error
-    'when begin() gets called followed by end()':
-        topic: new kSqlExpression().begin().end()
+        'then when toString() gets called': contextToStringThrowsEndError()
+    'when and_begin() gets called followed by end()':
+        topic: new kSqlExpression().and_begin().end()
+        'the object instance is returned': funcAssertObjInstance
+        'calling toString() gives an empty string': (obj) ->
+            assert.isEmpty obj.toString()
+    'when or_begin() gets called':
+        topic: new kSqlExpression().or_begin()
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called':  contextToStringThrowsEndError()
+    'when or_begin() gets called followed by end()':
+        topic: new kSqlExpression().or_begin().end()
         'the object instance is returned': funcAssertObjInstance
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
@@ -103,6 +129,39 @@ suite.addBatch
                 topic: (obj) -> obj.and("dummy in (1,2,3)")
                 'the object instance is returned': funcAssertObjInstance
                 'then when toString() is called': contextAssertStringEqual "test = 3 OR flight = '4' AND dummy in (1,2,3)"
+
+
+suite.addBatch
+    'when or("test = 3") is called':
+        topic: new kSqlExpression().or("test = 3")
+        'then when and_begin() is called':
+            topic: (obj) -> obj.and_begin()
+            'then when or("inner = 1") is called':
+                topic: (obj) -> obj.or("inner = 1")
+                'then when or("inner = 2") is called':
+                    topic: (obj) -> obj.or("inner = 2")
+                    'then when toString() is called': contextToStringThrowsEndError()
+                    'then when end() is called':
+                        topic: (obj) -> obj.end()
+                        'then when toString() is called': contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2)"
+                        'then when end() gets called': contextEndThrowsBeginError()
+                        'then when or_begin() is called':
+                            topic: (obj) -> obj.or_begin()
+                            'then when toString() is called': contextToStringThrowsEndError()
+                            'then when and("inner = 3") is called':
+                                topic: (obj) -> obj.and("inner = 3")
+                                'then when and("inner = 4") is called':
+                                    topic: (obj) -> obj.and("inner = 4")
+                                    'then when or_begin() is called':
+                                        topic: (obj) -> obj.or_begin()
+                                        'then when or("inner = 5") is called':
+                                            topic: (obj) -> obj.or("inner = 5")
+                                            'then when end() is called':
+                                                topic: (obj) -> obj.end()
+                                                'then when toString() is called': contextToStringThrowsEndError()
+                                                'then when end() is called':
+                                                    topic: (obj) -> obj.end()
+                                                    'then when toString() is called': contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
 
 
 

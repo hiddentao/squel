@@ -30,6 +30,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 # This builder works by building up the expression as a hierarchical tree of nodes. The toString() method then
 # traverses this tree in order to build the final expression string.
 #
+# Expressions can be nested. Nested expression contains can themselves contain nested expressions.
+# When rendered a nested expression will be fully contained within brackets.
+#
 # All the build methods in this object return the object instance for chained method calling purposes.
 class kSqlExpression
 
@@ -42,24 +45,30 @@ class kSqlExpression
     # Initialise the expression.
     constructor: ->
         @tree =
-            type: 'group'
             parent: null
             nodes: []
         @current = @tree
 
+        # Begin a nested expression and combine it with the current expression using the given operator.
+        @_begin = (op) =>
+            new_tree =
+                type: op
+                parent: @current
+                nodes: []
+            @current.nodes.push new_tree
+            @current = @current.nodes[@current.nodes.length-1]
+            @
 
-    # Begin a compound expression.
-    #
-    # A compound expression is an expression which contains an intersection (AND) or
-    # union (OR) of one or more sub expressions. When rendered it will be fully contained within brackets.
-    begin: =>
-        new_tree =
-            type: 'group'
-            parent: @current
-            nodes: []
-        @current.nodes.push new_tree
-        @current = @current.nodes[@current.nodes.length-1]
-        @
+
+
+    # Begin a nested expression and combine it with the current expression using the intersection operator (AND).
+    and_begin: =>
+        @_begin 'AND'
+
+
+    # Begin a nested expression and combine it with the current expression using the union operator (OR).
+    or_begin: =>
+        @_begin 'OR'
 
 
 
@@ -67,7 +76,7 @@ class kSqlExpression
     #
     # This will throw an error if begin() hasn't been called yet.
     end: =>
-        if not @current.parent?
+        if not @current.parent
             throw new Error "begin() needs to be called"
         @current = @current.parent
         @
@@ -97,7 +106,7 @@ class kSqlExpression
     # This will throw an error if begin() has previously been called without being followed by a call to end()
     toString: =>
         if null isnt @current.parent
-            throw new Error "end() needs to called"
+            throw new Error "end() needs to be called"
         _toString @tree
 
 
@@ -105,14 +114,17 @@ class kSqlExpression
     _toString = (node) ->
         str = ""
         for child in node.nodes
-            switch child.type
-                when "AND", "OR"
-                    if "" isnt str then str += " " + child.type + " "
-                    str += child.expr
-                else
-                    childStr = _toString(child)
-                    if "" isnt childStr
-                        str += "(" + childStr + ")"
+            if child.expr?
+                nodeStr = child.expr
+            else
+                nodeStr = _toString(child)
+                # wrap nested expressions in brackets
+                if "" isnt nodeStr
+                    nodeStr = "(" + nodeStr + ")"
+            if "" isnt nodeStr
+                # if this isn't first expression then add the operator
+                if "" isnt str then str += " " + child.type + " "
+                str += nodeStr
         str
 
 

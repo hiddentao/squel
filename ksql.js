@@ -40,30 +40,37 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.or = __bind(this.or, this);
       this.and = __bind(this.and, this);
       this.end = __bind(this.end, this);
-      this.begin = __bind(this.begin, this);      this.tree = {
-        type: 'group',
+      this.or_begin = __bind(this.or_begin, this);
+      this.and_begin = __bind(this.and_begin, this);
+      var _this = this;
+      this.tree = {
         parent: null,
         nodes: []
       };
       this.current = this.tree;
+      this._begin = function(op) {
+        var new_tree;
+        new_tree = {
+          type: op,
+          parent: _this.current,
+          nodes: []
+        };
+        _this.current.nodes.push(new_tree);
+        _this.current = _this.current.nodes[_this.current.nodes.length - 1];
+        return _this;
+      };
     }
 
-    kSqlExpression.prototype.begin = function() {
-      var new_tree;
-      new_tree = {
-        type: 'group',
-        parent: this.current,
-        nodes: []
-      };
-      this.current.nodes.push(new_tree);
-      this.current = this.current.nodes[this.current.nodes.length - 1];
-      return this;
+    kSqlExpression.prototype.and_begin = function() {
+      return this._begin('AND');
+    };
+
+    kSqlExpression.prototype.or_begin = function() {
+      return this._begin('OR');
     };
 
     kSqlExpression.prototype.end = function() {
-      if (!(this.current.parent != null)) {
-        throw new Error("begin() needs to be called");
-      }
+      if (!this.current.parent) throw new Error("begin() needs to be called");
       this.current = this.current.parent;
       return this;
     };
@@ -91,25 +98,27 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     kSqlExpression.prototype.toString = function() {
-      if (null !== this.current.parent) throw new Error("end() needs to called");
+      if (null !== this.current.parent) {
+        throw new Error("end() needs to be called");
+      }
       return _toString(this.tree);
     };
 
     _toString = function(node) {
-      var child, childStr, str, _i, _len, _ref;
+      var child, nodeStr, str, _i, _len, _ref;
       str = "";
       _ref = node.nodes;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         child = _ref[_i];
-        switch (child.type) {
-          case "AND":
-          case "OR":
-            if ("" !== str) str += " " + child.type + " ";
-            str += child.expr;
-            break;
-          default:
-            childStr = _toString(child);
-            if ("" !== childStr) str += "(" + childStr + ")";
+        if (child.expr != null) {
+          nodeStr = child.expr;
+        } else {
+          nodeStr = _toString(child);
+          if ("" !== nodeStr) nodeStr = "(" + nodeStr + ")";
+        }
+        if ("" !== nodeStr) {
+          if ("" !== str) str += " " + child.type + " ";
+          str += nodeStr;
         }
       }
       return str;

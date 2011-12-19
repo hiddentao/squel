@@ -48,5 +48,5 @@ task 'docs', 'Build the documentation', ->
 task 'tests', 'Run the tests', ->
     build_js -> run_tests -> "All done"
 
-task 'build', 'Build the project', ->
+task 'build', 'Build everything', ->
     build_js -> build_docs -> "All done"

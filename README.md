@@ -6,7 +6,7 @@ A simple, well tested SQL query string builder for Javascript.
 
 * Supports the construction of all standard DML queries: SELECT, INSERT and UPDATE queries.
 * Full documented.
-* Extensive suite of unit tests (written using vows).
+* Comprehensive unit tests (using vows).
 * Written in CoffeeScript for ease of maintainability.
 * Available as a node.js package.
 
