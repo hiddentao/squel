@@ -1,17 +1,49 @@
 ###
-Tests for the SQL query expression builder.
+Copyright (c) 2012 Ramesh Nair (hiddentao)
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 ###
+
+# Tests for the SQL expression builder.
 
 vows = require "vows"
 assert = require "assert"
-kSqlExpression = (require "../ksql").expression
+squel = (require "../squel")
 
 
 suite = vows.describe("SQL expression builder")
 
 
+# Get class name of given object.
+getObjectClassName = (obj) ->
+    if obj && obj.constructor && obj.constructor.toString
+        arr = obj.constructor.toString().match /function\s*(\w+)/;
+        if arr && arr.length is 2
+            return arr[1]
+    return undefined
+
+
 funcAssertObjInstance = (obj) ->
-    assert.instanceOf obj, kSqlExpression
+    assert.equal getObjectClassName(obj), getObjectClassName(squel.expr())
 
 contextAssertObjInstance = (topic) ->
     topic: topic
@@ -45,25 +77,25 @@ contextEndThrowsBeginError = ->
 
 suite.addBatch
     'when the builder is initialized':
-        topic: new kSqlExpression()
+        topic: squel.expr()
         'calling toString() gives an empty string': (builder) ->
             assert.isEmpty builder.toString()
         'then when end() gets called': contextEndThrowsBeginError()
     'when and_begin() gets called':
-        topic: new kSqlExpression().and_begin()
+        topic: squel.expr().and_begin()
         'the object instance is returned': funcAssertObjInstance
         'then when toString() gets called': contextToStringThrowsEndError()
     'when and_begin() gets called followed by end()':
-        topic: new kSqlExpression().and_begin().end()
+        topic: squel.expr().and_begin().end()
         'the object instance is returned': funcAssertObjInstance
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
     'when or_begin() gets called':
-        topic: new kSqlExpression().or_begin()
+        topic: squel.expr().or_begin()
         'the object instance is returned': funcAssertObjInstance
         'then when toString() is called':  contextToStringThrowsEndError()
     'when or_begin() gets called followed by end()':
-        topic: new kSqlExpression().or_begin().end()
+        topic: squel.expr().or_begin().end()
         'the object instance is returned': funcAssertObjInstance
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
@@ -74,8 +106,8 @@ contextBadArgError = (func, arg) ->
     topic: ->
         try
             switch func
-                when 'and' then new kSqlExpression().and(arg)
-                when 'or' then new kSqlExpression().or(arg)
+                when 'and' then squel.expr().and(arg)
+                when 'or' then squel.expr().or(arg)
                 else throw new Error "Unrecognized func: #{func}"
         catch err
             return err
@@ -88,7 +120,7 @@ suite.addBatch
     'when calling and() with an array argument': contextBadArgError('and',  [])
     'when calling and() with an object argument': contextBadArgError('and',  {a:'a'})
     'when calling and() with a function argument': contextBadArgError('and',  () -> return 'a')
-    'when calling and() with a string argument': contextAssertObjInstance new kSqlExpression().and("test")
+    'when calling and() with a string argument': contextAssertObjInstance squel.expr().and("test")
 
 
 
@@ -97,7 +129,7 @@ suite.addBatch
     'when calling or() with an array argument': contextBadArgError('or', [])
     'when calling or() with an object argument': contextBadArgError('or', {a:'a'})
     'when calling or() with a function argument': contextBadArgError('or', () -> return 'a')
-    'when calling or() with a string argument': contextAssertObjInstance new kSqlExpression().or("test")
+    'when calling or() with a string argument': contextAssertObjInstance squel.expr().or("test")
 
 
 
@@ -105,7 +137,7 @@ suite.addBatch
 
 suite.addBatch
     'when and("test = 3") is called':
-        topic: new kSqlExpression().and("test = 3")
+        topic: squel.expr().and("test = 3")
         'then when toString() is called': contextAssertStringEqual("test = 3")
         'then when and("flight = \'4\'") is called':
             topic: (obj) -> obj.and("flight = '4'")
@@ -119,7 +151,7 @@ suite.addBatch
 
 suite.addBatch
     'when or("test = 3") is called':
-        topic: new kSqlExpression().or("test = 3")
+        topic: squel.expr().or("test = 3")
         'then when toString() is called': contextAssertStringEqual "test = 3"
         'then when or("flight = \'4\'") is called':
             topic: (obj) -> obj.or("flight = '4'")
@@ -133,7 +165,7 @@ suite.addBatch
 
 suite.addBatch
     'when or("test = 3") is called':
-        topic: new kSqlExpression().or("test = 3")
+        topic: squel.expr().or("test = 3")
         'then when and_begin() is called':
             topic: (obj) -> obj.and_begin()
             'then when or("inner = 1") is called':

@@ -1,4 +1,4 @@
-<!DOCTYPE html>  <html> <head>   <title>ksql.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               ksql.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h1>#</h1>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Copyright</span> <span class="p">(</span><span class="nx">c</span><span class="p">)</span> <span class="mi">2012</span> <span class="nx">Ramesh</span> <span class="nx">Nair</span> <span class="p">(</span><span class="nx">hiddentao</span><span class="p">)</span>
+<!DOCTYPE html>  <html> <head>   <title>squel.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               squel.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h1>#</h1>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Copyright</span> <span class="p">(</span><span class="nx">c</span><span class="p">)</span> <span class="mi">2012</span> <span class="nx">Ramesh</span> <span class="nx">Nair</span> <span class="p">(</span><span class="nx">hiddentao</span><span class="p">)</span>
 
 <span class="nx">Permission</span> <span class="o">is</span> <span class="nx">hereby</span> <span class="nx">granted</span><span class="p">,</span> <span class="nx">free</span> <span class="k">of</span> <span class="nx">charge</span><span class="p">,</span> <span class="nx">to</span> <span class="nx">any</span> <span class="nx">person</span>
 <span class="nx">obtaining</span> <span class="nx">a</span> <span class="nx">copy</span> <span class="k">of</span> <span class="k">this</span> <span class="nx">software</span> <span class="o">and</span> <span class="nx">associated</span> <span class="nx">documentation</span>
@@ -29,7 +29,7 @@ traverses this tree in order to build the final expression string.</p>
 <p>Expressions can be nested. Nested expression contains can themselves contain nested expressions.
 When rendered a nested expression will be fully contained within brackets.</p>
 
-<p>All the build methods in this object return the object instance for chained method calling purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">kSqlExpression</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>The expression tree.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">tree: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The part of the expression tree we're currently working on.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">current: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Initialise the expression.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">constructor: </span><span class="o">-&gt;</span>
+<p>All the build methods in this object return the object instance for chained method calling purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Expression</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>The expression tree.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">tree: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The part of the expression tree we're currently working on.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">current: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Initialise the expression.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">constructor: </span><span class="o">-&gt;</span>
         <span class="vi">@tree =</span>
             <span class="nv">parent: </span><span class="kc">null</span>
             <span class="nv">nodes: </span><span class="p">[]</span>
@@ -45,7 +45,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <span class="nx">@_begin</span> <span class="s">&#39;OR&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>End the current compound expression.</p>
 
 <p>This will throw an error if begin() hasn't been called yet.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">end: </span><span class="o">=&gt;</span>
-        <span class="k">if</span> <span class="o">not</span> <span class="nx">@current</span><span class="p">.</span><span class="nx">parent</span><span class="o">?</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@current</span><span class="p">.</span><span class="nx">parent</span>
             <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span> <span class="s">&quot;begin() needs to be called&quot;</span>
         <span class="vi">@current = </span><span class="nx">@current</span><span class="p">.</span><span class="nx">parent</span>
         <span class="nx">@</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Combine the current expression with the given expression using the intersection operator (AND).</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="o">and:</span> <span class="p">(</span><span class="nx">expr</span><span class="p">)</span> <span class="o">=&gt;</span>
@@ -75,127 +75,68 @@ When rendered a nested expression will be fully contained within brackets.</p>
                     <span class="nv">nodeStr = </span><span class="s">&quot;(&quot;</span> <span class="o">+</span> <span class="nx">nodeStr</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span>
             <span class="k">if</span> <span class="s">&quot;&quot;</span> <span class="o">isnt</span> <span class="nx">nodeStr</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>if this isn't first expression then add the operator</p>             </td>             <td class="code">               <div class="highlight"><pre>                <span class="k">if</span> <span class="s">&quot;&quot;</span> <span class="o">isnt</span> <span class="nx">str</span> <span class="k">then</span> <span class="nx">str</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="nx">child</span><span class="p">.</span><span class="nx">type</span> <span class="o">+</span> <span class="s">&quot; &quot;</span>
                 <span class="nx">str</span> <span class="o">+=</span> <span class="nx">nodeStr</span>
-        <span class="nx">str</span>
+        <span class="nx">str</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>A SELECT query builder.</p>
 
+<p>Note that the query builder does not check the final query string for correctness.</p>
 
-<span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports =</span>
-    <span class="nv">expression: </span><span class="nx">kSqlExpression</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <h1>SQL query builder</h1>
+<p>All the build methods in this object return the object instance for chained method calling purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Select</span>
+    <span class="nv">tables = </span><span class="p">[]</span>
+    <span class="nv">fields = </span><span class="p">[]</span>
+    <span class="nv">joins = </span><span class="p">[]</span>
+    <span class="nv">where = </span><span class="kc">null</span>
 
-<p>module?.exports = new class KSql
-   type = null
-   tables = []
-   fields = []
-   joins = []
-   where = null</p>
+    <span class="nx">constructor</span> <span class="o">-&gt;</span>
+        <span class="vi">@where = </span><span class="k">new</span> <span class="nx">Expression</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Add a JOIN with the given table.</p>
 
-<p>constructor ->
-       @where = new ksqlexpr()</p>
+<p>'type' must be either one of inner, outer, left or right. Default is 'inner'.</p>
 
-<p># Create an INSERT query
-   #
-   # @return this object instance for chaining purposes.
-   @insert = =>
-       @type = "insert"
-       @</p>
+<p>'table' is the name of the table to join with.</p>
 
-<p># Create a SELECT query
-   #
-   # @return this object instance for chaining purposes.
-   @select = =>
-       @type = "select"
-       @</p>
+<p>'alias' is an optional alias for the table name.</p>
 
-<p># Create a UPDATE query
-   #
-   # @return this object instance for chaining purposes.
-   @update = =>
-       @type = "update"
-       @</p>
+<p>'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of</p>
 
-<p># Create a DELETE query
-   #
-   # @return this object instance for chaining purposes.
-   @del = =>
-       @type = "delete"
-       @</p>
+<p>Note</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@join = </span><span class="p">(</span><span class="nv">type = </span><span class="s">&#39;inner&#39;</span><span class="p">,</span> <span class="nx">table</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">,</span> <span class="nv">condition = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">@joins</span><span class="p">.</span><span class="nx">push</span>
+                <span class="nv">type: </span><span class="nx">type</span>
+                <span class="nv">table: </span><span class="nx">table</span>
+                <span class="nv">alias: </span><span class="nx">alias</span>
+                <span class="nv">condition: </span><span class="nx">condition</span>
+            <span class="nx">@</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Specify table to read data from.</p>
 
-<p># Create a DELETE query
-   #
-   # @return this object instance for chaining purposes.
-   @del = =>
-       @type = "delete"
-       @</p>
+<p>An alias may also be specified for the table.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@table = </span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@tables</span><span class="p">.</span><span class="nx">push</span>
+            <span class="nv">name: </span><span class="nx">name</span>
+            <span class="nv">alias: </span><span class="nx">alias</span>
+        <span class="nx">@</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>Specify one or more fields to read from the table and return in the final result set.</p>
 
-<p># Specify table to read data from
-   #
-   # @param name name of the table
-   # @param alias alias for the table name. Default is none.
-   #
-   # @return this object instance for chaining purposes.
-   @table = (name, alias = null) =>
-       @tables.push
-           name: name
-           alias: alias
-       @</p>
+<p>The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
+e.g. DATE_FORMAT(a.started, "%H")</p>
 
-<p># Specify one or more fields to read from the table
-   #
-   # The field parameter does not necessarily have to be a fieldname. It can use database functions too,
-   # e.g. DATE_FORMAT(a.started, "%H")
-   #
-   # @param name name of the table
-   # @param alias alias for the table name. Default is none.
-   #
-   # @return this object instance for chaining purposes.
-   @field = (field, alias = null) =>
-       @fields.push
-           field: field
-           alias: alias
-       @</p>
+<p>An alias may also be specified for this field.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@field = </span><span class="p">(</span><span class="nx">field</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@fields</span><span class="p">.</span><span class="nx">push</span>
+            <span class="nv">field: </span><span class="nx">field</span>
+            <span class="nv">alias: </span><span class="nx">alias</span>
+        <span class="nx">@</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>Alias of join() with type set to 'left'</p>
 
-<p># Add a JOIN with the given table.
-   #
-   # @param type either one of inner, outer, left or right. Default is 'inner'.
-   # @param table the name of the table to join with
-   # @param the alias for the table name. Default is none.
-   # @param the join condition. Default is none.
-   #
-   # @return this object instance for chaining purposes.
-   @join = (type = 'inner', table, alias = null, condition = null) =>
-       @joins.push
-           type: type
-           table: table
-           alias: alias
-           condition: condition
-       @</p>
+<p>@return this object instance for chaining purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@left_join = </span><span class="p">(</span><span class="nx">table</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">,</span> <span class="nv">condition = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">join</span> <span class="s">&#39;left&#39;</span><span class="p">,</span> <span class="nx">table</span><span class="p">,</span> <span class="nx">alias</span><span class="p">,</span> <span class="nx">condition</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>Alias of join() with type set to 'right'</p>
 
-<p># Alias of join() with type set to 'left'
-   #
-   # @return this object instance for chaining purposes.
-   @left_join = (table, alias = null, condition = null) =>
-       join 'left', table, alias, condition</p>
+<p>@return this object instance for chaining purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@right_join = </span><span class="p">(</span><span class="nx">table</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">,</span> <span class="nv">condition = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">join</span> <span class="s">&#39;right&#39;</span><span class="p">,</span> <span class="nx">table</span><span class="p">,</span> <span class="nx">alias</span><span class="p">,</span> <span class="nx">condition</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>Alias of join() with type set to 'outer'</p>
 
-<p># Alias of join() with type set to 'right'
-   #
-   # @return this object instance for chaining purposes.
-   @right_join = (table, alias = null, condition = null) =>
-       join 'right', table, alias, condition</p>
+<p>@return this object instance for chaining purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@outer_join = </span><span class="p">(</span><span class="nx">table</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">,</span> <span class="nv">condition = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">join</span> <span class="s">&#39;outer&#39;</span><span class="p">,</span> <span class="nx">table</span><span class="p">,</span> <span class="nx">alias</span><span class="p">,</span> <span class="nx">condition</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p>Begin a compound AND expression as part of the WHERE clause</p>
 
-<p># Alias of join() with type set to 'outer'
-   #
-   # @return this object instance for chaining purposes.
-   @outer_join = (table, alias = null, condition = null) =>
-       join 'outer', table, alias, condition</p>
+<p>@return this object instance for chaining purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@begin_and_where = </span><span class="p">(</span><span class="nx">table</span><span class="p">,</span> <span class="nv">alias = </span><span class="kc">null</span><span class="p">,</span> <span class="nv">condition = </span><span class="kc">null</span><span class="p">)</span> <span class="o">=&gt;</span>
 
-<p># Begin a compound AND expression as part of the WHERE clause
-   #
-   # @return this object instance for chaining purposes.
-   @begin<em>and</em>where = (table, alias = null, condition = null) =></p>
+        <span class="nx">join</span> <span class="s">&#39;outer&#39;</span><span class="p">,</span> <span class="nx">table</span><span class="p">,</span> <span class="nx">alias</span><span class="p">,</span> <span class="nx">condition</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p>Get fully constructed SQL query string</p>
 
-<pre><code>   join 'outer', table, alias, condition
-</code></pre>
+<p>@return the constructed query string.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@toString = </span><span class="o">=&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-26">&#182;</a>               </div>               <p>Export everything as easily usable methods.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">module</span><span class="o">?</span><span class="p">.</span><span class="nv">exports =</span>
+    <span class="nv">expr: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Expression</span>
+    <span class="nv">select: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Select</span>
+    <span class="nv">update: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Update</span>
+    <span class="nv">insert: </span><span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Insert</span>
+    <span class="k">delete</span><span class="o">:</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Delete</span>
 
-<p># Get fully constructed SQL query string
-   #
-   # @return the constructed query string.
-   @toString = =></p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

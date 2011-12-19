@@ -34,7 +34,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class kSqlExpression
+class Expression
 
     # The expression tree.
     tree: null
@@ -128,138 +128,109 @@ class kSqlExpression
         str
 
 
+
+
+# A SELECT query builder.
+#
+# Note that the query builder does not check the final query string for correctness.
+#
+# All the build methods in this object return the object instance for chained method calling purposes.
+class Select
+    tables = []
+    fields = []
+    joins = []
+    where = null
+
+    constructor ->
+        @where = new Expression()
+
+        # Add a JOIN with the given table.
+        #
+        # 'type' must be either one of inner, outer, left or right. Default is 'inner'.
+        #
+        # 'table' is the name of the table to join with.
+        #
+        # 'alias' is an optional alias for the table name.
+        #
+        # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
+        #
+        #
+        # Note
+        @join = (type = 'inner', table, alias = null, condition = null) =>
+            @joins.push
+                type: type
+                table: table
+                alias: alias
+                condition: condition
+            @
+
+
+    # Specify table to read data from.
+    #
+    # An alias may also be specified for the table.
+    @table = (name, alias = null) =>
+        @tables.push
+            name: name
+            alias: alias
+        @
+
+    # Specify one or more fields to read from the table and return in the final result set.
+    #
+    # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
+    # e.g. DATE_FORMAT(a.started, "%H")
+    #
+    # An alias may also be specified for this field.
+    @field = (field, alias = null) =>
+        @fields.push
+            field: field
+            alias: alias
+        @
+
+
+    # Alias of join() with type set to 'left'
+    #
+    # @return this object instance for chaining purposes.
+    @left_join = (table, alias = null, condition = null) =>
+        join 'left', table, alias, condition
+
+
+    # Alias of join() with type set to 'right'
+    #
+    # @return this object instance for chaining purposes.
+    @right_join = (table, alias = null, condition = null) =>
+        join 'right', table, alias, condition
+
+
+    # Alias of join() with type set to 'outer'
+    #
+    # @return this object instance for chaining purposes.
+    @outer_join = (table, alias = null, condition = null) =>
+        join 'outer', table, alias, condition
+
+
+    # Begin a compound AND expression as part of the WHERE clause
+    #
+    # @return this object instance for chaining purposes.
+    @begin_and_where = (table, alias = null, condition = null) =>
+
+        join 'outer', table, alias, condition
+
+
+    # Get fully constructed SQL query string
+    #
+    # @return the constructed query string.
+    @toString = =>
+
+
+
+
+
+
+
+# Export everything as easily usable methods.
 module?.exports =
-    expression: kSqlExpression
-
-
-#
-#
-#
-## SQL query builder
-#module?.exports = new class KSql
-#    type = null
-#    tables = []
-#    fields = []
-#    joins = []
-#    where = null
-#
-#    constructor ->
-#        @where = new ksqlexpr()
-#
-#    # Create an INSERT query
-#    #
-#    # @return this object instance for chaining purposes.
-#    @insert = =>
-#        @type = "insert"
-#        @
-#
-#    # Create a SELECT query
-#    #
-#    # @return this object instance for chaining purposes.
-#    @select = =>
-#        @type = "select"
-#        @
-#
-#    # Create a UPDATE query
-#    #
-#    # @return this object instance for chaining purposes.
-#    @update = =>
-#        @type = "update"
-#        @
-#
-#    # Create a DELETE query
-#    #
-#    # @return this object instance for chaining purposes.
-#    @del = =>
-#        @type = "delete"
-#        @
-#
-#    # Create a DELETE query
-#    #
-#    # @return this object instance for chaining purposes.
-#    @del = =>
-#        @type = "delete"
-#        @
-#
-#    # Specify table to read data from
-#    #
-#    # @param name name of the table
-#    # @param alias alias for the table name. Default is none.
-#    #
-#    # @return this object instance for chaining purposes.
-#    @table = (name, alias = null) =>
-#        @tables.push
-#            name: name
-#            alias: alias
-#        @
-#
-#    # Specify one or more fields to read from the table
-#    #
-#    # The field parameter does not necessarily have to be a fieldname. It can use database functions too,
-#    # e.g. DATE_FORMAT(a.started, "%H")
-#    #
-#    # @param name name of the table
-#    # @param alias alias for the table name. Default is none.
-#    #
-#    # @return this object instance for chaining purposes.
-#    @field = (field, alias = null) =>
-#        @fields.push
-#            field: field
-#            alias: alias
-#        @
-#
-#
-#    # Add a JOIN with the given table.
-#    #
-#    # @param type either one of inner, outer, left or right. Default is 'inner'.
-#    # @param table the name of the table to join with
-#    # @param the alias for the table name. Default is none.
-#    # @param the join condition. Default is none.
-#    #
-#    # @return this object instance for chaining purposes.
-#    @join = (type = 'inner', table, alias = null, condition = null) =>
-#        @joins.push
-#            type: type
-#            table: table
-#            alias: alias
-#            condition: condition
-#        @
-#
-#
-#    # Alias of join() with type set to 'left'
-#    #
-#    # @return this object instance for chaining purposes.
-#    @left_join = (table, alias = null, condition = null) =>
-#        join 'left', table, alias, condition
-#
-#
-#    # Alias of join() with type set to 'right'
-#    #
-#    # @return this object instance for chaining purposes.
-#    @right_join = (table, alias = null, condition = null) =>
-#        join 'right', table, alias, condition
-#
-#
-#    # Alias of join() with type set to 'outer'
-#    #
-#    # @return this object instance for chaining purposes.
-#    @outer_join = (table, alias = null, condition = null) =>
-#        join 'outer', table, alias, condition
-#
-#
-#    # Begin a compound AND expression as part of the WHERE clause
-#    #
-#    # @return this object instance for chaining purposes.
-#    @begin_and_where = (table, alias = null, condition = null) =>
-#
-#        join 'outer', table, alias, condition
-#
-#
-#    # Get fully constructed SQL query string
-#    #
-#    # @return the constructed query string.
-#    @toString = =>
-#
-#
-#
-#
+    expr: -> new Expression
+    select: -> new Select
+    update: -> new Update
+    insert: -> new Insert
+    delete: -> new Delete

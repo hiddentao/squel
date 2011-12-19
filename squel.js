@@ -25,17 +25,17 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var kSqlExpression,
+  var Expression, Select,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  kSqlExpression = (function() {
+  Expression = (function() {
     var _toString;
 
-    kSqlExpression.prototype.tree = null;
+    Expression.prototype.tree = null;
 
-    kSqlExpression.prototype.current = null;
+    Expression.prototype.current = null;
 
-    function kSqlExpression() {
+    function Expression() {
       this.toString = __bind(this.toString, this);
       this.or = __bind(this.or, this);
       this.and = __bind(this.and, this);
@@ -61,21 +61,21 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
     }
 
-    kSqlExpression.prototype.and_begin = function() {
+    Expression.prototype.and_begin = function() {
       return this._begin('AND');
     };
 
-    kSqlExpression.prototype.or_begin = function() {
+    Expression.prototype.or_begin = function() {
       return this._begin('OR');
     };
 
-    kSqlExpression.prototype.end = function() {
+    Expression.prototype.end = function() {
       if (!this.current.parent) throw new Error("begin() needs to be called");
       this.current = this.current.parent;
       return this;
     };
 
-    kSqlExpression.prototype.and = function(expr) {
+    Expression.prototype.and = function(expr) {
       if (!expr || "string" !== typeof expr) {
         throw new Error("expr must be a string");
       }
@@ -86,7 +86,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    kSqlExpression.prototype.or = function(expr) {
+    Expression.prototype.or = function(expr) {
       if (!expr || "string" !== typeof expr) {
         throw new Error("expr must be a string");
       }
@@ -97,7 +97,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    kSqlExpression.prototype.toString = function() {
+    Expression.prototype.toString = function() {
       if (null !== this.current.parent) {
         throw new Error("end() needs to be called");
       }
@@ -124,13 +124,106 @@ OTHER DEALINGS IN THE SOFTWARE.
       return str;
     };
 
-    return kSqlExpression;
+    return Expression;
 
   })();
 
+  Select = (function() {
+    var fields, joins, tables, where,
+      _this = this;
+
+    function Select() {}
+
+    tables = [];
+
+    fields = [];
+
+    joins = [];
+
+    where = null;
+
+    constructor(function() {
+      var _this = this;
+      this.where = new Expression();
+      return this.join = function(type, table, alias, condition) {
+        if (type == null) type = 'inner';
+        if (alias == null) alias = null;
+        if (condition == null) condition = null;
+        _this.joins.push({
+          type: type,
+          table: table,
+          alias: alias,
+          condition: condition
+        });
+        return _this;
+      };
+    });
+
+    Select.table = function(name, alias) {
+      if (alias == null) alias = null;
+      Select.tables.push({
+        name: name,
+        alias: alias
+      });
+      return Select;
+    };
+
+    Select.field = function(field, alias) {
+      if (alias == null) alias = null;
+      Select.fields.push({
+        field: field,
+        alias: alias
+      });
+      return Select;
+    };
+
+    Select.left_join = function(table, alias, condition) {
+      if (alias == null) alias = null;
+      if (condition == null) condition = null;
+      return join('left', table, alias, condition);
+    };
+
+    Select.right_join = function(table, alias, condition) {
+      if (alias == null) alias = null;
+      if (condition == null) condition = null;
+      return join('right', table, alias, condition);
+    };
+
+    Select.outer_join = function(table, alias, condition) {
+      if (alias == null) alias = null;
+      if (condition == null) condition = null;
+      return join('outer', table, alias, condition);
+    };
+
+    Select.begin_and_where = function(table, alias, condition) {
+      if (alias == null) alias = null;
+      if (condition == null) condition = null;
+      return join('outer', table, alias, condition);
+    };
+
+    Select.toString = function() {};
+
+    return Select;
+
+  }).call(this);
+
   if (typeof module !== "undefined" && module !== null) {
     module.exports = {
-      expression: kSqlExpression
+      expr: function() {
+        return new Expression;
+      },
+      select: function() {
+        return new Select;
+      },
+      update: function() {
+        return new Update;
+      },
+      insert: function() {
+        return new Insert;
+      },
+      "delete": function() {
+        return new Delete;
+      }
     };
   }
 

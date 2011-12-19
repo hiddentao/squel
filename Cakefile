@@ -1,8 +1,10 @@
 fs            = require 'fs'
+path          = require 'path'
 {print}       = require 'sys'
 {spawn, exec} = require 'child_process'
+rimraf        = require 'rimraf'
 
-binpath = 'node_modules/.bin/'
+binpath = path.join __dirname, 'node_modules/.bin/'
 
 stream_data_handler = (data) -> print data.toString()
 
@@ -11,7 +13,7 @@ build_js = (callback) ->
     options = [
         '-c'
         '-j'
-        "ksql.js"
+        "squel.js"
         "src/"
     ]
     coffee = spawn "#{binpath}/coffee", options
@@ -21,13 +23,15 @@ build_js = (callback) ->
 
 
 build_docs = (callback) ->
-    options = [
-        'src/ksql.coffee'
-    ]
-    docco = spawn "#{binpath}/docco", options
-    docco.stdout.on 'data', stream_data_handler
-    docco.stderr.on 'data', stream_data_handler
-    docco.on 'exit', (status) -> callback?() if status is 0
+    rimraf path.join(__dirname, "docs"), (err) ->
+        if (err) then throw err
+        options = [
+            'src/squel.coffee'
+        ]
+        docco = spawn "#{binpath}/docco", options
+        docco.stdout.on 'data', stream_data_handler
+        docco.stderr.on 'data', stream_data_handler
+        docco.on 'exit', (status) -> callback?() if status is 0
 
 
 run_tests = (callback) ->

@@ -1,4 +1,4 @@
-# kSQL - SQL query builder for Javascript
+# squel - an SQL query builder for Javascript
 
 A simple, well tested SQL query string builder for Javascript.
 
@@ -14,7 +14,7 @@ A simple, well tested SQL query string builder for Javascript.
 
 Install using [npm](http://npmjs.org/):
 
-    $ npm install ksql
+    $ npm install squel
 
 ## Documentation
 

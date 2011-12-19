@@ -1,5 +1,5 @@
 {
-  "name": "ksql",
+  "name": "squel",
   "description": "SQL query string builder",
   "version": "1.0.0",
   "author": "Ramesh Nair <ram@hiddentao.com>",
@@ -10,11 +10,12 @@
     "coffee-script": ">= 1.2.0"
   },
   "devDependencies": {
+    "rimraf": "latest",
     "docco": ">= 0.3.0",
     "vows": ">= 0.6.0"
   },
   "keywords": ["sql", "builder", "nodejs"],
-  "main": "ksql",
+  "main": "squel",
   "scripts": {},
   "bin": {},
   "engines": { "node": ">= 0.4.0" }
