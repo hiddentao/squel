@@ -266,23 +266,52 @@ class Select
 
     # Get the final fully constructed query string.
     toString: =>
-        # from
+        # basic checks
         if 0 >= @froms.length
             throw new Error "from() needs to be called"
-        tables = ""
-        for table in @froms
-            if tables isnt ""
-                tables += ", "
-            tables += "`#{table.name}`"
-            if table.alias
-                tables += " `#{table.alias}`"
+
+        ret = "SELECT "
 
         # fields
         fields = ""
-        if 0 >= @fields.length
-            fields = "*"
+        for field in @fields
+            if "" isnt fields
+                fields += ", "
+            fields += field.field
+            if field.alias
+                fields += " AS \"#{field.alias}\""
 
-        "SELECT #{fields} FROM #{tables}"
+        ret += if "" is fields then "*" else fields
+
+        # tables
+        tables = ""
+        for table in @froms
+            if "" isnt tables
+                tables += ", "
+            tables += "#{table.name}"
+            if table.alias
+                tables += " `#{table.alias}`"
+
+        ret += " FROM #{tables}"
+
+        # joins
+        joins = ""
+        for j in @joins
+            joins += " #{j.type} JOIN #{j.table}"
+            if j.alias
+                joins += " `#{j.alias}`"
+            if j.condition
+                joins += " ON (#{j.condition})"
+
+        ret += joins
+
+        # where
+        if 0 < @wheres.length
+            ret += " WHERE (" + @wheres.join(") AND (") + ")"
+
+
+        ret
+
 
 
 

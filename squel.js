@@ -254,19 +254,40 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Select.prototype.toString = function() {
-      var fields, table, tables, _i, _len, _ref;
+      var field, fields, j, joins, ret, table, tables, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3;
       if (0 >= this.froms.length) throw new Error("from() needs to be called");
-      tables = "";
-      _ref = this.froms;
+      ret = "SELECT ";
+      fields = "";
+      _ref = this.fields;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        table = _ref[_i];
-        if (tables !== "") tables += ", ";
-        tables += "`" + table.name + "`";
+        field = _ref[_i];
+        if ("" !== fields) fields += ", ";
+        fields += field.field;
+        if (field.alias) fields += " AS \"" + field.alias + "\"";
+      }
+      ret += "" === fields ? "*" : fields;
+      tables = "";
+      _ref2 = this.froms;
+      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+        table = _ref2[_j];
+        if ("" !== tables) tables += ", ";
+        tables += "" + table.name;
         if (table.alias) tables += " `" + table.alias + "`";
       }
-      fields = "";
-      if (0 >= this.fields.length) fields = "*";
-      return "SELECT " + fields + " FROM " + tables;
+      ret += " FROM " + tables;
+      joins = "";
+      _ref3 = this.joins;
+      for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+        j = _ref3[_k];
+        joins += " " + j.type + " JOIN " + j.table;
+        if (j.alias) joins += " `" + j.alias + "`";
+        if (j.condition) joins += " ON (" + j.condition + ")";
+      }
+      ret += joins;
+      if (0 < this.wheres.length) {
+        ret += " WHERE (" + this.wheres.join(") AND (") + ")";
+      }
+      return ret;
     };
 
     return Select;

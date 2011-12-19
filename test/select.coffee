@@ -196,114 +196,165 @@ suite.addBatch
 
 
 suite.addBatch
-    'when from("test") is called': contextAssertObjInstance (-> select().from("test"))
+    'when field("test") is called':
+        topic: -> select().field("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
+    'when join("test") is called':
+        topic: -> select().join("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
+    'when left_join("test") is called':
+        topic: -> select().left_join("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
+    'when right_join("test") is called':
+        topic: -> select().right_join("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
+    'when outer_join("test") is called':
+        topic: -> select().outer_join("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
+    'when where("test") is called':
+        topic: -> select().where("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'the object instance is returned': funcAssertObjInstance
+        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test'
+
 
 suite.addBatch
     'when from("test") is called':
         topic: -> select().from("test")
-        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM `test`'
         'then when from("test2") is called':
             topic: (obj) -> obj.from("test2")
-            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM `test`, `test2`'
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test, test2'
             'then when from("test3","a") is called':
                 topic: (obj) -> obj.from("test3","a")
-                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM `test`, `test2`, `test3` `a`'
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test, test2, test3 `a`'
+
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when field("field1") is called':
+            topic: (obj) -> obj.field("field1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT field1 FROM test'
+            'then when field("field2","b") is called':
+                topic: (obj) -> obj.field("field2","b")
+                'then when toString() is called': contextAssertStringEqual 'SELECT field1, field2 AS "b" FROM test'
+                'then when field("DATE_FORMAT(a.started, \'%H\')","b2") is called':
+                    topic: (obj) -> obj.field("DATE_FORMAT(a.started, '%H')","b2")
+                    'then when toString() is called': contextAssertStringEqual 'SELECT field1, field2 AS "b", DATE_FORMAT(a.started, \'%H\') AS "b2" FROM test'
+
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when where("field1=2") is called':
+            topic: (obj) -> obj.where("field1=2")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test WHERE (field1=2)'
+            'then when where("field2=\'3\'") is called':
+                topic: (obj) -> obj.where("field2='3'")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test WHERE (field1=2) AND (field2=\'3\')'
+    'when from("test2") is called':
+        topic: -> select().from("test2")
+        'then when where(expr) is called':
+            topic: (obj) -> obj.where(expr().and('test=3').and_begin().or('test2=1').or('test2=2').end())
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test2 WHERE (test=3 AND (test2=1 OR test2=2))'
+    'when from("test3") is called':
+        topic: -> select().from("test3")
+        'then when where("test1=1 OR test2=2 AND (test3=3 OR test4=4)") is called':
+            topic: (obj) -> obj.where("test1=1 OR test2=2 AND (test3=3 OR test4=4)")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test3 WHERE (test1=1 OR test2=2 AND (test3=3 OR test4=4))'
+
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when join("table1") is called':
+            topic: (obj) -> obj.join("table1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test INNER JOIN table1'
+            'then when join("table2","t2") is called':
+                topic: (obj) -> obj.join("table2","t2")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test INNER JOIN table1 INNER JOIN table2 `t2`'
+                'then when join("table3", null, "table3.id = test.id") is called':
+                    topic: (obj) -> obj.join("table3", null, "table3.id = test.id")
+                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test INNER JOIN table1 INNER JOIN table2 `t2` INNER JOIN table3 ON (table3.id = test.id)'
+                    'then when join("table4", "t4", expr) is called':
+                        topic: (obj) -> obj.join("table4", "t4", expr().and("t4.id IN (0,test.id)"))
+                        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test INNER JOIN table1 INNER JOIN table2 `t2` INNER JOIN table3 ON (table3.id = test.id) INNER JOIN table4 `t4` ON (t4.id IN (0,test.id))'
+
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when left_join("table1") is called':
+            topic: (obj) -> obj.left_join("table1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test LEFT JOIN table1'
+            'then when left_join("table2","t2") is called':
+                topic: (obj) -> obj.left_join("table2","t2")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test LEFT JOIN table1 LEFT JOIN table2 `t2`'
+                'then when left_join("table3", null, "table3.id = test.id") is called':
+                    topic: (obj) -> obj.left_join("table3", null, "table3.id = test.id")
+                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test LEFT JOIN table1 LEFT JOIN table2 `t2` LEFT JOIN table3 ON (table3.id = test.id)'
+                    'then when left_join("table4", "t4", expr) is called':
+                        topic: (obj) -> obj.left_join("table4", "t4", expr().and("t4.id IN (0,test.id)"))
+                        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test LEFT JOIN table1 LEFT JOIN table2 `t2` LEFT JOIN table3 ON (table3.id = test.id) LEFT JOIN table4 `t4` ON (t4.id IN (0,test.id))'
+
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when right_join("table1") is called':
+            topic: (obj) -> obj.right_join("table1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test RIGHT JOIN table1'
+            'then when right_join("table2","t2") is called':
+                topic: (obj) -> obj.right_join("table2","t2")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test RIGHT JOIN table1 RIGHT JOIN table2 `t2`'
+                'then when right_join("table3", null, "table3.id = test.id") is called':
+                    topic: (obj) -> obj.right_join("table3", null, "table3.id = test.id")
+                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test RIGHT JOIN table1 RIGHT JOIN table2 `t2` RIGHT JOIN table3 ON (table3.id = test.id)'
+                    'then when right_join("table4", "t4", expr) is called':
+                        topic: (obj) -> obj.right_join("table4", "t4", expr().and("t4.id IN (0,test.id)"))
+                        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test RIGHT JOIN table1 RIGHT JOIN table2 `t2` RIGHT JOIN table3 ON (table3.id = test.id) RIGHT JOIN table4 `t4` ON (t4.id IN (0,test.id))'
+
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when outer_join("table1") is called':
+            topic: (obj) -> obj.outer_join("table1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test OUTER JOIN table1'
+            'then when outer_join("table2","t2") is called':
+                topic: (obj) -> obj.outer_join("table2","t2")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test OUTER JOIN table1 OUTER JOIN table2 `t2`'
+                'then when outer_join("table3", null, "table3.id = test.id") is called':
+                    topic: (obj) -> obj.outer_join("table3", null, "table3.id = test.id")
+                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test OUTER JOIN table1 OUTER JOIN table2 `t2` OUTER JOIN table3 ON (table3.id = test.id)'
+                    'then when outer_join("table4", "t4", expr) is called':
+                        topic: (obj) -> obj.outer_join("table4", "t4", expr().and("t4.id IN (0,test.id)"))
+                        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test OUTER JOIN table1 OUTER JOIN table2 `t2` OUTER JOIN table3 ON (table3.id = test.id) OUTER JOIN table4 `t4` ON (t4.id IN (0,test.id))'
+
+
+suite.addBatch
+    'when builder is intialized':
+        topic: -> select()
+        'then when from("table1") is called':
+            topic: (obj) -> obj.from("table1")
+            'then when outer_join("table2","t2", "t2.taste = table4.taste") is called':
+                topic: (obj) -> obj.outer_join("table2","t2", expr().or("t2.taste = table4.taste"))
+                'then when where("table3.id = 2") is called':
+                    topic: (obj) -> obj.where("table3.id = 2")
+                    'then when field("table4.taste", "t4") is called':
+                        topic: (obj) -> obj.field("table4.taste", "t4")
+                        'then when toString() is called': contextAssertStringEqual 'SELECT table4.taste AS "t4" FROM table1 OUTER JOIN table2 `t2` ON (t2.taste = table4.taste) WHERE (table3.id = 2)'
 
 
 
-#contextBadArgError = (func, arg) ->
-#    topic: ->
-#        try
-#            switch func
-#                when 'and' then select().and(arg)
-#                when 'or' then select().or(arg)
-#                else throw new Error "Unrecognized func: #{func}"
-#        catch err
-#            return err
-#    'an error gets thrown': (err) ->
-#        assert.strictEqual err.toString(), "Error: expr must be a string"
-#
-#
-#suite.addBatch
-#    'when calling and() without an argument': contextBadArgError('and', undefined)
-#    'when calling and() with an array argument': contextBadArgError('and',  [])
-#    'when calling and() with an object argument': contextBadArgError('and',  {a:'a'})
-#    'when calling and() with a function argument': contextBadArgError('and',  () -> return 'a')
-#    'when calling and() with a string argument': contextAssertObjInstance select().and("test")
-#
-#
-#
-#suite.addBatch
-#    'when calling or() without an argument': contextBadArgError('or', undefined)
-#    'when calling or() with an array argument': contextBadArgError('or', [])
-#    'when calling or() with an object argument': contextBadArgError('or', {a:'a'})
-#    'when calling or() with a function argument': contextBadArgError('or', () -> return 'a')
-#    'when calling or() with a string argument': contextAssertObjInstance select().or("test")
-#
-#
-#
-#
-#
-#suite.addBatch
-#    'when and("test = 3") is called':
-#        topic: select().and("test = 3")
-#        'then when toString() is called': contextAssertStringEqual("test = 3")
-#        'then when and("flight = \'4\'") is called':
-#            topic: (obj) -> obj.and("flight = '4'")
-#            'the object instance is returned': funcAssertObjInstance
-#            'then when toString() is called': contextAssertStringEqual "test = 3 AND flight = '4'"
-#            'then when or("dummy in (1,2,3)") is called':
-#                topic: (obj) -> obj.or("dummy in (1,2,3)")
-#                'the object instance is returned': funcAssertObjInstance
-#                'then when toString() is called': contextAssertStringEqual "test = 3 AND flight = '4' OR dummy in (1,2,3)"
-#
-#
-#suite.addBatch
-#    'when or("test = 3") is called':
-#        topic: select().or("test = 3")
-#        'then when toString() is called': contextAssertStringEqual "test = 3"
-#        'then when or("flight = \'4\'") is called':
-#            topic: (obj) -> obj.or("flight = '4'")
-#            'the object instance is returned': funcAssertObjInstance
-#            'then when toString() is called': contextAssertStringEqual "test = 3 OR flight = '4'"
-#            'then when and("dummy in (1,2,3)") is called':
-#                topic: (obj) -> obj.and("dummy in (1,2,3)")
-#                'the object instance is returned': funcAssertObjInstance
-#                'then when toString() is called': contextAssertStringEqual "test = 3 OR flight = '4' AND dummy in (1,2,3)"
-#
-#
-#suite.addBatch
-#    'when or("test = 3") is called':
-#        topic: select().or("test = 3")
-#        'then when and_begin() is called':
-#            topic: (obj) -> obj.and_begin()
-#            'then when or("inner = 1") is called':
-#                topic: (obj) -> obj.or("inner = 1")
-#                'then when or("inner = 2") is called':
-#                    topic: (obj) -> obj.or("inner = 2")
-#                    'then when toString() is called': contextToStringThrowsEndError()
-#                    'then when end() is called':
-#                        topic: (obj) -> obj.end()
-#                        'then when toString() is called': contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2)"
-#                        'then when end() gets called': contextEndThrowsBeginError()
-#                        'then when or_begin() is called':
-#                            topic: (obj) -> obj.or_begin()
-#                            'then when toString() is called': contextToStringThrowsEndError()
-#                            'then when and("inner = 3") is called':
-#                                topic: (obj) -> obj.and("inner = 3")
-#                                'then when and("inner = 4") is called':
-#                                    topic: (obj) -> obj.and("inner = 4")
-#                                    'then when or_begin() is called':
-#                                        topic: (obj) -> obj.or_begin()
-#                                        'then when or("inner = 5") is called':
-#                                            topic: (obj) -> obj.or("inner = 5")
-#                                            'then when end() is called':
-#                                                topic: (obj) -> obj.end()
-#                                                'then when toString() is called': contextToStringThrowsEndError()
-#                                                'then when end() is called':
-#                                                    topic: (obj) -> obj.end()
-#                                                    'then when toString() is called': contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
-#
 
 
 suite.export(module)
