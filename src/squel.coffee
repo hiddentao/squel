@@ -126,6 +126,13 @@ class Expression
         str
 
 
+# Get class name of given object.
+getObjectClassName = (obj) ->
+    if obj && obj.constructor && obj.constructor.toString
+        arr = obj.constructor.toString().match /function\s*(\w+)/;
+        if arr && arr.length is 2
+            return arr[1]
+    return undefined
 
 # Sanitize the given alias.
 sanitizeAlias = (alias) ->
@@ -135,10 +142,11 @@ sanitizeAlias = (alias) ->
 
 # Sanitize the given condition.
 sanitizeCondition = (condition) ->
-    if "Expression" isnt typeof condition or "string" isnt typeof condition
+    t = typeof condition
+    if "Expression" isnt getObjectClassName(condition) and "string" isnt t
         throw new Error "condition must be a string or Expression instance"
     # If it's an expression builder instance then convert it to string form.
-    if "Expression" is typeof condition
+    if "Expression" is t
         condition = condition.toString()
     condition
 
@@ -161,13 +169,13 @@ sanitizeField = (field) ->
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Select
-    tables: null
+    froms: null
     fields: null
     joins: null
     wheres: null
 
     constructor: ->
-        @tables = []
+        @froms = []
         @fields = []
         @joins = []
         @wheres = []
@@ -184,7 +192,7 @@ class Select
         # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
         # an expression builder then it will only get evaluated during the final query string construction phase in
         # toString().
-        @join = (type, table, alias, condition) =>
+        @_join = (type, table, alias, condition) =>
             table = sanitizeTable(table)
             alias = sanitizeAlias(alias) if alias
             condition = sanitizeCondition(condition) if condition
@@ -204,7 +212,7 @@ class Select
         table = sanitizeTable(table)
         alias = sanitizeAlias(alias) if alias
 
-        @tables.push
+        @froms.push
             name: table
             alias: alias
         @
@@ -228,22 +236,22 @@ class Select
 
     # Add an INNER JOIN with the given table.
     join: (table, alias = null, condition = null) =>
-        @join 'INNER', table, alias, condition
+        @_join 'INNER', table, alias, condition
 
 
     # Add a LEFT JOIN with the given table.
     left_join: (table, alias = null, condition = null) =>
-        @join 'LEFT', table, alias, condition
+        @_join 'LEFT', table, alias, condition
 
 
     # Add a RIGHT JOIN with the given table.
     right_join: (table, alias = null, condition = null) =>
-        @join 'RIGHT', table, alias, condition
+        @_join 'RIGHT', table, alias, condition
 
 
     # Add an OUTER JOIN with the given table.
     outer_join: (table, alias = null, condition = null) =>
-        @join 'OUTER', table, alias, condition
+        @_join 'OUTER', table, alias, condition
 
 
     # Add a WHERE condition to the query.
@@ -251,13 +259,30 @@ class Select
     # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
     where: (condition) =>
         condition = sanitizeCondition(condition)
-        @wheres.push condition
+        if "" isnt condition
+            @wheres.push condition
         @
 
 
     # Get the final fully constructed query string.
     toString: =>
-        ""
+        # from
+        if 0 >= @froms.length
+            throw new Error "from() needs to be called"
+        tables = ""
+        for table in @froms
+            if tables isnt ""
+                tables += ", "
+            tables += "`#{table.name}`"
+            if table.alias
+                tables += " `#{table.alias}`"
+
+        # fields
+        fields = ""
+        if 0 >= @fields.length
+            fields = "*"
+
+        "SELECT #{fields} FROM #{tables}"
 
 
 

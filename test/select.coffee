@@ -27,7 +27,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-select = (require "../squel").select
+squel = (require "../squel")
+
+select = squel.select
+expr = squel.expr
 
 
 suite = vows.describe("SELECT query builder")
@@ -68,14 +71,14 @@ contextFuncThrowsError = (func, errStr) ->
 
 
 
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when toString() gets called': contextFuncThrowsError ((obj)-> obj.toString()), "from() needs to be called"
 
 suite.addBatch
     'when the builder is initialized':
         topic: select()
-
-        'calling toString() gives an empty string': (builder) ->
-            assert.isEmpty builder.toString()
-
         'then when from() gets called': contextFuncThrowsError ((obj)-> obj.from()), "table name must be a string"
         'then when from([]) gets called': contextFuncThrowsError ((obj)-> obj.from([])), "table name must be a string"
         'then when from({}) gets called': contextFuncThrowsError ((obj)-> obj.from({})), "table name must be a string"
@@ -87,6 +90,9 @@ suite.addBatch
         'then when from("test", function) gets called': contextFuncThrowsError ((obj)-> obj.from("test",(-> 1))), "alias must be a string"
         'then when from("test", "a") gets called': contextAssertObjInstance ((obj)-> obj.from("test","a"))
 
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
         'then when field() gets called': contextFuncThrowsError ((obj)-> obj.field()), "field must be a string"
         'then when field([]) gets called': contextFuncThrowsError ((obj)-> obj.field([])), "field must be a string"
         'then when field({}) gets called': contextFuncThrowsError ((obj)-> obj.field({})), "field must be a string"
@@ -98,25 +104,113 @@ suite.addBatch
         'then when field("test", function) gets called': contextFuncThrowsError ((obj)-> obj.field("test",(-> 1))), "alias must be a string"
         'then when field("test", "a") gets called': contextAssertObjInstance ((obj)-> obj.field("test","a"))
 
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
         'then when join() gets called': contextFuncThrowsError ((obj)-> obj.join()), "table name must be a string"
         'then when join([]) gets called': contextFuncThrowsError ((obj)-> obj.join([])), "table name must be a string"
         'then when join({}) gets called': contextFuncThrowsError ((obj)-> obj.join({})), "table name must be a string"
         'then when join(function) gets called': contextFuncThrowsError ((obj)-> obj.join((-> 1))), "table name must be a string"
-#        'then when join("test") gets called': contextAssertObjInstance ((obj)-> obj.join("test"))
+        'then when join("test") gets called': contextAssertObjInstance ((obj)-> obj.join("test"))
 
-#        'then when join("test",[]) gets called': contextFuncThrowsError ((obj)-> obj.join("test",[])), "alias must be a string"
-#        'then when join("test",{}) gets called': contextFuncThrowsError ((obj)-> obj.join("test",{})), "alias must be a string"
-#        'then when join("test",function) gets called': contextFuncThrowsError ((obj)-> obj.join("test",(-> 1))), "alias must be a string"
-#        'then when join("test","a") gets called': contextAssertObjInstance ((obj)-> obj.join("test","a"))
-#
-#        'then when where() gets called': contextFuncThrowsError ((obj)-> obj.where()), "condition must be a string or Expression instance"
-#        'then when where([]) gets called': contextFuncThrowsError ((obj)-> obj.where([])), "condition must be a string or Expression instance"
-#        'then when where({}) gets called': contextFuncThrowsError ((obj)-> obj.where({})), "condition must be a string or Expression instance"
-#        'then when where(function) gets called': contextFuncThrowsError ((obj)-> obj.where((-> 1))), "condition must be a string or Expression instance"
-#        'then when where("test = 3") gets called': contextAssertObjInstance ((obj)-> obj.where("test = 3"))
+        'then when join("test",[]) gets called': contextFuncThrowsError ((obj)-> obj.join("test",[])), "alias must be a string"
+        'then when join("test",{}) gets called': contextFuncThrowsError ((obj)-> obj.join("test",{})), "alias must be a string"
+        'then when join("test",function) gets called': contextFuncThrowsError ((obj)-> obj.join("test",(-> 1))), "alias must be a string"
+        'then when join("test","a") gets called': contextAssertObjInstance ((obj)-> obj.join("test","a"))
 
-#
-#
+        'then when join("test","a",[]) gets called': contextFuncThrowsError ((obj)-> obj.join("test","a",[])), "condition must be a string or Expression instance"
+        'then when join("test","a",{}) gets called': contextFuncThrowsError ((obj)-> obj.join("test","a",{})), "condition must be a string or Expression instance"
+        'then when join("test","a",function) gets called': contextFuncThrowsError ((obj)-> obj.join("test","a",(-> 1))), "condition must be a string or Expression instance"
+        'then when join("test","a","b") gets called': contextAssertObjInstance ((obj)-> obj.join("test","a","b"))
+        'then when join("test","a",expr) gets called': contextAssertObjInstance ((obj)-> obj.join("test","a",expr()))
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when left_join() gets called': contextFuncThrowsError ((obj)-> obj.left_join()), "table name must be a string"
+        'then when left_join([]) gets called': contextFuncThrowsError ((obj)-> obj.left_join([])), "table name must be a string"
+        'then when left_join({}) gets called': contextFuncThrowsError ((obj)-> obj.left_join({})), "table name must be a string"
+        'then when left_join(function) gets called': contextFuncThrowsError ((obj)-> obj.left_join((-> 1))), "table name must be a string"
+        'then when left_join("test") gets called': contextAssertObjInstance ((obj)-> obj.left_join("test"))
+
+        'then when left_join("test",[]) gets called': contextFuncThrowsError ((obj)-> obj.left_join("test",[])), "alias must be a string"
+        'then when left_join("test",{}) gets called': contextFuncThrowsError ((obj)-> obj.left_join("test",{})), "alias must be a string"
+        'then when left_join("test",function) gets called': contextFuncThrowsError ((obj)-> obj.left_join("test",(-> 1))), "alias must be a string"
+        'then when left_join("test","a") gets called': contextAssertObjInstance ((obj)-> obj.left_join("test","a"))
+
+        'then when left_join("test","a",[]) gets called': contextFuncThrowsError ((obj)-> obj.left_join("test","a",[])), "condition must be a string or Expression instance"
+        'then when left_join("test","a",{}) gets called': contextFuncThrowsError ((obj)-> obj.left_join("test","a",{})), "condition must be a string or Expression instance"
+        'then when left_join("test","a",function) gets called': contextFuncThrowsError ((obj)-> obj.left_join("test","a",(-> 1))), "condition must be a string or Expression instance"
+        'then when left_join("test","a","b") gets called': contextAssertObjInstance ((obj)-> obj.left_join("test","a","b"))
+        'then when left_join("test","a",expr) gets called': contextAssertObjInstance ((obj)-> obj.left_join("test","a",expr()))
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when right_join() gets called': contextFuncThrowsError ((obj)-> obj.right_join()), "table name must be a string"
+        'then when right_join([]) gets called': contextFuncThrowsError ((obj)-> obj.right_join([])), "table name must be a string"
+        'then when right_join({}) gets called': contextFuncThrowsError ((obj)-> obj.right_join({})), "table name must be a string"
+        'then when right_join(function) gets called': contextFuncThrowsError ((obj)-> obj.right_join((-> 1))), "table name must be a string"
+        'then when right_join("test") gets called': contextAssertObjInstance ((obj)-> obj.right_join("test"))
+
+        'then when right_join("test",[]) gets called': contextFuncThrowsError ((obj)-> obj.right_join("test",[])), "alias must be a string"
+        'then when right_join("test",{}) gets called': contextFuncThrowsError ((obj)-> obj.right_join("test",{})), "alias must be a string"
+        'then when right_join("test",function) gets called': contextFuncThrowsError ((obj)-> obj.right_join("test",(-> 1))), "alias must be a string"
+        'then when right_join("test","a") gets called': contextAssertObjInstance ((obj)-> obj.right_join("test","a"))
+
+        'then when right_join("test","a",[]) gets called': contextFuncThrowsError ((obj)-> obj.right_join("test","a",[])), "condition must be a string or Expression instance"
+        'then when right_join("test","a",{}) gets called': contextFuncThrowsError ((obj)-> obj.right_join("test","a",{})), "condition must be a string or Expression instance"
+        'then when right_join("test","a",function) gets called': contextFuncThrowsError ((obj)-> obj.right_join("test","a",(-> 1))), "condition must be a string or Expression instance"
+        'then when right_join("test","a","b") gets called': contextAssertObjInstance ((obj)-> obj.right_join("test","a","b"))
+        'then when right_join("test","a",expr) gets called': contextAssertObjInstance ((obj)-> obj.right_join("test","a",expr()))
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when outer_join() gets called': contextFuncThrowsError ((obj)-> obj.outer_join()), "table name must be a string"
+        'then when outer_join([]) gets called': contextFuncThrowsError ((obj)-> obj.outer_join([])), "table name must be a string"
+        'then when outer_join({}) gets called': contextFuncThrowsError ((obj)-> obj.outer_join({})), "table name must be a string"
+        'then when outer_join(function) gets called': contextFuncThrowsError ((obj)-> obj.outer_join((-> 1))), "table name must be a string"
+        'then when outer_join("test") gets called': contextAssertObjInstance ((obj)-> obj.outer_join("test"))
+
+        'then when outer_join("test",[]) gets called': contextFuncThrowsError ((obj)-> obj.outer_join("test",[])), "alias must be a string"
+        'then when outer_join("test",{}) gets called': contextFuncThrowsError ((obj)-> obj.outer_join("test",{})), "alias must be a string"
+        'then when outer_join("test",function) gets called': contextFuncThrowsError ((obj)-> obj.outer_join("test",(-> 1))), "alias must be a string"
+        'then when outer_join("test","a") gets called': contextAssertObjInstance ((obj)-> obj.outer_join("test","a"))
+
+        'then when outer_join("test","a",[]) gets called': contextFuncThrowsError ((obj)-> obj.outer_join("test","a",[])), "condition must be a string or Expression instance"
+        'then when outer_join("test","a",{}) gets called': contextFuncThrowsError ((obj)-> obj.outer_join("test","a",{})), "condition must be a string or Expression instance"
+        'then when outer_join("test","a",function) gets called': contextFuncThrowsError ((obj)-> obj.outer_join("test","a",(-> 1))), "condition must be a string or Expression instance"
+        'then when outer_join("test","a","b") gets called': contextAssertObjInstance ((obj)-> obj.outer_join("test","a","b"))
+        'then when outer_join("test","a",expr) gets called': contextAssertObjInstance ((obj)-> obj.outer_join("test","a",expr()))
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when where() gets called': contextFuncThrowsError ((obj)-> obj.where()), "condition must be a string or Expression instance"
+        'then when where([]) gets called': contextFuncThrowsError ((obj)-> obj.where([])), "condition must be a string or Expression instance"
+        'then when where({}) gets called': contextFuncThrowsError ((obj)-> obj.where({})), "condition must be a string or Expression instance"
+        'then when where(function) gets called': contextFuncThrowsError ((obj)-> obj.where((-> 1))), "condition must be a string or Expression instance"
+        'then when where("test = 3") gets called': contextAssertObjInstance ((obj)-> obj.where("test = 3"))
+        'then when where(expr) gets called': contextAssertObjInstance ((obj)-> obj.where(expr()))
+
+
+suite.addBatch
+    'when from("test") is called': contextAssertObjInstance (-> select().from("test"))
+
+suite.addBatch
+    'when from("test") is called':
+        topic: -> select().from("test")
+        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM `test`'
+        'then when from("test2") is called':
+            topic: (obj) -> obj.from("test2")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM `test`, `test2`'
+            'then when from("test3","a") is called':
+                topic: (obj) -> obj.from("test3","a")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM `test`, `test2`, `test3` `a`'
+
+
+
 #contextBadArgError = (func, arg) ->
 #    topic: ->
 #        try

@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Expression, Select, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeTable,
+  var Expression, Select, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeTable,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Expression = (function() {
@@ -128,6 +128,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
+  getObjectClassName = function(obj) {
+    var arr;
+    if (obj && obj.constructor && obj.constructor.toString) {
+      arr = obj.constructor.toString().match(/function\s*(\w+)/);
+      if (arr && arr.length === 2) return arr[1];
+    }
+  };
+
   sanitizeAlias = function(alias) {
     if (alias && "string" !== typeof alias) {
       throw new Error("alias must be a string");
@@ -136,10 +144,12 @@ OTHER DEALINGS IN THE SOFTWARE.
   };
 
   sanitizeCondition = function(condition) {
-    if ("Expression" !== typeof condition || "string" !== typeof condition) {
+    var t;
+    t = typeof condition;
+    if ("Expression" !== getObjectClassName(condition) && "string" !== t) {
       throw new Error("condition must be a string or Expression instance");
     }
-    if ("Expression" === typeof condition) condition = condition.toString();
+    if ("Expression" === t) condition = condition.toString();
     return condition;
   };
 
@@ -155,7 +165,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   Select = (function() {
 
-    Select.prototype.tables = null;
+    Select.prototype.froms = null;
 
     Select.prototype.fields = null;
 
@@ -173,11 +183,11 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.field = __bind(this.field, this);
       this.from = __bind(this.from, this);
       var _this = this;
-      this.tables = [];
+      this.froms = [];
       this.fields = [];
       this.joins = [];
       this.wheres = [];
-      this.join = function(type, table, alias, condition) {
+      this._join = function(type, table, alias, condition) {
         table = sanitizeTable(table);
         if (alias) alias = sanitizeAlias(alias);
         if (condition) condition = sanitizeCondition(condition);
@@ -195,7 +205,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias == null) alias = null;
       table = sanitizeTable(table);
       if (alias) alias = sanitizeAlias(alias);
-      this.tables.push({
+      this.froms.push({
         name: table,
         alias: alias
       });
@@ -216,35 +226,47 @@ OTHER DEALINGS IN THE SOFTWARE.
     Select.prototype.join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return this.join('INNER', table, alias, condition);
+      return this._join('INNER', table, alias, condition);
     };
 
     Select.prototype.left_join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return this.join('LEFT', table, alias, condition);
+      return this._join('LEFT', table, alias, condition);
     };
 
     Select.prototype.right_join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return this.join('RIGHT', table, alias, condition);
+      return this._join('RIGHT', table, alias, condition);
     };
 
     Select.prototype.outer_join = function(table, alias, condition) {
       if (alias == null) alias = null;
       if (condition == null) condition = null;
-      return this.join('OUTER', table, alias, condition);
+      return this._join('OUTER', table, alias, condition);
     };
 
     Select.prototype.where = function(condition) {
       condition = sanitizeCondition(condition);
-      this.wheres.push(condition);
+      if ("" !== condition) this.wheres.push(condition);
       return this;
     };
 
     Select.prototype.toString = function() {
-      return "";
+      var fields, table, tables, _i, _len, _ref;
+      if (0 >= this.froms.length) throw new Error("from() needs to be called");
+      tables = "";
+      _ref = this.froms;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        table = _ref[_i];
+        if (tables !== "") tables += ", ";
+        tables += "`" + table.name + "`";
+        if (table.alias) tables += " `" + table.alias + "`";
+      }
+      fields = "";
+      if (0 >= this.fields.length) fields = "*";
+      return "SELECT " + fields + " FROM " + tables;
     };
 
     return Select;
