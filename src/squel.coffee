@@ -162,6 +162,13 @@ sanitizeField = (field) ->
         throw new Error "field must be a string"
     field
 
+# Sanitize the given limit/offset value.
+sanitizeLimitOffset = (value) ->
+    value = parseInt(value)
+    if 0 > value
+        throw new Error "limit/offset must be >=0"
+    value
+
 
 # A SELECT query builder.
 #
@@ -173,12 +180,19 @@ class Select
     fields: null
     joins: null
     wheres: null
+    orders: null
+    groups: null
+    limits: null
+    offsets: null
+    useDistinct: false
 
     constructor: ->
         @froms = []
         @fields = []
         @joins = []
         @wheres = []
+        @orders = []
+        @groups = []
 
 
         # Add a JOIN with the given table.
@@ -203,6 +217,12 @@ class Select
                 alias: alias
                 condition: condition
             @
+
+
+    # Add the DISTINCT keyword to this query.
+    distinct: =>
+        @useDistinct = true
+        @
 
 
     # Specify table to read data from.
@@ -254,13 +274,51 @@ class Select
         @_join 'OUTER', table, alias, condition
 
 
-    # Add a WHERE condition to the query.
+    # Add a WHERE condition.
     #
     # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
     where: (condition) =>
         condition = sanitizeCondition(condition)
         if "" isnt condition
             @wheres.push condition
+        @
+
+
+    # Add an ORDER BY transformation for the given field in the given order.
+    #
+    # To specify descending order pass false for the 'asc' parameter.
+    order: (field, asc = true) =>
+        field = sanitizeField field
+        @orders.push
+            field: field
+            dir: if asc then "ASC" else "DESC"
+        @
+
+
+    # Add a GROUP BY transformation for the given field.
+    group: (field) =>
+        field = sanitizeField field
+        @groups.push field
+        @
+
+
+    # Set the LIMIT transformation.
+    #
+    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+    # the limit.
+    limit: (max) =>
+        max = sanitizeLimitOffset max
+        @limits = max
+        @
+
+
+    # Set the OFFSET transformation.
+    #
+    # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
+    # the offset.
+    offset: (start) =>
+        start = sanitizeLimitOffset start
+        @offsets = start
         @
 
 
@@ -272,25 +330,24 @@ class Select
 
         ret = "SELECT "
 
+        # distinct
+        ret += "DISTINCT " if @useDistinct
+
         # fields
         fields = ""
         for field in @fields
-            if "" isnt fields
-                fields += ", "
+            fields += ", " if "" isnt fields
             fields += field.field
-            if field.alias
-                fields += " AS \"#{field.alias}\""
+            fields += " AS \"#{field.alias}\"" if field.alias
 
         ret += if "" is fields then "*" else fields
 
         # tables
         tables = ""
         for table in @froms
-            if "" isnt tables
-                tables += ", "
+            tables += ", " if "" isnt tables
             tables += "#{table.name}"
-            if table.alias
-                tables += " `#{table.alias}`"
+            tables += " `#{table.alias}`" if table.alias
 
         ret += " FROM #{tables}"
 
@@ -298,10 +355,8 @@ class Select
         joins = ""
         for j in @joins
             joins += " #{j.type} JOIN #{j.table}"
-            if j.alias
-                joins += " `#{j.alias}`"
-            if j.condition
-                joins += " ON (#{j.condition})"
+            joins += " `#{j.alias}`" if j.alias
+            joins += " ON (#{j.condition})" if j.condition
 
         ret += joins
 
@@ -309,6 +364,27 @@ class Select
         if 0 < @wheres.length
             ret += " WHERE (" + @wheres.join(") AND (") + ")"
 
+        # group by
+        if 0 < @groups.length
+            groups = ""
+            for f in @groups
+                groups += ", " if "" isnt groups
+                groups += f
+            ret += " GROUP BY #{groups}"
+
+        # order by
+        if 0 < @orders.length
+            orders = ""
+            for o in @orders
+                orders += ", " if "" isnt orders
+                orders += "#{o.field} #{o.dir}"
+            ret += " ORDER BY #{orders}"
+
+        # limit
+        ret += " LIMIT #{@limits}" if @limits
+
+        # offset
+        ret += " OFFSET #{@offsets}" if @offsets
 
         ret
 

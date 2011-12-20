@@ -195,6 +195,53 @@ suite.addBatch
 
 
 suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when order() gets called': contextFuncThrowsError ((obj)-> obj.order()), "field must be a string"
+        'then when order([]) gets called': contextFuncThrowsError ((obj)-> obj.order([])), "field must be a string"
+        'then when order({}) gets called': contextFuncThrowsError ((obj)-> obj.order({})), "field must be a string"
+        'then when order(function) gets called': contextFuncThrowsError ((obj)-> obj.order((-> 1))), "field must be a string"
+        'then when order("test") gets called': contextAssertObjInstance ((obj)-> obj.order("test"))
+
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when group() gets called': contextFuncThrowsError ((obj)-> obj.group()), "field must be a string"
+        'then when group([]) gets called': contextFuncThrowsError ((obj)-> obj.group([])), "field must be a string"
+        'then when group({}) gets called': contextFuncThrowsError ((obj)-> obj.group({})), "field must be a string"
+        'then when group(function) gets called': contextFuncThrowsError ((obj)-> obj.group((-> 1))), "field must be a string"
+        'then when group("test") gets called': contextAssertObjInstance ((obj)-> obj.group("test"))
+
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when limit() gets called': contextAssertObjInstance ((obj)-> obj.limit())
+        'then when limit([]) gets called': contextAssertObjInstance ((obj)-> obj.limit([]))
+        'then when limit({}) gets called': contextAssertObjInstance ((obj)-> obj.limit({}))
+        'then when limit(function) gets called': contextAssertObjInstance ((obj)-> obj.limit((-> 1)))
+        'then when limit("test") gets called': contextAssertObjInstance ((obj)-> obj.limit("test"))
+        'then when limit(1) gets called': contextAssertObjInstance ((obj)-> obj.limit(1))
+        'then when limit(0) gets called': contextAssertObjInstance ((obj)-> obj.limit(0))
+        'then when limit(-1) gets called': contextFuncThrowsError ((obj)-> obj.limit(-1)), "limit/offset must be >=0"
+
+
+suite.addBatch
+    'when the builder is initialized':
+        topic: select()
+        'then when offset() gets called': contextAssertObjInstance ((obj)-> obj.offset())
+        'then when offset([]) gets called': contextAssertObjInstance ((obj)-> obj.offset([]))
+        'then when offset({}) gets called': contextAssertObjInstance ((obj)-> obj.offset({}))
+        'then when offset(function) gets called': contextAssertObjInstance ((obj)-> obj.offset((-> 1)))
+        'then when offset("test") gets called': contextAssertObjInstance ((obj)-> obj.offset("test"))
+        'then when offset(1) gets called': contextAssertObjInstance ((obj)-> obj.offset(1))
+        'then when offset(0) gets called': contextAssertObjInstance ((obj)-> obj.offset(0))
+        'then when offset(-1) gets called': contextFuncThrowsError ((obj)-> obj.offset(-1)), "limit/offset must be >=0"
+
+
+
+suite.addBatch
     'when field("test") is called':
         topic: -> select().field("test")
         'the object instance is returned': funcAssertObjInstance
@@ -339,6 +386,76 @@ suite.addBatch
                         'then when toString() is called': contextAssertStringEqual 'SELECT * FROM test OUTER JOIN table1 OUTER JOIN table2 `t2` OUTER JOIN table3 ON (table3.id = test.id) OUTER JOIN table4 `t4` ON (t4.id IN (0,test.id))'
 
 
+
+suite.addBatch
+    'when from("table1") is called':
+        topic: -> select().from("table1")
+        'then when group("f1") is called':
+            topic: (obj) -> obj.group("f1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 GROUP BY f1'
+            'then when group("f2") is called':
+                topic: (obj) -> obj.group("f2")
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 GROUP BY f1, f2'
+
+
+suite.addBatch
+    'when from("table1") is called':
+        topic: -> select().from("table1")
+        'then when order("f1") is called':
+            topic: (obj) -> obj.order("f1")
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 ORDER BY f1 ASC'
+            'then when ORDER("f2", false) is called':
+                topic: (obj) -> obj.order("f2", false)
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 ORDER BY f1 ASC, f2 DESC'
+                'then when ORDER("f3", true) is called':
+                    topic: (obj) -> obj.order("f3", true)
+                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 ORDER BY f1 ASC, f2 DESC, f3 ASC'
+                    'then when group("f2") is called':
+                        topic: (obj) -> obj.group("f2")
+                        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 GROUP BY f2 ORDER BY f1 ASC, f2 DESC, f3 ASC'
+
+
+suite.addBatch
+    'when from("table1") is called':
+        topic: -> select().from("table1")
+        'then when limit (3) is called':
+            topic: (obj) -> obj.limit(3)
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 LIMIT 3'
+            'then when limit(0) is called':
+                topic: (obj) -> obj.limit(0)
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1'
+                'then when limit(5) is called':
+                    topic: (obj) -> obj.limit(5)
+                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 LIMIT 5'
+                    'then when group("f3") is called':
+                        topic: (obj) -> obj.group("f3")
+                        'then when order("f3", false) is called':
+                            topic: (obj) -> obj.order("f3", false)
+                            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 GROUP BY f3 ORDER BY f3 DESC LIMIT 5'
+
+
+suite.addBatch
+    'when from("table1") is called':
+        topic: -> select().from("table1")
+        'then when offset(1) is called':
+            topic: (obj) -> obj.offset(1)
+            'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 OFFSET 1'
+            'then when offset(0) is called':
+                topic: (obj) -> obj.offset(0)
+                'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1'
+                'then when offset(2) is called':
+                        topic: (obj) -> obj.offset(2)
+                        'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 OFFSET 2'
+                        'then when limit(5) is called':
+                            topic: (obj) -> obj.limit(5)
+                            'then when group("f3") is called':
+                                topic: (obj) -> obj.group("f3")
+                                'then when order("f3", false) is called':
+                                    topic: (obj) -> obj.order("f3", false)
+                                    'then when toString() is called': contextAssertStringEqual 'SELECT * FROM table1 GROUP BY f3 ORDER BY f3 DESC LIMIT 5 OFFSET 2'
+
+
+
 suite.addBatch
     'when builder is intialized':
         topic: -> select()
@@ -350,7 +467,17 @@ suite.addBatch
                     topic: (obj) -> obj.where("table3.id = 2")
                     'then when field("table4.taste", "t4") is called':
                         topic: (obj) -> obj.field("table4.taste", "t4")
-                        'then when toString() is called': contextAssertStringEqual 'SELECT table4.taste AS "t4" FROM table1 OUTER JOIN table2 `t2` ON (t2.taste = table4.taste) WHERE (table3.id = 2)'
+                        'then when limit(2) is called':
+                            topic: (obj) -> obj.limit(2)
+                            'then when group("f1") is called':
+                                topic: (obj) -> obj.group("f1")
+                                'then when offset(100) is called':
+                                    topic: (obj) -> obj.offset(100)
+                                    'then when order("f",false) is called':
+                                        topic: (obj) -> obj.order("f", false)
+                                        'then when toString() is called': contextAssertStringEqual 'SELECT table4.taste AS "t4" FROM table1 OUTER JOIN table2 `t2` ON (t2.taste = table4.taste) WHERE (table3.id = 2) GROUP BY f1 ORDER BY f DESC LIMIT 2 OFFSET 100'
+
+
 
 
 

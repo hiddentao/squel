@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Expression, Select, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeTable,
+  var Expression, Select, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeTable,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Expression = (function() {
@@ -163,6 +163,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     return field;
   };
 
+  sanitizeLimitOffset = function(value) {
+    value = parseInt(value);
+    if (0 > value) throw new Error("limit/offset must be >=0");
+    return value;
+  };
+
   Select = (function() {
 
     Select.prototype.froms = null;
@@ -173,8 +179,22 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Select.prototype.wheres = null;
 
+    Select.prototype.orders = null;
+
+    Select.prototype.groups = null;
+
+    Select.prototype.limits = null;
+
+    Select.prototype.offsets = null;
+
+    Select.prototype.useDistinct = false;
+
     function Select() {
       this.toString = __bind(this.toString, this);
+      this.offset = __bind(this.offset, this);
+      this.limit = __bind(this.limit, this);
+      this.group = __bind(this.group, this);
+      this.order = __bind(this.order, this);
       this.where = __bind(this.where, this);
       this.outer_join = __bind(this.outer_join, this);
       this.right_join = __bind(this.right_join, this);
@@ -182,11 +202,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.join = __bind(this.join, this);
       this.field = __bind(this.field, this);
       this.from = __bind(this.from, this);
+      this.distinct = __bind(this.distinct, this);
       var _this = this;
       this.froms = [];
       this.fields = [];
       this.joins = [];
       this.wheres = [];
+      this.orders = [];
+      this.groups = [];
       this._join = function(type, table, alias, condition) {
         table = sanitizeTable(table);
         if (alias) alias = sanitizeAlias(alias);
@@ -200,6 +223,11 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _this;
       };
     }
+
+    Select.prototype.distinct = function() {
+      this.useDistinct = true;
+      return this;
+    };
 
     Select.prototype.from = function(table, alias) {
       if (alias == null) alias = null;
@@ -253,10 +281,39 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
+    Select.prototype.order = function(field, asc) {
+      if (asc == null) asc = true;
+      field = sanitizeField(field);
+      this.orders.push({
+        field: field,
+        dir: asc ? "ASC" : "DESC"
+      });
+      return this;
+    };
+
+    Select.prototype.group = function(field) {
+      field = sanitizeField(field);
+      this.groups.push(field);
+      return this;
+    };
+
+    Select.prototype.limit = function(max) {
+      max = sanitizeLimitOffset(max);
+      this.limits = max;
+      return this;
+    };
+
+    Select.prototype.offset = function(start) {
+      start = sanitizeLimitOffset(start);
+      this.offsets = start;
+      return this;
+    };
+
     Select.prototype.toString = function() {
-      var field, fields, j, joins, ret, table, tables, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3;
+      var f, field, fields, groups, j, joins, o, orders, ret, table, tables, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _m, _ref, _ref2, _ref3, _ref4, _ref5;
       if (0 >= this.froms.length) throw new Error("from() needs to be called");
       ret = "SELECT ";
+      if (this.useDistinct) ret += "DISTINCT ";
       fields = "";
       _ref = this.fields;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -287,6 +344,28 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (0 < this.wheres.length) {
         ret += " WHERE (" + this.wheres.join(") AND (") + ")";
       }
+      if (0 < this.groups.length) {
+        groups = "";
+        _ref4 = this.groups;
+        for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
+          f = _ref4[_l];
+          if ("" !== groups) groups += ", ";
+          groups += f;
+        }
+        ret += " GROUP BY " + groups;
+      }
+      if (0 < this.orders.length) {
+        orders = "";
+        _ref5 = this.orders;
+        for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
+          o = _ref5[_m];
+          if ("" !== orders) orders += ", ";
+          orders += "" + o.field + " " + o.dir;
+        }
+        ret += " ORDER BY " + orders;
+      }
+      if (this.limits) ret += " LIMIT " + this.limits;
+      if (this.offsets) ret += " OFFSET " + this.offsets;
       return ret;
     };
 
