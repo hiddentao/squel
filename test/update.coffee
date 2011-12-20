@@ -63,10 +63,10 @@ suite.addBatch
         'then when set([]) gets called': tu.contextFuncThrowsError ((obj)-> obj.set([])), "field name must be a string"
         'then when set({}) gets called': tu.contextFuncThrowsError ((obj)-> obj.set({})), "field name must be a string"
         'then when set(function) gets called': tu.contextFuncThrowsError ((obj)-> obj.set((-> 1))), "field name must be a string"
-        'then when set("test") gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test")), "field value must be a string, number or boolean"
-        'then when set("test", []) gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test",[])), "field value must be a string, number or boolean"
-        'then when set("test", {}) gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test",{})), "field value must be a string, number or boolean"
-        'then when set("test", function) gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test",(-> 1))), "field value must be a string, number or boolean"
+        'then when set("test") gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test")), "field value must be a string, number, boolean or null"
+        'then when set("test", []) gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test",[])), "field value must be a string, number, boolean or null"
+        'then when set("test", {}) gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test",{})), "field value must be a string, number, boolean or null"
+        'then when set("test", function) gets called': tu.contextFuncThrowsError ((obj)-> obj.set("test",(-> 1))), "field value must be a string, number, boolean or null"
         'then when set("test", "a") gets called': tu.contextAssertObjInstance(inst(), ((obj)-> obj.set("test","a")))
 
 
@@ -129,7 +129,21 @@ suite.addBatch
                         topic: (obj) -> obj.set("f4",false)
                         'when set("f5","blah") is called':
                             topic: (obj) -> obj.set("f5","blah")
-                            'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 1, f2 = 1.2, f3 = "true", f4 = "false", f5 = "blah"'
+                            'then when set("f6",null) is called':
+                                topic: (obj) -> obj.set("f6",null)
+                                'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 1, f2 = 1.2, f3 = TRUE, f4 = FALSE, f5 = "blah", f6 = NULL'
+
+
+
+suite.addBatch
+    'when table("test") is called':
+        topic: -> inst().table("test")
+        'when set("f1",1) is called':
+            topic: (obj) -> obj.set("f1",1)
+            'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 1'
+            'when set("f1",2) is called':
+                topic: (obj) -> obj.set("f1",2)
+                'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 2'
 
 
 suite.addBatch
@@ -214,7 +228,7 @@ suite.addBatch
                         topic: (obj) -> obj.limit(2)
                         'then when order("f",false) is called':
                             topic: (obj) -> obj.order("f", false)
-                            'then when toString() is called': tu.contextAssertStringEqual 'UPDATE table1 AS `bb` SET table4.taste = "false" WHERE (table3.id = 2) ORDER BY f DESC LIMIT 2'
+                            'then when toString() is called': tu.contextAssertStringEqual 'UPDATE table1 AS `bb` SET table4.taste = FALSE WHERE (table3.id = 2) ORDER BY f DESC LIMIT 2'
 
 
 

@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Delete, Expression, Select, Update, WhereOrderLimit, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue,
+  var Delete, Expression, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -167,18 +167,29 @@ OTHER DEALINGS IN THE SOFTWARE.
     return sanitizeName(item, "alias");
   };
 
+  sanitizeLimitOffset = function(value) {
+    value = parseInt(value);
+    if (0 > value) throw new Error("limit/offset must be >=0");
+    return value;
+  };
+
   sanitizeValue = function(item) {
     var t;
     t = typeof item;
-    if ("string" !== t && "number" !== t && "boolean" !== t) {
-      throw new Error("field value must be a string, number or boolean");
+    if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
+      throw new Error("field value must be a string, number, boolean or null");
     }
     return item;
   };
 
-  sanitizeLimitOffset = function(value) {
-    value = parseInt(value);
-    if (0 > value) throw new Error("limit/offset must be >=0");
+  formatValue = function(value) {
+    if (null === value) {
+      value = "NULL";
+    } else if ("boolean" === typeof value) {
+      value = value ? "TRUE" : "FALSE";
+    } else if ("number" !== typeof value) {
+      value = "\"" + value + "\"";
+    }
     return value;
   };
 
@@ -434,7 +445,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.set = __bind(this.set, this);
       this.table = __bind(this.table, this);      Update.__super__.constructor.apply(this, arguments);
       this.tables = [];
-      this.fields = [];
+      this.fields = {};
     }
 
     Update.prototype.table = function(table, alias) {
@@ -451,17 +462,24 @@ OTHER DEALINGS IN THE SOFTWARE.
     Update.prototype.set = function(field, value) {
       field = sanitizeField(field);
       value = sanitizeValue(value);
-      this.fields.push({
-        field: field,
-        value: value
-      });
+      this.fields[field] = value;
       return this;
     };
 
     Update.prototype.toString = function() {
-      var field, fields, ret, table, tables, value, _i, _j, _len, _len2, _ref, _ref2;
+      var field, fieldNames, fields, ret, table, tables, _i, _j, _len, _len2, _ref;
       if (0 >= this.tables.length) throw new Error("table() needs to be called");
-      if (0 >= this.fields.length) throw new Error("set() needs to be called");
+      fieldNames = (function() {
+        var _ref, _results;
+        _ref = this.fields;
+        _results = [];
+        for (field in _ref) {
+          if (!__hasProp.call(_ref, field)) continue;
+          _results.push(field);
+        }
+        return _results;
+      }).call(this);
+      if (0 >= fieldNames.length) throw new Error("set() needs to be called");
       ret = "UPDATE ";
       tables = "";
       _ref = this.tables;
@@ -473,12 +491,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       ret += tables;
       fields = "";
-      _ref2 = this.fields;
-      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-        field = _ref2[_j];
+      for (_j = 0, _len2 = fieldNames.length; _j < _len2; _j++) {
+        field = fieldNames[_j];
         if ("" !== fields) fields += ", ";
-        value = "number" !== typeof field.value ? "\"" + field.value + "\"" : field.value;
-        fields += "" + field.field + " = " + value;
+        fields += "" + field + " = " + (formatValue(this.fields[field]));
       }
       ret += " SET " + fields;
       ret += this.whereString();
@@ -522,6 +538,61 @@ OTHER DEALINGS IN THE SOFTWARE.
     return Delete;
 
   })(WhereOrderLimit);
+
+  Insert = (function() {
+
+    Insert.prototype.table = null;
+
+    Insert.prototype.fields = null;
+
+    function Insert() {
+      this.toString = __bind(this.toString, this);
+      this.set = __bind(this.set, this);
+      this.into = __bind(this.into, this);      this.fields = {};
+    }
+
+    Insert.prototype.into = function(table) {
+      table = sanitizeTable(table);
+      this.table = table;
+      return this;
+    };
+
+    Insert.prototype.set = function(field, value) {
+      field = sanitizeField(field);
+      value = sanitizeValue(value);
+      this.fields[field] = value;
+      return this;
+    };
+
+    Insert.prototype.toString = function() {
+      var field, fieldNames, fields, name, values, _i, _len;
+      if (!this.table) throw new Error("into() needs to be called");
+      fieldNames = (function() {
+        var _ref, _results;
+        _ref = this.fields;
+        _results = [];
+        for (name in _ref) {
+          if (!__hasProp.call(_ref, name)) continue;
+          _results.push(name);
+        }
+        return _results;
+      }).call(this);
+      if (0 >= fieldNames.length) throw new Error("set() needs to be called");
+      fields = "";
+      values = "";
+      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
+        field = fieldNames[_i];
+        if ("" !== fields) fields += ", ";
+        fields += field;
+        if ("" !== values) values += ", ";
+        values += formatValue(this.fields[field]);
+      }
+      return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
+    };
+
+    return Insert;
+
+  })();
 
   if (typeof module !== "undefined" && module !== null) {
     module.exports = {

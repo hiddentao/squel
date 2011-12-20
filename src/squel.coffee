@@ -155,19 +155,28 @@ sanitizeField = (item) -> sanitizeName item, "field name"
 sanitizeTable = (item) -> sanitizeName item, "table name"
 sanitizeAlias = (item) -> sanitizeName item, "alias"
 
-sanitizeValue = (item) ->
-    t = typeof item
-    if "string" isnt t and "number" isnt t and "boolean" isnt t
-        throw new Error "field value must be a string, number or boolean"
-    item
-
-
-
 # Sanitize the given limit/offset value.
 sanitizeLimitOffset = (value) ->
     value = parseInt(value)
     if 0 > value
         throw new Error "limit/offset must be >=0"
+    value
+
+# Santize the given field value
+sanitizeValue = (item) ->
+    t = typeof item
+    if null isnt item and "string" isnt t and "number" isnt t and "boolean" isnt t
+        throw new Error "field value must be a string, number, boolean or null"
+    item
+
+# Format the given field value for inclusion into the query string
+formatValue = (value) ->
+    if null is value
+        value = "NULL"
+    else if "boolean" is typeof value
+        value = if value then "TRUE" else "FALSE"
+    else if "number" isnt typeof value
+        value = "\"#{value}\""
     value
 
 
@@ -432,7 +441,7 @@ class Update extends WhereOrderLimit
     constructor: ->
         super
         @tables = []
-        @fields = []
+        @fields = {}
 
 
     # Update the given table.
@@ -448,13 +457,11 @@ class Update extends WhereOrderLimit
         @
 
     # Update the given field with the given value.
+    # This will override any previously set value for the given field.
     set: (field, value) =>
         field = sanitizeField field
         value = sanitizeValue value
-
-        @fields.push
-            field: field
-            value: value
+        @fields[field] = value
         @
 
 
@@ -462,7 +469,8 @@ class Update extends WhereOrderLimit
     toString: =>
         # basic checks
         if 0 >= @tables.length then throw new Error "table() needs to be called"
-        if 0 >= @fields.length then throw new Error "set() needs to be called"
+        fieldNames = (field for own field of @fields)
+        if 0 >= fieldNames.length then throw new Error "set() needs to be called"
 
         ret = "UPDATE "
 
@@ -477,10 +485,9 @@ class Update extends WhereOrderLimit
 
         # fields
         fields = ""
-        for field in @fields
+        for field in fieldNames
             fields += ", " if "" isnt fields
-            value = if "number" isnt typeof field.value then "\"#{field.value}\"" else field.value
-            fields += "#{field.field} = #{value}"
+            fields += "#{field} = #{formatValue(@fields[field])}"
         ret += " SET #{fields}"
 
         # where
@@ -506,8 +513,7 @@ class Delete extends WhereOrderLimit
     table: null
 
     # The table to delete from.
-    #
-    # Calling this will override the previously set value.
+    # Calling this will override any previously set value.
     from: (table) =>
         table = sanitizeTable(table)
         @table = table
@@ -530,6 +536,53 @@ class Delete extends WhereOrderLimit
         ret += @limitString()
 
         ret
+
+
+
+# An INSERT query builder.
+#
+# Note that the query builder does not check the final query string for correctness.
+#
+# All the build methods in this object return the object instance for chained method calling purposes.
+class Insert
+    table: null
+    fields: null
+
+    constructor: ->
+        @fields = {}
+
+    # The table to insert into.
+    # This will override any previously set value.
+    into: (table) =>
+        table = sanitizeTable(table)
+        @table = table
+        @
+
+    # Set the given field to the given value.
+    # This will override any previously set value for the given field.
+    set: (field, value) =>
+        field = sanitizeField field
+        value = sanitizeValue value
+        @fields[field] = value
+        @
+
+    # Get the final fully constructed query string.
+    toString: =>
+        # basic checks
+        if not @table then throw new Error "into() needs to be called"
+        fieldNames = (name for own name of @fields)
+        if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+
+        # fields
+        fields = ""
+        values = ""
+        for field in fieldNames
+            fields += ", " if "" isnt fields
+            fields += field
+            values += ", " if "" isnt values
+            values += formatValue(@fields[field])
+
+        "INSERT INTO #{@table} (#{fields}) VALUES (#{values})"
 
 
 
