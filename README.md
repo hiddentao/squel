@@ -17,7 +17,7 @@ Install using [npm](http://npmjs.org/):
 
 ## Examples
 
-Before running the examples ensure you have squel installed and enabled at the top of your script:
+Before running the examples ensure you have `squel` installed and enabled at the top of your script:
 
     var squel = require("squel");
 
@@ -38,7 +38,7 @@ Before running the examples ensure you have squel installed and enabled at the t
         .limit(20)
         .toString()
 
-    // SELECT t1.id, t2.name FROM table `t1` LEFT JOIN table2 `t2` ON (t1.id = t2.id) WHERE (t2.name <> 'Mark') GROUP BY t1.id
+    // SELECT t1.id, t2.name FROM table `t1` LEFT JOIN table2 `t2` ON (t1.id = t2.id) WHERE (t2.name <> 'Mark') AND (t2.name <> 'John') GROUP BY t1.id
     squel.select()
         .from("table", "t1")
         .field("t1.id")
@@ -46,6 +46,7 @@ Before running the examples ensure you have squel installed and enabled at the t
         .left_join("table2", "t2", "t1.id = t2.id")
         .group("t1.id")
         .where("t2.name <> 'Mark'")
+        .where("t2.name <> 'John'")
         .toString()
 
 **UPDATE**
@@ -98,6 +99,37 @@ Before running the examples ensure you have squel installed and enabled at the t
         .where("table1.id = 2")
         .order("id", false)
         .limit(2)
+
+**Expression builder**
+
+There is also an expression builder which allows you to build complex expressions for `WHERE` and `ON` clauses:
+
+    // test = 3 OR test = 4
+    squel.expr()
+        .or("test = 3")
+        .or("test = 4")
+        .toString()
+
+    // test = 3 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))
+    squel.expr()
+        .and("test = 3")
+        .and_begin()
+            .or("inner = 1")
+            .or("inner = 2")
+        .end()
+        .or_begin()
+            .and("inner = 3")
+            .and("inner = 4")
+            .or_begin()
+                .and("inner = 5")
+            .end()
+        .end()
+        .toString()
+
+    // SELECT * FROM test INNER JOIN test2 ON (test.id = test2.id) WHERE (test = 3 OR test = 4)
+    squel.select()
+        .join( "test2", null, squel.expr().and("test.id = test2.id") )
+        .where( squel.expr().or("test = 3").or("test = 4") )
 
 
 ## Documentation
