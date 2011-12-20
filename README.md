@@ -1,4 +1,4 @@
-# squel - an SQL query builder for Javascript
+# squel - SQL query string builder for Javascript
 
 A simple, well tested SQL query string builder for Javascript.
 
