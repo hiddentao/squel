@@ -27,32 +27,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 vows = require "vows"
 assert = require "assert"
 expr = (require "../squel").expr
-
+tu = require "./testutils"
 
 suite = vows.describe("Expression builder")
 
 
-# Get class name of given object.
-getObjectClassName = (obj) ->
-    if obj && obj.constructor && obj.constructor.toString
-        arr = obj.constructor.toString().match /function\s*(\w+)/;
-        if arr && arr.length is 2
-            return arr[1]
-    return undefined
-
-
-funcAssertObjInstance = (obj) ->
-    assert.equal getObjectClassName(obj), getObjectClassName(expr())
-
-contextAssertObjInstance = (topic) ->
-    topic: topic
-    'the object instance is returned': funcAssertObjInstance
-
-contextAssertStringEqual = (expectedStr) ->
-    ret = { topic: (obj) -> obj.toString() }
-    ret["the string matches: #{expectedStr}"] = (str) ->
-        assert.strictEqual str, expectedStr
-    ret
 
 contextToStringThrowsEndError = ->
     topic: (obj) ->
@@ -79,23 +58,23 @@ suite.addBatch
         topic: expr()
         'calling toString() gives an empty string': (builder) ->
             assert.isEmpty builder.toString()
-        'then when end() gets called': contextEndThrowsBeginError()
+        'then when end() gets called': tu.contextFuncThrowsError ((obj)-> obj.end()), "begin() needs to be called"
     'when and_begin() gets called':
         topic: expr().and_begin()
-        'the object instance is returned': funcAssertObjInstance
+        'the object instance is returned': tu.funcAssertObjInstance(expr())
         'then when toString() gets called': contextToStringThrowsEndError()
     'when and_begin() gets called followed by end()':
         topic: expr().and_begin().end()
-        'the object instance is returned': funcAssertObjInstance
+        'the object instance is returned': tu.funcAssertObjInstance(expr())
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
     'when or_begin() gets called':
         topic: expr().or_begin()
-        'the object instance is returned': funcAssertObjInstance
+        'the object instance is returned': tu.funcAssertObjInstance(expr())
         'then when toString() is called':  contextToStringThrowsEndError()
     'when or_begin() gets called followed by end()':
         topic: expr().or_begin().end()
-        'the object instance is returned': funcAssertObjInstance
+        'the object instance is returned': tu.funcAssertObjInstance(expr())
         'calling toString() gives an empty string': (obj) ->
             assert.isEmpty obj.toString()
 
@@ -119,7 +98,7 @@ suite.addBatch
     'when calling and() with an array argument': contextBadArgError('and',  [])
     'when calling and() with an object argument': contextBadArgError('and',  {a:'a'})
     'when calling and() with a function argument': contextBadArgError('and',  () -> return 'a')
-    'when calling and() with a string argument': contextAssertObjInstance expr().and("test")
+    'when calling and() with a string argument': tu.contextAssertObjInstance( expr(), expr().and("test") )
 
 
 
@@ -128,7 +107,7 @@ suite.addBatch
     'when calling or() with an array argument': contextBadArgError('or', [])
     'when calling or() with an object argument': contextBadArgError('or', {a:'a'})
     'when calling or() with a function argument': contextBadArgError('or', () -> return 'a')
-    'when calling or() with a string argument': contextAssertObjInstance expr().or("test")
+    'when calling or() with a string argument': tu.contextAssertObjInstance( expr(), expr().or("test") )
 
 
 
@@ -137,29 +116,29 @@ suite.addBatch
 suite.addBatch
     'when and("test = 3") is called':
         topic: expr().and("test = 3")
-        'then when toString() is called': contextAssertStringEqual("test = 3")
+        'then when toString() is called': tu.contextAssertStringEqual("test = 3")
         'then when and("flight = \'4\'") is called':
             topic: (obj) -> obj.and("flight = '4'")
-            'the object instance is returned': funcAssertObjInstance
-            'then when toString() is called': contextAssertStringEqual "test = 3 AND flight = '4'"
+            'the object instance is returned': tu.funcAssertObjInstance(expr())
+            'then when toString() is called': tu.contextAssertStringEqual "test = 3 AND flight = '4'"
             'then when or("dummy in (1,2,3)") is called':
                 topic: (obj) -> obj.or("dummy in (1,2,3)")
-                'the object instance is returned': funcAssertObjInstance
-                'then when toString() is called': contextAssertStringEqual "test = 3 AND flight = '4' OR dummy in (1,2,3)"
+                'the object instance is returned': tu.funcAssertObjInstance(expr())
+                'then when toString() is called': tu.contextAssertStringEqual "test = 3 AND flight = '4' OR dummy in (1,2,3)"
 
 
 suite.addBatch
     'when or("test = 3") is called':
         topic: expr().or("test = 3")
-        'then when toString() is called': contextAssertStringEqual "test = 3"
+        'then when toString() is called': tu.contextAssertStringEqual "test = 3"
         'then when or("flight = \'4\'") is called':
             topic: (obj) -> obj.or("flight = '4'")
-            'the object instance is returned': funcAssertObjInstance
-            'then when toString() is called': contextAssertStringEqual "test = 3 OR flight = '4'"
+            'the object instance is returned': tu.funcAssertObjInstance(expr())
+            'then when toString() is called': tu.contextAssertStringEqual "test = 3 OR flight = '4'"
             'then when and("dummy in (1,2,3)") is called':
                 topic: (obj) -> obj.and("dummy in (1,2,3)")
-                'the object instance is returned': funcAssertObjInstance
-                'then when toString() is called': contextAssertStringEqual "test = 3 OR flight = '4' AND dummy in (1,2,3)"
+                'the object instance is returned': tu.funcAssertObjInstance(expr())
+                'then when toString() is called': tu.contextAssertStringEqual "test = 3 OR flight = '4' AND dummy in (1,2,3)"
 
 
 suite.addBatch
@@ -174,7 +153,7 @@ suite.addBatch
                     'then when toString() is called': contextToStringThrowsEndError()
                     'then when end() is called':
                         topic: (obj) -> obj.end()
-                        'then when toString() is called': contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2)"
+                        'then when toString() is called': tu.contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2)"
                         'then when end() gets called': contextEndThrowsBeginError()
                         'then when or_begin() is called':
                             topic: (obj) -> obj.or_begin()
@@ -192,7 +171,7 @@ suite.addBatch
                                                 'then when toString() is called': contextToStringThrowsEndError()
                                                 'then when end() is called':
                                                     topic: (obj) -> obj.end()
-                                                    'then when toString() is called': contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
+                                                    'then when toString() is called': tu.contextAssertStringEqual "test = 3 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
 
 
 

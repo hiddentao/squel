@@ -134,12 +134,6 @@ getObjectClassName = (obj) ->
             return arr[1]
     return undefined
 
-# Sanitize the given alias.
-sanitizeAlias = (alias) ->
-    if alias and "string" isnt typeof alias
-        throw new Error "alias must be a string"
-    alias
-
 # Sanitize the given condition.
 sanitizeCondition = (condition) ->
     t = typeof condition
@@ -150,17 +144,18 @@ sanitizeCondition = (condition) ->
         condition = condition.toString()
     condition
 
-# Sanitize the given table definition.
-sanitizeTable = (table) ->
-    if "string" isnt typeof table
-        throw new Error "table name must be a string"
-    table
+# Sanitize the given name.
+# The 'type' parameter is used to construct a meaningful error message in case validation fails.
+sanitizeName = (value, type) ->
+    if "string" isnt typeof value
+        throw new Error "#{type} must be a string"
+    value
 
-# Sanitize the given field definition.
-sanitizeField = (field) ->
-    if "string" isnt typeof field
-        throw new Error "field must be a string"
-    field
+sanitizeField = (item) -> sanitizeName item, "field name"
+sanitizeTable = (item) -> sanitizeName item, "table name"
+sanitizeAlias = (item) -> sanitizeName item, "alias"
+sanitizeValue = (item) -> sanitizeName item, "value"
+
 
 # Sanitize the given limit/offset value.
 sanitizeLimitOffset = (value) ->
@@ -170,28 +165,94 @@ sanitizeLimitOffset = (value) ->
     value
 
 
+
+# Base class for query builders which support WHERE, ORDER and LIMIT clauses.
+class WhereOrderLimit
+    wheres: null
+    orders: null
+    limits: null
+
+    constructor: ->
+        @wheres = []
+        @orders = []
+
+
+    # Add a WHERE condition.
+    #
+    # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
+    where: (condition) =>
+        condition = sanitizeCondition(condition)
+        if "" isnt condition
+            @wheres.push condition
+        @
+
+
+    # Add an ORDER BY transformation for the given field in the given order.
+    #
+    # To specify descending order pass false for the 'asc' parameter.
+    order: (field, asc = true) =>
+        field = sanitizeField field
+        @orders.push
+            field: field
+            dir: if asc then "ASC" else "DESC"
+        @
+
+
+    # Set the LIMIT transformation.
+    #
+    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+    # the limit.
+    limit: (max) =>
+        max = sanitizeLimitOffset max
+        @limits = max
+        @
+
+
+    # Get string representation of WHERE clause, if any
+    whereString: =>
+        if 0 < @wheres.length
+            " WHERE (" + @wheres.join(") AND (") + ")"
+        else
+            ""
+
+    # Get string representation of ORDER BY clause, if any
+    orderString: =>
+        if 0 < @orders.length
+            orders = ""
+            for o in @orders
+                orders += ", " if "" isnt orders
+                orders += "#{o.field} #{o.dir}"
+            " ORDER BY #{orders}"
+        else
+            ""
+
+    # Get string representation of LIMIT clause, if any
+    limitString: =>
+        if @limits
+            " LIMIT #{@limits}"
+        else
+            ""
+
+
+
 # A SELECT query builder.
 #
 # Note that the query builder does not check the final query string for correctness.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Select
+class Select extends WhereOrderLimit
     froms: null
     fields: null
     joins: null
-    wheres: null
-    orders: null
     groups: null
-    limits: null
     offsets: null
     useDistinct: false
 
     constructor: ->
+        super
         @froms = []
         @fields = []
         @joins = []
-        @wheres = []
-        @orders = []
         @groups = []
 
 
@@ -225,7 +286,7 @@ class Select
         @
 
 
-    # Specify table to read data from.
+    # Read data from the given table.
     #
     # An alias may also be specified for the table.
     from: (table, alias = null) =>
@@ -238,7 +299,7 @@ class Select
         @
 
 
-    # Specify a field to read from the table and return in the final result set.
+    # Add the given field to the final result set.
     #
     # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
     # e.g. DATE_FORMAT(a.started, "%H")
@@ -274,41 +335,10 @@ class Select
         @_join 'OUTER', table, alias, condition
 
 
-    # Add a WHERE condition.
-    #
-    # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
-    where: (condition) =>
-        condition = sanitizeCondition(condition)
-        if "" isnt condition
-            @wheres.push condition
-        @
-
-
-    # Add an ORDER BY transformation for the given field in the given order.
-    #
-    # To specify descending order pass false for the 'asc' parameter.
-    order: (field, asc = true) =>
-        field = sanitizeField field
-        @orders.push
-            field: field
-            dir: if asc then "ASC" else "DESC"
-        @
-
-
     # Add a GROUP BY transformation for the given field.
     group: (field) =>
         field = sanitizeField field
         @groups.push field
-        @
-
-
-    # Set the LIMIT transformation.
-    #
-    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
-    # the limit.
-    limit: (max) =>
-        max = sanitizeLimitOffset max
-        @limits = max
         @
 
 
@@ -346,7 +376,7 @@ class Select
         tables = ""
         for table in @froms
             tables += ", " if "" isnt tables
-            tables += "#{table.name}"
+            tables += table.name
             tables += " `#{table.alias}`" if table.alias
 
         ret += " FROM #{tables}"
@@ -361,8 +391,7 @@ class Select
         ret += joins
 
         # where
-        if 0 < @wheres.length
-            ret += " WHERE (" + @wheres.join(") AND (") + ")"
+        ret += @whereString()
 
         # group by
         if 0 < @groups.length
@@ -373,15 +402,10 @@ class Select
             ret += " GROUP BY #{groups}"
 
         # order by
-        if 0 < @orders.length
-            orders = ""
-            for o in @orders
-                orders += ", " if "" isnt orders
-                orders += "#{o.field} #{o.dir}"
-            ret += " ORDER BY #{orders}"
+        ret += @orderString()
 
         # limit
-        ret += " LIMIT #{@limits}" if @limits
+        ret += @limitString()
 
         # offset
         ret += " OFFSET #{@offsets}" if @offsets
@@ -390,9 +414,79 @@ class Select
 
 
 
+# An UPDATE query builder.
+#
+# Note that the query builder does not check the final query string for correctness.
+#
+# All the build methods in this object return the object instance for chained method calling purposes.
+class Update extends WhereOrderLimit
+    tables: null
+    fields: null
+
+    constructor: ->
+        super
+        @tables = []
+        @fields = []
 
 
+    # Update the given table.
+    #
+    # An alias may also be specified for the table.
+    table: (table, alias = null) =>
+        table = sanitizeTable(table)
+        alias = sanitizeAlias(alias) if alias
 
+        @tables.push
+            name: table
+            alias: alias
+        @
+
+    # Update the given field with the given value.
+    field: (field, value) =>
+        field = sanitizeField field
+        value = sanitizeValue value
+
+        @fields.push
+            field: field
+            value: value
+        @
+
+
+    # Get the final fully constructed query string.
+    toString: =>
+        # basic checks
+        if 0 >= @tables.length then throw new Error "table() needs to be called"
+        if 0 >= @fields.length then throw new Error "field() needs to be called"
+
+        ret = "UPDATE "
+
+        # tables
+        tables = ""
+        for table in @froms
+            tables += ", " if "" isnt tables
+            tables += table.name
+            tables += " AS `#{table.alias}`" if table.alias
+
+        ret += tables
+
+        # fields
+        fields = ""
+        for field in @fields
+            fields += ", " if "" isnt fields
+            fields += "SET #{field.field} = #{field.value}"
+
+        ret += " #{fields}"
+
+        # where
+        ret += @whereString()
+
+        # order by
+        ret += @orderString()
+
+        # limit
+        ret += @limitString()
+
+        ret
 
 
 # Export everything as easily usable methods.

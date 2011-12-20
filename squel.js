@@ -25,8 +25,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Expression, Select, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeTable,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var Expression, Select, Update, WhereOrderLimit, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   Expression = (function() {
     var _toString;
@@ -136,13 +138,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
   };
 
-  sanitizeAlias = function(alias) {
-    if (alias && "string" !== typeof alias) {
-      throw new Error("alias must be a string");
-    }
-    return alias;
-  };
-
   sanitizeCondition = function(condition) {
     var t;
     t = typeof condition;
@@ -153,14 +148,27 @@ OTHER DEALINGS IN THE SOFTWARE.
     return condition;
   };
 
-  sanitizeTable = function(table) {
-    if ("string" !== typeof table) throw new Error("table name must be a string");
-    return table;
+  sanitizeName = function(value, type) {
+    if ("string" !== typeof value) {
+      throw new Error("" + type + " must be a string");
+    }
+    return value;
   };
 
-  sanitizeField = function(field) {
-    if ("string" !== typeof field) throw new Error("field must be a string");
-    return field;
+  sanitizeField = function(item) {
+    return sanitizeName(item, "field name");
+  };
+
+  sanitizeTable = function(item) {
+    return sanitizeName(item, "table name");
+  };
+
+  sanitizeAlias = function(item) {
+    return sanitizeName(item, "alias");
+  };
+
+  sanitizeValue = function(item) {
+    return sanitizeName(item, "value");
   };
 
   sanitizeLimitOffset = function(value) {
@@ -169,7 +177,85 @@ OTHER DEALINGS IN THE SOFTWARE.
     return value;
   };
 
-  Select = (function() {
+  WhereOrderLimit = (function() {
+
+    WhereOrderLimit.prototype.wheres = null;
+
+    WhereOrderLimit.prototype.orders = null;
+
+    WhereOrderLimit.prototype.limits = null;
+
+    function WhereOrderLimit() {
+      this.limitString = __bind(this.limitString, this);
+      this.orderString = __bind(this.orderString, this);
+      this.whereString = __bind(this.whereString, this);
+      this.limit = __bind(this.limit, this);
+      this.order = __bind(this.order, this);
+      this.where = __bind(this.where, this);      this.wheres = [];
+      this.orders = [];
+    }
+
+    WhereOrderLimit.prototype.where = function(condition) {
+      condition = sanitizeCondition(condition);
+      if ("" !== condition) this.wheres.push(condition);
+      return this;
+    };
+
+    WhereOrderLimit.prototype.order = function(field, asc) {
+      if (asc == null) asc = true;
+      field = sanitizeField(field);
+      this.orders.push({
+        field: field,
+        dir: asc ? "ASC" : "DESC"
+      });
+      return this;
+    };
+
+    WhereOrderLimit.prototype.limit = function(max) {
+      max = sanitizeLimitOffset(max);
+      this.limits = max;
+      return this;
+    };
+
+    WhereOrderLimit.prototype.whereString = function() {
+      if (0 < this.wheres.length) {
+        return " WHERE (" + this.wheres.join(") AND (") + ")";
+      } else {
+        return "";
+      }
+    };
+
+    WhereOrderLimit.prototype.orderString = function() {
+      var o, orders, _i, _len, _ref;
+      if (0 < this.orders.length) {
+        orders = "";
+        _ref = this.orders;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          o = _ref[_i];
+          if ("" !== orders) orders += ", ";
+          orders += "" + o.field + " " + o.dir;
+        }
+        return " ORDER BY " + orders;
+      } else {
+        return "";
+      }
+    };
+
+    WhereOrderLimit.prototype.limitString = function() {
+      if (this.limits) {
+        return " LIMIT " + this.limits;
+      } else {
+        return "";
+      }
+    };
+
+    return WhereOrderLimit;
+
+  })();
+
+  Select = (function(_super) {
+
+    __extends(Select, _super);
 
     Select.prototype.froms = null;
 
@@ -177,13 +263,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Select.prototype.joins = null;
 
-    Select.prototype.wheres = null;
-
-    Select.prototype.orders = null;
-
     Select.prototype.groups = null;
-
-    Select.prototype.limits = null;
 
     Select.prototype.offsets = null;
 
@@ -192,10 +272,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     function Select() {
       this.toString = __bind(this.toString, this);
       this.offset = __bind(this.offset, this);
-      this.limit = __bind(this.limit, this);
       this.group = __bind(this.group, this);
-      this.order = __bind(this.order, this);
-      this.where = __bind(this.where, this);
       this.outer_join = __bind(this.outer_join, this);
       this.right_join = __bind(this.right_join, this);
       this.left_join = __bind(this.left_join, this);
@@ -204,11 +281,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.from = __bind(this.from, this);
       this.distinct = __bind(this.distinct, this);
       var _this = this;
+      Select.__super__.constructor.apply(this, arguments);
       this.froms = [];
       this.fields = [];
       this.joins = [];
-      this.wheres = [];
-      this.orders = [];
       this.groups = [];
       this._join = function(type, table, alias, condition) {
         table = sanitizeTable(table);
@@ -275,31 +351,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this._join('OUTER', table, alias, condition);
     };
 
-    Select.prototype.where = function(condition) {
-      condition = sanitizeCondition(condition);
-      if ("" !== condition) this.wheres.push(condition);
-      return this;
-    };
-
-    Select.prototype.order = function(field, asc) {
-      if (asc == null) asc = true;
-      field = sanitizeField(field);
-      this.orders.push({
-        field: field,
-        dir: asc ? "ASC" : "DESC"
-      });
-      return this;
-    };
-
     Select.prototype.group = function(field) {
       field = sanitizeField(field);
       this.groups.push(field);
-      return this;
-    };
-
-    Select.prototype.limit = function(max) {
-      max = sanitizeLimitOffset(max);
-      this.limits = max;
       return this;
     };
 
@@ -310,7 +364,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Select.prototype.toString = function() {
-      var f, field, fields, groups, j, joins, o, orders, ret, table, tables, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _m, _ref, _ref2, _ref3, _ref4, _ref5;
+      var f, field, fields, groups, j, joins, ret, table, tables, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4;
       if (0 >= this.froms.length) throw new Error("from() needs to be called");
       ret = "SELECT ";
       if (this.useDistinct) ret += "DISTINCT ";
@@ -328,7 +382,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
         table = _ref2[_j];
         if ("" !== tables) tables += ", ";
-        tables += "" + table.name;
+        tables += table.name;
         if (table.alias) tables += " `" + table.alias + "`";
       }
       ret += " FROM " + tables;
@@ -341,9 +395,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (j.condition) joins += " ON (" + j.condition + ")";
       }
       ret += joins;
-      if (0 < this.wheres.length) {
-        ret += " WHERE (" + this.wheres.join(") AND (") + ")";
-      }
+      ret += this.whereString();
       if (0 < this.groups.length) {
         groups = "";
         _ref4 = this.groups;
@@ -354,24 +406,84 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         ret += " GROUP BY " + groups;
       }
-      if (0 < this.orders.length) {
-        orders = "";
-        _ref5 = this.orders;
-        for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
-          o = _ref5[_m];
-          if ("" !== orders) orders += ", ";
-          orders += "" + o.field + " " + o.dir;
-        }
-        ret += " ORDER BY " + orders;
-      }
-      if (this.limits) ret += " LIMIT " + this.limits;
+      ret += this.orderString();
+      ret += this.limitString();
       if (this.offsets) ret += " OFFSET " + this.offsets;
       return ret;
     };
 
     return Select;
 
-  })();
+  })(WhereOrderLimit);
+
+  Update = (function(_super) {
+
+    __extends(Update, _super);
+
+    Update.prototype.tables = null;
+
+    Update.prototype.fields = null;
+
+    function Update() {
+      this.toString = __bind(this.toString, this);
+      this.field = __bind(this.field, this);
+      this.table = __bind(this.table, this);      Update.__super__.constructor.apply(this, arguments);
+      this.tables = [];
+      this.fields = [];
+    }
+
+    Update.prototype.table = function(table, alias) {
+      if (alias == null) alias = null;
+      table = sanitizeTable(table);
+      if (alias) alias = sanitizeAlias(alias);
+      this.tables.push({
+        name: table,
+        alias: alias
+      });
+      return this;
+    };
+
+    Update.prototype.field = function(field, value) {
+      field = sanitizeField(field);
+      value = sanitizeValue(value);
+      this.fields.push({
+        field: field,
+        value: value
+      });
+      return this;
+    };
+
+    Update.prototype.toString = function() {
+      var field, fields, ret, table, tables, _i, _j, _len, _len2, _ref, _ref2;
+      if (0 >= this.tables.length) throw new Error("table() needs to be called");
+      if (0 >= this.fields.length) throw new Error("field() needs to be called");
+      ret = "UPDATE ";
+      tables = "";
+      _ref = this.froms;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        table = _ref[_i];
+        if ("" !== tables) tables += ", ";
+        tables += table.name;
+        if (table.alias) tables += " AS `" + table.alias + "`";
+      }
+      ret += tables;
+      fields = "";
+      _ref2 = this.fields;
+      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+        field = _ref2[_j];
+        if ("" !== fields) fields += ", ";
+        fields += "SET " + field.field + " = " + field.value;
+      }
+      ret += " " + fields;
+      ret += this.whereString();
+      ret += this.orderString();
+      ret += this.limitString();
+      return ret;
+    };
+
+    return Update;
+
+  })(WhereOrderLimit);
 
   if (typeof module !== "undefined" && module !== null) {
     module.exports = {
