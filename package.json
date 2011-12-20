@@ -4,15 +4,14 @@
   "version": "1.0.0",
   "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
   "contributors": [ "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)" ],
-  "dependencies": {
-    "coffee-script": ">= 1.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "coffee-script": ">= 1.2.0",
     "rimraf": "latest",
     "docco": ">= 0.3.0",
     "vows": ">= 0.6.0"
   },
-  "keywords": ["sql", "builder", "nodejs"],
+  "keywords": ["sql", "database", "rdbms"],
   "main": "squel",
   "repository" :{
       "type" : "git",
