@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Expression, Select, Update, WhereOrderLimit, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue,
+  var Delete, Expression, Select, Update, WhereOrderLimit, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -168,7 +168,12 @@ OTHER DEALINGS IN THE SOFTWARE.
   };
 
   sanitizeValue = function(item) {
-    return sanitizeName(item, "value");
+    var t;
+    t = typeof item;
+    if ("string" !== t && "number" !== t && "boolean" !== t) {
+      throw new Error("field value must be a string, number or boolean");
+    }
+    return item;
   };
 
   sanitizeLimitOffset = function(value) {
@@ -426,7 +431,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Update() {
       this.toString = __bind(this.toString, this);
-      this.field = __bind(this.field, this);
+      this.set = __bind(this.set, this);
       this.table = __bind(this.table, this);      Update.__super__.constructor.apply(this, arguments);
       this.tables = [];
       this.fields = [];
@@ -443,7 +448,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    Update.prototype.field = function(field, value) {
+    Update.prototype.set = function(field, value) {
       field = sanitizeField(field);
       value = sanitizeValue(value);
       this.fields.push({
@@ -454,12 +459,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Update.prototype.toString = function() {
-      var field, fields, ret, table, tables, _i, _j, _len, _len2, _ref, _ref2;
+      var field, fields, ret, table, tables, value, _i, _j, _len, _len2, _ref, _ref2;
       if (0 >= this.tables.length) throw new Error("table() needs to be called");
-      if (0 >= this.fields.length) throw new Error("field() needs to be called");
+      if (0 >= this.fields.length) throw new Error("set() needs to be called");
       ret = "UPDATE ";
       tables = "";
-      _ref = this.froms;
+      _ref = this.tables;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         table = _ref[_i];
         if ("" !== tables) tables += ", ";
@@ -472,9 +477,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
         field = _ref2[_j];
         if ("" !== fields) fields += ", ";
-        fields += "SET " + field.field + " = " + field.value;
+        value = "number" !== typeof field.value ? "\"" + field.value + "\"" : field.value;
+        fields += "" + field.field + " = " + value;
       }
-      ret += " " + fields;
+      ret += " SET " + fields;
       ret += this.whereString();
       ret += this.orderString();
       ret += this.limitString();
@@ -482,6 +488,38 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     return Update;
+
+  })(WhereOrderLimit);
+
+  Delete = (function(_super) {
+
+    __extends(Delete, _super);
+
+    function Delete() {
+      this.toString = __bind(this.toString, this);
+      this.from = __bind(this.from, this);
+      Delete.__super__.constructor.apply(this, arguments);
+    }
+
+    Delete.prototype.table = null;
+
+    Delete.prototype.from = function(table) {
+      table = sanitizeTable(table);
+      this.table = table;
+      return this;
+    };
+
+    Delete.prototype.toString = function() {
+      var ret;
+      if (!this.table) throw new Error("from() needs to be called");
+      ret = "DELETE FROM " + this.table;
+      ret += this.whereString();
+      ret += this.orderString();
+      ret += this.limitString();
+      return ret;
+    };
+
+    return Delete;
 
   })(WhereOrderLimit);
 

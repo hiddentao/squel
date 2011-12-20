@@ -69,6 +69,7 @@ run_tests = (callback) ->
         'test/expression.coffee'
         'test/select.coffee'
         'test/update.coffee'
+        'test/delete.coffee'
         '--spec'
     ]
     vows = spawn "#{binpath}/vows", options

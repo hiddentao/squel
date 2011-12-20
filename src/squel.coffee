@@ -154,7 +154,13 @@ sanitizeName = (value, type) ->
 sanitizeField = (item) -> sanitizeName item, "field name"
 sanitizeTable = (item) -> sanitizeName item, "table name"
 sanitizeAlias = (item) -> sanitizeName item, "alias"
-sanitizeValue = (item) -> sanitizeName item, "value"
+
+sanitizeValue = (item) ->
+    t = typeof item
+    if "string" isnt t and "number" isnt t and "boolean" isnt t
+        throw new Error "field value must be a string, number or boolean"
+    item
+
 
 
 # Sanitize the given limit/offset value.
@@ -442,7 +448,7 @@ class Update extends WhereOrderLimit
         @
 
     # Update the given field with the given value.
-    field: (field, value) =>
+    set: (field, value) =>
         field = sanitizeField field
         value = sanitizeValue value
 
@@ -456,13 +462,13 @@ class Update extends WhereOrderLimit
     toString: =>
         # basic checks
         if 0 >= @tables.length then throw new Error "table() needs to be called"
-        if 0 >= @fields.length then throw new Error "field() needs to be called"
+        if 0 >= @fields.length then throw new Error "set() needs to be called"
 
         ret = "UPDATE "
 
         # tables
         tables = ""
-        for table in @froms
+        for table in @tables
             tables += ", " if "" isnt tables
             tables += table.name
             tables += " AS `#{table.alias}`" if table.alias
@@ -473,9 +479,9 @@ class Update extends WhereOrderLimit
         fields = ""
         for field in @fields
             fields += ", " if "" isnt fields
-            fields += "SET #{field.field} = #{field.value}"
-
-        ret += " #{fields}"
+            value = if "number" isnt typeof field.value then "\"#{field.value}\"" else field.value
+            fields += "#{field.field} = #{value}"
+        ret += " SET #{fields}"
 
         # where
         ret += @whereString()
@@ -487,6 +493,45 @@ class Update extends WhereOrderLimit
         ret += @limitString()
 
         ret
+
+
+
+
+# A DELETE query builder.
+#
+# Note that the query builder does not check the final query string for correctness.
+#
+# All the build methods in this object return the object instance for chained method calling purposes.
+class Delete extends WhereOrderLimit
+    table: null
+
+    # The table to delete from.
+    #
+    # Calling this will override the previously set value.
+    from: (table) =>
+        table = sanitizeTable(table)
+        @table = table
+        @
+
+    # Get the final fully constructed query string.
+    toString: =>
+        # basic checks
+        if not @table then throw new Error "from() needs to be called"
+
+        ret = "DELETE FROM #{@table}"
+
+        # where
+        ret += @whereString()
+
+        # order by
+        ret += @orderString()
+
+        # limit
+        ret += @limitString()
+
+        ret
+
+
 
 
 # Export everything as easily usable methods.
