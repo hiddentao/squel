@@ -2,10 +2,8 @@
   "name": "squel",
   "description": "SQL query string builder",
   "version": "1.0.0",
-  "author": "Ramesh Nair <ram@hiddentao.com>",
-  "contributors": [
-    { "name": "Ramesh Nair", "email": "ram@hiddentao.com" }
-  ],
+  "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
+  "contributors": [ "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)" ],
   "dependencies": {
     "coffee-script": ">= 1.2.0"
   },
@@ -16,7 +14,9 @@
   },
   "keywords": ["sql", "builder", "nodejs"],
   "main": "squel",
-  "scripts": {},
-  "bin": {},
+  "repository" :{
+      "type" : "git",
+      "url" : "https://github.com/hiddentao/squel.git"
+   },
   "engines": { "node": ">= 0.4.0" }
 }
