@@ -151,6 +151,8 @@ Tests are written as [vows](http://vowsjs.org/) and can be found in the `test/` 
     $ npm install
     $ node_modules/.bin/cake tests
 
+## Contributing
+
 If you wish to submit a pull request please update and/or create new tests for any changes you make and ensure all the
 tests pass.
 
