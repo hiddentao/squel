@@ -94,7 +94,7 @@ suite.addBatch
                 topic: (obj) -> obj.where("field1=2")
                 'then when toString() is called': tu.contextAssertStringEqual 'DELETE FROM test WHERE (field1=2)'
                 'then when where("field2=\'3\'") is called':
-                    topic: (obj) -> obj.where("field2='3'")
+                    topic: (obj) -> obj.where("field22='3'")
                     'then when toString() is called': tu.contextAssertStringEqual 'DELETE FROM test WHERE (field1=2) AND (field2=\'3\')'
     'when from("test2") is called':
         topic: -> inst().from("test2")
