@@ -86,10 +86,16 @@ run_tests = (callback) ->
         '--spec'
     ]
     vows = spawn "#{binpath}/vows", options
-    vows.stdout.on 'data', stream_data_handler
-    vows.stderr.on 'data', stream_data_handler
-    vows.on 'exit', (status) -> callback?() if status is 0
-
+    output = ""
+    data_handler = (data) ->
+        output =+ data if data
+        stream_data_handler data
+    vows.stdout.on 'data', data_handler
+    vows.stderr.on 'data', data_handler
+    vows.on 'exit', (status) ->
+        if 0 isnt status or (output and -1 isnt output.indexOf("✗ Broken"))
+            return process.exit(1)
+        callback?()
 
 
 task 'docs', 'Build the documentation', ->
