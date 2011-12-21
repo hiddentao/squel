@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Delete, Expression, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue,
+  var Delete, Expression, ExpressionClassName, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -138,10 +138,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
   };
 
+  ExpressionClassName = getObjectClassName(new Expression());
+
   sanitizeCondition = function(condition) {
     var t;
     t = typeof condition;
-    if ("Expression" !== getObjectClassName(condition) && "string" !== t) {
+    if (ExpressionClassName !== getObjectClassName(condition) && "string" !== t) {
       throw new Error("condition must be a string or Expression instance");
     }
     if ("Expression" === t) condition = condition.toString();
@@ -594,24 +596,26 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  if (typeof module !== "undefined" && module !== null) {
-    module.exports = {
-      expr: function() {
-        return new Expression;
-      },
-      select: function() {
-        return new Select;
-      },
-      update: function() {
-        return new Update;
-      },
-      insert: function() {
-        return new Insert;
-      },
-      "delete": function() {
-        return new Delete;
-      }
-    };
-  }
+  _export = {
+    expr: function() {
+      return new Expression;
+    },
+    select: function() {
+      return new Select;
+    },
+    update: function() {
+      return new Update;
+    },
+    insert: function() {
+      return new Insert;
+    },
+    "delete": function() {
+      return new Delete;
+    }
+  };
+
+  if (typeof module !== "undefined" && module !== null) module.exports = _export;
+
+  if (typeof window !== "undefined" && window !== null) window.squel = _export;
 
 }).call(this);

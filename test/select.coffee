@@ -26,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-squel = require "../squel"
+squel = require "../squel.min"
 tu = require "./testutils"
 
 inst = -> squel.select()

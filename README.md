@@ -8,6 +8,7 @@ A simple, well tested SQL query string builder for Javascript.
 * Uses method chaining for ease of use.
 * Written in [CoffeeScript](http://coffeescript.org/) for ease of maintainability.
 * Well tested (over 300 [vows](http://vowsjs.org/)).
+* Small: ~3 KB when minified and gzipped.
 
 ## Installation
 

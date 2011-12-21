@@ -135,9 +135,10 @@ getObjectClassName = (obj) ->
     return undefined
 
 # Sanitize the given condition.
+ExpressionClassName = getObjectClassName(new Expression())
 sanitizeCondition = (condition) ->
     t = typeof condition
-    if "Expression" isnt getObjectClassName(condition) and "string" isnt t
+    if ExpressionClassName isnt getObjectClassName(condition) and "string" isnt t
         throw new Error "condition must be a string or Expression instance"
     # If it's an expression builder instance then convert it to string form.
     if "Expression" is t
@@ -586,11 +587,12 @@ class Insert
 
 
 
-
 # Export everything as easily usable methods.
-module?.exports =
+_export =
     expr: -> new Expression
     select: -> new Select
     update: -> new Update
     insert: -> new Insert
     delete: -> new Delete
+module?.exports = _export
+window?.squel = _export

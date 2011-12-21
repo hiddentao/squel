@@ -47,8 +47,20 @@ compile_js = (callback) ->
     coffee.on 'exit', (status) -> callback?() if status is 0
 
 
+minify_js = (callback) ->
+    options = [
+        '-o'
+        'squel.min.js'
+        "squel.js"
+    ]
+    uglify = spawn "#{binpath}/uglifyjs", options
+    uglify.stdout.on 'data', stream_data_handler
+    uglify.stderr.on 'data', stream_data_handler
+    uglify.on 'exit', (status) -> callback?() if status is 0
+
+
 build_js = (callback) ->
-    compile_js callback
+    compile_js -> minify_js -> callback?()
 
 
 
