@@ -287,7 +287,7 @@ section h3 {
   padding: 0.4em 0;
   color: #333;
   text-decoration: none;
-  background: #cccccc url("../img/download.png") no-repeat 97% center;
+  background: #cccccc url("../img/download.png") no-repeat 97% 90%;
 }
 #home .right a p {
   margin: 0;
@@ -305,6 +305,14 @@ section h3 {
 }
 #home .right a:hover {
   background-color: #fff;
+}
+
+#overview ol {
+  margin: 0 0 0 3em;
+  list-style: decimal;
+}
+#overview ol li {
+  margin: 0.5em 0;
 }
 
 #installation {

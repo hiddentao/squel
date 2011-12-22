@@ -33,7 +33,7 @@
                     </ul>
                 </li>
                 <li><a href="#tests" title="Running the tests">Tests</a></li>
-                <li><a class="external" href="https://github.com/hiddentao/squel" title="Fork on github">Github</a></li>
+                <li><a class="external" href="https://github.com/hiddentao/squel" title="View source on github">Github</a></li>
             </ul>
         </nav>
     </header>
@@ -54,7 +54,7 @@
             </p>
             <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download production version">
                 <p class="label">Production version</p>
-                <p class="stats">(~3 KB minified and gzipped)</p>
+                <p class="stats">(~3 KB minified + gzipped)</p>
             </a>
             <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
                 <p class="label">Development version</p>
@@ -93,10 +93,20 @@
     <section id="overview">
         <a name="overview" href="#overview"><h2>Overview</h2></a>
 
-        <p><code>Squel</code> helps you quickly and easily build SQL query string through an object oriented API.
-            Before you get stuck in and start using Squel here are a few things to be aware of...</p>
+        <p><code>Squel</code> helps you quickly and easily build SQL query strings through an object oriented API.
+            There are two main benefits to using Squel to build your queries:</p>
 
-        <p>All of the query builders use <a href="http://en.wikipedia.org/wiki/Method_chaining">method chaining</a> to
+        <ol>
+            <li><strong>It requires less effort</strong> - instead of having to use brittle methods like string
+                concatenation and substitution you get a nice clean API to do the hard work for you.</li>
+            <li><strong>It lets you build flexibly</strong> - Sometimes you don't yet know what your final query ought
+                to look like until you've checked information from various other parts of your program. Representing the
+            query as an object which can be manipulated allows you to be flexible about how you build it.</li>
+        </ol>
+
+        <p>Ok, now you're convinced! Before you get stuck in here are a few things to be aware of...</p>
+
+        <p>Squel uses <a href="http://en.wikipedia.org/wiki/Method_chaining">method chaining</a> to
             make things easy. For example, instead of writing:</p>
 
         <pre class="brush: js">
@@ -112,18 +122,18 @@
         </pre>
 
         What's even better, the <code>toString()</code> method gets called automatically by the Javascript interpreter
-        whenever a string representation of an object is needed. So we can simplify the previous statement to:
+        whenever a string representation of an object is needed. So we can actually simplify the previous statement to:
 
         <pre class="brush: js">
             alert( squel.select().from("students") );  /* SELECT * FROM students */
         </pre>
 
-        <p><em>Note: All of the query builders provide the <code>toString()</code> method. It is this
+        <p><em>Note: All of the Squel's builders provide the <code>toString()</code> method. It is this
             method which constructs the final query string.</em></p>
 
         <p>Squel does not check to see if your final query query is semantically correct (i.e. that it makes
-            sense). Your database engine already does a good enough job of that. On the plus side Squel won't stop you
-            from using database functions and other complex constructs:</p>
+            sense). Your database engine already does a good enough job of that. On the plus side Squel allows you
+            to use proprietary database functions and other complex constructs:</p>
 
         <pre class="brush: js">
             alert(
@@ -157,13 +167,13 @@
     <section id="select">
         <a name="select" href="#select"><h2>SELECT</h2></a>
 
-        <p>To get an instance of the SELECT query builder:</p>
+        <p>To get an instance of the <code>SELECT</code> query builder:</p>
 
         <pre class="brush: js">
             var q = squel.select();
         </pre>
 
-        <p>Calling <code>toString()</code> on it now will throw an error:</p>
+        <p>Calling <code>toString()</code> on it now will throw an exception:</p>
 
         <pre class="brush: js">
             try {
@@ -183,7 +193,7 @@
             /* SELECT * FROM students */
         </pre>
 
-        <h3>Tables</h3>
+        <h3>Multiple tables</h3>
 
         <p>You can select data from multiple tables and provide aliases where needed:</p>
 
@@ -294,7 +304,7 @@
                     .left_join("teachers", null, "students.id = teachers.student_id")
                     .right_join("jailed", "j", "j.student_id = students.id")
             );
-            /*  SELECT * FROM students
+            /*  SELECT students.id FROM students
                     LEFT JOIN teachers ON (students.id = teachers.student_id)
                     RIGHT JOIN jailed `j` ON (j.student_id = students.id)
             */
@@ -304,32 +314,405 @@
 
         <h3>Filtering</h3>
 
-        <p>Todo</p>
+        <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = 'Thomas'")
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas')  */
+        </pre>
+
+        <p>Multiple filters are automatically combined using <code>AND</code>:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = 'Thomas'")
+                    .where("age > 18")
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas') AND (age > 18)  */
+        </pre>
+
+        <p>Also filter using <code>OR</code> or any other operator you like:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = 'Thomas' OR age > 18")
+                    .where("id BETWEEN 200 and 300")
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) AND (id BETWEEN 200 and 300) */
+        </pre>
+
+        <p>You can also pass in <a href="#expressions">Expressions</a>:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where(
+                        squel.expr().and("name = 'Thomas'").or("age > 18")
+                    )
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) */
+        </pre>
+
+        <h3>Sorting</h3>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .order("id")
+                    .order("name")
+            );
+            /*  SELECT id FROM students ORDER BY id ASC, name ASC */
+        </pre>
+
+        <p>Use the second argument of <code>order()</code> to change the direction of a sort:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .order("id")
+                    .order("name", false)  /* using TRUE instead would be the same as omitting it. */
+            );
+            /*  SELECT id FROM students ORDER BY id ASC, name DESC */
+        </pre>
+
+        <h3>Grouping</h3>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .group("id")
+            );
+            /*  SELECT id FROM students GR0UP BY id */
+        </pre>
+
+        <p>Grouping on multiple fields is supported:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .group("id")
+                    .group("students.name")
+            );
+            /*  SELECT id FROM students GR0UP BY id, students.name */
+        </pre>
+
+        <h3>Ranges</h3>
+
+        <p>To <code>LIMIT</code> the number of results:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .limit(10)
+            );
+            /*  SELECT * FROM students LIMIT 10 */
+        </pre>
+
+        <p>To remove the previously set limit:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .limit(10)
+                    .limit(0)
+            );
+            /*  SELECT * FROM students */
+        </pre>
+
+        <p>To specify the <code>OFFSET</code> of the first row to return:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .offset(102)
+            );
+            /*  SELECT * FROM students OFFSET 102 */
+        </pre>
+
+        <p>Same as for <code>limit()</code>, you can remove a previously set offset:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .offset(1)
+                    .offset(0)
+            );
+            /*  SELECT * FROM students */
+        </pre>
 
     </section>
+
+
 
     <section id="update">
-        <a name="select" href="#select"><h2>UPDATE</h2></a>
+        <a name="update" href="#update"><h2>UPDATE</h2></a>
 
-        <p>Todo</p>
+        <p>To get an instance of the <code>UPDATE</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.update();
+        </pre>
+
+        <p>You need to supply at least one table name and one field to update:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("name", "Thomas")
+            );
+            /*  UPDATE students SET name = "Thomas" */
+        </pre>
+
+        <p>Multiple table names can be supplied along with aliases:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .table("teachers", "t")
+                    .set("t.name", "Fred")
+            );
+            /*  UPDATE students, teachers `t` SET t.name = "Fred" */
+        </pre>
+
+        <h3>Field values</h3>
+
+        <p>Not all field values within a query need to be surrounded by quotes. Squel figures out how to represent each
+            field value based on its runtime type:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .set("score", 1.2)
+                    .set("graduate", false)
+            );
+            /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE */
+        </pre>
+
+        <p>You can even use <code>NULL</code> values:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .set("nickname", null)
+            );
+            /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
+        </pre>
+
+        <h3>Filtering, sorting and limits</h3>
+
+        <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same
+            way they are by the <a href="#select">SELECT</a> builder:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .where("id > 5")
+                    .where("id < 102")
+                    .order("id", false)
+                    .limit(5)
+            );
+            /*  UPDATE students SET name = "Fred", age = 29 WHERE (id > 5) AND (id < 102) ORDER BY id DESC LIMIT 5 */
+        </pre>
 
     </section>
 
-    <section id="insert">
-        <a name="insert" href="#insert"><h2>INSERT</h2></a>
-        <p>Todo</p>
 
-    </section>
 
     <section id="delete">
         <a name="delete" href="#delete"><h2>DELETE</h2></a>
-        <p>Todo</p>
+
+        <p>To get an instance of the <code>DELETE</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.delete();
+        </pre>
+
+        <p>You need to supply at least the table name:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.delete()
+                    .from("students")
+            );
+            /*  DELETE FROM students */
+        </pre>
+
+        <h3>Filtering, sorting and limits</h3>
+
+        <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same way
+            they are by the <a href="#select">SELECT</a> builder:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.delete()
+                    .from("students")
+                    .where("id > 5")
+                    .where("id < 102")
+                    .order("id", false)
+                    .limit(5)
+            );
+            /*  DELETE FROM students WHERE (id > 5) AND (id < 102) ORDER BY id DESC LIMIT 5 */
+        </pre>
 
     </section>
 
+
+    <section id="insert">
+        <a name="insert" href="#insert"><h2>INSERT</h2></a>
+
+        <p>To get an instance of the <code>INSERT</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.insert();
+        </pre>
+
+        <p>At least the table name and one field must be supplied:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.insert()
+                    .into("students")
+                    .set("name", "Thomas")
+            );
+            /*  INSERT INTO students (name) VALUES ("Thomas") */
+        </pre>
+
+        <p>Squel out how to treat each field value based on its runtime type, same as it does for
+            <a href="#update">UPDATE</a> queries:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.insert()
+                    .into("students")
+                    .set("name", "Thomas")
+                    .set("age", 29)
+                    .set("score", 90.2)
+                    .set("graduate", true)
+                    .set("nickname", null)
+            );
+            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ("Thomas", 29, 90.2, TRUE, NULL) */
+        </pre>
+
+    </section>
+
+
+
     <section id="expressions">
         <a name="expressions" href="#expressions"><h2>Expressions</h2></a>
-        <p>Todo</p>
+
+        <p>Squel lets you use use complex expressions strings in <code>WHERE</code> and <code>ON</code> clauses. For
+            example:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .where("(id < 500 AND (id > 100 OR name <> 'Thomas') AND "
+                            + "(age BETWEEN 20 AND 25 OR (name <> 'Fred'))) OR (nickname = 'Hardy')")
+            );
+            /*  SELECT * FROM students WHERE
+                    ((id < 500 AND (id > 100 OR name <> 'Thomas') AND (age BETWEEN 20 AND 25 OR (name <> 'Fred')))
+                        OR (nickname = 'Hardy')) */
+        </pre>
+
+        <p>But having to change an expression string like that later on will be error-prone. It would be nice if you could build it
+            the same way you build queries. Luckily Squel provides an expression builder just for this purpose. To
+            get an instance of the builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.expr();
+        </pre>
+
+        <p>To build the above expression string these are the calls you would make:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.expr()
+                    .and("id < 500")
+                    .and_begin()
+                        .or("id > 100")
+                        .or("name <> 'Thomas'")
+                    .end()
+                    .and_begin()
+                        .or("age BETWEEN 20 AND 25")
+                        .or("name <> 'Fred'")
+                    .end()
+                    .or("nickname = 'Hardy'")
+            );
+            /*  id < 500 AND (id > 100 OR name <> 'Thomas') AND (age BETWEEN 20 AND 25 OR name <> 'Fred')
+                    OR nickname = 'Hardy'
+            */
+        </pre>
+
+        <p>Straight away the benefit of using the expression builder can be seen as it has simplified the
+            expression (<code>AND</code> has precendence over <code>OR</code>). Not to mention that it's easier to
+            figure out the meaning of the expression looking at this code than it looking at the big string we were
+            using earlier.</p>
+
+        <p>As a convenience expression builder instances can be used in calls to <code>where()</code> and
+            <code>join()</code> when using the query builders:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("s.id")
+                    .from("students", "s")
+                    .where(
+                        squel.expr()
+                            .and("s.name <> 'Fred'")
+                            .or_begin()
+                                .or("s.id = 5")
+                                .or("s.id = 6")
+                            .end()
+                    )
+                    .join("teachers", "t",
+                        squel.expr()
+                            .and("s.id = t.sid")
+                            .and("t.name = 'Frances'")
+                    )
+            );
+            /*
+                SELECT s.id FROM students `s`
+                    INNER JOIN teachers `t` ON (s.id = t.sid AND t.name = 'Frances')
+                        WHERE (s.name <> 'Fred' AND (s.id = 5 OR s.id = 6))
+            */
+        </pre>
 
     </section>
 

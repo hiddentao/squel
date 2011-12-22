@@ -222,7 +222,7 @@ section {
             padding: 0.4em 0;
             color: #333;
             text-decoration: none;
-            background: #ccc url("../img/download.png") no-repeat 97% center;
+            background: #ccc url("../img/download.png") no-repeat 97% 90%;
 
             p {
                 margin: 0;
@@ -250,6 +250,17 @@ section {
 
     }
 }
+
+#overview {
+    ol {
+        margin: 0 0 0 3em;
+        list-style: decimal;
+        li {
+            margin: 0.5em 0;
+        }
+    }
+}
+
 
 #installation {
     color: #333 !important;
