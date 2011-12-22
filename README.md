@@ -135,7 +135,7 @@ There is also an expression builder which allows you to build complex expression
 
 ## Documentation
 
-Full API documentation is coming soon!
+Full API documentation is available at [http://squeljs.org/](http://squeljs.org/).
 
 For now please refer to the annoted source code in the `docs/` folder. This is built using
 [docco](http://jashkenas.github.com/docco/). To build it yourself you will first need to have the latest dev version
@@ -161,7 +161,8 @@ tests pass.
 
 ---
 
-Source: [github](https://github.com/hiddentao/squel)
+Homepage: [http://squeljs.org](http://squeljs.org/)
+Source: [https://github.com/hiddentao/squel](https://github.com/hiddentao/squel)
 
 
 Copyright (c) 2012 [Ramesh Nair](http://www.hiddentao.com/)
