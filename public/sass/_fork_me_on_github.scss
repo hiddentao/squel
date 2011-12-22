@@ -1,0 +1,73 @@
+/* http://www.hagenburger.net/BLOG/3d-Github-badge-with-pure-CSS3.html */
+
+@import "compass";
+
+#github {
+  left: -65px;
+  height: 30px;
+  top: 40px;
+  position: absolute;
+  text-decoration: none;
+  border: none;
+  z-index: 10000;
+  width: 250px;
+  @include rotate(-45deg);
+  span {
+    background: #fff;
+    color: #000;
+    font-size: 14px;
+    left: 0;
+    padding: 5px 0;
+    position: absolute;
+    text-align: center;
+    width: 250px;
+    @include box-shadow(rgba(black, 0.2) 1px 1px 10px);
+    // If you’re using Compass < 0.11 use this:
+    // @include box-shadow(rgba(black, 0.2), 1px, 1px, 10px);
+    @include transition(opacity, 1s);
+    &:last-child {
+      /* this is the backside */
+      background: #666;
+      color: #fff;
+      opacity: 0;
+    }
+  }
+
+  &:hover {
+    background-color: transparent;
+  }
+
+  &:hover span {
+    &:first-child {
+      opacity: 0;
+    }
+    &:last-child {
+      opacity: 1;
+    }
+  }
+}
+
+
+
+
+@media all and (-webkit-transform-3d) {
+  #github {
+    span {
+      opacity: 1 !important;
+      -webkit-backface-visibility: hidden;
+      -webkit-transition: -webkit-transform 1s;
+      &:last-child {
+        -webkit-transform: rotateX(180deg);
+      }
+    }
+    &:hover span {
+      &:first-child {
+        -webkit-transform: rotateX(180deg);
+      }
+      &:last-child {
+        -webkit-transform: rotateX(360deg);
+      }
+    }
+  }
+}
+

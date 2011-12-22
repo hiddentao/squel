@@ -369,3 +369,74 @@ section h3 {
   background-color: #692f1d;
   border-bottom: none;
 }
+
+/* http://www.hagenburger.net/BLOG/3d-Github-badge-with-pure-CSS3.html */
+#github {
+  left: -65px;
+  height: 30px;
+  top: 40px;
+  position: absolute;
+  text-decoration: none;
+  border: none;
+  z-index: 10000;
+  width: 250px;
+  -moz-transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+#github span {
+  background: #fff;
+  color: #000;
+  font-size: 14px;
+  left: 0;
+  padding: 5px 0;
+  position: absolute;
+  text-align: center;
+  width: 250px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
+  -o-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
+  box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
+  -moz-transition-property: opacity;
+  -webkit-transition-property: opacity;
+  -o-transition-property: opacity;
+  transition-property: opacity;
+  -moz-transition-duration: 1s;
+  -webkit-transition-duration: 1s;
+  -o-transition-duration: 1s;
+  transition-duration: 1s;
+}
+#github span:last-child {
+  /* this is the backside */
+  background: #666;
+  color: #fff;
+  opacity: 0;
+}
+#github:hover {
+  background-color: transparent;
+}
+#github:hover span:first-child {
+  opacity: 0;
+}
+#github:hover span:last-child {
+  opacity: 1;
+}
+
+@media all and (-webkit-transform-3d) {
+  #github span {
+    opacity: 1 !important;
+    -webkit-backface-visibility: hidden;
+    -webkit-transition: -webkit-transform 1s;
+  }
+  #github span:last-child {
+    -webkit-transform: rotateX(180deg);
+  }
+  #github:hover span:first-child {
+    -webkit-transform: rotateX(180deg);
+  }
+  #github:hover span:last-child {
+    -webkit-transform: rotateX(360deg);
+  }
+}
