@@ -80,6 +80,16 @@ footer {
     text-align: center;
 }
 
+@mixin nav-button {
+    background-color: #ccc;
+    border-color: #999;
+    padding: 0.5em 1em;
+    color: #666;
+    text-decoration: none;
+    @include single-box-shadow(#666,0px,0px,2px,false,true);
+    @include border-radius(5px);
+}
+
 
 header {
     display: block;
@@ -118,13 +128,7 @@ header {
                 padding: 0;
 
                 a {
-                    background-color: #ccc;
-                    border-color: #999;
-                    padding: 0.5em 1em;
-                    color: #666;
-                    text-decoration: none;
-                    @include single-box-shadow(#666,0px,0px,2px,false,true);
-                    @include border-radius(5px);
+                    @include nav-button;
 
                     &.external {
                         background: #ccc url("../img/external.png") no-repeat 90% 15%;
@@ -134,6 +138,29 @@ header {
                         color: #666;
                         background-color: #fff !important;
                     }
+                }
+            }
+        }
+
+        ul.submenu {
+            display: none;
+            @include nav-button;
+            padding: 0.1em 0.5em;
+
+            li {
+                display: block;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+
+                a {
+                    display: block;
+                    width: 100%;
+                    margin: 0;
+                    padding: 0.5em 0;
+                    border: none;
+                    @include single-box-shadow(#666,0px,0px,0px,false,true);
+                    @include border-radius(0px);
                 }
             }
         }

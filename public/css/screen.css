@@ -201,6 +201,48 @@ header nav ul li a:hover {
   color: #666;
   background-color: #fff !important;
 }
+header nav ul.submenu {
+  display: none;
+  background-color: #ccc;
+  border-color: #999;
+  padding: 0.5em 1em;
+  color: #666;
+  text-decoration: none;
+  -moz-box-shadow: inset 0px 0px 2px #666666;
+  -webkit-box-shadow: inset 0px 0px 2px #666666;
+  -o-box-shadow: inset 0px 0px 2px #666666;
+  box-shadow: inset 0px 0px 2px #666666;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+  padding: 0.1em 0.5em;
+}
+header nav ul.submenu li {
+  display: block;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+header nav ul.submenu li a {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.5em 0;
+  border: none;
+  -moz-box-shadow: inset 0px 0px 0px #666666;
+  -webkit-box-shadow: inset 0px 0px 0px #666666;
+  -o-box-shadow: inset 0px 0px 0px #666666;
+  box-shadow: inset 0px 0px 0px #666666;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -o-border-radius: 0px;
+  -ms-border-radius: 0px;
+  -khtml-border-radius: 0px;
+  border-radius: 0px;
+}
 
 section {
   padding: 0 7em 1.5em;

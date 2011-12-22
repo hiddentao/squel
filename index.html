@@ -23,8 +23,9 @@
                 <li><a href="#home" title="Home">Home</a></li>
                 <li>
                     <a href="#docs" title="View documentation">Docs</a>
-                    <ul style="display:none;">
+                    <ul class="submenu">
                         <li><a href="#installation" title="Installation instructions">Installation</a></li>
+                        <li><a href="#overview" title="Overview">Overview</a></li>
                         <li><a href="#select" title="SELECT queries">SELECT</a></li>
                         <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
                         <li><a href="#insert" title="INSERT queries">INSERT</a></li>
@@ -762,6 +763,9 @@
             SyntaxHighlighter.defaults['toolbar'] = false;
             SyntaxHighlighter.highlight();
 
+            // nav menus
+            handleNavMenus();
+
             // allow viewer to execute highlighted js code blocks
             buildRunButtons();
         });
@@ -791,6 +795,22 @@
                         btn.hide();
                     });
                 }
+            });
+        }
+        function handleNavMenus() {
+            $("ul.submenu").each(function(){
+                var submenu = $(this);
+                submenu.hide();
+                var parentItem = submenu.parent();
+                parentItem.mouseenter(function(){
+                    submenu.css({
+                        "position": "absolute",
+                        "top": (parentItem.offset().top - $(window).scrollTop() + parentItem.height() + 15) + "px",
+                        "left": (parentItem.offset().left) + "px"
+                    }).show();
+                }).mouseleave(function(){
+                    submenu.hide();
+                });
             });
         }
     </script>
