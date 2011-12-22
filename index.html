@@ -1,1 +1,428 @@
-Squel
+<!DOCTYPE html>
+<html>
+<head>
+    <title>squel.js</title>
+
+    <link href='http://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/shCoreRDark.css" />
+    <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/screen.css" />
+    <link rel="stylesheet" type="text/css" media="print" href="public/css/print.css" />
+    <!--[if IE]>
+        <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/ie.css" />
+    <![endif]-->
+
+
+</head>
+<body>
+
+    <header>
+        <div id="logo">Squel.js</div>
+        <nav>
+            <ul>
+                <li><a href="#home" title="Home">Home</a></li>
+                <li>
+                    <a href="#docs" title="View documentation">Docs</a>
+                    <ul style="display:none;">
+                        <li><a href="#installation" title="Installation instructions">Installation</a></li>
+                        <li><a href="#select" title="SELECT queries">SELECT</a></li>
+                        <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
+                        <li><a href="#insert" title="INSERT queries">INSERT</a></li>
+                        <li><a href="#delete" title="DELETE queries">DELETE</a></li>
+                        <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
+                    </ul>
+                </li>
+                <li><a href="#tests" title="Running the tests">Tests</a></li>
+                <li><a class="external" href="https://github.com/hiddentao/squel" title="Fork on github">Github</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="home">
+        <a name="home"></a>
+
+        <div class="left white_text">
+            <p class="heading">Squel.js</p>
+            <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
+            <p class="sub">- usable with node.js or in the browser.</p>
+            <p class="sub">- well tested (over 300 <a href="http://vows.js.org/" title="Vows BDD">vows</a>).</p>
+        </div>
+
+        <div class="right">
+            <p class="npm">
+                npm install squel
+            </p>
+            <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download production version">
+                <p class="label">Production version</p>
+                <p class="stats">(~3 KB minified and gzipped)</p>
+            </a>
+            <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
+                <p class="label">Development version</p>
+                <p class="stats">(~18 KB)</p>
+            </a>
+        </div>
+
+    </section>
+
+    <a name="docs"></a>
+    <section id="installation" class="white_text">
+        <a name="installation" href="#installation"><h2>Installation</h2></a>
+
+        <h3>Node.js</h3>
+
+        <p>To install for node.js use <code>npm</code>:</p>
+
+        <pre class="brush: shell">npm install squel</pre>
+
+        <p>Once done you can use <code>require</code> to access the API:</p>
+
+        <pre class="brush: js">var squel = require("squel");</pre>
+
+        <h3>Browser</h3>
+
+        <p>To use within a webpage include the following within your HTML <code>body</code> section, near the bottom:</p>
+
+        <pre class="brush: html">&lt;script type="text/javascript" src="/your/path/to/squel.min.js"&gt;&lt;/script&gt;</pre>
+
+        <p>Once loaded the <code>squel</code> API will be available in the global object:</p>
+
+        <pre class="brush: js">alert( typeof window.squel );    // object</pre>
+
+    </section>
+
+    <section id="overview">
+        <a name="overview" href="#overview"><h2>Overview</h2></a>
+
+        <p><code>Squel</code> helps you quickly and easily build SQL query string through an object oriented API.
+            Before you get stuck in and start using Squel here are a few things to be aware of...</p>
+
+        <p>All of the query builders use <a href="http://en.wikipedia.org/wiki/Method_chaining">method chaining</a> to
+            make things easy. For example, instead of writing:</p>
+
+        <pre class="brush: js">
+            var s = squel.select();
+            s.from("student");
+            alert( s.toString() );    /* SELECT * FROM student */
+        </pre>
+
+        You can simply write:
+
+        <pre class="brush: js">
+            alert( squel.select().from("students").toString() );  // SELECT * FROM students
+        </pre>
+
+        What's even better, the <code>toString()</code> method gets called automatically by the Javascript interpreter
+        whenever a string representation of an object is needed. So we can simplify the previous statement to:
+
+        <pre class="brush: js">
+            alert( squel.select().from("students") );  /* SELECT * FROM students */
+        </pre>
+
+        <p><em>Note: All of the query builders provide the <code>toString()</code> method. It is this
+            method which constructs the final query string.</em></p>
+
+        <p>Squel does not check to see if your final query query is semantically correct (i.e. that it makes
+            sense). Your database engine already does a good enough job of that. On the plus side Squel won't stop you
+            from using database functions and other complex constructs:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .field("name")
+                    .field("MIN(test_score)")
+                    .field("MAX(test_score)")
+                    .field("GROUP_CONCAT(DISTINCT test_score ORDER BY test_score DESC SEPARATOR ' ')")
+                    .group("name")
+            );
+            /*
+                SELECT
+                    name,
+                    MIN(test_score),
+                    MAX(test_score),
+                    GROUP_CONCAT(DISTINCT test_score ORDER BY test_score DESC SEPARATOR ' ')
+                FROM
+                    students
+                GROUP BY
+                    name
+            */
+        </pre>
+
+        <p><em>Note: Unless stated otherwise all query builder methods require string arguments. Passing in objects,
+            arrays or functions will result in exceptions being thrown.</em></p>
+
+
+    </section>
+
+    <section id="select">
+        <a name="select" href="#select"><h2>SELECT</h2></a>
+
+        <p>To get an instance of the SELECT query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.select();
+        </pre>
+
+        <p>Calling <code>toString()</code> on it now will throw an error:</p>
+
+        <pre class="brush: js">
+            try {
+                alert( squel.select() );  /* remember that toString() is implicitly called here */
+            } catch (error) {
+                alert( error ); /* from() needs to be called */
+            }
+        </pre>
+
+        <p>Thus, at a minimum the name of a table to fetch data from must be provided:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+            );
+            /* SELECT * FROM students */
+        </pre>
+
+        <h3>Tables</h3>
+
+        <p>You can select data from multiple tables and provide aliases where needed:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .from("lecturers", "l")
+                    .from("admins")
+            );
+            /* SELECT * FROM students, lecturers `l`, admins */
+        </pre>
+
+        <h3>Fields</h3>
+
+        <p>You can specify field names on their own or by the table they belong to:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .field("id")
+                    .field("students.name")
+            );
+            /* SELECT id, students.name FROM students */
+        </pre>
+
+        <p>Field names can be given aliases in order to customize the column names in the query results :</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .field("id", "Id")
+                    .field("students.name", "Student Name")
+            );
+            /* SELECT id AS "Id", students.name AS "Student Name" FROM students */
+        </pre>
+
+        <p>Database functions can be used in place of field names for more complex results:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students", "s")
+                    .field("s.id")
+                    .field("s.test_score", "Test score")
+                    .field("DATE_FORMAT(s.date_taken, '%M %Y')", "Taken on")
+            );
+            /*
+                SELECT
+                    s.id,
+                    s.test_score AS "Test score"
+                    DATE_FORMAT(s.date_taken, '%M %Y') AS "Taken on"
+                FROM
+                    students `s`
+            */
+        </pre>
+
+        <p>If you wish to obtain <code>DISTINCT</code> results you can do so:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .field("id")
+                    .distinct()
+            );
+            /*  SELECT DISTINCT id FROM students    */
+        </pre>
+
+        <h3>Joins</h3>
+
+        Squel supports <code>INNER</code>, <code>OUTER</code>, <code>LEFT</code> and <code>RIGHT</code> joins. To do an
+        <code>INNER</code> join:
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .join("teachers")
+            );
+            /*  SELECT * FROM students INNER JOIN teachers */
+        </pre>
+
+        You can specify table aliases:
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .join("teachers", "t")
+                    .outer_join("expelled")
+            );
+            /*  SELECT * FROM students
+                    INNER JOIN teachers `t`
+                    OUTER JOIN expelled
+            */
+        </pre>
+
+        And you can specify JOIN-ing conditions:
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("students.id")
+                    .from("students")
+                    .left_join("teachers", null, "students.id = teachers.student_id")
+                    .right_join("jailed", "j", "j.student_id = students.id")
+            );
+            /*  SELECT * FROM students
+                    LEFT JOIN teachers ON (students.id = teachers.student_id)
+                    RIGHT JOIN jailed `j` ON (j.student_id = students.id)
+            */
+        </pre>
+
+        <p><em>For an optional parameter such as an alias name, passing <code>null</code> is the same as omitting it.</em></p>
+
+        <h3>Filtering</h3>
+
+        <p>Todo</p>
+
+    </section>
+
+    <section id="update">
+        <a name="select" href="#select"><h2>UPDATE</h2></a>
+
+        <p>Todo</p>
+
+    </section>
+
+    <section id="insert">
+        <a name="insert" href="#insert"><h2>INSERT</h2></a>
+        <p>Todo</p>
+
+    </section>
+
+    <section id="delete">
+        <a name="delete" href="#delete"><h2>DELETE</h2></a>
+        <p>Todo</p>
+
+    </section>
+
+    <section id="expressions">
+        <a name="expressions" href="#expressions"><h2>Expressions</h2></a>
+        <p>Todo</p>
+
+    </section>
+
+    <section id="tests" class="white_text">
+        <a name="tests" href="#tests"><h2>Tests</h2></a>
+
+        <p>
+            Tests are written as <a href="http://vowsjs.org/">vows</a> and can be found in the <code>test/</code> folder when you checkout the
+            <a href="https://github.com/hiddentao/squel">source code</a>.
+            To run them do the following:
+        </p>
+
+        <pre class="brush: shell">
+            $ npm install
+            $ node_modules/.bin/cake tests
+        </pre>
+
+        <p>If the tests pass you should see something like this:</p>
+
+        <pre class="brush: shell">
+                &#10003; OK &raquo; 320 honored (0.236s)
+        </pre>
+
+        <p>
+            The tests get automatically run by the <em>Travis CI</em>
+            build system every time changes are made to Squel.
+
+            The current build status is: <a class="img" href="http://travis-ci.org/hiddentao/squel" title="View squel on Travis"><img alt="Build Status" src="https://secure.travis-ci.org/hiddentao/squel.png"></a>
+        </p>
+
+    </section>
+
+    <footer class="white_text">
+        Developed by <a href="http://www.hiddentao.com/">Ramesh Nair</a> aka <a href="http://twitter.com/hiddentao">@hiddentao</a>.
+    </footer>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://raw.github.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript" src="public/js/shCore.js"></script>
+    <script type="text/javascript" src="public/js/shBrushBash.js"></script>
+    <script type="text/javascript" src="public/js/shBrushXml.js"></script>
+    <script type="text/javascript" src="public/js/shBrushJScript.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            // highlight code blocks
+            SyntaxHighlighter.defaults['gutter'] = false;
+            SyntaxHighlighter.defaults['toolbar'] = false;
+            SyntaxHighlighter.highlight();
+
+            // allow viewer to execute highlighted js code blocks
+            buildRunButtons();
+        });
+        function buildRunButtons() {
+            $(".syntaxhighlighter").each(function(){
+                var elem = $(this);
+                var code = $("table", elem).text();
+                if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
+                    var btn = $("<button>Run</button>");
+                    btn .css("display", "none")
+                        .click(function(e){
+                            e.preventDefault();
+                            eval(code);
+                        })
+                        .appendTo(elem)
+                    ;
+                    elem.mouseenter(function(){
+                        btn .css({
+                                "position": "absolute",
+                                "top": "1px",
+                                "right": "1px"
+                            })
+                            .show()
+                        ;
+                    });
+                    elem.mouseleave(function(){
+                        btn.hide();
+                    });
+                }
+            });
+        }
+    </script>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-11640584-5']);
+      _gaq.push(['_setDomainName', 'squeljs.org']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+</body>
+</html>

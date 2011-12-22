@@ -1,0 +1,9 @@
+# intellij
+.idea/
+*.iml
+
+# npm
+node_modules/
+
+# compass
+.sass-cache/

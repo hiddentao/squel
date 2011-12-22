@@ -1,0 +1,321 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+q, blockquote {
+  quotes: none;
+}
+q:before, q:after, blockquote:before, blockquote:after {
+  content: "";
+  content: none;
+}
+
+a img {
+  border: none;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
+  display: block;
+}
+
+body {
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 15px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2em;
+}
+
+p {
+  margin: 0.8em 0;
+}
+
+em {
+  font-style: italic;
+}
+
+code {
+  font-family: 'Armata', 'Courier', sans-serif;
+  font-weight: bold;
+}
+
+strong {
+  font-weight: bold;
+}
+
+a {
+  color: #00f;
+  text-decoration: none;
+  border-bottom: 1px solid #00f;
+}
+a:hover {
+  background-color: #00f;
+  color: #fff;
+}
+
+div.syntaxhighlighter {
+  padding: 0.4em;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+}
+
+/* fallback in case syntax highlighter fails. */
+pre {
+  font-family: 'Courier new', sans-serif;
+  display: block;
+  margin-bottom: 0 0 1em;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+  padding: 0.4em;
+  color: #fff;
+  background-color: #4c4c4b;
+}
+
+.white_text {
+  color: #fff;
+}
+.white_text a {
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 1px solid #fff;
+}
+.white_text a:hover {
+  background-color: #fff;
+  color: #333;
+}
+.white_text h2 {
+  color: #fff;
+}
+
+a.img {
+  border: none;
+}
+
+footer {
+  background-color: #000;
+  padding: 2em 0;
+  text-align: center;
+}
+
+header {
+  display: block;
+  position: fixed;
+  z-index: 9999;
+  top: 0px;
+  left: 0px;
+  height: 70px;
+  width: 100%;
+  background-color: #000;
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=90);
+  opacity: 0.9;
+  font-family: 'Bree Serif', serif;
+  font-size: 140%;
+  text-align: center;
+  color: #fff;
+}
+header #logo {
+  display: inline-block;
+  font-size: 170%;
+  padding: 0.5em 0 0 0;
+}
+header nav {
+  display: inline-block;
+  margin: 0 0 0 1em;
+  font-size: 80%;
+}
+header nav ul {
+  display: inline-block;
+  margin-left: 0;
+  padding: 0;
+}
+header nav ul li {
+  display: inline-block;
+  margin: 0 0.5em 0 0;
+  padding: 0;
+}
+header nav ul li a {
+  background-color: #ccc;
+  border-color: #999;
+  padding: 0.5em 1em;
+  color: #666;
+  text-decoration: none;
+  -moz-box-shadow: inset 0px 0px 2px #666666;
+  -webkit-box-shadow: inset 0px 0px 2px #666666;
+  -o-box-shadow: inset 0px 0px 2px #666666;
+  box-shadow: inset 0px 0px 2px #666666;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+}
+header nav ul li a.external {
+  background: #cccccc url("../img/external.png") no-repeat 90% 15%;
+}
+header nav ul li a:hover {
+  color: #666;
+  background-color: #fff !important;
+}
+
+section {
+  padding: 0 7em 1.5em;
+  border-bottom: 1px solid #ccc;
+}
+section section {
+  padding: 0;
+}
+section > a {
+  text-decoration: none;
+}
+section h2 {
+  font-family: 'Bree Serif', serif;
+  text-decoration: none;
+  border: none;
+  margin: 0;
+  padding: 0.7em 0 0;
+  margin: 0 0 1em;
+  font-size: 200%;
+  color: #000;
+}
+section h3 {
+  margin: 1.5em 0 1em;
+  font-size: 120%;
+  font-weight: bold;
+  color: #666;
+  font-style: italic;
+}
+
+#home {
+  background-color: #ED5E11;
+  border-bottom: none;
+  padding-top: 100px;
+  text-align: center;
+}
+#home .left {
+  display: inline-block;
+  margin-bottom: 0.4em;
+  font-size: 120%;
+  text-align: left;
+}
+#home .left p.heading {
+  font-family: 'Bree Serif', serif;
+  font-size: 340%;
+  margin: 0 0 0.8em;
+}
+#home .left p.sub {
+  font-style: italic;
+  margin: 0.5em 0;
+}
+#home .right {
+  display: inline-block;
+  width: 20%;
+  margin-left: 3em;
+}
+#home .right .npm {
+  font-family: 'Courier new', sans-serif;
+  display: block;
+  margin-bottom: 0 0 1em;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+  padding: 0.4em;
+  color: #fff;
+  background-color: #4c4c4b;
+}
+#home .right a {
+  display: block;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+  -moz-box-shadow: inset 0px 0px 2px #333333;
+  -webkit-box-shadow: inset 0px 0px 2px #333333;
+  -o-box-shadow: inset 0px 0px 2px #333333;
+  box-shadow: inset 0px 0px 2px #333333;
+  border: 1px solid #666;
+  margin-top: 0.8em;
+  padding: 0.4em 0;
+  color: #333;
+  text-decoration: none;
+  background: #cccccc url("../img/download.png") no-repeat 97% center;
+}
+#home .right a p {
+  margin: 0;
+}
+#home .right a p.label {
+  font-weight: bold;
+}
+#home .right a p.stats {
+  margin: 0.4em 0 0;
+  font-size: 80%;
+  font-style: italic;
+}
+#home .right a.dev {
+  background-color: #8aaab2;
+}
+#home .right a:hover {
+  background-color: #fff;
+}
+
+#installation {
+  color: #333 !important;
+  background-color: #8aaab2;
+}
+#installation h2 {
+  color: #333 !important;
+}
+
+#tests {
+  background-color: #692f1d;
+  border-bottom: none;
+}
