@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>squel.js</title>
+    <title>Squel.js - SQL query string builder for Javascript</title>
+
+    <meta name="keywords" content="sql,javascript,nodejs,orm,mysql,github,vowsjs,coffeescript" />
+    <meta name="description" content="Squel is a compact, lightweight Javascript library for building SQL query strings, usable with node.js or in the browser." />
 
     <link href='http://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
@@ -537,6 +540,19 @@
             /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
         </pre>
 
+        <p>You can use the <code>autoQuotes</code> option to stop Squel from automatically placing string field values within quotes:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update({ autoQuotes: false })
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .set("nickname", null)
+            );
+            /*  UPDATE students SET name = Fred, age = 29, nickname = NULL */
+        </pre>
+
         <h3>Filtering, sorting and limits</h3>
 
         <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same
@@ -633,6 +649,22 @@
                     .set("nickname", null)
             );
             /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ("Thomas", 29, 90.2, TRUE, NULL) */
+        </pre>
+
+        <p>And same as for <a href="#update">UPDATE</a> queries, you can use the <code>autoQuotes</code> option to
+            stop Squel from automatically placing string field values within quotes:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.insert({ autoQuotes: false })
+                    .into("students")
+                    .set("name", "Thomas")
+                    .set("age", 29)
+                    .set("score", 90.2)
+                    .set("graduate", true)
+                    .set("nickname", null)
+            );
+            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES (Thomas, 29, 90.2, TRUE, NULL) */
         </pre>
 
     </section>
