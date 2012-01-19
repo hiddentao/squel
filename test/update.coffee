@@ -29,7 +29,7 @@ assert = require "assert"
 squel = require "../squel.min"
 tu = require "./testutils"
 
-inst = -> squel.update()
+inst = (options) -> squel.update(options)
 expr = -> squel.expr()
 
 
@@ -132,6 +132,26 @@ suite.addBatch
                             'then when set("f6",null) is called':
                                 topic: (obj) -> obj.set("f6",null)
                                 'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 1, f2 = 1.2, f3 = TRUE, f4 = FALSE, f5 = "blah", f6 = NULL'
+
+
+suite.addBatch
+    'when auto-quotes are turned off':
+        topic: -> inst(autoQuotes: off)
+        'when table("test") is called':
+            topic: (obj) -> obj.table("test")
+            'when set("f1",1) is called':
+                topic: (obj) -> obj.set("f1",1)
+                'when set("f2",1.2) is called':
+                    topic: (obj) -> obj.set("f2",1.2)
+                    'when set("f3",true) is called':
+                        topic: (obj) -> obj.set("f3",true)
+                        'when set("f4",false) is called':
+                            topic: (obj) -> obj.set("f4",false)
+                            'when set("f5","blah") is called':
+                                topic: (obj) -> obj.set("f5","blah")
+                                'then when set("f6",null) is called':
+                                    topic: (obj) -> obj.set("f6",null)
+                                    'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 1, f2 = 1.2, f3 = TRUE, f4 = FALSE, f5 = blah, f6 = NULL'
 
 
 

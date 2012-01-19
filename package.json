@@ -8,9 +8,9 @@
   "devDependencies": {
     "coffee-script": ">= 1.2.0",
     "rimraf": "latest",
-    "docco": ">= 0.3.0",
-    "vows": ">= 0.6.0",
-    "uglify-js": ">= 1.2.2"
+    "docco": "0.3.0",
+    "vows": "0.6.0",
+    "uglify-js": "1.2.2"
   },
   "keywords": ["sql", "database", "rdbms"],
   "main": "squel",

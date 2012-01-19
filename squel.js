@@ -25,10 +25,21 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Delete, Expression, ExpressionClassName, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  var Delete, Expression, ExpressionClassName, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
     __hasProp = Object.prototype.hasOwnProperty,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  _extend = function(dst, src) {
+    var k, v;
+    if (src == null) src = {};
+    for (k in src) {
+      if (!__hasProp.call(src, k)) continue;
+      v = src[k];
+      dst[k] = v;
+    }
+    return dst;
+  };
 
   Expression = (function() {
     var _toString;
@@ -184,13 +195,13 @@ OTHER DEALINGS IN THE SOFTWARE.
     return item;
   };
 
-  formatValue = function(value) {
+  formatValue = function(value, formattingOptions) {
     if (null === value) {
       value = "NULL";
     } else if ("boolean" === typeof value) {
       value = value ? "TRUE" : "FALSE";
     } else if ("number" !== typeof value) {
-      value = "\"" + value + "\"";
+      if (formattingOptions.autoQuotes) value = "\"" + value + "\"";
     }
     return value;
   };
@@ -442,12 +453,17 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Update.prototype.fields = null;
 
-    function Update() {
+    Update.prototype.formattingOptions = null;
+
+    function Update(options) {
       this.toString = __bind(this.toString, this);
       this.set = __bind(this.set, this);
       this.table = __bind(this.table, this);      Update.__super__.constructor.apply(this, arguments);
       this.tables = [];
       this.fields = {};
+      this.formattingOptions = _extend({
+        autoQuotes: true
+      }, options);
     }
 
     Update.prototype.table = function(table, alias) {
@@ -496,7 +512,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (_j = 0, _len2 = fieldNames.length; _j < _len2; _j++) {
         field = fieldNames[_j];
         if ("" !== fields) fields += ", ";
-        fields += "" + field + " = " + (formatValue(this.fields[field]));
+        fields += "" + field + " = " + (formatValue(this.fields[field], this.formattingOptions));
       }
       ret += " SET " + fields;
       ret += this.whereString();
@@ -547,10 +563,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Insert.prototype.fields = null;
 
-    function Insert() {
+    Insert.prototype.formattingOptions = null;
+
+    function Insert(options) {
       this.toString = __bind(this.toString, this);
       this.set = __bind(this.set, this);
       this.into = __bind(this.into, this);      this.fields = {};
+      this.formattingOptions = _extend({
+        autoQuotes: true
+      }, options);
     }
 
     Insert.prototype.into = function(table) {
@@ -587,7 +608,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) fields += ", ";
         fields += field;
         if ("" !== values) values += ", ";
-        values += formatValue(this.fields[field]);
+        values += formatValue(this.fields[field], this.formattingOptions);
       }
       return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
     };
@@ -603,11 +624,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     select: function() {
       return new Select;
     },
-    update: function() {
-      return new Update;
+    update: function(options) {
+      return new Update(options);
     },
-    insert: function() {
-      return new Insert;
+    insert: function(options) {
+      return new Insert(options);
     },
     "delete": function() {
       return new Delete;

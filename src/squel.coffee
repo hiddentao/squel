@@ -23,6 +23,14 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ###
 
+
+# Extend given object's with another object's properties, overriding existing ones if necessary
+_extend = (dst, src = {}) ->
+    for own k,v of src
+        dst[k] = v
+    dst
+
+
 # An SQL expression builder.
 #
 # SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
@@ -171,13 +179,17 @@ sanitizeValue = (item) ->
     item
 
 # Format the given field value for inclusion into the query string
-formatValue = (value) ->
+#
+# formattingOptions:
+#   autoQuotes: if true (default) then string field values are automatically single-quoted; if false then not.
+formatValue = (value, formattingOptions) ->
     if null is value
         value = "NULL"
     else if "boolean" is typeof value
         value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
-        value = "\"#{value}\""
+        if formattingOptions.autoQuotes
+            value = "\"#{value}\""
     value
 
 
@@ -438,11 +450,17 @@ class Select extends WhereOrderLimit
 class Update extends WhereOrderLimit
     tables: null
     fields: null
+    formattingOptions: null
 
-    constructor: ->
+    # Options can currently include the following keys:
+    #   autoQuotes: if true (default) then string field values are automatically single-quoted; if false then not.
+    constructor: (options) ->
         super
         @tables = []
         @fields = {}
+        @formattingOptions = _extend({
+            autoQuotes: true
+        }, options)
 
 
     # Update the given table.
@@ -488,7 +506,7 @@ class Update extends WhereOrderLimit
         fields = ""
         for field in fieldNames
             fields += ", " if "" isnt fields
-            fields += "#{field} = #{formatValue(@fields[field])}"
+            fields += "#{field} = #{formatValue(@fields[field], @formattingOptions)}"
         ret += " SET #{fields}"
 
         # where
@@ -548,9 +566,16 @@ class Delete extends WhereOrderLimit
 class Insert
     table: null
     fields: null
+    formattingOptions: null
 
-    constructor: ->
+    # Options can currently include the following keys:
+    #   autoQuotes: if true (default) then string field values are automatically single-quoted; if false then not.
+    constructor: (options) ->
         @fields = {}
+        @formattingOptions = _extend({
+            autoQuotes: true
+        }, options)
+
 
     # The table to insert into.
     # This will override any previously set value.
@@ -581,7 +606,7 @@ class Insert
             fields += ", " if "" isnt fields
             fields += field
             values += ", " if "" isnt values
-            values += formatValue(@fields[field])
+            values += formatValue(@fields[field], @formattingOptions)
 
         "INSERT INTO #{@table} (#{fields}) VALUES (#{values})"
 
@@ -591,8 +616,8 @@ class Insert
 _export =
     expr: -> new Expression
     select: -> new Select
-    update: -> new Update
-    insert: -> new Insert
+    update: (options) -> new Update(options)
+    insert: (options) -> new Insert(options)
     delete: -> new Delete
 module?.exports = _export
 window?.squel = _export
