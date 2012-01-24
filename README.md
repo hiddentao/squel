@@ -146,7 +146,7 @@ There is also an expression builder which allows you to build complex expression
 
 Full API documentation is available at [http://squeljs.org/](http://squeljs.org/).
 
-For now please refer to the annoted source code in the `docs/` folder. This is built using
+Annotated source code can be found in the `docs/` folder. This is built using
 [docco](http://jashkenas.github.com/docco/). To build it yourself you will first need to have the latest dev version
 of [pygment](http://pygments.org/download/) installed in your local Python environment. Then do the following inside
 the project folder:
