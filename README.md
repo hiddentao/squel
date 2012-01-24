@@ -4,6 +4,7 @@ A simple, well tested SQL query string builder for Javascript.
 
 ## Features
 
+* Works in node.js and in the browser.
 * Supports the construction of all standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
 * Uses method chaining for ease of use.
 * Written in [CoffeeScript](http://coffeescript.org/) for ease of maintainability.
@@ -12,9 +13,17 @@ A simple, well tested SQL query string builder for Javascript.
 
 ## Installation
 
+### node.js
+
 Install using [npm](http://npmjs.org/):
 
     $ npm install squel
+
+### Browser
+
+Add the following inside your HTML:
+
+    <script type="text/javascript" src="https://github.com/hiddentao/squel/raw/master/squel.min.js"></script>
 
 ## Examples
 
