@@ -52,6 +52,13 @@ pre {
     background-color: #4c4c4b;
 }
 
+div.executable {
+    &:hover {
+        cursor: pointer;
+        outline:  2px solid #65cdfa;
+    }
+}
+
 .white_text {
     color: #fff;
 

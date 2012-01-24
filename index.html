@@ -804,32 +804,17 @@
             handleNavMenus();
 
             // allow viewer to execute highlighted js code blocks
-            buildRunButtons();
+            enableRunnableSections();
         });
-        function buildRunButtons() {
+        function enableRunnableSections() {
             $(".syntaxhighlighter").each(function(){
                 var elem = $(this);
                 var code = $("table", elem).text();
                 if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
-                    var btn = $("<button>Run</button>");
-                    btn .css("display", "none")
-                        .click(function(e){
-                            e.preventDefault();
-                            eval(code);
-                        })
-                        .appendTo(elem)
-                    ;
-                    elem.mouseenter(function(){
-                        btn .css({
-                                "position": "absolute",
-                                "top": "1px",
-                                "right": "1px"
-                            })
-                            .show()
-                        ;
-                    });
-                    elem.mouseleave(function(){
-                        btn.hide();
+                    elem.addClass("executable").attr("title", "Click to run")
+                    elem.click(function(e) {
+                        e.preventDefault();
+                        eval(code);
                     });
                 }
             });
