@@ -540,17 +540,18 @@
             /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
         </pre>
 
-        <p>You can use the <code>autoQuotes</code> option to stop Squel from automatically placing string field values within quotes:</p>
+        <p>You can use the <code>usingValuePlaceholders</code> option to stop Squel from automatically placing string
+            field values within quotes. This is useful if, for example, you're using parameterized queries:</p>
 
         <pre class="brush: js">
             alert(
-                squel.update({ autoQuotes: false })
+                squel.update({ usingValuePlaceholders: true })
                     .table("students")
-                    .set("name", "Fred")
+                    .set("name", "?")
                     .set("age", 29)
                     .set("nickname", null)
             );
-            /*  UPDATE students SET name = Fred, age = 29, nickname = NULL */
+            /*  UPDATE students SET name = ?, age = 29, nickname = NULL */
         </pre>
 
         <h3>Filtering, sorting and limits</h3>
@@ -651,20 +652,20 @@
             /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ("Thomas", 29, 90.2, TRUE, NULL) */
         </pre>
 
-        <p>And same as for <a href="#update">UPDATE</a> queries, you can use the <code>autoQuotes</code> option to
+        <p>And same as for <a href="#update">UPDATE</a> queries, you can use the <code>usingValuePlaceholders</code> option to
             stop Squel from automatically placing string field values within quotes:</p>
 
         <pre class="brush: js">
             alert(
-                squel.insert({ autoQuotes: false })
+                squel.insert({ usingValuePlaceholders: true })
                     .into("students")
-                    .set("name", "Thomas")
+                    .set("name", "?")
                     .set("age", 29)
                     .set("score", 90.2)
                     .set("graduate", true)
                     .set("nickname", null)
             );
-            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES (Thomas, 29, 90.2, TRUE, NULL) */
+            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES (?, 29, 90.2, TRUE, NULL) */
         </pre>
 
     </section>
