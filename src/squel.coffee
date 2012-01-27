@@ -24,10 +24,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-# Extend given object's with another object's properties, overriding existing ones if necessary
-_extend = (dst, src = {}) ->
-    for own k,v of src
-        dst[k] = v
+# Extend given object's with other objects' properties, overriding existing ones if necessary
+_extend = (dst, sources...) ->
+    if sources
+        for src in sources
+            if src
+                for own k,v of src
+                    dst[k] = v
     dst
 
 
@@ -134,6 +137,14 @@ class Expression
         str
 
 
+# Default builder options.
+DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions =
+    # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
+    # parameterized querying).
+    usingValuePlaceholders: false
+
+
+
 # Get class name of given object.
 getObjectClassName = (obj) ->
     if obj && obj.constructor && obj.constructor.toString
@@ -180,15 +191,14 @@ sanitizeValue = (item) ->
 
 # Format the given field value for inclusion into the query string
 #
-# formattingOptions:
-#   autoQuotes: if true (default) then string field values are automatically single-quoted; if false then not.
-formatValue = (value, formattingOptions) ->
+# options: see DefaultBuilderOptions
+formatValue = (value, options) ->
     if null is value
         value = "NULL"
     else if "boolean" is typeof value
         value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
-        if formattingOptions.autoQuotes
+        if false is options.usingValuePlaceholders
             value = "\"#{value}\""
     value
 
@@ -450,17 +460,14 @@ class Select extends WhereOrderLimit
 class Update extends WhereOrderLimit
     tables: null
     fields: null
-    formattingOptions: null
+    options: null
 
-    # Options can currently include the following keys:
-    #   autoQuotes: if true (default) then string field values are automatically single-quoted; if false then not.
+    # options: see DefaultBuilderOptions
     constructor: (options) ->
         super
         @tables = []
         @fields = {}
-        @formattingOptions = _extend({
-            autoQuotes: true
-        }, options)
+        @options = _extend {}, DefaultUpdateBuilderOptions, options
 
 
     # Update the given table.
@@ -506,7 +513,7 @@ class Update extends WhereOrderLimit
         fields = ""
         for field in fieldNames
             fields += ", " if "" isnt fields
-            fields += "#{field} = #{formatValue(@fields[field], @formattingOptions)}"
+            fields += "#{field} = #{formatValue(@fields[field], @options)}"
         ret += " SET #{fields}"
 
         # where
@@ -566,15 +573,12 @@ class Delete extends WhereOrderLimit
 class Insert
     table: null
     fields: null
-    formattingOptions: null
+    options: null
 
-    # Options can currently include the following keys:
-    #   autoQuotes: if true (default) then string field values are automatically single-quoted; if false then not.
+    # options: see DefaultBuilderOptions
     constructor: (options) ->
         @fields = {}
-        @formattingOptions = _extend({
-            autoQuotes: true
-        }, options)
+        @options = _extend {}, DefaultInsertBuilderOptions, options
 
 
     # The table to insert into.
@@ -606,7 +610,7 @@ class Insert
             fields += ", " if "" isnt fields
             fields += field
             values += ", " if "" isnt values
-            values += formatValue(@fields[field], @formattingOptions)
+            values += formatValue(@fields[field], @options)
 
         "INSERT INTO #{@table} (#{fields}) VALUES (#{values})"
 

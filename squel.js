@@ -25,18 +25,26 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 (function() {
-  var Delete, Expression, ExpressionClassName, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
+  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, ExpressionClassName, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
+    __slice = Array.prototype.slice,
     __hasProp = Object.prototype.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-  _extend = function(dst, src) {
-    var k, v;
-    if (src == null) src = {};
-    for (k in src) {
-      if (!__hasProp.call(src, k)) continue;
-      v = src[k];
-      dst[k] = v;
+  _extend = function() {
+    var dst, k, sources, src, v, _i, _len;
+    dst = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    if (sources) {
+      for (_i = 0, _len = sources.length; _i < _len; _i++) {
+        src = sources[_i];
+        if (src) {
+          for (k in src) {
+            if (!__hasProp.call(src, k)) continue;
+            v = src[k];
+            dst[k] = v;
+          }
+        }
+      }
     }
     return dst;
   };
@@ -141,6 +149,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
+  DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions = {
+    usingValuePlaceholders: false
+  };
+
   getObjectClassName = function(obj) {
     var arr;
     if (obj && obj.constructor && obj.constructor.toString) {
@@ -195,13 +207,13 @@ OTHER DEALINGS IN THE SOFTWARE.
     return item;
   };
 
-  formatValue = function(value, formattingOptions) {
+  formatValue = function(value, options) {
     if (null === value) {
       value = "NULL";
     } else if ("boolean" === typeof value) {
       value = value ? "TRUE" : "FALSE";
     } else if ("number" !== typeof value) {
-      if (formattingOptions.autoQuotes) value = "\"" + value + "\"";
+      if (false === options.usingValuePlaceholders) value = "\"" + value + "\"";
     }
     return value;
   };
@@ -453,7 +465,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Update.prototype.fields = null;
 
-    Update.prototype.formattingOptions = null;
+    Update.prototype.options = null;
 
     function Update(options) {
       this.toString = __bind(this.toString, this);
@@ -461,9 +473,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.table = __bind(this.table, this);      Update.__super__.constructor.apply(this, arguments);
       this.tables = [];
       this.fields = {};
-      this.formattingOptions = _extend({
-        autoQuotes: true
-      }, options);
+      this.options = _extend({}, DefaultUpdateBuilderOptions, options);
     }
 
     Update.prototype.table = function(table, alias) {
@@ -512,7 +522,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (_j = 0, _len2 = fieldNames.length; _j < _len2; _j++) {
         field = fieldNames[_j];
         if ("" !== fields) fields += ", ";
-        fields += "" + field + " = " + (formatValue(this.fields[field], this.formattingOptions));
+        fields += "" + field + " = " + (formatValue(this.fields[field], this.options));
       }
       ret += " SET " + fields;
       ret += this.whereString();
@@ -563,15 +573,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Insert.prototype.fields = null;
 
-    Insert.prototype.formattingOptions = null;
+    Insert.prototype.options = null;
 
     function Insert(options) {
       this.toString = __bind(this.toString, this);
       this.set = __bind(this.set, this);
       this.into = __bind(this.into, this);      this.fields = {};
-      this.formattingOptions = _extend({
-        autoQuotes: true
-      }, options);
+      this.options = _extend({}, DefaultInsertBuilderOptions, options);
     }
 
     Insert.prototype.into = function(table) {
@@ -608,7 +616,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) fields += ", ";
         fields += field;
         if ("" !== values) values += ", ";
-        values += formatValue(this.fields[field], this.formattingOptions);
+        values += formatValue(this.fields[field], this.options);
       }
       return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
     };

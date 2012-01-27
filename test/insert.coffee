@@ -96,8 +96,8 @@ suite.addBatch
 
 
 suite.addBatch
-    'when auto-quotes are turned off':
-        topic: -> inst(autoQuotes: false)
+    'when using value placeholders':
+        topic: -> inst(usingValuePlaceholders: true)
         'when into("test") is called':
             topic: (obj) -> obj.into("test")
             'when set("f1",1) is called':
