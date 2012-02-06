@@ -101,6 +101,8 @@
 
         <pre class="brush: js">alert( typeof window.squel );    // object</pre>
 
+        <p><em>Note: Most of the code examples on this page are clickable. Look for ones containing an <code>alert</code> call.</em></p>
+
     </section>
 
     <section id="overview">
@@ -141,10 +143,10 @@
             alert( squel.select().from("students") );  /* SELECT * FROM students */
         </pre>
 
-        <p><em>Note: All of the Squel's builders provide the <code>toString()</code> method. It is this
+        <p><em>Note: All of Squel's builders provide the <code>toString()</code> method. It is this
             method which constructs the final query string.</em></p>
 
-        <p>Squel does not check to see if your final query query is semantically correct (i.e. that it makes
+        <p>Squel does not check to see if your final query is semantically correct (i.e. that it makes
             sense). Your database engine already does a good enough job of that. On the plus side Squel allows you
             to use proprietary database functions and other complex constructs:</p>
 
