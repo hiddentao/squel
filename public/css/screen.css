@@ -286,6 +286,7 @@ section h3 {
 #home .left {
   display: inline-block;
   margin-bottom: 0.4em;
+  vertical-align: top;
   font-size: 120%;
   text-align: left;
 }
@@ -300,6 +301,7 @@ section h3 {
 }
 #home .right {
   display: inline-block;
+  vertical-align: top;
   width: 20%;
   margin-left: 3em;
 }
@@ -375,6 +377,28 @@ section h3 {
   border-bottom: none;
 }
 
+@media only screen and (max-width: 800px) {
+  #github {
+    display: none !important;
+  }
+}
+@media only screen and (max-width: 640px) {
+  header nav {
+    display: none;
+  }
+
+  section {
+    padding: 0 2em 1.5em 1em;
+  }
+
+  #home .left, #home .right {
+    text-align: center;
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding-bottom: 0.7em;
+  }
+}
 /* http://www.hagenburger.net/BLOG/3d-Github-badge-with-pure-CSS3.html */
 #github {
   left: -65px;

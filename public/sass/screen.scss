@@ -217,6 +217,7 @@ section {
     .left {
         display: inline-block;
         margin-bottom: 0.4em;
+        vertical-align: top;
         font-size: 120%;
         text-align: left;
 
@@ -234,6 +235,7 @@ section {
 
     .right {
         display: inline-block;
+        vertical-align: top;
         width: 20%;
         margin-left: 3em;
 
@@ -309,6 +311,37 @@ section {
     background-color: #692f1d;
     border-bottom: none;
 }
+
+
+@media only screen and (max-width: 800px) {
+    #github {
+        display: none !important;
+    }
+}
+
+
+@media only screen and (max-width: 640px) {
+    header {
+        nav {
+            display: none;
+        }
+    }
+
+    section {
+        padding: 0 2em 1.5em 1em;
+    }
+
+    #home {
+        .left, .right {
+            text-align: center;
+            display: block;
+            width: 100%;
+            margin: 0;
+            padding-bottom: 0.7em;
+        }
+    }
+}
+
 
 
 @import "_fork_me_on_github.scss";
