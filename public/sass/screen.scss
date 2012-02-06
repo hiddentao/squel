@@ -322,6 +322,7 @@ section {
 
 @media only screen and (max-width: 640px) {
     header {
+        position: static;
         nav {
             display: none;
         }

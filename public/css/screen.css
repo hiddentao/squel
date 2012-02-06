@@ -383,6 +383,9 @@ section h3 {
   }
 }
 @media only screen and (max-width: 640px) {
+  header {
+    position: static;
+  }
   header nav {
     display: none;
   }
