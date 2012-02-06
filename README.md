@@ -7,7 +7,6 @@ A simple, well tested SQL query string builder for Javascript.
 * Works in node.js and in the browser.
 * Supports the construction of all standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
 * Uses method chaining for ease of use.
-* Written in [CoffeeScript](http://coffeescript.org/) for ease of maintainability.
 * Well tested (over 300 [vows](http://vowsjs.org/)).
 * Small: ~3 KB when minified and gzipped.
 
