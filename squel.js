@@ -150,7 +150,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })();
 
   DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions = {
-    usingValuePlaceholders: false
+    usingValuePlaceholders: true
   };
 
   getObjectClassName = function(obj) {
@@ -201,13 +201,14 @@ OTHER DEALINGS IN THE SOFTWARE.
   sanitizeValue = function(item) {
     var t;
     t = typeof item;
+  if(item == undefined) item = null;
     if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
       throw new Error("field value must be a string, number, boolean or null");
     }
     return item;
   };
 
-  formatValue = function(value, options) {
+  formatValue = function(value, options, context) {
     if (null === value) {
       value = "NULL";
     } else if ("boolean" === typeof value) {
@@ -215,6 +216,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     } else if ("number" !== typeof value) {
       if (false === options.usingValuePlaceholders) value = "\"" + value + "\"";
     }
+	
     return value;
   };
 
@@ -237,9 +239,27 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     WhereOrderLimit.prototype.where = function(condition) {
-      condition = sanitizeCondition(condition);
-      if ("" !== condition) this.wheres.push(condition);
-      return this;
+	  if(arguments.length > 1) {
+		var glue = '=';
+		var value = arguments[1];
+	    if(arguments.length == 3) {
+			glue = arguments[1];
+			value = arguments[2];
+		}
+		
+		if(value === undefined || value === null || value === '') {
+			value = "NULL";
+		} else {
+			this.placeholdersCount++;
+			this.values.push(value);
+			value = '?'+this.placeholdersCount;
+		}
+		condition = arguments[0] + ' ' + glue + ' ' + value;
+	  }
+	  
+	  condition = sanitizeCondition(condition);
+	  if ("" !== condition) this.wheres.push(condition);
+	  return this;
     };
 
     WhereOrderLimit.prototype.order = function(field, asc) {
@@ -327,6 +347,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.fields = [];
       this.joins = [];
       this.groups = [];
+	  
+	  
+	  this.getParams = __bind(this.getParams, this);
+	  this.placeholdersCount = 0;
+	  this.values = [];
+	  
+	  
+
       this._join = function(type, table, alias, condition) {
         table = sanitizeTable(table);
         if (alias) alias = sanitizeAlias(alias);
@@ -340,6 +368,10 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _this;
       };
     }
+	
+	Select.prototype.getParams = function() {
+		return this.values;
+	}
 
     Select.prototype.distinct = function() {
       this.useDistinct = true;
@@ -469,10 +501,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Update(options) {
       this.toString = __bind(this.toString, this);
+	  this.getParams = __bind(this.getParams, this);
       this.set = __bind(this.set, this);
       this.table = __bind(this.table, this);      Update.__super__.constructor.apply(this, arguments);
       this.tables = [];
+	  this.placeholdersCount = 0;
       this.fields = {};
+	  this.values = [];
       this.options = _extend({}, DefaultUpdateBuilderOptions, options);
     }
 
@@ -490,11 +525,23 @@ OTHER DEALINGS IN THE SOFTWARE.
     Update.prototype.set = function(field, value) {
       field = sanitizeField(field);
       value = sanitizeValue(value);
+	  if(value === undefined || value === null || value === '') {
+		value = "NULL";
+	  } else {
+	 	this.placeholdersCount++;
+		this.values.push(value);
+		value = '?'+this.placeholdersCount;
+	  }
       this.fields[field] = value;
       return this;
     };
+	
+	Update.prototype.getParams = function() {
+		return this.values;
+	}
 
     Update.prototype.toString = function() {
+	  
       var field, fieldNames, fields, ret, table, tables, _i, _j, _len, _len2, _ref;
       if (0 >= this.tables.length) throw new Error("table() needs to be called");
       fieldNames = (function() {
@@ -522,7 +569,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (_j = 0, _len2 = fieldNames.length; _j < _len2; _j++) {
         field = fieldNames[_j];
         if ("" !== fields) fields += ", ";
-        fields += "" + field + " = " + (formatValue(this.fields[field], this.options));
+        fields += "" + field + " = " + (formatValue(this.fields[field], this.options, this));
       }
       ret += " SET " + fields;
       ret += this.whereString();
@@ -542,6 +589,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     function Delete() {
       this.toString = __bind(this.toString, this);
       this.from = __bind(this.from, this);
+	  this.placeholdersCount = 0;
+	  this.values = [];
       Delete.__super__.constructor.apply(this, arguments);
     }
 
@@ -551,6 +600,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       table = sanitizeTable(table);
       this.table = table;
       return this;
+    };
+	
+    Delete.prototype.getParams = function() {
+      return this.values;
     };
 
     Delete.prototype.toString = function() {
@@ -577,10 +630,18 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Insert(options) {
       this.toString = __bind(this.toString, this);
+	  
       this.set = __bind(this.set, this);
       this.into = __bind(this.into, this);      this.fields = {};
+	  this.values = [];
+	  this.placeholdersCount = 0;
+	  
       this.options = _extend({}, DefaultInsertBuilderOptions, options);
     }
+	
+	Insert.prototype.getParams = function() {
+		return this.values;
+	}
 
     Insert.prototype.into = function(table) {
       table = sanitizeTable(table);
@@ -591,6 +652,13 @@ OTHER DEALINGS IN THE SOFTWARE.
     Insert.prototype.set = function(field, value) {
       field = sanitizeField(field);
       value = sanitizeValue(value);
+	  if(value === undefined || value === null || value === '') {
+		value = "NULL";
+	  } else {
+	 	this.placeholdersCount++;
+		this.values.push(value);
+		value = '?'+this.placeholdersCount;
+	  }
       this.fields[field] = value;
       return this;
     };
@@ -616,7 +684,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) fields += ", ";
         fields += field;
         if ("" !== values) values += ", ";
-        values += formatValue(this.fields[field], this.options);
+        values += formatValue(this.fields[field], this.options, this);
       }
       return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
     };
