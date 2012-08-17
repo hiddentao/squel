@@ -26,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-expr = (require "../squel.min").expr
+{expr} = require "../src/squel"
 tu = require "./testutils"
 
 suite = vows.describe("Expression builder")

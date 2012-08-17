@@ -26,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-squel = require "../squel.min"
+squel = require "../src/squel"
 tu = require "./testutils"
 
 inst = (options) -> squel.insert(options)
@@ -91,7 +91,7 @@ suite.addBatch
                             topic: (obj) -> obj.set("f5","blah")
                             'then when set("f6",null) is called':
                                 topic: (obj) -> obj.set("f6",null)
-                                'then when toString() is called': tu.contextAssertStringEqual 'INSERT INTO test (f1, f2, f3, f4, f5, f6) VALUES (1, 1.2, TRUE, FALSE, "blah", NULL)'
+                                'then when toString() is called': tu.contextAssertStringEqual "INSERT INTO test (f1, f2, f3, f4, f5, f6) VALUES (1, 1.2, TRUE, FALSE, 'blah', NULL)"
 
 
 
@@ -134,10 +134,10 @@ suite.addBatch
         topic: -> inst().set("f","v")
         'when into("test") is called':
             topic: (obj) -> obj.into("test")
-            'then when toString() is called': tu.contextAssertStringEqual 'INSERT INTO test (f) VALUES ("v")'
+            'then when toString() is called': tu.contextAssertStringEqual "INSERT INTO test (f) VALUES ('v')"
             'then when into("test2") is called':
                 topic: (obj) -> obj.into("test2")
-                'then when toString() is called': tu.contextAssertStringEqual 'INSERT INTO test2 (f) VALUES ("v")'
+                'then when toString() is called': tu.contextAssertStringEqual "INSERT INTO test2 (f) VALUES ('v')"
 
 
 

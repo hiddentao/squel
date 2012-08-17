@@ -199,7 +199,7 @@ formatValue = (value, options) ->
         value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
         if false is options.usingValuePlaceholders
-            value = "\"#{value}\""
+            value = "'#{value}'"
     value
 
 

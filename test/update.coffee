@@ -26,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-squel = require "../squel.min"
+squel = require "../src/squel"
 tu = require "./testutils"
 
 inst = (options) -> squel.update(options)
@@ -131,7 +131,7 @@ suite.addBatch
                             topic: (obj) -> obj.set("f5","blah")
                             'then when set("f6",null) is called':
                                 topic: (obj) -> obj.set("f6",null)
-                                'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test SET f1 = 1, f2 = 1.2, f3 = TRUE, f4 = FALSE, f5 = "blah", f6 = NULL'
+                                'then when toString() is called': tu.contextAssertStringEqual "UPDATE test SET f1 = 1, f2 = 1.2, f3 = TRUE, f4 = FALSE, f5 = 'blah', f6 = NULL"
 
 
 suite.addBatch
@@ -173,10 +173,10 @@ suite.addBatch
             topic: (obj) -> obj.table("test")
             'then when table("test2") is called':
                 topic: (obj) -> obj.table("test2")
-                'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test, test2 SET f = "v"'
+                'then when toString() is called': tu.contextAssertStringEqual "UPDATE test, test2 SET f = 'v'"
                 'then when table("test3","a") is called':
                     topic: (obj) -> obj.table("test3","a")
-                    'then when toString() is called': tu.contextAssertStringEqual 'UPDATE test, test2, test3 AS `a` SET f = "v"'
+                    'then when toString() is called': tu.contextAssertStringEqual "UPDATE test, test2, test3 AS `a` SET f = 'v'"
 
 
 

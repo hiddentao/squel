@@ -235,7 +235,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       value = value ? "TRUE" : "FALSE";
     } else if ("number" !== typeof value) {
       if (false === options.usingValuePlaceholders) {
-        value = "\"" + value + "\"";
+        value = "'" + value + "'";
       }
     }
     return value;
