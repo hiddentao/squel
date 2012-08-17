@@ -26,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 vows = require "vows"
 assert = require "assert"
-squel = require "../squel.min"
+squel = require "../src/squel"
 tu = require "./testutils"
 
 suite = vows.describe("DELETE query builder")
