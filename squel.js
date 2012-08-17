@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, ExpressionClassName, Insert, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
+  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, ExpressionClassName, Insert, QueryBuilder, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -241,7 +241,17 @@ OTHER DEALINGS IN THE SOFTWARE.
     return value;
   };
 
-  WhereOrderLimit = (function() {
+  QueryBuilder = (function() {
+
+    function QueryBuilder() {}
+
+    return QueryBuilder;
+
+  })();
+
+  WhereOrderLimit = (function(_super) {
+
+    __extends(WhereOrderLimit, _super);
 
     WhereOrderLimit.prototype.wheres = null;
 
@@ -327,7 +337,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return WhereOrderLimit;
 
-  })();
+  })(QueryBuilder);
 
   Select = (function(_super) {
 
@@ -680,7 +690,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(WhereOrderLimit);
 
-  Insert = (function() {
+  Insert = (function(_super) {
+
+    __extends(Insert, _super);
 
     Insert.prototype.table = null;
 
@@ -747,7 +759,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return Insert;
 
-  })();
+  })(QueryBuilder);
 
   _export = {
     expr: function() {
@@ -764,7 +776,13 @@ OTHER DEALINGS IN THE SOFTWARE.
     },
     "delete": function() {
       return new Delete;
-    }
+    },
+    Expression: Expression,
+    QueryBuilder: QueryBuilder,
+    Select: Select,
+    Update: Update,
+    Insert: Insert,
+    Delete: Delete
   };
 
   if (typeof module !== "undefined" && module !== null) {
