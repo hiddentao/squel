@@ -1,5 +1,5 @@
 BIN = node_modules/.bin
-TESTS = test/{select,insert,update,delete}.coffee
+TESTS = test/select.coffee test/insert.coffee test/update.coffee test/delete.coffee
 
 
 all: docs squel.min.js
