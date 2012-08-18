@@ -199,13 +199,16 @@ formatValue = (value, options) ->
         value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
         if false is options.usingValuePlaceholders
-            value = "\"#{value}\""
+            value = "'#{value}'"
     value
 
 
+# Base class for all query builders
+class QueryBuilder
+
 
 # Base class for query builders which support WHERE, ORDER and LIMIT clauses.
-class WhereOrderLimit
+class WhereOrderLimit extends QueryBuilder
     wheres: null
     orders: null
     limits: null
@@ -570,7 +573,7 @@ class Delete extends WhereOrderLimit
 # Note that the query builder does not check the final query string for correctness.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Insert
+class Insert extends QueryBuilder
     table: null
     fields: null
     options: null
@@ -617,11 +620,19 @@ class Insert
 
 
 # Export everything as easily usable methods.
-_export =
+_export = {
     expr: -> new Expression
     select: -> new Select
     update: (options) -> new Update(options)
     insert: (options) -> new Insert(options)
     delete: -> new Delete
+    Expression
+    QueryBuilder
+    Select
+    Update
+    Insert
+    Delete
+}
 module?.exports = _export
 window?.squel = _export
+
