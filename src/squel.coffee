@@ -275,16 +275,79 @@ class WhereOrderLimit extends QueryBuilder
             ""
 
 
+# Base class for query builders with JOIN clauses.
+class JoinWhereOrderLimit extends WhereOrderLimit
+  joins: null
+
+  constructor: ->
+    super
+
+    # Add a JOIN with the given table.
+    #
+    # 'type' must be either one of inner, outer, left or right. Default is 'inner'.
+    #
+    # 'table' is the name of the table to join with.
+    #
+    # 'alias' is an optional alias for the table name.
+    #
+    # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
+    # an expression builder then it will only get evaluated during the final query string construction phase in
+    # toString().
+    @_join = (type, table, alias, condition) =>
+      table = sanitizeTable(table)
+      alias = sanitizeAlias(alias) if alias
+      condition = sanitizeCondition(condition) if condition
+
+      @joins.push
+        type: type
+        table: table
+        alias: alias
+        condition: condition
+      @
+
+
+  # Add an INNER JOIN with the given table.
+  join: (table, alias = null, condition = null) =>
+    @_join 'INNER', table, alias, condition
+
+
+  # Add a LEFT JOIN with the given table.
+  left_join: (table, alias = null, condition = null) =>
+    @_join 'LEFT', table, alias, condition
+
+
+  # Add a RIGHT JOIN with the given table.
+  right_join: (table, alias = null, condition = null) =>
+    @_join 'RIGHT', table, alias, condition
+
+
+  # Add an OUTER JOIN with the given table.
+  outer_join: (table, alias = null, condition = null) =>
+    @_join 'OUTER', table, alias, condition
+
+
+  # Get string representation of JOIN clauses, if any
+  joinString: =>
+    joins = ""
+
+    for j in (@joins or [])
+      joins += " #{j.type} JOIN #{j.table}"
+      joins += " `#{j.alias}`" if j.alias
+      joins += " ON (#{j.condition})" if j.condition
+
+    joins
+
+
+
 
 # A SELECT query builder.
 #
 # Note that the query builder does not check the final query string for correctness.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Select extends WhereOrderLimit
+class Select extends JoinWhereOrderLimit
     froms: null
     fields: null
-    joins: null
     groups: null
     offsets: null
     useDistinct: false
@@ -295,30 +358,6 @@ class Select extends WhereOrderLimit
         @fields = []
         @joins = []
         @groups = []
-
-
-        # Add a JOIN with the given table.
-        #
-        # 'type' must be either one of inner, outer, left or right. Default is 'inner'.
-        #
-        # 'table' is the name of the table to join with.
-        #
-        # 'alias' is an optional alias for the table name.
-        #
-        # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
-        # an expression builder then it will only get evaluated during the final query string construction phase in
-        # toString().
-        @_join = (type, table, alias, condition) =>
-            table = sanitizeTable(table)
-            alias = sanitizeAlias(alias) if alias
-            condition = sanitizeCondition(condition) if condition
-
-            @joins.push
-                type: type
-                table: table
-                alias: alias
-                condition: condition
-            @
 
 
     # Add the DISTINCT keyword to this query.
@@ -355,25 +394,6 @@ class Select extends WhereOrderLimit
             alias: alias
         @
 
-
-    # Add an INNER JOIN with the given table.
-    join: (table, alias = null, condition = null) =>
-        @_join 'INNER', table, alias, condition
-
-
-    # Add a LEFT JOIN with the given table.
-    left_join: (table, alias = null, condition = null) =>
-        @_join 'LEFT', table, alias, condition
-
-
-    # Add a RIGHT JOIN with the given table.
-    right_join: (table, alias = null, condition = null) =>
-        @_join 'RIGHT', table, alias, condition
-
-
-    # Add an OUTER JOIN with the given table.
-    outer_join: (table, alias = null, condition = null) =>
-        @_join 'OUTER', table, alias, condition
 
 
     # Add a GROUP BY transformation for the given field.
@@ -423,13 +443,7 @@ class Select extends WhereOrderLimit
         ret += " FROM #{tables}"
 
         # joins
-        joins = ""
-        for j in @joins
-            joins += " #{j.type} JOIN #{j.table}"
-            joins += " `#{j.alias}`" if j.alias
-            joins += " ON (#{j.condition})" if j.condition
-
-        ret += joins
+        ret += @joinString()
 
         # where
         ret += @whereString()
@@ -538,7 +552,7 @@ class Update extends WhereOrderLimit
 # Note that the query builder does not check the final query string for correctness.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Delete extends WhereOrderLimit
+class Delete extends JoinWhereOrderLimit
     table: null
 
     # The table to delete from.
@@ -554,6 +568,9 @@ class Delete extends WhereOrderLimit
         if not @table then throw new Error "from() needs to be called"
 
         ret = "DELETE FROM #{@table}"
+
+        # joins
+        ret += @joinString()
 
         # where
         ret += @whereString()

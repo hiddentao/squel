@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, ExpressionClassName, Insert, QueryBuilder, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
+  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, ExpressionClassName, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -339,28 +339,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(QueryBuilder);
 
-  Select = (function(_super) {
+  JoinWhereOrderLimit = (function(_super) {
 
-    __extends(Select, _super);
+    __extends(JoinWhereOrderLimit, _super);
 
-    Select.prototype.froms = null;
+    JoinWhereOrderLimit.prototype.joins = null;
 
-    Select.prototype.fields = null;
-
-    Select.prototype.joins = null;
-
-    Select.prototype.groups = null;
-
-    Select.prototype.offsets = null;
-
-    Select.prototype.useDistinct = false;
-
-    function Select() {
-      this.toString = __bind(this.toString, this);
-
-      this.offset = __bind(this.offset, this);
-
-      this.group = __bind(this.group, this);
+    function JoinWhereOrderLimit() {
+      this.joinString = __bind(this.joinString, this);
 
       this.outer_join = __bind(this.outer_join, this);
 
@@ -370,18 +356,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       this.join = __bind(this.join, this);
 
-      this.field = __bind(this.field, this);
-
-      this.from = __bind(this.from, this);
-
-      this.distinct = __bind(this.distinct, this);
-
       var _this = this;
-      Select.__super__.constructor.apply(this, arguments);
-      this.froms = [];
-      this.fields = [];
-      this.joins = [];
-      this.groups = [];
+      JoinWhereOrderLimit.__super__.constructor.apply(this, arguments);
       this._join = function(type, table, alias, condition) {
         table = sanitizeTable(table);
         if (alias) {
@@ -398,6 +374,100 @@ OTHER DEALINGS IN THE SOFTWARE.
         });
         return _this;
       };
+    }
+
+    JoinWhereOrderLimit.prototype.join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this._join('INNER', table, alias, condition);
+    };
+
+    JoinWhereOrderLimit.prototype.left_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this._join('LEFT', table, alias, condition);
+    };
+
+    JoinWhereOrderLimit.prototype.right_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this._join('RIGHT', table, alias, condition);
+    };
+
+    JoinWhereOrderLimit.prototype.outer_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this._join('OUTER', table, alias, condition);
+    };
+
+    JoinWhereOrderLimit.prototype.joinString = function() {
+      var j, joins, _i, _len, _ref;
+      joins = "";
+      _ref = this.joins || [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        j = _ref[_i];
+        joins += " " + j.type + " JOIN " + j.table;
+        if (j.alias) {
+          joins += " `" + j.alias + "`";
+        }
+        if (j.condition) {
+          joins += " ON (" + j.condition + ")";
+        }
+      }
+      return joins;
+    };
+
+    return JoinWhereOrderLimit;
+
+  })(WhereOrderLimit);
+
+  Select = (function(_super) {
+
+    __extends(Select, _super);
+
+    Select.prototype.froms = null;
+
+    Select.prototype.fields = null;
+
+    Select.prototype.groups = null;
+
+    Select.prototype.offsets = null;
+
+    Select.prototype.useDistinct = false;
+
+    function Select() {
+      this.toString = __bind(this.toString, this);
+
+      this.offset = __bind(this.offset, this);
+
+      this.group = __bind(this.group, this);
+
+      this.field = __bind(this.field, this);
+
+      this.from = __bind(this.from, this);
+
+      this.distinct = __bind(this.distinct, this);
+      Select.__super__.constructor.apply(this, arguments);
+      this.froms = [];
+      this.fields = [];
+      this.joins = [];
+      this.groups = [];
     }
 
     Select.prototype.distinct = function() {
@@ -435,46 +505,6 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    Select.prototype.join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this._join('INNER', table, alias, condition);
-    };
-
-    Select.prototype.left_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this._join('LEFT', table, alias, condition);
-    };
-
-    Select.prototype.right_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this._join('RIGHT', table, alias, condition);
-    };
-
-    Select.prototype.outer_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this._join('OUTER', table, alias, condition);
-    };
-
     Select.prototype.group = function(field) {
       field = sanitizeField(field);
       this.groups.push(field);
@@ -488,7 +518,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Select.prototype.toString = function() {
-      var f, field, fields, groups, j, joins, ret, table, tables, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+      var f, field, fields, groups, ret, table, tables, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
       if (0 >= this.froms.length) {
         throw new Error("from() needs to be called");
       }
@@ -522,25 +552,13 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }
       ret += " FROM " + tables;
-      joins = "";
-      _ref2 = this.joins;
-      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-        j = _ref2[_k];
-        joins += " " + j.type + " JOIN " + j.table;
-        if (j.alias) {
-          joins += " `" + j.alias + "`";
-        }
-        if (j.condition) {
-          joins += " ON (" + j.condition + ")";
-        }
-      }
-      ret += joins;
+      ret += this.joinString();
       ret += this.whereString();
       if (0 < this.groups.length) {
         groups = "";
-        _ref3 = this.groups;
-        for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-          f = _ref3[_l];
+        _ref2 = this.groups;
+        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+          f = _ref2[_k];
           if ("" !== groups) {
             groups += ", ";
           }
@@ -558,7 +576,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return Select;
 
-  })(WhereOrderLimit);
+  })(JoinWhereOrderLimit);
 
   Update = (function(_super) {
 
@@ -680,6 +698,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         throw new Error("from() needs to be called");
       }
       ret = "DELETE FROM " + this.table;
+      ret += this.joinString();
       ret += this.whereString();
       ret += this.orderString();
       ret += this.limitString();
@@ -688,7 +707,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return Delete;
 
-  })(WhereOrderLimit);
+  })(JoinWhereOrderLimit);
 
   Insert = (function(_super) {
 
