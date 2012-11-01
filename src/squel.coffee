@@ -145,66 +145,69 @@ DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions =
 
 
 
-# Get class name of given object.
-getObjectClassName = (obj) ->
-    if obj && obj.constructor && obj.constructor.toString
-        arr = obj.constructor.toString().match /function\s*(\w+)/;
-        if arr && arr.length is 2
-            return arr[1]
-    return undefined
-
-# Sanitize the given condition.
-ExpressionClassName = getObjectClassName(new Expression())
-sanitizeCondition = (condition) ->
-    t = typeof condition
-    if ExpressionClassName isnt getObjectClassName(condition) and "string" isnt t
-        throw new Error "condition must be a string or Expression instance"
-    # If it's an expression builder instance then convert it to string form.
-    if "Expression" is t
-        condition = condition.toString()
-    condition
-
-# Sanitize the given name.
-# The 'type' parameter is used to construct a meaningful error message in case validation fails.
-sanitizeName = (value, type) ->
-    if "string" isnt typeof value
-        throw new Error "#{type} must be a string"
-    value
-
-sanitizeField = (item) -> sanitizeName item, "field name"
-sanitizeTable = (item) -> sanitizeName item, "table name"
-sanitizeAlias = (item) -> sanitizeName item, "alias"
-
-# Sanitize the given limit/offset value.
-sanitizeLimitOffset = (value) ->
-    value = parseInt(value)
-    if 0 > value
-        throw new Error "limit/offset must be >=0"
-    value
-
-# Santize the given field value
-sanitizeValue = (item) ->
-    t = typeof item
-    if null isnt item and "string" isnt t and "number" isnt t and "boolean" isnt t
-        throw new Error "field value must be a string, number, boolean or null"
-    item
-
-# Format the given field value for inclusion into the query string
-#
-# options: see DefaultBuilderOptions
-formatValue = (value, options) ->
-    if null is value
-        value = "NULL"
-    else if "boolean" is typeof value
-        value = if value then "TRUE" else "FALSE"
-    else if "number" isnt typeof value
-        if false is options.usingValuePlaceholders
-            value = "'#{value}'"
-    value
-
 
 # Base class for all query builders
 class QueryBuilder
+  # Get class name of given object.
+  _getObjectClassName: (obj) ->
+    if obj && obj.constructor && obj.constructor.toString
+      arr = obj.constructor.toString().match /function\s*(\w+)/;
+      if arr && arr.length is 2
+        return arr[1]
+    return undefined
+
+  # Sanitize the given condition.
+  _sanitizeCondition: (condition) ->
+    t = typeof condition
+    c = @_getObjectClassName(condition)
+
+    if 'Expression' isnt c and "string" isnt t
+      throw new Error "condition must be a string or Expression instance"
+    # If it's an expression builder instance then convert it to string form.
+    if 'Expression' is t or 'Expression' is c
+      condition = condition.toString()
+    condition
+
+
+  # Sanitize the given name.
+  # The 'type' parameter is used to construct a meaningful error message in case validation fails.
+  _sanitizeName: (value, type) ->
+    if "string" isnt typeof value
+      throw new Error "#{type} must be a string"
+    value
+
+  _sanitizeField: (item) -> @_sanitizeName item, "field name"
+  _sanitizeTable: (item) -> @_sanitizeName item, "table name"
+  _sanitizeAlias: (item) -> @_sanitizeName item, "alias"
+
+  # Sanitize the given limit/offset value.
+  _sanitizeLimitOffset: (value) ->
+    value = parseInt(value)
+    if 0 > value
+      throw new Error "limit/offset must be >=0"
+    value
+
+  # Santize the given field value
+  _sanitizeValue: (item) ->
+    t = typeof item
+    if null isnt item and "string" isnt t and "number" isnt t and "boolean" isnt t
+      throw new Error "field value must be a string, number, boolean or null"
+    item
+
+  # Format the given field value for inclusion into the query string
+  #
+  # options: see DefaultBuilderOptions
+  _formatValue: (value, options) ->
+    if null is value
+      value = "NULL"
+    else if "boolean" is typeof value
+      value = if value then "TRUE" else "FALSE"
+    else if "number" isnt typeof value
+      if not options or false is options.usingValuePlaceholders
+        value = "'#{value}'"
+    value
+
+
 
 
 # Base class for query builders which support WHERE, ORDER and LIMIT clauses.
@@ -214,6 +217,7 @@ class WhereOrderLimit extends QueryBuilder
     limits: null
 
     constructor: ->
+        super
         @wheres = []
         @orders = []
 
@@ -222,7 +226,7 @@ class WhereOrderLimit extends QueryBuilder
     #
     # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
     where: (condition) =>
-        condition = sanitizeCondition(condition)
+        condition = @_sanitizeCondition(condition)
         if "" isnt condition
             @wheres.push condition
         @
@@ -232,7 +236,7 @@ class WhereOrderLimit extends QueryBuilder
     #
     # To specify descending order pass false for the 'asc' parameter.
     order: (field, asc = true) =>
-        field = sanitizeField field
+        field = @_sanitizeField(field)
         @orders.push
             field: field
             dir: if asc then "ASC" else "DESC"
@@ -244,7 +248,7 @@ class WhereOrderLimit extends QueryBuilder
     # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
     # the limit.
     limit: (max) =>
-        max = sanitizeLimitOffset max
+        max = @_sanitizeLimitOffset(max)
         @limits = max
         @
 
@@ -294,9 +298,9 @@ class JoinWhereOrderLimit extends WhereOrderLimit
     # an expression builder then it will only get evaluated during the final query string construction phase in
     # toString().
     @_join = (type, table, alias, condition) =>
-      table = sanitizeTable(table)
-      alias = sanitizeAlias(alias) if alias
-      condition = sanitizeCondition(condition) if condition
+      table = @_sanitizeTable(table)
+      alias = @_sanitizeAlias(alias) if alias
+      condition = @_sanitizeCondition(condition) if condition
 
       @joins.push
         type: type
@@ -370,8 +374,8 @@ class Select extends JoinWhereOrderLimit
     #
     # An alias may also be specified for the table.
     from: (table, alias = null) =>
-        table = sanitizeTable(table)
-        alias = sanitizeAlias(alias) if alias
+        table = @_sanitizeTable(table)
+        alias = @_sanitizeAlias(alias) if alias
 
         @froms.push
             name: table
@@ -386,8 +390,8 @@ class Select extends JoinWhereOrderLimit
     #
     # An alias may also be specified for this field.
     field: (field, alias = null) =>
-        field = sanitizeField(field)
-        alias = sanitizeAlias(alias) if alias
+        field = @_sanitizeField(field)
+        alias = @_sanitizeAlias(alias) if alias
 
         @fields.push
             field: field
@@ -398,7 +402,7 @@ class Select extends JoinWhereOrderLimit
 
     # Add a GROUP BY transformation for the given field.
     group: (field) =>
-        field = sanitizeField field
+        field = @_sanitizeField(field)
         @groups.push field
         @
 
@@ -408,7 +412,7 @@ class Select extends JoinWhereOrderLimit
     # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
     # the offset.
     offset: (start) =>
-        start = sanitizeLimitOffset start
+        start = @_sanitizeLimitOffset(start)
         @offsets = start
         @
 
@@ -491,8 +495,8 @@ class Update extends WhereOrderLimit
     #
     # An alias may also be specified for the table.
     table: (table, alias = null) =>
-        table = sanitizeTable(table)
-        alias = sanitizeAlias(alias) if alias
+        table = @_sanitizeTable(table)
+        alias = @_sanitizeAlias(alias) if alias
 
         @tables.push
             name: table
@@ -502,8 +506,8 @@ class Update extends WhereOrderLimit
     # Update the given field with the given value.
     # This will override any previously set value for the given field.
     set: (field, value) =>
-        field = sanitizeField field
-        value = sanitizeValue value
+        field = @_sanitizeField(field)
+        value = @_sanitizeValue(value)
         @fields[field] = value
         @
 
@@ -530,7 +534,7 @@ class Update extends WhereOrderLimit
         fields = ""
         for field in fieldNames
             fields += ", " if "" isnt fields
-            fields += "#{field} = #{formatValue(@fields[field], @options)}"
+            fields += "#{field} = #{@_formatValue(@fields[field], @options)}"
         ret += " SET #{fields}"
 
         # where
@@ -558,7 +562,7 @@ class Delete extends JoinWhereOrderLimit
     # The table to delete from.
     # Calling this will override any previously set value.
     from: (table) =>
-        table = sanitizeTable(table)
+        table = @_sanitizeTable(table)
         @table = table
         @
 
@@ -597,6 +601,7 @@ class Insert extends QueryBuilder
 
     # options: see DefaultBuilderOptions
     constructor: (options) ->
+        super
         @fields = {}
         @options = _extend {}, DefaultInsertBuilderOptions, options
 
@@ -604,15 +609,15 @@ class Insert extends QueryBuilder
     # The table to insert into.
     # This will override any previously set value.
     into: (table) =>
-        table = sanitizeTable(table)
+        table = @_sanitizeTable(table)
         @table = table
         @
 
     # Set the given field to the given value.
     # This will override any previously set value for the given field.
     set: (field, value) =>
-        field = sanitizeField field
-        value = sanitizeValue value
+        field = @_sanitizeField(field)
+        value = @_sanitizeValue(value)
         @fields[field] = value
         @
 
@@ -630,7 +635,7 @@ class Insert extends QueryBuilder
             fields += ", " if "" isnt fields
             fields += field
             values += ", " if "" isnt values
-            values += formatValue(@fields[field], @options)
+            values += @_formatValue(@fields[field], @options)
 
         "INSERT INTO #{@table} (#{fields}) VALUES (#{values})"
 

@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, ExpressionClassName, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, formatValue, getObjectClassName, sanitizeAlias, sanitizeCondition, sanitizeField, sanitizeLimitOffset, sanitizeName, sanitizeTable, sanitizeValue, _export, _extend,
+  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, _export, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -167,83 +167,82 @@ OTHER DEALINGS IN THE SOFTWARE.
     usingValuePlaceholders: false
   };
 
-  getObjectClassName = function(obj) {
-    var arr;
-    if (obj && obj.constructor && obj.constructor.toString) {
-      arr = obj.constructor.toString().match(/function\s*(\w+)/);
-      if (arr && arr.length === 2) {
-        return arr[1];
-      }
-    }
-    return void 0;
-  };
-
-  ExpressionClassName = getObjectClassName(new Expression());
-
-  sanitizeCondition = function(condition) {
-    var t;
-    t = typeof condition;
-    if (ExpressionClassName !== getObjectClassName(condition) && "string" !== t) {
-      throw new Error("condition must be a string or Expression instance");
-    }
-    if ("Expression" === t) {
-      condition = condition.toString();
-    }
-    return condition;
-  };
-
-  sanitizeName = function(value, type) {
-    if ("string" !== typeof value) {
-      throw new Error("" + type + " must be a string");
-    }
-    return value;
-  };
-
-  sanitizeField = function(item) {
-    return sanitizeName(item, "field name");
-  };
-
-  sanitizeTable = function(item) {
-    return sanitizeName(item, "table name");
-  };
-
-  sanitizeAlias = function(item) {
-    return sanitizeName(item, "alias");
-  };
-
-  sanitizeLimitOffset = function(value) {
-    value = parseInt(value);
-    if (0 > value) {
-      throw new Error("limit/offset must be >=0");
-    }
-    return value;
-  };
-
-  sanitizeValue = function(item) {
-    var t;
-    t = typeof item;
-    if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
-      throw new Error("field value must be a string, number, boolean or null");
-    }
-    return item;
-  };
-
-  formatValue = function(value, options) {
-    if (null === value) {
-      value = "NULL";
-    } else if ("boolean" === typeof value) {
-      value = value ? "TRUE" : "FALSE";
-    } else if ("number" !== typeof value) {
-      if (false === options.usingValuePlaceholders) {
-        value = "'" + value + "'";
-      }
-    }
-    return value;
-  };
-
   QueryBuilder = (function() {
 
     function QueryBuilder() {}
+
+    QueryBuilder.prototype._getObjectClassName = function(obj) {
+      var arr;
+      if (obj && obj.constructor && obj.constructor.toString) {
+        arr = obj.constructor.toString().match(/function\s*(\w+)/);
+        if (arr && arr.length === 2) {
+          return arr[1];
+        }
+      }
+      return void 0;
+    };
+
+    QueryBuilder.prototype._sanitizeCondition = function(condition) {
+      var c, t;
+      t = typeof condition;
+      c = this._getObjectClassName(condition);
+      if ('Expression' !== c && "string" !== t) {
+        throw new Error("condition must be a string or Expression instance");
+      }
+      if ('Expression' === t || 'Expression' === c) {
+        condition = condition.toString();
+      }
+      return condition;
+    };
+
+    QueryBuilder.prototype._sanitizeName = function(value, type) {
+      if ("string" !== typeof value) {
+        throw new Error("" + type + " must be a string");
+      }
+      return value;
+    };
+
+    QueryBuilder.prototype._sanitizeField = function(item) {
+      return this._sanitizeName(item, "field name");
+    };
+
+    QueryBuilder.prototype._sanitizeTable = function(item) {
+      return this._sanitizeName(item, "table name");
+    };
+
+    QueryBuilder.prototype._sanitizeAlias = function(item) {
+      return this._sanitizeName(item, "alias");
+    };
+
+    QueryBuilder.prototype._sanitizeLimitOffset = function(value) {
+      value = parseInt(value);
+      if (0 > value) {
+        throw new Error("limit/offset must be >=0");
+      }
+      return value;
+    };
+
+    QueryBuilder.prototype._sanitizeValue = function(item) {
+      var t;
+      t = typeof item;
+      if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
+        throw new Error("field value must be a string, number, boolean or null");
+      }
+      return item;
+    };
+
+    QueryBuilder.prototype._formatValue = function(value, options) {
+      if (null === value) {
+        value = "NULL";
+      } else if ("boolean" === typeof value) {
+        value = value ? "TRUE" : "FALSE";
+      } else if ("number" !== typeof value) {
+        if (!options || false === options.usingValuePlaceholders) {
+          value = "'" + value + "'";
+        }
+      }
+      return value;
+    };
 
     return QueryBuilder;
 
@@ -271,12 +270,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.order = __bind(this.order, this);
 
       this.where = __bind(this.where, this);
+      WhereOrderLimit.__super__.constructor.apply(this, arguments);
       this.wheres = [];
       this.orders = [];
     }
 
     WhereOrderLimit.prototype.where = function(condition) {
-      condition = sanitizeCondition(condition);
+      condition = this._sanitizeCondition(condition);
       if ("" !== condition) {
         this.wheres.push(condition);
       }
@@ -287,7 +287,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (asc == null) {
         asc = true;
       }
-      field = sanitizeField(field);
+      field = this._sanitizeField(field);
       this.orders.push({
         field: field,
         dir: asc ? "ASC" : "DESC"
@@ -296,7 +296,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereOrderLimit.prototype.limit = function(max) {
-      max = sanitizeLimitOffset(max);
+      max = this._sanitizeLimitOffset(max);
       this.limits = max;
       return this;
     };
@@ -359,12 +359,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       var _this = this;
       JoinWhereOrderLimit.__super__.constructor.apply(this, arguments);
       this._join = function(type, table, alias, condition) {
-        table = sanitizeTable(table);
+        table = _this._sanitizeTable(table);
         if (alias) {
-          alias = sanitizeAlias(alias);
+          alias = _this._sanitizeAlias(alias);
         }
         if (condition) {
-          condition = sanitizeCondition(condition);
+          condition = _this._sanitizeCondition(condition);
         }
         _this.joins.push({
           type: type,
@@ -479,9 +479,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias == null) {
         alias = null;
       }
-      table = sanitizeTable(table);
+      table = this._sanitizeTable(table);
       if (alias) {
-        alias = sanitizeAlias(alias);
+        alias = this._sanitizeAlias(alias);
       }
       this.froms.push({
         name: table,
@@ -494,9 +494,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias == null) {
         alias = null;
       }
-      field = sanitizeField(field);
+      field = this._sanitizeField(field);
       if (alias) {
-        alias = sanitizeAlias(alias);
+        alias = this._sanitizeAlias(alias);
       }
       this.fields.push({
         field: field,
@@ -506,13 +506,13 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Select.prototype.group = function(field) {
-      field = sanitizeField(field);
+      field = this._sanitizeField(field);
       this.groups.push(field);
       return this;
     };
 
     Select.prototype.offset = function(start) {
-      start = sanitizeLimitOffset(start);
+      start = this._sanitizeLimitOffset(start);
       this.offsets = start;
       return this;
     };
@@ -604,9 +604,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias == null) {
         alias = null;
       }
-      table = sanitizeTable(table);
+      table = this._sanitizeTable(table);
       if (alias) {
-        alias = sanitizeAlias(alias);
+        alias = this._sanitizeAlias(alias);
       }
       this.tables.push({
         name: table,
@@ -616,8 +616,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Update.prototype.set = function(field, value) {
-      field = sanitizeField(field);
-      value = sanitizeValue(value);
+      field = this._sanitizeField(field);
+      value = this._sanitizeValue(value);
       this.fields[field] = value;
       return this;
     };
@@ -660,7 +660,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += "" + field + " = " + (formatValue(this.fields[field], this.options));
+        fields += "" + field + " = " + (this._formatValue(this.fields[field], this.options));
       }
       ret += " SET " + fields;
       ret += this.whereString();
@@ -687,7 +687,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     Delete.prototype.table = null;
 
     Delete.prototype.from = function(table) {
-      table = sanitizeTable(table);
+      table = this._sanitizeTable(table);
       this.table = table;
       return this;
     };
@@ -725,19 +725,20 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.set = __bind(this.set, this);
 
       this.into = __bind(this.into, this);
+      Insert.__super__.constructor.apply(this, arguments);
       this.fields = {};
       this.options = _extend({}, DefaultInsertBuilderOptions, options);
     }
 
     Insert.prototype.into = function(table) {
-      table = sanitizeTable(table);
+      table = this._sanitizeTable(table);
       this.table = table;
       return this;
     };
 
     Insert.prototype.set = function(field, value) {
-      field = sanitizeField(field);
-      value = sanitizeValue(value);
+      field = this._sanitizeField(field);
+      value = this._sanitizeValue(value);
       this.fields[field] = value;
       return this;
     };
@@ -771,7 +772,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== values) {
           values += ", ";
         }
-        values += formatValue(this.fields[field], this.options);
+        values += this._formatValue(this.fields[field], this.options);
       }
       return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
     };
