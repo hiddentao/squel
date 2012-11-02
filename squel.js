@@ -657,9 +657,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Delete.prototype.table = null;
 
-    Delete.prototype.from = function(table) {
+    Delete.prototype.from = function(table, alias) {
       table = this._sanitizeTable(table);
-      this.table = table;
+      if (alias) {
+        alias = this._sanitizeAlias(alias);
+      }
+      this.table = {
+        name: table,
+        alias: alias
+      };
       return this;
     };
 
@@ -668,7 +674,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (!this.table) {
         throw new Error("from() needs to be called");
       }
-      ret = "DELETE FROM " + this.table;
+      ret = "DELETE FROM " + this.table.name;
+      if (this.table.alias) {
+        ret += " `" + this.table.alias + "`";
+      }
       ret += this._joinString();
       ret += this._whereString();
       ret += this._orderString();

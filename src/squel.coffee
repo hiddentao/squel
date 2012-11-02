@@ -544,9 +544,12 @@ class Delete extends JoinWhereOrderLimit
 
     # The table to delete from.
     # Calling this will override any previously set value.
-    from: (table) =>
+    from: (table, alias) =>
         table = @_sanitizeTable(table)
-        @table = table
+        alias = @_sanitizeAlias(alias) if alias
+        @table =
+            name: table
+            alias: alias
         @
 
     # Get the final fully constructed query string.
@@ -554,7 +557,9 @@ class Delete extends JoinWhereOrderLimit
         # basic checks
         if not @table then throw new Error "from() needs to be called"
 
-        ret = "DELETE FROM #{@table}"
+        ret = "DELETE FROM #{@table.name}"
+
+        ret += " `#{@table.alias}`" if @table.alias
 
         # joins
         ret += @_joinString()

@@ -42,6 +42,7 @@ test['DELETE builder'] =
   '>> from()':
     beforeEach: ->
       test.mocker.spy(@inst, '_sanitizeTable')
+      test.mocker.spy(@inst, '_sanitizeAlias')
 
     'args: ()': ->
       assert.throws (=> @inst.from()), 'table name must be a string'
@@ -53,9 +54,34 @@ test['DELETE builder'] =
 
       'update internal state': ->
         assert.same @ret, @inst
-        assert.same @inst.table, 'table'
+        assert.same @inst.table, {
+          name: 'table'
+          alias: undefined
+        }
 
         assert.ok @inst._sanitizeTable.calledWithExactly('table')
+        assert.ok @inst._sanitizeAlias.notCalled
+
+      '>> args(table2)': ->
+        assert.same @inst.from('table2'), @inst
+        assert.same @inst.table, {
+          name: 'table2'
+          alias: undefined
+        }
+
+        assert.ok @inst._sanitizeTable.calledWithExactly('table2')
+
+    'args: (table, alias)': ->
+      @inst.from('table', 'alias')
+
+      assert.same @inst.table, {
+        name: 'table'
+        alias: 'alias'
+      }
+
+      assert.ok @inst._sanitizeTable.calledWithExactly('table')
+      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
+
 
 
   'build query':
@@ -77,30 +103,30 @@ test['DELETE builder'] =
         assert.ok @inst._orderString.calledOnce
         assert.ok @inst._limitString.calledOnce
 
-      '>> table(table2)':
-        beforeEach: -> @inst.from('table2')
+      '>> table(table2, t2)':
+        beforeEach: -> @inst.from('table2', 't2')
         toString: ->
-          assert.same @inst.toString(), 'DELETE FROM table2'
+          assert.same @inst.toString(), 'DELETE FROM table2 `t2`'
 
         '>> where(a = 1)':
           beforeEach: -> @inst.where('a = 1')
           toString: ->
-            assert.same @inst.toString(), 'DELETE FROM table2 WHERE (a = 1)'
+            assert.same @inst.toString(), 'DELETE FROM table2 `t2` WHERE (a = 1)'
 
           '>> join(other_table)':
-            beforeEach: -> @inst.join('other_table')
+            beforeEach: -> @inst.join('other_table', 'o', 'o.id = t2.id')
             toString: ->
-              assert.same @inst.toString(), 'DELETE FROM table2 INNER JOIN other_table WHERE (a = 1)'
+              assert.same @inst.toString(), 'DELETE FROM table2 `t2` INNER JOIN other_table `o` ON (o.id = t2.id) WHERE (a = 1)'
 
             '>> order(a, true)':
               beforeEach: -> @inst.order('a', true)
               toString: ->
-                assert.same @inst.toString(), 'DELETE FROM table2 INNER JOIN other_table WHERE (a = 1) ORDER BY a ASC'
+                assert.same @inst.toString(), 'DELETE FROM table2 `t2` INNER JOIN other_table `o` ON (o.id = t2.id) WHERE (a = 1) ORDER BY a ASC'
 
               '>> limit(2)':
                 beforeEach: -> @inst.limit(2)
                 toString: ->
-                  assert.same @inst.toString(), 'DELETE FROM table2 INNER JOIN other_table WHERE (a = 1) ORDER BY a ASC LIMIT 2'
+                  assert.same @inst.toString(), 'DELETE FROM table2 `t2` INNER JOIN other_table `o` ON (o.id = t2.id) WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
 
 
