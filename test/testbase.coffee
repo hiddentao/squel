@@ -43,6 +43,24 @@ assert.same = (actual, expected, message) ->
   assert.deepEqual(actual, expected, message)
 
 
+###
+Assert that given function calls throws given error
+
+@param fn
+@param errorMsg expected error message
+###
+assert.throws = (fn, errorMsg) ->
+  errMsg = undefined
+
+  try
+    fn.call()
+  catch err
+    errMsg = err.toString()
+  finally
+    assert.same errMsg, "Error: #{errorMsg}"
+
+
+
 test =
   mocker: null
   beforeEach: ->

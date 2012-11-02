@@ -52,7 +52,6 @@ test['Query builder base class'] =
 
     'if Expression': ->
       e = squel.expr()
-      console.log typeof e
       assert.same "", @inst._sanitizeCondition(e)
       assert.ok @inst._getObjectClassName.calledWithExactly(e)
 
@@ -62,15 +61,10 @@ test['Query builder base class'] =
       assert.ok @inst._getObjectClassName.calledWithExactly(s)
 
     'if neither Expression nor String': ->
-      test.mocker.spy @inst, '_sanitizeCondition'
+      testFn = => @inst._sanitizeCondition(1)
+      assert.throws testFn, 'condition must be a string or Expression instance'
+      assert.ok @inst._getObjectClassName.calledWithExactly(1)
 
-      try
-        @inst._sanitizeCondition(1)
-      catch err
-        assert.same err.toString(), 'Error: condition must be a string or Expression instance'
-      finally
-        assert.ok @inst._getObjectClassName.calledWithExactly(1)
-        assert.ok @inst._sanitizeCondition.threw()
 
   '_sanitizeName':
     beforeEach: ->
@@ -80,60 +74,25 @@ test['Query builder base class'] =
       assert.same 'bla', @inst._sanitizeName('bla')
 
     'if boolean': ->
-      try
-        @inst._sanitizeName(true, 'bla')
-      catch err
-        assert.same err.toString(), 'Error: bla must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName(true, 'bla')), 'bla must be a string'
 
     'if integer': ->
-      try
-        @inst._sanitizeName(1)
-      catch err
-        assert.same err.toString(), 'Error: undefined must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName(1)), 'undefined must be a string'
 
     'if float': ->
-      try
-        @inst._sanitizeName(1.2, 'meh')
-      catch err
-        assert.same err.toString(), 'Error: meh must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName(1.2, 'meh')), 'meh must be a string'
 
     'if array': ->
-      try
-        @inst._sanitizeName([1], 'yes')
-      catch err
-        assert.same err.toString(), 'Error: yes must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName([1], 'yes')), 'yes must be a string'
 
     'if object': ->
-      try
-        @inst._sanitizeName(new Object, 'obj1')
-      catch err
-        assert.same err.toString(), 'Error: obj1 must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName(new Object, 'yes')), 'yes must be a string'
 
     'if null': ->
-      try
-        @inst._sanitizeName(null, 'obj1')
-      catch err
-        assert.same err.toString(), 'Error: obj1 must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName(null, 'no')), 'no must be a string'
 
     'if undefined': ->
-      try
-        @inst._sanitizeName(undefined, 'obj1')
-      catch err
-        assert.same err.toString(), 'Error: obj1 must be a string'
-      finally
-        assert.ok @inst._sanitizeName.threw()
+      assert.throws (=> @inst._sanitizeName(undefined, 'no')), 'no must be a string'
 
 
   '_sanitizeField': ->
@@ -166,15 +125,7 @@ test['Query builder base class'] =
       assert.same 1, @inst._sanitizeLimitOffset 1
 
     'number < 0': ->
-      test.mocker.spy @inst, '_sanitizeLimitOffset'
-
-      try
-        @inst._sanitizeLimitOffset -1
-      catch err
-        assert.same err.toString(), 'Error: limit/offset must be >=0'
-      finally
-        assert.ok @inst._sanitizeLimitOffset.threw()
-
+      assert.throws (=> @inst._sanitizeLimitOffset(-1)), 'limit/offset must be >=0'
 
   '_sanitizeValue':
     beforeEach: ->
@@ -197,31 +148,16 @@ test['Query builder base class'] =
       assert.same 1.2, @inst._sanitizeValue(1.2)
 
     'if array': ->
-      try
-        @inst._sanitizeValue([1])
-      catch err
-        assert.same err.toString(), 'Error: field value must be a string, number, boolean or null'
-      finally
-        assert.ok @inst._sanitizeValue.threw()
+      assert.throws (=> @inst._sanitizeValue([1])), 'field value must be a string, number, boolean or null'
 
     'if object': ->
-      try
-        @inst._sanitizeValue(new Object, 'obj1')
-      catch err
-        assert.same err.toString(), 'Error: field value must be a string, number, boolean or null'
-      finally
-        assert.ok @inst._sanitizeValue.threw()
+      assert.throws (=> @inst._sanitizeValue(new Object)), 'field value must be a string, number, boolean or null'
 
     'if null': ->
       assert.same null, @inst._sanitizeValue(null)
 
     'if undefined': ->
-      try
-        @inst._sanitizeValue(undefined, 'obj1')
-      catch err
-        assert.same err.toString(), 'Error: field value must be a string, number, boolean or null'
-      finally
-        assert.ok @inst._sanitizeValue.threw()
+      assert.throws (=> @inst._sanitizeValue(undefined)), 'field value must be a string, number, boolean or null'
 
 
   '_formatValue':
