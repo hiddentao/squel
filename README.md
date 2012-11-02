@@ -1,5 +1,7 @@
 # squel - SQL query string builder for Javascript
 
+[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png)](http://travis-ci.org/hiddentao/squel)
+
 A simple, well tested SQL query string builder for Javascript.
 
 ## Features
@@ -151,14 +153,14 @@ of [pygment](http://pygments.org/download/) installed in your local Python envir
 the project folder:
 
     $ npm install
-    $ node_modules/.bin/cake docs
+    $ make docs
 
 ## Testing
 
-Tests are written as [vows](http://vowsjs.org/) and can be found in the `test/` folder. To run them do the following:
+Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be found in the `test/` folder. To run them do the following:
 
     $ npm install
-    $ node_modules/.bin/cake tests
+    $ make test
 
 Build status on travis-ci: [![Build Status](https://secure.travis-ci.org/hiddentao/squel.png)](http://travis-ci.org/hiddentao/squel)
 
