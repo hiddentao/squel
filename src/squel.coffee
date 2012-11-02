@@ -212,14 +212,11 @@ class QueryBuilder
 
 # Base class for query builders which support WHERE, ORDER and LIMIT clauses.
 class WhereOrderLimit extends QueryBuilder
-    wheres: null
-    orders: null
-    limits: null
-
     constructor: ->
         super
         @wheres = []
         @orders = []
+        @limits = null
 
 
     # Add a WHERE condition.
@@ -650,6 +647,8 @@ _export = {
     delete: -> new Delete
     Expression
     QueryBuilder
+    WhereOrderLimit
+    JoinWhereOrderLimit
     Select
     Update
     Insert

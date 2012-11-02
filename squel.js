@@ -252,12 +252,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(WhereOrderLimit, _super);
 
-    WhereOrderLimit.prototype.wheres = null;
-
-    WhereOrderLimit.prototype.orders = null;
-
-    WhereOrderLimit.prototype.limits = null;
-
     function WhereOrderLimit() {
       this.limitString = __bind(this.limitString, this);
 
@@ -273,6 +267,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       WhereOrderLimit.__super__.constructor.apply(this, arguments);
       this.wheres = [];
       this.orders = [];
+      this.limits = null;
     }
 
     WhereOrderLimit.prototype.where = function(condition) {
@@ -799,6 +794,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     },
     Expression: Expression,
     QueryBuilder: QueryBuilder,
+    WhereOrderLimit: WhereOrderLimit,
+    JoinWhereOrderLimit: JoinWhereOrderLimit,
     Select: Select,
     Update: Update,
     Insert: Insert,

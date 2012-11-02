@@ -29,7 +29,7 @@ squel = require "../src/squel"
 
 
 
-test['Query builder base class'] =
+test['QueryBuilder base class'] =
   beforeEach: ->
     @inst = new squel.QueryBuilder()
 
@@ -178,6 +178,97 @@ test['Query builder base class'] =
       assert.same "'test'", @inst._formatValue('test')
       assert.same "'test'", @inst._formatValue('test', { usingValuePlaceholders: false })
       assert.same "test", @inst._formatValue('test', { usingValuePlaceholders: true })
+
+
+
+test['WhereOrderLimit base class'] =
+  beforeEach: ->
+    @inst = new squel.WhereOrderLimit()
+
+  'instanceof QueryBuilder': ->
+    assert.instanceOf @inst, squel.QueryBuilder
+
+  'default field values': ->
+    assert.same [], @inst.wheres
+    assert.same [], @inst.orders
+    assert.same null, @inst.limits
+
+  '>> where()':
+    beforeEach: ->
+      test.mocker.spy(@inst, '_sanitizeCondition')
+
+    'with empty string': ->
+      assert.same @inst, @inst.where("")
+
+      assert.ok @inst._sanitizeCondition.calledWithExactly ""
+      assert.same [], @inst.wheres
+
+    'with Expression': ->
+      e = squel.expr().or('a = 5')
+
+      assert.same @inst, @inst.where(e)
+
+      assert.ok @inst._sanitizeCondition.calledWithExactly e
+      assert.same [e.toString()], @inst.wheres
+
+    'with non-empty string':
+      beforeEach: ->
+        @ret = @inst.where("a")
+
+      'updates internal state': ->
+        assert.same @ret, @inst
+        assert.ok @inst._sanitizeCondition.calledWithExactly "a"
+        assert.same ['a'], @inst.wheres
+
+      'with non-empty string again':
+        beforeEach: ->
+          @ret = @inst.where("b")
+
+        'adds to internal state': ->
+          assert.ok @inst._sanitizeCondition.calledWithExactly "b"
+          assert.same ['a', 'b'], @inst.wheres
+
+
+  '>> order()':
+    beforeEach: ->
+      test.mocker.spy(@inst, '_sanitizeField')
+
+    'args empty': ->
+      assert.throws (=> @inst.order()), 'field name must be a string'
+
+      assert.ok @inst._sanitizeField.calledWithExactly undefined
+      assert.same [], @inst.orders
+
+    'args (field)':
+      beforeEach: ->
+        @ret = @inst.order("field")
+
+      'updates internal state': ->
+        assert.same @ret, @inst
+
+        assert.ok @inst._sanitizeField.calledWithExactly 'field'
+        assert.same [ { field: 'field', dir: 'ASC' } ], @inst.orders
+
+    'args (field, true)':
+      beforeEach: ->
+        @ret = @inst.order("field", true)
+
+      'updates internal state': ->
+        assert.same @ret, @inst
+
+        assert.ok @inst._sanitizeField.calledWithExactly 'field'
+        assert.same [ { field: 'field', dir: 'ASC' } ], @inst.orders
+
+      'args (field2, false)':
+        beforeEach: ->
+          @ret = @inst.order("field2", false)
+
+        'adds to internal state': ->
+          assert.same @ret, @inst
+
+          assert.ok @inst._sanitizeField.calledWithExactly 'field2'
+          assert.same [ { field: 'field', dir: 'ASC' }, { field: 'field2', dir: 'DESC' } ], @inst.orders
+
 
 
 

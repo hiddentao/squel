@@ -119,14 +119,11 @@ The 'type' parameter is used to construct a meaningful error message in case val
       <span class="k">if</span> <span class="o">not</span> <span class="nx">options</span> <span class="o">or</span> <span class="kc">false</span> <span class="o">is</span> <span class="nx">options</span><span class="p">.</span><span class="nx">usingValuePlaceholders</span>
         <span class="nv">value = </span><span class="s">&quot;&#39;</span><span class="si">#{</span><span class="nx">value</span><span class="si">}</span><span class="s">&#39;&quot;</span>
     <span class="nx">value</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p>Base class for query builders which support WHERE, ORDER and LIMIT clauses.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">WhereOrderLimit</span> <span class="k">extends</span> <span class="nx">QueryBuilder</span>
-    <span class="nv">wheres: </span><span class="kc">null</span>
-    <span class="nv">orders: </span><span class="kc">null</span>
-    <span class="nv">limits: </span><span class="kc">null</span>
-
     <span class="nv">constructor: </span><span class="o">-&gt;</span>
         <span class="k">super</span>
         <span class="vi">@wheres = </span><span class="p">[]</span>
-        <span class="vi">@orders = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>Add a WHERE condition.</p>
+        <span class="vi">@orders = </span><span class="p">[]</span>
+        <span class="vi">@limits = </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>Add a WHERE condition.</p>
 
 <p>When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">where: </span><span class="p">(</span><span class="nx">condition</span><span class="p">)</span> <span class="o">=&gt;</span>
         <span class="nv">condition = </span><span class="nx">@_sanitizeCondition</span><span class="p">(</span><span class="nx">condition</span><span class="p">)</span>
@@ -358,6 +355,8 @@ This will override any previously set value for the given field.</p>            
     <span class="k">delete</span><span class="o">:</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nx">Delete</span>
     <span class="nx">Expression</span>
     <span class="nx">QueryBuilder</span>
+    <span class="nx">WhereOrderLimit</span>
+    <span class="nx">JoinWhereOrderLimit</span>
     <span class="nx">Select</span>
     <span class="nx">Update</span>
     <span class="nx">Insert</span>
