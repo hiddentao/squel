@@ -251,14 +251,14 @@ class WhereOrderLimit extends QueryBuilder
 
 
     # Get string representation of WHERE clause, if any
-    whereString: =>
+    _whereString: =>
         if 0 < @wheres.length
             " WHERE (" + @wheres.join(") AND (") + ")"
         else
             ""
 
     # Get string representation of ORDER BY clause, if any
-    orderString: =>
+    _orderString: =>
         if 0 < @orders.length
             orders = ""
             for o in @orders
@@ -269,7 +269,7 @@ class WhereOrderLimit extends QueryBuilder
             ""
 
     # Get string representation of LIMIT clause, if any
-    limitString: =>
+    _limitString: =>
         if @limits
             " LIMIT #{@limits}"
         else
@@ -323,7 +323,7 @@ class JoinWhereOrderLimit extends WhereOrderLimit
 
 
   # Get string representation of JOIN clauses, if any
-  joinString: =>
+  _joinString: =>
     joins = ""
 
     for j in (@joins or [])
@@ -381,7 +381,7 @@ class Select extends JoinWhereOrderLimit
         alias = @_sanitizeAlias(alias) if alias
 
         @fields.push
-            field: field
+            name: field
             alias: alias
         @
 
@@ -419,7 +419,7 @@ class Select extends JoinWhereOrderLimit
         fields = ""
         for field in @fields
             fields += ", " if "" isnt fields
-            fields += field.field
+            fields += field.name
             fields += " AS \"#{field.alias}\"" if field.alias
 
         ret += if "" is fields then "*" else fields
@@ -434,10 +434,10 @@ class Select extends JoinWhereOrderLimit
         ret += " FROM #{tables}"
 
         # joins
-        ret += @joinString()
+        ret += @_joinString()
 
         # where
-        ret += @whereString()
+        ret += @_whereString()
 
         # group by
         if 0 < @groups.length
@@ -448,10 +448,10 @@ class Select extends JoinWhereOrderLimit
             ret += " GROUP BY #{groups}"
 
         # order by
-        ret += @orderString()
+        ret += @_orderString()
 
         # limit
-        ret += @limitString()
+        ret += @_limitString()
 
         # offset
         ret += " OFFSET #{@offsets}" if @offsets
@@ -525,13 +525,13 @@ class Update extends WhereOrderLimit
         ret += " SET #{fields}"
 
         # where
-        ret += @whereString()
+        ret += @_whereString()
 
         # order by
-        ret += @orderString()
+        ret += @_orderString()
 
         # limit
-        ret += @limitString()
+        ret += @_limitString()
 
         ret
 
@@ -561,16 +561,16 @@ class Delete extends JoinWhereOrderLimit
         ret = "DELETE FROM #{@table}"
 
         # joins
-        ret += @joinString()
+        ret += @_joinString()
 
         # where
-        ret += @whereString()
+        ret += @_whereString()
 
         # order by
-        ret += @orderString()
+        ret += @_orderString()
 
         # limit
-        ret += @limitString()
+        ret += @_limitString()
 
         ret
 

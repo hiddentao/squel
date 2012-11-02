@@ -280,7 +280,7 @@ test['WhereOrderLimit base class'] =
         assert.ok @inst._sanitizeField.calledWithExactly 'field'
         assert.same [ { field: 'field', dir: 'ASC' } ], @inst.orders
 
-      'args (field2, false)':
+      '>> args (field2, false)':
         beforeEach: ->
           @ret = @inst.order("field2", false)
 
@@ -311,7 +311,7 @@ test['WhereOrderLimit base class'] =
         assert.ok @inst._sanitizeLimitOffset.calledWithExactly 0
         assert.same 0, @inst.limits
 
-      'args (2)':
+      '>> args (2)':
         beforeEach: ->
           @ret = @inst.limit(2)
 
@@ -400,7 +400,7 @@ test['JoinWhereOrderLimit base class'] =
         assert.ok @inst._sanitizeAlias.notCalled
         assert.ok @inst._sanitizeCondition.notCalled
 
-      'args(table2)': ->
+      '>> args(table2)': ->
         assert.same @inst.join('table2'), @inst
         assert.same @inst.joins, [
           {

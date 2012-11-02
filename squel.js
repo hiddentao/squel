@@ -216,7 +216,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     QueryBuilder.prototype._sanitizeLimitOffset = function(value) {
       value = parseInt(value);
-      if (0 > value) {
+      if (0 > value || isNaN(value)) {
         throw new Error("limit/offset must be >=0");
       }
       return value;
@@ -253,11 +253,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(WhereOrderLimit, _super);
 
     function WhereOrderLimit() {
-      this.limitString = __bind(this.limitString, this);
+      this._limitString = __bind(this._limitString, this);
 
-      this.orderString = __bind(this.orderString, this);
+      this._orderString = __bind(this._orderString, this);
 
-      this.whereString = __bind(this.whereString, this);
+      this._whereString = __bind(this._whereString, this);
 
       this.limit = __bind(this.limit, this);
 
@@ -296,7 +296,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    WhereOrderLimit.prototype.whereString = function() {
+    WhereOrderLimit.prototype._whereString = function() {
       if (0 < this.wheres.length) {
         return " WHERE (" + this.wheres.join(") AND (") + ")";
       } else {
@@ -304,7 +304,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
     };
 
-    WhereOrderLimit.prototype.orderString = function() {
+    WhereOrderLimit.prototype._orderString = function() {
       var o, orders, _i, _len, _ref;
       if (0 < this.orders.length) {
         orders = "";
@@ -322,7 +322,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
     };
 
-    WhereOrderLimit.prototype.limitString = function() {
+    WhereOrderLimit.prototype._limitString = function() {
       if (this.limits) {
         return " LIMIT " + this.limits;
       } else {
@@ -338,10 +338,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(JoinWhereOrderLimit, _super);
 
-    JoinWhereOrderLimit.prototype.joins = null;
-
     function JoinWhereOrderLimit() {
-      this.joinString = __bind(this.joinString, this);
+      this._joinString = __bind(this._joinString, this);
 
       this.outer_join = __bind(this.outer_join, this);
 
@@ -350,35 +348,28 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.left_join = __bind(this.left_join, this);
 
       this.join = __bind(this.join, this);
-
-      var _this = this;
       JoinWhereOrderLimit.__super__.constructor.apply(this, arguments);
-      this._join = function(type, table, alias, condition) {
-        table = _this._sanitizeTable(table);
-        if (alias) {
-          alias = _this._sanitizeAlias(alias);
-        }
-        if (condition) {
-          condition = _this._sanitizeCondition(condition);
-        }
-        _this.joins.push({
-          type: type,
-          table: table,
-          alias: alias,
-          condition: condition
-        });
-        return _this;
-      };
+      this.joins = [];
     }
 
-    JoinWhereOrderLimit.prototype.join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
+    JoinWhereOrderLimit.prototype.join = function(table, alias, condition, type) {
+      if (type == null) {
+        type = 'INNER';
       }
-      if (condition == null) {
-        condition = null;
+      table = this._sanitizeTable(table);
+      if (alias) {
+        alias = this._sanitizeAlias(alias);
       }
-      return this._join('INNER', table, alias, condition);
+      if (condition) {
+        condition = this._sanitizeCondition(condition);
+      }
+      this.joins.push({
+        type: type,
+        table: table,
+        alias: alias,
+        condition: condition
+      });
+      return this;
     };
 
     JoinWhereOrderLimit.prototype.left_join = function(table, alias, condition) {
@@ -388,7 +379,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (condition == null) {
         condition = null;
       }
-      return this._join('LEFT', table, alias, condition);
+      return this.join(table, alias, condition, 'LEFT');
     };
 
     JoinWhereOrderLimit.prototype.right_join = function(table, alias, condition) {
@@ -398,7 +389,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (condition == null) {
         condition = null;
       }
-      return this._join('RIGHT', table, alias, condition);
+      return this.join(table, alias, condition, 'RIGHT');
     };
 
     JoinWhereOrderLimit.prototype.outer_join = function(table, alias, condition) {
@@ -408,10 +399,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (condition == null) {
         condition = null;
       }
-      return this._join('OUTER', table, alias, condition);
+      return this.join(table, alias, condition, 'OUTER');
     };
 
-    JoinWhereOrderLimit.prototype.joinString = function() {
+    JoinWhereOrderLimit.prototype._joinString = function() {
       var j, joins, _i, _len, _ref;
       joins = "";
       _ref = this.joins || [];
@@ -436,16 +427,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Select, _super);
 
-    Select.prototype.froms = null;
-
-    Select.prototype.fields = null;
-
-    Select.prototype.groups = null;
-
-    Select.prototype.offsets = null;
-
-    Select.prototype.useDistinct = false;
-
     function Select() {
       this.toString = __bind(this.toString, this);
 
@@ -461,8 +442,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       Select.__super__.constructor.apply(this, arguments);
       this.froms = [];
       this.fields = [];
-      this.joins = [];
       this.groups = [];
+      this.offsets = null;
+      this.useDistinct = false;
     }
 
     Select.prototype.distinct = function() {
@@ -494,7 +476,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         alias = this._sanitizeAlias(alias);
       }
       this.fields.push({
-        field: field,
+        name: field,
         alias: alias
       });
       return this;
@@ -528,7 +510,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += field.field;
+        fields += field.name;
         if (field.alias) {
           fields += " AS \"" + field.alias + "\"";
         }
@@ -547,8 +529,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }
       ret += " FROM " + tables;
-      ret += this.joinString();
-      ret += this.whereString();
+      ret += this._joinString();
+      ret += this._whereString();
       if (0 < this.groups.length) {
         groups = "";
         _ref2 = this.groups;
@@ -561,8 +543,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         ret += " GROUP BY " + groups;
       }
-      ret += this.orderString();
-      ret += this.limitString();
+      ret += this._orderString();
+      ret += this._limitString();
       if (this.offsets) {
         ret += " OFFSET " + this.offsets;
       }
@@ -658,9 +640,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         fields += "" + field + " = " + (this._formatValue(this.fields[field], this.options));
       }
       ret += " SET " + fields;
-      ret += this.whereString();
-      ret += this.orderString();
-      ret += this.limitString();
+      ret += this._whereString();
+      ret += this._orderString();
+      ret += this._limitString();
       return ret;
     };
 
@@ -693,10 +675,10 @@ OTHER DEALINGS IN THE SOFTWARE.
         throw new Error("from() needs to be called");
       }
       ret = "DELETE FROM " + this.table;
-      ret += this.joinString();
-      ret += this.whereString();
-      ret += this.orderString();
-      ret += this.limitString();
+      ret += this._joinString();
+      ret += this._whereString();
+      ret += this._orderString();
+      ret += this._limitString();
       return ret;
     };
 
