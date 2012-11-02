@@ -120,6 +120,27 @@ test['QueryBuilder base class'] =
 
 
   '_sanitizeLimitOffset':
+    'undefined': ->
+      assert.throws (=> @inst._sanitizeLimitOffset()), 'limit/offset must be >= 0'
+
+    'null': ->
+      assert.throws (=> @inst._sanitizeLimitOffset null), 'limit/offset must be >= 0'
+
+    'float': ->
+      assert.same 1, @inst._sanitizeLimitOffset 1.2
+
+    'boolean': ->
+      assert.throws (=> @inst._sanitizeLimitOffset false), 'limit/offset must be >= 0'
+
+    'string': ->
+      assert.same 2, @inst._sanitizeLimitOffset '2'
+
+    'array': ->
+      assert.same 3, @inst._sanitizeLimitOffset [3]
+
+    'object': ->
+      assert.throws (=> @inst._sanitizeLimitOffset(new Object)), 'limit/offset must be >= 0'
+
     'number >= 0': ->
       assert.same 0, @inst._sanitizeLimitOffset 0
       assert.same 1, @inst._sanitizeLimitOffset 1
@@ -269,6 +290,238 @@ test['WhereOrderLimit base class'] =
           assert.ok @inst._sanitizeField.calledWithExactly 'field2'
           assert.same [ { field: 'field', dir: 'ASC' }, { field: 'field2', dir: 'DESC' } ], @inst.orders
 
+
+  '>> limit()':
+    beforeEach: ->
+      test.mocker.spy(@inst, '_sanitizeLimitOffset')
+
+    'args empty': ->
+      assert.throws (=> @inst.limit()), 'limit/offset must be >=0'
+
+      assert.ok @inst._sanitizeLimitOffset.calledWithExactly undefined
+      assert.same null, @inst.limits
+
+    'args (0)':
+      beforeEach: ->
+        @ret = @inst.limit(0)
+
+      'updates internal state': ->
+        assert.same @ret, @inst
+
+        assert.ok @inst._sanitizeLimitOffset.calledWithExactly 0
+        assert.same 0, @inst.limits
+
+      'args (2)':
+        beforeEach: ->
+          @ret = @inst.limit(2)
+
+        'updates internal state': ->
+          assert.same @ret, @inst
+
+          assert.ok @inst._sanitizeLimitOffset.calledWithExactly 2
+          assert.same 2, @inst.limits
+
+
+  '>> whereString()':
+    'no clauses': ->
+      @inst.wheres = []
+      assert.same @inst.whereString(), ""
+
+    '1 clause': ->
+      @inst.wheres = ['a']
+      assert.same @inst.whereString(), " WHERE (a)"
+
+    '>1 clauses': ->
+      @inst.wheres = ['a', 'b']
+      assert.same @inst.whereString(), " WHERE (a) AND (b)"
+
+
+  '>> orderString()':
+    'no clauses': ->
+      @inst.orders = []
+      assert.same @inst.orderString(), ""
+
+    '1 clause': ->
+      @inst.orders = [{ field: 'a', dir: 'ASC' }]
+      assert.same @inst.orderString(), " ORDER BY a ASC"
+
+    '>1 clauses': ->
+      @inst.orders = [{ field: 'a', dir: 'ASC' }, { field: 'b', dir: 'DESC' }]
+      assert.same @inst.orderString(), " ORDER BY a ASC, b DESC"
+
+
+  '>> limitString()':
+    'not set': ->
+      @inst.limits = null
+      assert.same @inst.limitString(), ""
+
+    'set': ->
+      @inst.limits = 2
+      assert.same @inst.limitString(), " LIMIT 2"
+
+
+
+test['JoinWhereOrderLimit base class'] =
+  beforeEach: ->
+    @inst = new squel.JoinWhereOrderLimit()
+
+  'instanceof WhereOrderLimit': ->
+    assert.instanceOf @inst, squel.JoinWhereOrderLimit
+
+  'default field values': ->
+    assert.same [], @inst.joins
+
+  '>> join()':
+    beforeEach: ->
+      test.mocker.spy(@inst, '_sanitizeTable')
+      test.mocker.spy(@inst, '_sanitizeAlias')
+      test.mocker.spy(@inst, '_sanitizeCondition')
+
+    'args: ()': ->
+      assert.throws (=> @inst.join()), 'table name must be a string'
+      assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
+
+    'args: (table)':
+      beforeEach: ->
+        @ret = @inst.join('table')
+
+      'update internal state': ->
+        assert.same @ret, @inst
+        assert.same @inst.joins, [
+          {
+            type: 'INNER'
+            table: 'table'
+            alias: undefined
+            condition: undefined
+          }
+        ]
+
+        assert.ok @inst._sanitizeTable.calledWithExactly('table')
+        assert.ok @inst._sanitizeAlias.notCalled
+        assert.ok @inst._sanitizeCondition.notCalled
+
+      'args(table2)': ->
+        assert.same @inst.join('table2'), @inst
+        assert.same @inst.joins, [
+          {
+          type: 'INNER'
+          table: 'table'
+          alias: undefined
+          condition: undefined
+          }
+          {
+          type: 'INNER'
+          table: 'table2'
+          alias: undefined
+          condition: undefined
+          }
+        ]
+
+    'args: (table, alias)': ->
+      @inst.join('table', 'alias')
+
+      assert.same @inst.joins, [
+        {
+        type: 'INNER'
+        table: 'table'
+        alias: 'alias'
+        condition: undefined
+        }
+      ]
+
+      assert.ok @inst._sanitizeTable.calledWithExactly('table')
+      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
+      assert.ok @inst._sanitizeCondition.notCalled
+
+    'args: (table, alias, condition)': ->
+      @inst.join('table', 'alias', 'condition')
+
+      assert.same @inst.joins, [
+        {
+        type: 'INNER'
+        table: 'table'
+        alias: 'alias'
+        condition: 'condition'
+        }
+      ]
+
+      assert.ok @inst._sanitizeTable.calledWithExactly('table')
+      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
+      assert.ok @inst._sanitizeCondition.calledWithExactly('condition')
+
+    'args: (table, alias, condition, OUTER)': ->
+      @inst.join('table', 'alias', 'condition', 'OUTER')
+
+      assert.same @inst.joins, [
+        type: 'OUTER'
+        table: 'table'
+        alias: 'alias'
+        condition: 'condition'
+      ]
+
+  '>> left_join()':
+    beforeEach: -> test.mocker.spy(@inst, 'join')
+
+    'args (table)': ->
+      assert.same @inst.left_join('table'), @inst
+      assert.ok @inst.join.calledWithExactly('table', null, null, 'LEFT')
+
+    'args (table, alias)': ->
+      assert.same @inst.left_join('table', 'alias'), @inst
+      assert.ok @inst.join.calledWithExactly('table', 'alias', null, 'LEFT')
+
+    'args (table, alias, condition)': ->
+      assert.same @inst.left_join('table', 'alias', 'condition'), @inst
+      assert.ok @inst.join.calledWithExactly('table', 'alias', 'condition', 'LEFT')
+
+
+  '>> right_join()':
+    beforeEach: -> test.mocker.spy(@inst, 'join')
+
+    'args (table)': ->
+      assert.same @inst.right_join('table'), @inst
+      assert.ok @inst.join.calledWithExactly('table', null, null, 'RIGHT')
+
+    'args (table, alias)': ->
+      assert.same @inst.right_join('table', 'alias'), @inst
+      assert.ok @inst.join.calledWithExactly('table', 'alias', null, 'RIGHT')
+
+    'args (table, alias, condition)': ->
+      assert.same @inst.right_join('table', 'alias', 'condition'), @inst
+      assert.ok @inst.join.calledWithExactly('table', 'alias', 'condition', 'RIGHT')
+
+
+  '>> outer_join()':
+    beforeEach: -> test.mocker.spy(@inst, 'join')
+
+    'args (table)': ->
+      assert.same @inst.outer_join('table'), @inst
+      assert.ok @inst.join.calledWithExactly('table', null, null, 'OUTER')
+
+    'args (table, alias)': ->
+      assert.same @inst.outer_join('table', 'alias'), @inst
+      assert.ok @inst.join.calledWithExactly('table', 'alias', null, 'OUTER')
+
+    'args (table, alias, condition)': ->
+      assert.same @inst.outer_join('table', 'alias', 'condition'), @inst
+      assert.ok @inst.join.calledWithExactly('table', 'alias', 'condition', 'OUTER')
+
+
+  '>> joinString()':
+    beforeEach: -> @inst.joins = []
+
+    'no joins': ->
+      assert.same @inst.joinString(), ""
+
+    '1 join': ->
+      @inst.left_join('table')
+      assert.same @inst.joinString(), " LEFT JOIN table"
+
+    '>1 joins': ->
+      @inst.left_join('table')
+      @inst.right_join('table2', 'a2')
+      @inst.join('table3', null, 'c3')
+      assert.same @inst.joinString(), " LEFT JOIN table RIGHT JOIN table2 `a2` INNER JOIN table3 ON (c3)"
 
 
 

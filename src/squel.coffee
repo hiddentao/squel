@@ -183,7 +183,7 @@ class QueryBuilder
   # Sanitize the given limit/offset value.
   _sanitizeLimitOffset: (value) ->
     value = parseInt(value)
-    if 0 > value
+    if 0 > value or isNaN(value)
       throw new Error "limit/offset must be >=0"
     value
 
@@ -278,53 +278,48 @@ class WhereOrderLimit extends QueryBuilder
 
 # Base class for query builders with JOIN clauses.
 class JoinWhereOrderLimit extends WhereOrderLimit
-  joins: null
-
   constructor: ->
     super
+    @joins = []
 
-    # Add a JOIN with the given table.
-    #
-    # 'type' must be either one of inner, outer, left or right. Default is 'inner'.
-    #
-    # 'table' is the name of the table to join with.
-    #
-    # 'alias' is an optional alias for the table name.
-    #
-    # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
-    # an expression builder then it will only get evaluated during the final query string construction phase in
-    # toString().
-    @_join = (type, table, alias, condition) =>
-      table = @_sanitizeTable(table)
-      alias = @_sanitizeAlias(alias) if alias
-      condition = @_sanitizeCondition(condition) if condition
+  # Add a JOIN with the given table.
+  #
+  # 'table' is the name of the table to join with.
+  #
+  # 'alias' is an optional alias for the table name.
+  #
+  # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
+  # an expression builder then it will only get evaluated during the final query string construction phase in
+  # toString().
+  #
+  # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
+  #
+  join: (table, alias, condition, type = 'INNER') =>
+    table = @_sanitizeTable(table)
+    alias = @_sanitizeAlias(alias) if alias
+    condition = @_sanitizeCondition(condition) if condition
 
-      @joins.push
-        type: type
-        table: table
-        alias: alias
-        condition: condition
-      @
-
-
-  # Add an INNER JOIN with the given table.
-  join: (table, alias = null, condition = null) =>
-    @_join 'INNER', table, alias, condition
+    @joins.push
+      type: type
+      table: table
+      alias: alias
+      condition: condition
+    @
 
 
   # Add a LEFT JOIN with the given table.
   left_join: (table, alias = null, condition = null) =>
-    @_join 'LEFT', table, alias, condition
+    @join table, alias, condition, 'LEFT'
 
 
   # Add a RIGHT JOIN with the given table.
   right_join: (table, alias = null, condition = null) =>
-    @_join 'RIGHT', table, alias, condition
+    @join table, alias, condition, 'RIGHT'
 
 
   # Add an OUTER JOIN with the given table.
   outer_join: (table, alias = null, condition = null) =>
-    @_join 'OUTER', table, alias, condition
+    @join table, alias, condition, 'OUTER'
 
 
   # Get string representation of JOIN clauses, if any
@@ -347,18 +342,13 @@ class JoinWhereOrderLimit extends WhereOrderLimit
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Select extends JoinWhereOrderLimit
-    froms: null
-    fields: null
-    groups: null
-    offsets: null
-    useDistinct: false
-
     constructor: ->
         super
         @froms = []
         @fields = []
-        @joins = []
         @groups = []
+        @offsets = null
+        @useDistinct = false
 
 
     # Add the DISTINCT keyword to this query.
