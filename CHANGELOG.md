@@ -1,5 +1,6 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+
 ## 17 Aug 2012 (1.0.4)
 
 * QueryBuilder base class for all query builders

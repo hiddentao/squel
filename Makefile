@@ -1,5 +1,5 @@
 BIN = node_modules/.bin
-TESTS = test/select.coffee test/insert.coffee test/update.coffee test/delete.coffee
+TESTS = test/expressions.test.coffee test/basequerybuilders.test.coffee test/select.test.coffee test/update.test.coffee test/delete.test.coffee test/insert.test.coffee
 
 
 all: docs squel.min.js
@@ -16,7 +16,7 @@ docs/squel.html: src/squel.coffee
 
 
 test:
-	$(BIN)/vows $(TESTS) $(VOWS_OPTS)
+	$(BIN)/mocha $(TESTS)
 
 docs: docs/squel.html
 
