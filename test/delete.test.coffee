@@ -29,20 +29,78 @@ squel = require "../src/squel"
 
 
 
-test['DELETE query builder'] =
-  'when the builder is initialized':
+test['DELETE builder'] =
+  beforeEach: ->
+    @inst = squel.delete()
+
+  'instanceof JoinWhereOrderLimit': ->
+    assert.instanceOf @inst, squel.JoinWhereOrderLimit
+
+  'default field values': ->
+    assert.same null, @inst.table
+
+  '>> from()':
     beforeEach: ->
-      @inst = squel.delete()
+      test.mocker.spy(@inst, '_sanitizeTable')
 
-    'toString() throws an error': ->
-      test.mocker.spy(@inst, 'toString')
+    'args: ()': ->
+      assert.throws (=> @inst.from()), 'table name must be a string'
+      assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
 
-      try
-        @inst.toString()
-      catch err
-        assert.same err.toString(), 'Error: from() needs to be called'
-      finally
-        assert.ok @inst.toString.threw()
+    'args: (table)':
+      beforeEach: ->
+        @ret = @inst.from('table')
+
+      'update internal state': ->
+        assert.same @ret, @inst
+        assert.same @inst.table, 'table'
+
+        assert.ok @inst._sanitizeTable.calledWithExactly('table')
+
+
+  'build query':
+    beforeEach: ->
+      test.mocker.spy(@inst, '_joinString')
+      test.mocker.spy(@inst, '_whereString')
+      test.mocker.spy(@inst, '_orderString')
+      test.mocker.spy(@inst, '_limitString')
+
+    'need to call from() first': ->
+      assert.throws (=> @inst.toString()), 'from() needs to be called'
+
+    '>> from(table)':
+      beforeEach: -> @inst.from('table')
+      toString: ->
+        assert.same @inst.toString(), 'DELETE FROM table'
+        assert.ok @inst._joinString.calledOnce
+        assert.ok @inst._whereString.calledOnce
+        assert.ok @inst._orderString.calledOnce
+        assert.ok @inst._limitString.calledOnce
+
+      '>> table(table2)':
+        beforeEach: -> @inst.from('table2')
+        toString: ->
+          assert.same @inst.toString(), 'DELETE FROM table2'
+
+        '>> where(a = 1)':
+          beforeEach: -> @inst.where('a = 1')
+          toString: ->
+            assert.same @inst.toString(), 'DELETE FROM table2 WHERE (a = 1)'
+
+          '>> join(other_table)':
+            beforeEach: -> @inst.join('other_table')
+            toString: ->
+              assert.same @inst.toString(), 'DELETE FROM table2 INNER JOIN other_table WHERE (a = 1)'
+
+            '>> order(a, true)':
+              beforeEach: -> @inst.order('a', true)
+              toString: ->
+                assert.same @inst.toString(), 'DELETE FROM table2 INNER JOIN other_table WHERE (a = 1) ORDER BY a ASC'
+
+              '>> limit(2)':
+                beforeEach: -> @inst.limit(2)
+                toString: ->
+                  assert.same @inst.toString(), 'DELETE FROM table2 INNER JOIN other_table WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
 
 

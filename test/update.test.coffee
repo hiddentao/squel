@@ -152,7 +152,7 @@ test['UPDATE builder'] =
       @inst.table('table')
       assert.throws (=> @inst.toString()), 'set() needs to be called'
 
-    '>> from(table, t1).set(field, 1)':
+    '>> table(table, t1).set(field, 1)':
       beforeEach: -> @inst.table('table', 't1').set('field', 1)
       toString: ->
         assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1'
