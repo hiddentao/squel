@@ -559,12 +559,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Update, _super);
 
-    Update.prototype.tables = null;
-
-    Update.prototype.fields = null;
-
-    Update.prototype.options = null;
-
     function Update(options) {
       this.toString = __bind(this.toString, this);
 

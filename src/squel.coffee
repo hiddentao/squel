@@ -466,10 +466,6 @@ class Select extends JoinWhereOrderLimit
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Update extends WhereOrderLimit
-    tables: null
-    fields: null
-    options: null
-
     # options: see DefaultBuilderOptions
     constructor: (options) ->
         super

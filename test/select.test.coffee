@@ -207,8 +207,6 @@ test['SELECT builder'] =
 
   'build query':
     beforeEach: ->
-      @_joinString = @_whereString = @_orderString = @_limitString = ''
-
       test.mocker.spy(@inst, '_joinString')
       test.mocker.spy(@inst, '_whereString')
       test.mocker.spy(@inst, '_orderString')
