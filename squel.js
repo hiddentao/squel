@@ -684,12 +684,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Insert, _super);
 
-    Insert.prototype.table = null;
-
-    Insert.prototype.fields = null;
-
-    Insert.prototype.options = null;
-
     function Insert(options) {
       this.toString = __bind(this.toString, this);
 
@@ -697,6 +691,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       this.into = __bind(this.into, this);
       Insert.__super__.constructor.apply(this, arguments);
+      this.table = null;
       this.fields = {};
       this.options = _extend({}, DefaultInsertBuilderOptions, options);
     }

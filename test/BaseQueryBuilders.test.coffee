@@ -322,42 +322,42 @@ test['WhereOrderLimit base class'] =
           assert.same 2, @inst.limits
 
 
-  '>> whereString()':
+  '>> _whereString()':
     'no clauses': ->
       @inst.wheres = []
-      assert.same @inst.whereString(), ""
+      assert.same @inst._whereString(), ""
 
     '1 clause': ->
       @inst.wheres = ['a']
-      assert.same @inst.whereString(), " WHERE (a)"
+      assert.same @inst._whereString(), " WHERE (a)"
 
     '>1 clauses': ->
       @inst.wheres = ['a', 'b']
-      assert.same @inst.whereString(), " WHERE (a) AND (b)"
+      assert.same @inst._whereString(), " WHERE (a) AND (b)"
 
 
-  '>> orderString()':
+  '>> _orderString()':
     'no clauses': ->
       @inst.orders = []
-      assert.same @inst.orderString(), ""
+      assert.same @inst._orderString(), ""
 
     '1 clause': ->
       @inst.orders = [{ field: 'a', dir: 'ASC' }]
-      assert.same @inst.orderString(), " ORDER BY a ASC"
+      assert.same @inst._orderString(), " ORDER BY a ASC"
 
     '>1 clauses': ->
       @inst.orders = [{ field: 'a', dir: 'ASC' }, { field: 'b', dir: 'DESC' }]
-      assert.same @inst.orderString(), " ORDER BY a ASC, b DESC"
+      assert.same @inst._orderString(), " ORDER BY a ASC, b DESC"
 
 
-  '>> limitString()':
+  '>> _limitString()':
     'not set': ->
       @inst.limits = null
-      assert.same @inst.limitString(), ""
+      assert.same @inst._limitString(), ""
 
     'set': ->
       @inst.limits = 2
-      assert.same @inst.limitString(), " LIMIT 2"
+      assert.same @inst._limitString(), " LIMIT 2"
 
 
 
@@ -507,21 +507,21 @@ test['JoinWhereOrderLimit base class'] =
       assert.ok @inst.join.calledWithExactly('table', 'alias', 'condition', 'OUTER')
 
 
-  '>> joinString()':
+  '>> _joinString()':
     beforeEach: -> @inst.joins = []
 
     'no joins': ->
-      assert.same @inst.joinString(), ""
+      assert.same @inst._joinString(), ""
 
     '1 join': ->
       @inst.left_join('table')
-      assert.same @inst.joinString(), " LEFT JOIN table"
+      assert.same @inst._joinString(), " LEFT JOIN table"
 
     '>1 joins': ->
       @inst.left_join('table')
       @inst.right_join('table2', 'a2')
       @inst.join('table3', null, 'c3')
-      assert.same @inst.joinString(), " LEFT JOIN table RIGHT JOIN table2 `a2` INNER JOIN table3 ON (c3)"
+      assert.same @inst._joinString(), " LEFT JOIN table RIGHT JOIN table2 `a2` INNER JOIN table3 ON (c3)"
 
 
 

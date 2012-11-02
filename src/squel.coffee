@@ -578,13 +578,10 @@ class Delete extends JoinWhereOrderLimit
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Insert extends QueryBuilder
-    table: null
-    fields: null
-    options: null
-
     # options: see DefaultBuilderOptions
     constructor: (options) ->
         super
+        @table = null
         @fields = {}
         @options = _extend {}, DefaultInsertBuilderOptions, options
 

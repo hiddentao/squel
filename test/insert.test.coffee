@@ -29,79 +29,50 @@ squel = require "../src/squel"
 
 
 
-test['UPDATE builder'] =
+test['INSERT builder'] =
   beforeEach: ->
-    @inst = squel.update()
+    @inst = squel.insert()
 
-  'instanceof WhereOrderLimit': ->
-    assert.instanceOf @inst, squel.WhereOrderLimit
+  'instanceof QueryBuilder': ->
+    assert.instanceOf @inst, squel.QueryBuilder
 
   'default field values': ->
-    assert.same [], @inst.tables
+    assert.same null, @inst.table
     assert.same {}, @inst.fields
     assert.same { usingValuePlaceholders: false }, @inst.options
 
   'constructor':
     'override options': ->
-      @inst = squel.update
+      @inst = squel.insert
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same [], @inst.tables
+      assert.same null, @inst.table
       assert.same {}, @inst.fields
       assert.same { usingValuePlaceholders: true, dummy: true }, @inst.options
 
       
-  '>> table()':
+  '>> into()':
     beforeEach: ->
       test.mocker.spy(@inst, '_sanitizeTable')
-      test.mocker.spy(@inst, '_sanitizeAlias')
 
     'args: ()': ->
-      assert.throws (=> @inst.table()), 'table name must be a string'
+      assert.throws (=> @inst.into()), 'table name must be a string'
       assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
 
     'args: (table)':
       beforeEach: ->
-        @ret = @inst.table('table')
+        @ret = @inst.into('table')
 
       'update internal state': ->
         assert.same @ret, @inst
-        assert.same @inst.tables, [
-          {
-          name: 'table'
-          alias: null
-          }
-        ]
+        assert.same @inst.table, 'table'
 
         assert.ok @inst._sanitizeTable.calledWithExactly('table')
-        assert.ok @inst._sanitizeAlias.notCalled
 
       '>> args(table2)': ->
-        assert.same @inst.table('table2'), @inst
-        assert.same @inst.tables, [
-          {
-          name: 'table'
-          alias: null
-          }
-          {
-          name: 'table2'
-          alias: null
-          }
-        ]
-
-    'args: (table, alias)': ->
-      @inst.table('table', 'alias')
-
-      assert.same @inst.tables, [
-        {
-        name: 'table'
-        alias: 'alias'
-        }
-      ]
-
-      assert.ok @inst._sanitizeTable.calledWithExactly('table')
-      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
+        assert.same @inst.into('table2'), @inst
+        assert.same @inst.table, 'table2'
 
 
   '>> set()':
@@ -140,70 +111,42 @@ test['UPDATE builder'] =
 
 
   'build query':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_whereString')
-      test.mocker.spy(@inst, '_orderString')
-      test.mocker.spy(@inst, '_limitString')
-
-    'need to call table() first': ->
-      assert.throws (=> @inst.toString()), 'table() needs to be called'
+    'need to call into() first': ->
+      assert.throws (=> @inst.toString()), 'into() needs to be called'
 
     'need to call set() first': ->
-      @inst.table('table')
+      @inst.into('table')
       assert.throws (=> @inst.toString()), 'set() needs to be called'
 
-    '>> table(table, t1).set(field, 1)':
-      beforeEach: -> @inst.table('table', 't1').set('field', 1)
+    '>> into(table).set(field, 1)':
+      beforeEach: -> @inst.into('table').set('field', 1)
       toString: ->
-        assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1'
-        assert.ok @inst._whereString.calledOnce
-        assert.ok @inst._orderString.calledOnce
-        assert.ok @inst._limitString.calledOnce
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1)'
 
       '>> set(field2, 1.2)':
         beforeEach: -> @inst.set('field2', 1.2)
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = 1.2'
-
-      '>> set(field2, true)':
-        beforeEach: -> @inst.set('field2', true)
-        toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = TRUE'
+          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 1.2)'
 
       '>> set(field2, "str")':
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = \'str\''
+          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, \'str\')'
 
         'and when using value placeholders': ->
           @inst.options.usingValuePlaceholders = true
           @inst.set('field2', 'str')
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = str'
+          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
+
+      '>> set(field2, true)':
+        beforeEach: -> @inst.set('field2', true)
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, TRUE)'
 
       '>> set(field2, null)':
         beforeEach: -> @inst.set('field2', null)
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = NULL'
-
-        '>> table(table2)':
-          beforeEach: -> @inst.table('table2')
-          toString: ->
-            assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL'
-
-          '>> where(a = 1)':
-            beforeEach: -> @inst.where('a = 1')
-            toString: ->
-              assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1)'
-
-            '>> order(a, true)':
-              beforeEach: -> @inst.order('a', true)
-              toString: ->
-                assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC'
-
-              '>> limit(2)':
-                beforeEach: -> @inst.limit(2)
-                toString: ->
-                  assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC LIMIT 2'
+          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, NULL)'
 
 
 
