@@ -58,7 +58,7 @@
             <p class="heading">Squel.js</p>
             <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
             <p class="sub">- usable with node.js or in the browser.</p>
-            <p class="sub">- well tested (over 300 <a href="http://vows.js.org/" title="Vows BDD">vows</a>).</p>
+            <p class="sub">- well tested (nearly 800 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha tests</a>).</p>
         </div>
 
         <div class="right">
@@ -71,7 +71,7 @@
             </a>
             <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
                 <p class="label">Development version</p>
-                <p class="stats">(~18 KB)</p>
+                <p class="stats">(~20 KB)</p>
             </a>
         </div>
 
@@ -602,7 +602,21 @@
             /*  DELETE FROM students */
         </pre>
 
-        <h3>Filtering, sorting and limits</h3>
+        <h3>Joins</h3>
+
+        <p>The <code>join()</code> and related methods are supported the same way
+          they are by the <a href="#select">SELECT</a> builder:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.delete()
+                    .from("students", "s")
+                    .outer_join("marks", "m", "m.student_id = s.id")
+            );
+            /*  DELETE FROM students `s` OUTER JOIN marks `m` ON (m.student_id = s.id) */
+        </pre>
+
+      <h3>Filtering, sorting and limits</h3>
 
         <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same way
             they are by the <a href="#select">SELECT</a> builder:</p>
