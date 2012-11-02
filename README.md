@@ -162,8 +162,6 @@ Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be fo
     $ npm install
     $ make test
 
-Build status on travis-ci: [![Build Status](https://secure.travis-ci.org/hiddentao/squel.png)](http://travis-ci.org/hiddentao/squel)
-
 ## Contributing
 
 If you wish to submit a pull request please update and/or create new tests for any changes you make and ensure all the
