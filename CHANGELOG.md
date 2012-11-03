@@ -1,6 +1,14 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
+## 3 Nov 2012 (1.0.5)
+
+* DELETE queries can now contain JOINs
+* Query builder instances can be clone()'d
+* Cleaner and more thorough tests (and replaced Vows with Mocha, Sinon and Chai)
+* Fixed documentation errors
+
+
 ## 17 Aug 2012 (1.0.4)
 
 * QueryBuilder base class for all query builders
