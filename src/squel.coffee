@@ -55,7 +55,7 @@ class Cloneable
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Expression extends Cloneable
+class Expression
 
     # The expression tree.
     tree: null

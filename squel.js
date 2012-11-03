@@ -65,10 +65,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  Expression = (function(_super) {
+  Expression = (function() {
     var _toString;
-
-    __extends(Expression, _super);
 
     Expression.prototype.tree = null;
 
@@ -177,7 +175,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return Expression;
 
-  })(Cloneable);
+  })();
 
   DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions = {
     usingValuePlaceholders: false

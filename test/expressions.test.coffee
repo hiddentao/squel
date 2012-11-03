@@ -34,9 +34,6 @@ test['Expression builder base class'] =
   beforeEach: ->
     @inst = squel.expr()
 
-  'instanceof Cloneable': ->
-    assert.instanceOf @inst, squel.Cloneable
-
   'calling toString() returns empty': ->
     assert.same "", @inst.toString()
 
