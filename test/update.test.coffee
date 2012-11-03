@@ -24,8 +24,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-{test, assert, expect, should} = require './testbase'
 squel = require "../src/squel"
+{testCreator, assert, expect, should} = require './testbase'
+test = testCreator()
 
 
 

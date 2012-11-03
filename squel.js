@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, _export, _extend,
+  var Cloneable, DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, _export, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -51,8 +51,24 @@ OTHER DEALINGS IN THE SOFTWARE.
     return dst;
   };
 
-  Expression = (function() {
+  Cloneable = (function() {
+
+    function Cloneable() {}
+
+    Cloneable.prototype.clone = function() {
+      var newInstance;
+      newInstance = new this.constructor;
+      return _extend(newInstance, JSON.parse(JSON.stringify(this)));
+    };
+
+    return Cloneable;
+
+  })();
+
+  Expression = (function(_super) {
     var _toString;
+
+    __extends(Expression, _super);
 
     Expression.prototype.tree = null;
 
@@ -161,15 +177,19 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return Expression;
 
-  })();
+  })(Cloneable);
 
   DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions = {
     usingValuePlaceholders: false
   };
 
-  QueryBuilder = (function() {
+  QueryBuilder = (function(_super) {
 
-    function QueryBuilder() {}
+    __extends(QueryBuilder, _super);
+
+    function QueryBuilder() {
+      return QueryBuilder.__super__.constructor.apply(this, arguments);
+    }
 
     QueryBuilder.prototype._getObjectClassName = function(obj) {
       var arr;
@@ -246,7 +266,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return QueryBuilder;
 
-  })();
+  })(Cloneable);
 
   WhereOrderLimit = (function(_super) {
 
@@ -772,6 +792,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     "delete": function() {
       return new Delete;
     },
+    Cloneable: Cloneable,
     Expression: Expression,
     QueryBuilder: QueryBuilder,
     WhereOrderLimit: WhereOrderLimit,

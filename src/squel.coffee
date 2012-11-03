@@ -34,6 +34,16 @@ _extend = (dst, sources...) ->
     dst
 
 
+# Base class for cloneable builders
+class Cloneable
+  # Clone this builder
+  clone: ->
+    newInstance = new @constructor;
+    # Fast deep copy using JSON conversion, see http://stackoverflow.com/a/5344074
+    _extend newInstance, JSON.parse(JSON.stringify(@))
+
+
+
 # An SQL expression builder.
 #
 # SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
@@ -45,7 +55,7 @@ _extend = (dst, sources...) ->
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Expression
+class Expression extends Cloneable
 
     # The expression tree.
     tree: null
@@ -147,7 +157,7 @@ DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions =
 
 
 # Base class for all query builders
-class QueryBuilder
+class QueryBuilder extends Cloneable
   # Get class name of given object.
   _getObjectClassName: (obj) ->
     if obj && obj.constructor && obj.constructor.toString
@@ -633,6 +643,7 @@ _export = {
     update: (options) -> new Update(options)
     insert: (options) -> new Insert(options)
     delete: -> new Delete
+    Cloneable
     Expression
     QueryBuilder
     WhereOrderLimit

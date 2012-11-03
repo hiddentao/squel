@@ -24,14 +24,50 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-{test, assert, expect, should} = require './testbase'
 squel = require "../src/squel"
+{testCreator, assert, expect, should} = require './testbase'
+test = testCreator()
+
+
+test['Cloneable base class'] =
+  '>> clone()': ->
+
+    class Child extends squel.Cloneable
+      constructor: ->
+        @a = 1
+        @b = 2.2
+        @c = true
+        @d = 'str'
+        @e = [1]
+        @f = { a: 1 }
+
+    child = new Child()
+
+    copy = child.clone()
+    assert.instanceOf copy, Child
+
+    child.a = 2
+    child.b = 3.2
+    child.c = false
+    child.d = 'str2'
+    child.e.push(2)
+    child.f.b = 1
+
+    assert.same copy.a, 1
+    assert.same copy.b, 2.2
+    assert.same copy.c, true
+    assert.same copy.d, 'str'
+    assert.same copy.e, [1]
+    assert.same copy.f, { a: 1 }
 
 
 
 test['QueryBuilder base class'] =
   beforeEach: ->
     @inst = new squel.QueryBuilder()
+
+  'instanceof Cloneable': ->
+    assert.instanceOf @inst, squel.Cloneable
 
   '_getObjectClassName': ->
     s = 'a string'

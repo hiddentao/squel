@@ -45,16 +45,19 @@ assert.same = (actual, expected, message) ->
 
 
 
-test =
-  mocker: null
-  beforeEach: ->
-    test.mocker = sinon.sandbox.create()
-  afterEach: ->
-    test.mocker.restore()
+testCreator = ->
+  test =
+    mocker: null
+    beforeEach: ->
+      test.mocker = sinon.sandbox.create()
+    afterEach: ->
+      test.mocker.restore()
+
+  test
 
 
 module?.exports =
-  test: test
+  testCreator: testCreator
   assert: assert
   expect: expect
   should: should

@@ -24,14 +24,18 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-{test, assert, expect, should} = require './testbase'
 squel = require "../src/squel"
+{testCreator, assert, expect, should} = require './testbase'
+test = testCreator()
 
 
 
 test['Expression builder base class'] =
   beforeEach: ->
     @inst = squel.expr()
+
+  'instanceof Cloneable': ->
+    assert.instanceOf @inst, squel.Cloneable
 
   'calling toString() returns empty': ->
     assert.same "", @inst.toString()
@@ -204,12 +208,6 @@ test['Expression builder base class'] =
 
                           '>> toString()': ->
                             assert.same @inst.toString(), "test = 4 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
-
-
-
-
-
-
 
 
 
