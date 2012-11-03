@@ -43,6 +43,7 @@
                         <li><a href="#insert" title="INSERT queries">INSERT</a></li>
                         <li><a href="#delete" title="DELETE queries">DELETE</a></li>
                         <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
+                        <li><a href="#cloning" title="Cloning">Cloning</a></li>
                     </ul>
                 </li>
                 <li><a href="#tests" title="Running the tests">Tests</a></li>
@@ -58,7 +59,7 @@
             <p class="heading">Squel.js</p>
             <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
             <p class="sub">- usable with node.js or in the browser.</p>
-            <p class="sub">- well tested (> 800 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha</a> tests).</p>
+            <p class="sub">- well tested (~ 200 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha</a> tests).</p>
         </div>
 
         <div class="right">
@@ -772,6 +773,37 @@
                         WHERE (s.name <> 'Fred' AND (s.id = 5 OR s.id = 6))
             */
         </pre>
+
+    </section>
+
+    <section id="cloning">
+      <a name="cloning" href="#expressions"><h2>Cloning</h2></a>
+
+      <p>You can create a copy of a query builder instance using its <code>clone()</code> method. For example:</p>
+
+      <pre class="brush: js">
+          var select1 = squel.select().from('students');
+
+          var select2 = select1.clone().field('id').where('name = "david"');
+
+          alert( select1 + " | " + select2 );
+
+          /*  SELECT * FROM students | SELECT id FROM students WHERE (name = "david")  */
+      </pre>
+
+      <p>Here is an example using an <code>INSERT</code> builder:</p>
+
+      <pre class="brush: js">
+          var ins = squel.insert().into('students').set('name', 'David');
+
+          var insMathew = ins.clone().set('name', 'Mathew');
+
+          var insMark = insMathew.clone().set('name', 'Mark');
+
+          alert( insMathew + " | " + insMark );
+
+          /*  INSERT INTO students (name) VALUES('Mathew') | INSERT INTO students (name) VALUES('Mark') */
+      </pre>
 
     </section>
 
