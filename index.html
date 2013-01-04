@@ -42,6 +42,7 @@
                         <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
                         <li><a href="#insert" title="INSERT queries">INSERT</a></li>
                         <li><a href="#delete" title="DELETE queries">DELETE</a></li>
+                        <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
                         <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
                         <li><a href="#cloning" title="Cloning">Cloning</a></li>
                     </ul>
@@ -691,6 +692,36 @@
 
     </section>
 
+
+    <section id="autoquotes">
+      <a name="autoquotes" href="#autoquotes"><h2>Automatic quotes</h2></a>
+
+      <p>By default Squel does not add quotes around table names and field names. But you can tell it to do so using the
+        <code>autoQuoteTableNames</code> and <code>autoQuoteFieldNames</code> options:</p>
+
+      <pre class="brush: js">
+        alert(
+          squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
+            .from("students")
+            .field("name", "Student name")
+        );
+
+        /*   SELECT `name` AS "Student name" FROM `students`  */
+      </pre>
+
+      <p>You can also customize the quote character using the <code>nameQuoteCharacter</code> option:</p>
+
+      <pre class="brush: js">
+        alert(
+          squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true, nameQuoteCharacter: '|' })
+            .from("students")
+            .field("name", "Student name")
+        );
+
+        /*   SELECT |name| AS "Student name" FROM |students|  */
+      </pre>
+
+    </section>
 
 
     <section id="expressions">
