@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 squel = require "../src/squel"
-{testCreator, assert, expect, should} = require './testbase'
+{_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
@@ -43,6 +43,26 @@ test['SELECT builder'] =
     assert.same [], @inst.groups
     assert.same null, @inst.offsets
     assert.same false, @inst.useDistinct
+    assert.same squel.DefaultQueryBuilderOptions, @inst.options
+
+  'constructor':
+    'override options': ->
+      @inst = squel.select
+        usingValuePlaceholders: true
+        dummy: true
+
+      assert.same [], @inst.froms
+      assert.same [], @inst.fields
+      assert.same [], @inst.groups
+      assert.same null, @inst.offsets
+      assert.same false, @inst.useDistinct
+
+      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+        usingValuePlaceholders: true
+        dummy: true
+
+      assert.same expectedOptions, @inst.options
+
 
   '>> distinct()': ->
     assert.same @inst.distinct(), @inst

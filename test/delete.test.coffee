@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 squel = require "../src/squel"
-{testCreator, assert, expect, should} = require './testbase'
+{_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
@@ -39,6 +39,21 @@ test['DELETE builder'] =
 
   'default field values': ->
     assert.same null, @inst.table
+    assert.same squel.DefaultQueryBuilderOptions, @inst.options
+
+  'constructor':
+    'override options': ->
+      @inst = squel.delete
+        usingValuePlaceholders: true
+        dummy: true
+
+      assert.same null, @inst.table
+
+      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+        usingValuePlaceholders: true
+        dummy: true
+
+      assert.same expectedOptions, @inst.options
 
   '>> from()':
     beforeEach: ->

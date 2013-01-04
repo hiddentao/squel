@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 squel = require "../src/squel"
-{testCreator, assert, expect, should} = require './testbase'
+{_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
@@ -62,12 +62,43 @@ test['Cloneable base class'] =
 
 
 
+test['Default query builder options'] =
+  'default options': ->
+    assert.same {
+      autoQuoteTableNames: false
+      autoQuoteFieldNames: false
+      nameQuoteCharacter: '`'
+      usingValuePlaceholders: false
+    }, squel.DefaultQueryBuilderOptions
+
+
+
 test['QueryBuilder base class'] =
   beforeEach: ->
     @inst = new squel.QueryBuilder()
 
   'instanceof Cloneable': ->
     assert.instanceOf @inst, squel.Cloneable
+
+  'constructor':
+    'default options': ->
+      assert.same squel.DefaultQueryBuilderOptions, @inst.options
+
+    'overridden options': ->
+      @inst = new squel.QueryBuilder
+        dummy1: 'str'
+        dummy2: 12.3
+        usingValuePlaceholders: true
+        dummy3: true
+
+      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+        dummy1: 'str'
+        dummy2: 12.3
+        usingValuePlaceholders: true
+        dummy3: true
+
+      assert.same expectedOptions, @inst.options
+
 
   '_getObjectClassName': ->
     s = 'a string'
