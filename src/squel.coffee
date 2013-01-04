@@ -204,9 +204,24 @@ class QueryBuilder extends Cloneable
       throw new Error "#{type} must be a string"
     value
 
-  _sanitizeField: (item) -> @_sanitizeName item, "field name"
-  _sanitizeTable: (item) -> @_sanitizeName item, "table name"
-  _sanitizeAlias: (item) -> @_sanitizeName item, "alias"
+  _sanitizeField: (item) ->
+    sanitized = @_sanitizeName item, "field name"
+
+    if @options.autoQuoteFieldNames
+      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+    else
+      sanitized
+
+  _sanitizeTable: (item) ->
+    sanitized = @_sanitizeName item, "table name"
+
+    if @options.autoQuoteTableNames
+      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+    else
+      sanitized
+
+  _sanitizeAlias: (item) ->
+    @_sanitizeName item, "alias"
 
   # Sanitize the given limit/offset value.
   _sanitizeLimitOffset: (value) ->
@@ -223,15 +238,13 @@ class QueryBuilder extends Cloneable
     item
 
   # Format the given field value for inclusion into the query string
-  #
-  # options: see DefaultBuilderOptions
-  _formatValue: (value, options) ->
+  _formatValue: (value) ->
     if null is value
       value = "NULL"
     else if "boolean" is typeof value
       value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
-      if not options or false is options.usingValuePlaceholders
+      if false is @options.usingValuePlaceholders
         value = "'#{value}'"
     value
 
@@ -543,7 +556,7 @@ class Update extends WhereOrderLimit
         fields = ""
         for field in fieldNames
             fields += ", " if "" isnt fields
-            fields += "#{field} = #{@_formatValue(@fields[field], @options)}"
+            fields += "#{field} = #{@_formatValue(@fields[field])}"
         ret += " SET #{fields}"
 
         # where
@@ -645,7 +658,7 @@ class Insert extends QueryBuilder
             fields += ", " if "" isnt fields
             fields += field
             values += ", " if "" isnt values
-            values += @_formatValue(@fields[field], @options)
+            values += @_formatValue(@fields[field])
 
         "INSERT INTO #{@table} (#{fields}) VALUES (#{values})"
 

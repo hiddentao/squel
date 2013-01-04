@@ -162,20 +162,44 @@ test['QueryBuilder base class'] =
       assert.throws (=> @inst._sanitizeName(undefined, 'no')), 'no must be a string'
 
 
-  '_sanitizeField': ->
-    test.mocker.spy @inst, '_sanitizeName'
+  '_sanitizeField':
+    'default': ->
+      test.mocker.spy @inst, '_sanitizeName'
 
-    assert.same 'abc', @inst._sanitizeField('abc')
+      assert.same 'abc', @inst._sanitizeField('abc')
 
-    assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'field name'
+      assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'field name'
+
+    'auto quote names':
+      beforeEach: ->
+        @inst.options.autoQuoteFieldNames = true
+
+      'default quote character': ->
+        assert.same '`abc`', @inst._sanitizeField('abc')
+
+      'custom quote character': ->
+        @inst.options.nameQuoteCharacter = '|'
+        assert.same '|abc|', @inst._sanitizeField('abc')
 
 
-  '_sanitizeTable': ->
-    test.mocker.spy @inst, '_sanitizeName'
+  '_sanitizeTable':
+    'default': ->
+      test.mocker.spy @inst, '_sanitizeName'
 
-    assert.same 'abc', @inst._sanitizeTable('abc')
+      assert.same 'abc', @inst._sanitizeTable('abc')
 
-    assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table name'
+      assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table name'
+
+    'auto quote names':
+      beforeEach: ->
+        @inst.options.autoQuoteTableNames = true
+
+      'default quote character': ->
+        assert.same '`abc`', @inst._sanitizeTable('abc')
+
+      'custom quote character': ->
+        @inst.options.nameQuoteCharacter = '|'
+        assert.same '|abc|', @inst._sanitizeTable('abc')
 
 
   '_sanitizeAlias': ->
@@ -264,8 +288,12 @@ test['QueryBuilder base class'] =
 
     'string': ->
       assert.same "'test'", @inst._formatValue('test')
-      assert.same "'test'", @inst._formatValue('test', { usingValuePlaceholders: false })
-      assert.same "test", @inst._formatValue('test', { usingValuePlaceholders: true })
+
+      @inst.options.usingValuePlaceholders = false
+      assert.same "'test'", @inst._formatValue('test')
+
+      @inst.options.usingValuePlaceholders = true
+      assert.same "test", @inst._formatValue('test')
 
 
 
