@@ -57,6 +57,7 @@ testCreator = ->
 
 
 module?.exports =
+  _: require('underscore')
   testCreator: testCreator
   assert: assert
   expect: expect

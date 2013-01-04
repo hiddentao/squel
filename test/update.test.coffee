@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 squel = require "../src/squel"
-{testCreator, assert, expect, should} = require './testbase'
+{_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
@@ -40,7 +40,7 @@ test['UPDATE builder'] =
   'default field values': ->
     assert.same [], @inst.tables
     assert.same {}, @inst.fields
-    assert.same { usingValuePlaceholders: false }, @inst.options
+    assert.same squel.DefaultQueryBuilderOptions, @inst.options
 
   'constructor':
     'override options': ->
@@ -50,7 +50,11 @@ test['UPDATE builder'] =
 
       assert.same [], @inst.tables
       assert.same {}, @inst.fields
-      assert.same { usingValuePlaceholders: true, dummy: true }, @inst.options
+
+      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+        usingValuePlaceholders: true
+        dummy: true
+      assert.same expectedOptions, @inst.options
 
       
   '>> table()':

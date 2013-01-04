@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var Cloneable, DefaultInsertBuilderOptions, DefaultUpdateBuilderOptions, Delete, Expression, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, _export, _extend,
+  var Cloneable, DefaultQueryBuilderOptions, Delete, Expression, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, _export, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -177,7 +177,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions = {
+  DefaultQueryBuilderOptions = {
+    autoQuoteTableNames: false,
+    autoQuoteFieldNames: false,
+    nameQuoteCharacter: '`',
     usingValuePlaceholders: false
   };
 
@@ -185,8 +188,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(QueryBuilder, _super);
 
-    function QueryBuilder() {
-      return QueryBuilder.__super__.constructor.apply(this, arguments);
+    function QueryBuilder(options) {
+      this.options = _extend({}, DefaultQueryBuilderOptions, options);
     }
 
     QueryBuilder.prototype._getObjectClassName = function(obj) {
@@ -270,7 +273,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(WhereOrderLimit, _super);
 
-    function WhereOrderLimit() {
+    function WhereOrderLimit(options) {
       this._limitString = __bind(this._limitString, this);
 
       this._orderString = __bind(this._orderString, this);
@@ -282,7 +285,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.order = __bind(this.order, this);
 
       this.where = __bind(this.where, this);
-      WhereOrderLimit.__super__.constructor.apply(this, arguments);
+      WhereOrderLimit.__super__.constructor.call(this, options);
       this.wheres = [];
       this.orders = [];
       this.limits = null;
@@ -356,7 +359,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(JoinWhereOrderLimit, _super);
 
-    function JoinWhereOrderLimit() {
+    function JoinWhereOrderLimit(options) {
       this._joinString = __bind(this._joinString, this);
 
       this.outer_join = __bind(this.outer_join, this);
@@ -366,7 +369,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.left_join = __bind(this.left_join, this);
 
       this.join = __bind(this.join, this);
-      JoinWhereOrderLimit.__super__.constructor.apply(this, arguments);
+      JoinWhereOrderLimit.__super__.constructor.call(this, options);
       this.joins = [];
     }
 
@@ -445,7 +448,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Select, _super);
 
-    function Select() {
+    function Select(options) {
       this.toString = __bind(this.toString, this);
 
       this.offset = __bind(this.offset, this);
@@ -457,7 +460,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.from = __bind(this.from, this);
 
       this.distinct = __bind(this.distinct, this);
-      Select.__super__.constructor.apply(this, arguments);
+      Select.__super__.constructor.call(this, options);
       this.froms = [];
       this.fields = [];
       this.groups = [];
@@ -583,10 +586,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.set = __bind(this.set, this);
 
       this.table = __bind(this.table, this);
-      Update.__super__.constructor.apply(this, arguments);
+      Update.__super__.constructor.call(this, options);
       this.tables = [];
       this.fields = {};
-      this.options = _extend({}, DefaultUpdateBuilderOptions, options);
     }
 
     Update.prototype.table = function(table, alias) {
@@ -717,10 +719,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.set = __bind(this.set, this);
 
       this.into = __bind(this.into, this);
-      Insert.__super__.constructor.apply(this, arguments);
+      Insert.__super__.constructor.call(this, options);
       this.table = null;
       this.fields = {};
-      this.options = _extend({}, DefaultInsertBuilderOptions, options);
     }
 
     Insert.prototype.into = function(table) {
@@ -778,8 +779,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     expr: function() {
       return new Expression;
     },
-    select: function() {
-      return new Select;
+    select: function(options) {
+      return new Select(options);
     },
     update: function(options) {
       return new Update(options);
@@ -787,9 +788,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     insert: function(options) {
       return new Insert(options);
     },
-    "delete": function() {
-      return new Delete;
+    "delete": function(options) {
+      return new Delete(options);
     },
+    DefaultQueryBuilderOptions: DefaultQueryBuilderOptions,
     Cloneable: Cloneable,
     Expression: Expression,
     QueryBuilder: QueryBuilder,

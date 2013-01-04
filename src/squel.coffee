@@ -147,17 +147,35 @@ class Expression
         str
 
 
-# Default builder options.
-DefaultInsertBuilderOptions = DefaultUpdateBuilderOptions =
-    # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
-    # parameterized querying).
-    usingValuePlaceholders: false
+
+
+# Default query builder options
+DefaultQueryBuilderOptions =
+  # If true then table names will be rendered inside quotes. The quote character used is configurable via the
+  # nameQuoteCharacter option.
+  autoQuoteTableNames: false
+  # If true then field names will rendered inside quotes. The quote character used is configurable via the
+  # nameQuoteCharacter option.
+  autoQuoteFieldNames: false
+  # The quote character used for when quoting table and field names
+  nameQuoteCharacter: '`'
+  # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
+  # parameterized querying).
+  usingValuePlaceholders: false
 
 
 
 
 # Base class for all query builders
 class QueryBuilder extends Cloneable
+  # Constructor
+  #
+  # options is an Object overriding one or more of DefaultQueryBuilderOptions
+  #
+  constructor: (options) ->
+    @options = _extend {}, DefaultQueryBuilderOptions, options
+
+
   # Get class name of given object.
   _getObjectClassName: (obj) ->
     if obj && obj.constructor && obj.constructor.toString
@@ -222,8 +240,8 @@ class QueryBuilder extends Cloneable
 
 # Base class for query builders which support WHERE, ORDER and LIMIT clauses.
 class WhereOrderLimit extends QueryBuilder
-    constructor: ->
-        super
+    constructor: (options) ->
+        super options
         @wheres = []
         @orders = []
         @limits = null
@@ -288,8 +306,8 @@ class WhereOrderLimit extends QueryBuilder
 
 # Base class for query builders with JOIN clauses.
 class JoinWhereOrderLimit extends WhereOrderLimit
-  constructor: ->
-    super
+  constructor: (options) ->
+    super options
     @joins = []
 
   # Add a JOIN with the given table.
@@ -352,8 +370,8 @@ class JoinWhereOrderLimit extends WhereOrderLimit
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Select extends JoinWhereOrderLimit
-    constructor: ->
-        super
+    constructor: (options) ->
+        super options
         @froms = []
         @fields = []
         @groups = []
@@ -476,12 +494,10 @@ class Select extends JoinWhereOrderLimit
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Update extends WhereOrderLimit
-    # options: see DefaultBuilderOptions
     constructor: (options) ->
-        super
+        super options
         @tables = []
         @fields = {}
-        @options = _extend {}, DefaultUpdateBuilderOptions, options
 
 
     # Update the given table.
@@ -593,12 +609,11 @@ class Delete extends JoinWhereOrderLimit
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
 class Insert extends QueryBuilder
-    # options: see DefaultBuilderOptions
+    # options: see DefaultQueryBuilderOptions
     constructor: (options) ->
-        super
+        super options
         @table = null
         @fields = {}
-        @options = _extend {}, DefaultInsertBuilderOptions, options
 
 
     # The table to insert into.
@@ -636,13 +651,14 @@ class Insert extends QueryBuilder
 
 
 
-# Export everything as easily usable methods.
+# Export as easily usable methods.
 _export = {
     expr: -> new Expression
-    select: -> new Select
+    select: (options) -> new Select(options)
     update: (options) -> new Update(options)
     insert: (options) -> new Insert(options)
-    delete: -> new Delete
+    delete: (options) -> new Delete(options)
+    DefaultQueryBuilderOptions
     Cloneable
     Expression
     QueryBuilder
@@ -653,6 +669,7 @@ _export = {
     Insert
     Delete
 }
+
 module?.exports = _export
 window?.squel = _export
 
