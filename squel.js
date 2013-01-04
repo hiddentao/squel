@@ -224,11 +224,23 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     QueryBuilder.prototype._sanitizeField = function(item) {
-      return this._sanitizeName(item, "field name");
+      var sanitized;
+      sanitized = this._sanitizeName(item, "field name");
+      if (this.options.autoQuoteFieldNames) {
+        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
+      } else {
+        return sanitized;
+      }
     };
 
     QueryBuilder.prototype._sanitizeTable = function(item) {
-      return this._sanitizeName(item, "table name");
+      var sanitized;
+      sanitized = this._sanitizeName(item, "table name");
+      if (this.options.autoQuoteTableNames) {
+        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
+      } else {
+        return sanitized;
+      }
     };
 
     QueryBuilder.prototype._sanitizeAlias = function(item) {
@@ -252,13 +264,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       return item;
     };
 
-    QueryBuilder.prototype._formatValue = function(value, options) {
+    QueryBuilder.prototype._formatValue = function(value) {
       if (null === value) {
         value = "NULL";
       } else if ("boolean" === typeof value) {
         value = value ? "TRUE" : "FALSE";
       } else if ("number" !== typeof value) {
-        if (!options || false === options.usingValuePlaceholders) {
+        if (false === this.options.usingValuePlaceholders) {
           value = "'" + value + "'";
         }
       }
@@ -651,7 +663,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += "" + field + " = " + (this._formatValue(this.fields[field], this.options));
+        fields += "" + field + " = " + (this._formatValue(this.fields[field]));
       }
       ret += " SET " + fields;
       ret += this._whereString();
@@ -766,7 +778,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== values) {
           values += ", ";
         }
-        values += this._formatValue(this.fields[field], this.options);
+        values += this._formatValue(this.fields[field]);
       }
       return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
     };

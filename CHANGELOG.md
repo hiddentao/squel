@@ -1,6 +1,10 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
+## 4 Jan 2013 (1.0.6)
+* Squel can now be told to auto-quote table and field names.
+
+
 ## 3 Nov 2012 (1.0.5)
 
 * DELETE queries can now contain JOINs
