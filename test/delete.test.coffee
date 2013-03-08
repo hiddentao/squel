@@ -34,12 +34,19 @@ test['DELETE builder'] =
   beforeEach: ->
     @inst = squel.delete()
 
+  'instanceof Delete': ->
+    assert.instanceOf @inst, squel.Delete
+
   'instanceof JoinWhereOrderLimit': ->
     assert.instanceOf @inst, squel.JoinWhereOrderLimit
 
   'default field values': ->
     assert.same null, @inst.table
     assert.same squel.DefaultQueryBuilderOptions, @inst.options
+
+  'alias is "remove"': ->
+    @alias_inst = squel.remove()
+    assert.instanceOf @alias_inst, squel.Delete
 
   'constructor':
     'override options': ->

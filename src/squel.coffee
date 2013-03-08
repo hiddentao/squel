@@ -683,6 +683,9 @@ _export = {
     Delete
 }
 
+# aliases
+_export.remove = _export.delete
+
 module?.exports = _export
 window?.squel = _export
 
