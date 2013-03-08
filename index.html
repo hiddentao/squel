@@ -594,7 +594,13 @@
             var q = squel.delete();
         </pre>
 
-        <p>You need to supply at least the table name:</p>
+        <p>You can also use the alias <code>remove()</code>:</p>
+
+        <pre class="brush: js">
+            var q = squel.remove();
+        </pre>
+
+      <p>You need to supply at least the table name:</p>
 
         <pre class="brush: js">
             alert(
