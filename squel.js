@@ -815,6 +815,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     Delete: Delete
   };
 
+  _export.remove = _export["delete"];
+
   if (typeof module !== "undefined" && module !== null) {
     module.exports = _export;
   }
