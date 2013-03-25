@@ -40,7 +40,7 @@ test['UPDATE builder'] =
   'default field values': ->
     assert.same [], @inst.tables
     assert.same {}, @inst.fields
-    assert.same squel.DefaultQueryBuilderOptions, @inst.options
+    assert.same squel.classes.DefaultQueryBuilderOptions, @inst.options
 
   'constructor':
     'override options': ->
@@ -51,7 +51,7 @@ test['UPDATE builder'] =
       assert.same [], @inst.tables
       assert.same {}, @inst.fields
 
-      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
       assert.same expectedOptions, @inst.options

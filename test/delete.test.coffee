@@ -42,7 +42,7 @@ test['DELETE builder'] =
 
   'default field values': ->
     assert.same null, @inst.table
-    assert.same squel.DefaultQueryBuilderOptions, @inst.options
+    assert.same squel.classes.DefaultQueryBuilderOptions, @inst.options
 
   'alias is "remove"': ->
     @alias_inst = squel.remove()
@@ -56,7 +56,7 @@ test['DELETE builder'] =
 
       assert.same null, @inst.table
 
-      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
 

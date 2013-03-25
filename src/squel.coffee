@@ -23,6 +23,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ###
 
+# Holds classes
+cls = {}
+
+
 
 # Extend given object's with other objects' properties, overriding existing ones if necessary
 _extend = (dst, sources...) ->
@@ -34,13 +38,122 @@ _extend = (dst, sources...) ->
     dst
 
 
+
+# Default query builder options
+cls.DefaultQueryBuilderOptions =
+# If true then table names will be rendered inside quotes. The quote character used is configurable via the
+# nameQuoteCharacter option.
+  autoQuoteTableNames: false
+  # If true then field names will rendered inside quotes. The quote character used is configurable via the
+  # nameQuoteCharacter option.
+  autoQuoteFieldNames: false
+  # The quote character used for when quoting table and field names
+  nameQuoteCharacter: '`'
+  # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
+  # parameterized querying).
+  usingValuePlaceholders: false
+
+
+
 # Base class for cloneable builders
-class Cloneable
+class cls.Cloneable
   # Clone this builder
   clone: ->
     newInstance = new @constructor;
     # Fast deep copy using JSON conversion, see http://stackoverflow.com/a/5344074
     _extend newInstance, JSON.parse(JSON.stringify(@))
+
+
+
+# Base class for all builders
+class cls.BaseBuilder extends cls.Cloneable
+  # Constructor
+  #
+  # options is an Object overriding one or more of cls.DefaultQueryBuilderOptions
+  #
+  constructor: (options) ->
+    @options = _extend {}, cls.DefaultQueryBuilderOptions, options
+
+
+  # Get class name of given object.
+  _getObjectClassName: (obj) ->
+    if obj && obj.constructor && obj.constructor.toString
+      arr = obj.constructor.toString().match /function\s*(\w+)/;
+      if arr && arr.length is 2
+        return arr[1]
+    return undefined
+
+  # Sanitize the given condition.
+  _sanitizeCondition: (condition) ->
+    t = typeof condition
+    c = @_getObjectClassName(condition)
+
+    if 'cls.Expression' isnt c and "string" isnt t
+      throw new Error "condition must be a string or cls.Expression instance"
+    # If it's an expression builder instance then convert it to string form.
+    if 'cls.Expression' is t or 'cls.Expression' is c
+      condition = condition.toString()
+    condition
+
+
+  # Sanitize the given name.
+  # The 'type' parameter is used to construct a meaningful error message in case validation fails.
+  _sanitizeName: (value, type) ->
+    if "string" isnt typeof value
+      throw new Error "#{type} must be a string"
+    value
+
+  _sanitizeField: (item) ->
+    sanitized = @_sanitizeName item, "field name"
+
+    if @options.autoQuoteFieldNames
+      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+    else
+      sanitized
+
+  _sanitizeTable: (item) ->
+    sanitized = @_sanitizeName item, "table name"
+
+    if @options.autoQuoteTableNames
+      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+    else
+      sanitized
+
+  _sanitizeAlias: (item) ->
+    @_sanitizeName item, "alias"
+
+  # Sanitize the given limit/offset value.
+  _sanitizeLimitOffset: (value) ->
+    value = parseInt(value)
+    if 0 > value or isNaN(value)
+      throw new Error "limit/offset must be >=0"
+    value
+
+  # Santize the given field value
+  _sanitizeValue: (item) ->
+    t = typeof item
+    if null isnt item and "string" isnt t and "number" isnt t and "boolean" isnt t
+      throw new Error "field value must be a string, number, boolean or null"
+    item
+
+  # Format the given field value for inclusion into the query string
+  _formatValue: (value) ->
+    if null is value
+      value = "NULL"
+    else if "boolean" is typeof value
+      value = if value then "TRUE" else "FALSE"
+    else if "number" isnt typeof value
+      if false is @options.usingValuePlaceholders
+        value = "'#{value}'"
+    value
+
+
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# cls.Expressions
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
 
 
 
@@ -51,11 +164,11 @@ class Cloneable
 # This builder works by building up the expression as a hierarchical tree of nodes. The toString() method then
 # traverses this tree in order to build the final expression string.
 #
-# Expressions can be nested. Nested expression contains can themselves contain nested expressions.
+# cls.Expressions can be nested. Nested expression contains can themselves contain nested expressions.
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Expression
+class cls.Expression
 
     # The expression tree.
     tree: null
@@ -149,179 +262,356 @@ class Expression
 
 
 
-# Default query builder options
-DefaultQueryBuilderOptions =
-  # If true then table names will be rendered inside quotes. The quote character used is configurable via the
-  # nameQuoteCharacter option.
-  autoQuoteTableNames: false
-  # If true then field names will rendered inside quotes. The quote character used is configurable via the
-  # nameQuoteCharacter option.
-  autoQuoteFieldNames: false
-  # The quote character used for when quoting table and field names
-  nameQuoteCharacter: '`'
-  # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
-  # parameterized querying).
-  usingValuePlaceholders: false
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Building blocks
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
 
 
 
-
-# Base class for all query builders
-class QueryBuilder extends Cloneable
-  # Constructor
+# A building block represents a single build-step within a query building process.
+#
+# Query builders consist of one or more building blocks which get run in a particular order. Building blocks can
+# optionally specify methods to expose through the query builder interface. They can access all the input data for
+# the query builder and manipulate it as necessary, as well as append to the final query string output.
+#
+# If you wish to customize how queries get built or add proprietary query phrases and content then it is recommended
+# that you do so using one or more custom building blocks.
+#
+# Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427
+class cls.BuildingBlock extends cls.BaseBuilder
+  # Get input methods to expose within the query builder.
   #
-  # options is an Object overriding one or more of DefaultQueryBuilderOptions
+  # By default all methods except the following get returned:
+  #   methods prefixed with _
+  #   constructor and buildStr()
   #
+  # @return Object key -> function pairs
+  exposedMethods: ->
+    ret = {}
+
+    for own attr, value of @
+      if typeof value is "function"
+        if attr.charAt(0) isnt '_' and attr isnt 'buildStr'
+          ret[attr] = value
+
+    ret
+
+  # Build this block.
+  #
+  # Subclasses may override this method.
+  #
+  # @param queryBuilder cls.QueryBuilder a reference to the query builder that owns this block.
+  #
+  # @return String the string representing this block
+  buildStr: (queryBuilder) ->
+    ''
+
+
+# A String which always gets output
+class cls.StringBlock extends cls.BuildingBlock
+  constructor: (options, str) ->
+    super options
+    @str = str
+
+  buildStr: (queryBuilder) ->
+    @str
+
+
+
+# FROM table
+class cls.FromTableBlock extends cls.BuildingBlock
   constructor: (options) ->
-    @options = _extend {}, DefaultQueryBuilderOptions, options
+    super options
+    @froms = []
+
+  # Read data from the given table.
+  #
+  # An alias may also be specified for the table.
+  from: (table, alias = null) =>
+    table = @_sanitizeTable(table)
+    alias = @_sanitizeAlias(alias) if alias
+
+    @froms.push
+      name: table
+      alias: alias
+
+  buildStr: (queryBuilder) ->
+    if 0 >= @froms.length
+      throw new Error "from() needs to be called"
+
+    tables = ""
+    for table in @froms
+      tables += ", " if "" isnt tables
+      tables += table.name
+      tables += " `#{table.alias}`" if table.alias
+
+    "FROM #{tables}"
 
 
-  # Get class name of given object.
-  _getObjectClassName: (obj) ->
-    if obj && obj.constructor && obj.constructor.toString
-      arr = obj.constructor.toString().match /function\s*(\w+)/;
-      if arr && arr.length is 2
-        return arr[1]
-    return undefined
 
-  # Sanitize the given condition.
-  _sanitizeCondition: (condition) ->
-    t = typeof condition
-    c = @_getObjectClassName(condition)
+# UPDATE table
+class cls.UpdateTableBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @tables = []
 
-    if 'Expression' isnt c and "string" isnt t
-      throw new Error "condition must be a string or Expression instance"
-    # If it's an expression builder instance then convert it to string form.
-    if 'Expression' is t or 'Expression' is c
-      condition = condition.toString()
-    condition
+  # Update given table.
+  #
+  # An alias may also be specified for the table.
+  table: (table, alias = null) =>
+    table = @_sanitizeTable(table)
+    alias = @_sanitizeAlias(alias) if alias
+
+    @tables.push
+      name: table
+      alias: alias
+
+  buildStr: (queryBuilder) ->
+    if 0 >= @tables.length then throw new Error "table() needs to be called"
+
+    tables = ""
+    for table in @tables
+      tables += ", " if "" isnt tables
+      tables += table.name
+      tables += " AS `#{table.alias}`" if table.alias
+
+    tables
 
 
-  # Sanitize the given name.
-  # The 'type' parameter is used to construct a meaningful error message in case validation fails.
-  _sanitizeName: (value, type) ->
-    if "string" isnt typeof value
-      throw new Error "#{type} must be a string"
-    value
+# INTO table
+class cls.IntoTableBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @table = null
 
-  _sanitizeField: (item) ->
-    sanitized = @_sanitizeName item, "field name"
+  # Into given table.
+  table: (table) =>
+    table = @_sanitizeTable(table)
 
-    if @options.autoQuoteFieldNames
-      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+  buildStr: (queryBuilder) ->
+    if not @table then throw new Error "into() needs to be called"
+    @table
+
+
+
+# Get field
+class cls.GetFieldBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @fields = []
+
+  # Add the given field to the final result set.
+  #
+  # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
+  # e.g. DATE_FORMAT(a.started, "%H")
+  #
+  # An alias may also be specified for this field.
+  field: (field, alias = null) =>
+    field = @_sanitizeField(field)
+    alias = @_sanitizeAlias(alias) if alias
+
+    @fields.push
+      name: field
+      alias: alias
+
+  buildStr: (queryBuilder) ->
+    fields = ""
+    for field in @fields
+      fields += ", " if "" isnt fields
+      fields += field.name
+      fields += " AS \"#{field.alias}\"" if field.alias
+
+    if "" is fields then "*" else fields
+
+
+
+# SET field=value
+class cls.SetFieldBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @fields = {}
+
+  # Update the given field with the given value.
+  # This will override any previously set value for the given field.
+  set: (field, value) =>
+    field = @_sanitizeField(field)
+    value = @_sanitizeValue(value)
+    @fields[field] = value
+    @
+
+  buildStr: (queryBuilder) ->
+    fieldNames = (field for own field of @fields)
+    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+
+    fields = ""
+    for field in fieldNames
+      fields += ", " if "" isnt fields
+      fields += "#{field} = #{@_formatValue(@fields[field])}"
+
+    "SET #{fields}"
+
+
+# INSERT INTO ... field ... value
+class cls.InsertIntoFieldBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @fields = {}
+
+  # Update the given field with the given value.
+  # This will override any previously set value for the given field.
+  set: (field, value) =>
+    field = @_sanitizeField(field)
+    value = @_sanitizeValue(value)
+    @fields[field] = value
+    @
+
+  buildStr: (queryBuilder) ->
+    fieldNames = (name for own name of @fields)
+    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+
+    # fields
+    fields = ""
+    values = ""
+    for field in fieldNames
+      fields += ", " if "" isnt fields
+      fields += field
+      values += ", " if "" isnt values
+      values += @_formatValue(@fields[field])
+
+    "(#{fields}) VALUES (#{values})"
+
+
+
+
+# DISTINCT
+class cls.DistinctBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @useDistinct = false
+
+  # Add the DISTINCT keyword to the query.
+  distinct: =>
+    @useDistinct = true
+
+  buildStr: (queryBuilder) ->
+    if @useDistinct then "DISTINCT" else ""
+
+
+
+# GROUP BY
+class cls.GroupByBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @groups = []
+
+  # Add a GROUP BY transformation for the given field.
+  group: (field) =>
+    field = @_sanitizeField(field)
+    @groups.push field
+
+  buildStr: (queryBuilder) ->
+    groups = ""
+
+    if 0 < @groups.length
+      for f in @groups
+        groups += ", " if "" isnt groups
+        groups += f
+      groups = "GROUP BY #{groups}"
+
+    groups
+
+
+# OFFSET x
+class cls.OffsetBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @offsets = null
+
+  # Set the OFFSET transformation.
+  #
+  # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
+  # the offset.
+  offset: (start) =>
+    start = @_sanitizeLimitOffset(start)
+    @offsets = start
+
+  buildStr: (queryBuilder) ->
+    if (@offsets) "OFFSET #{@offsets}" else ""
+
+
+# WHERE
+class cls.WhereBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @wheres = []
+
+  # Add a WHERE condition.
+  #
+  # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
+  where: (condition) =>
+    condition = @_sanitizeCondition(condition)
+    if "" isnt condition
+      @wheres.push condition
+
+  buildStr: (queryBuilder) ->
+    if (@offsets) "OFFSET #{@offsets}" else ""
+
+
+# ORDER BY
+class cls.OrderByBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @orders = []
+
+  # Add an ORDER BY transformation for the given field in the given order.
+  #
+  # To specify descending order pass false for the 'asc' parameter.
+  order: (field, asc = true) =>
+    field = @_sanitizeField(field)
+    @orders.push
+      field: field
+      dir: if asc then "ASC" else "DESC"
+
+  buildStr: (queryBuilder) ->
+    if 0 < @orders.length
+      orders = ""
+      for o in @orders
+        orders += ", " if "" isnt orders
+        orders += "#{o.field} #{o.dir}"
+      "ORDER BY #{orders}"
     else
-      sanitized
+      ""
 
-  _sanitizeTable: (item) ->
-    sanitized = @_sanitizeName item, "table name"
 
-    if @options.autoQuoteTableNames
-      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
-    else
-      sanitized
+# LIMIT
+class cls.LimitBlock extends cls.BuildingBlock
+  constructor: (options) ->
+    super options
+    @limits = null
 
-  _sanitizeAlias: (item) ->
-    @_sanitizeName item, "alias"
+  # Set the LIMIT transformation.
+  #
+  # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+  # the limit.
+  limit: (max) =>
+    max = @_sanitizeLimitOffset(max)
+    @limits = max
 
-  # Sanitize the given limit/offset value.
-  _sanitizeLimitOffset: (value) ->
-    value = parseInt(value)
-    if 0 > value or isNaN(value)
-      throw new Error "limit/offset must be >=0"
-    value
 
-  # Santize the given field value
-  _sanitizeValue: (item) ->
-    t = typeof item
-    if null isnt item and "string" isnt t and "number" isnt t and "boolean" isnt t
-      throw new Error "field value must be a string, number, boolean or null"
-    item
-
-  # Format the given field value for inclusion into the query string
-  _formatValue: (value) ->
-    if null is value
-      value = "NULL"
-    else if "boolean" is typeof value
-      value = if value then "TRUE" else "FALSE"
-    else if "number" isnt typeof value
-      if false is @options.usingValuePlaceholders
-        value = "'#{value}'"
-    value
+  buildStr: (queryBuilder) ->
+    if @limits "LIMIT #{@limits}" else ""
 
 
 
-
-# Base class for query builders which support WHERE, ORDER and LIMIT clauses.
-class WhereOrderLimit extends QueryBuilder
-    constructor: (options) ->
-        super options
-        @wheres = []
-        @orders = []
-        @limits = null
-
-
-    # Add a WHERE condition.
-    #
-    # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
-    where: (condition) =>
-        condition = @_sanitizeCondition(condition)
-        if "" isnt condition
-            @wheres.push condition
-        @
-
-
-    # Add an ORDER BY transformation for the given field in the given order.
-    #
-    # To specify descending order pass false for the 'asc' parameter.
-    order: (field, asc = true) =>
-        field = @_sanitizeField(field)
-        @orders.push
-            field: field
-            dir: if asc then "ASC" else "DESC"
-        @
-
-
-    # Set the LIMIT transformation.
-    #
-    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
-    # the limit.
-    limit: (max) =>
-        max = @_sanitizeLimitOffset(max)
-        @limits = max
-        @
-
-
-    # Get string representation of WHERE clause, if any
-    _whereString: =>
-        if 0 < @wheres.length
-            " WHERE (" + @wheres.join(") AND (") + ")"
-        else
-            ""
-
-    # Get string representation of ORDER BY clause, if any
-    _orderString: =>
-        if 0 < @orders.length
-            orders = ""
-            for o in @orders
-                orders += ", " if "" isnt orders
-                orders += "#{o.field} #{o.dir}"
-            " ORDER BY #{orders}"
-        else
-            ""
-
-    # Get string representation of LIMIT clause, if any
-    _limitString: =>
-        if @limits
-            " LIMIT #{@limits}"
-        else
-            ""
-
-
-# Base class for query builders with JOIN clauses.
-class JoinWhereOrderLimit extends WhereOrderLimit
+# JOIN
+class cls.JoinBlock extends cls.BuildingBlock
   constructor: (options) ->
     super options
     @joins = []
+
 
   # Add a JOIN with the given table.
   #
@@ -363,8 +653,7 @@ class JoinWhereOrderLimit extends WhereOrderLimit
     @join table, alias, condition, 'OUTER'
 
 
-  # Get string representation of JOIN clauses, if any
-  _joinString: =>
+  buildStr: (queryBuilder) ->
     joins = ""
 
     for j in (@joins or [])
@@ -377,315 +666,146 @@ class JoinWhereOrderLimit extends WhereOrderLimit
 
 
 
-# A SELECT query builder.
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Query builders
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+
+# Query builder base class
 #
 # Note that the query builder does not check the final query string for correctness.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class Select extends JoinWhereOrderLimit
+class cls.QueryBuilder extends cls.BaseBuilder
+  # Constructor
+  #
+  # blocks - array of cls.BaseBuilderBlock instances to build the query with.
+  constructor: (blocks) ->
+    @blocks = blocks
+
+    # Copy exposed methods into myself
+    for block in @blocks
+      for methodName, methodBody of block.exposedMethods()
+        if @[methodName]?
+          throw new Error _getObjectClassName(@) + "already has a builder method called #{methodName}"
+
+        ( (name, body) =>
+          @[name] = =>
+            body.apply(@, arguments)
+            @
+        )(methodName, methodBody)
+
+
+    # Get the final fully constructed query string.
+    toString: =>
+      (block.buildStr(@) for block in @blocks).join(" ")
+
+
+
+
+
+
+# SELECT query builder.
+class cls.Select extends cls.QueryBuilder
     constructor: (options) ->
-        super options
-        @froms = []
-        @fields = []
-        @groups = []
-        @offsets = null
-        @useDistinct = false
+      blocks = [
+        new cls.StringBlock(options, 'SELECT'),
+        new cls.DistinctBlock(options),
+        new cls.GetFieldBlock(options),
+        new cls.FromTableBlock(options),
+        new cls.JoinBlock(options),
+        new cls.WhereBlock(options),
+        new cls.GroupByBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+        new cls.OffsetBlock(options)
+      ]
 
-
-    # Add the DISTINCT keyword to this query.
-    distinct: =>
-        @useDistinct = true
-        @
-
-
-    # Read data from the given table.
-    #
-    # An alias may also be specified for the table.
-    from: (table, alias = null) =>
-        table = @_sanitizeTable(table)
-        alias = @_sanitizeAlias(alias) if alias
-
-        @froms.push
-            name: table
-            alias: alias
-        @
-
-
-    # Add the given field to the final result set.
-    #
-    # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
-    # e.g. DATE_FORMAT(a.started, "%H")
-    #
-    # An alias may also be specified for this field.
-    field: (field, alias = null) =>
-        field = @_sanitizeField(field)
-        alias = @_sanitizeAlias(alias) if alias
-
-        @fields.push
-            name: field
-            alias: alias
-        @
-
-
-
-    # Add a GROUP BY transformation for the given field.
-    group: (field) =>
-        field = @_sanitizeField(field)
-        @groups.push field
-        @
-
-
-    # Set the OFFSET transformation.
-    #
-    # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
-    # the offset.
-    offset: (start) =>
-        start = @_sanitizeLimitOffset(start)
-        @offsets = start
-        @
-
-
-    # Get the final fully constructed query string.
-    toString: =>
-        # basic checks
-        if 0 >= @froms.length
-            throw new Error "from() needs to be called"
-
-        ret = "SELECT "
-
-        # distinct
-        ret += "DISTINCT " if @useDistinct
-
-        # fields
-        fields = ""
-        for field in @fields
-            fields += ", " if "" isnt fields
-            fields += field.name
-            fields += " AS \"#{field.alias}\"" if field.alias
-
-        ret += if "" is fields then "*" else fields
-
-        # tables
-        tables = ""
-        for table in @froms
-            tables += ", " if "" isnt tables
-            tables += table.name
-            tables += " `#{table.alias}`" if table.alias
-
-        ret += " FROM #{tables}"
-
-        # joins
-        ret += @_joinString()
-
-        # where
-        ret += @_whereString()
-
-        # group by
-        if 0 < @groups.length
-            groups = ""
-            for f in @groups
-                groups += ", " if "" isnt groups
-                groups += f
-            ret += " GROUP BY #{groups}"
-
-        # order by
-        ret += @_orderString()
-
-        # limit
-        ret += @_limitString()
-
-        # offset
-        ret += " OFFSET #{@offsets}" if @offsets
-
-        ret
-
-
-
-# An UPDATE query builder.
-#
-# Note that the query builder does not check the final query string for correctness.
-#
-# All the build methods in this object return the object instance for chained method calling purposes.
-class Update extends WhereOrderLimit
-    constructor: (options) ->
-        super options
-        @tables = []
-        @fields = {}
-
-
-    # Update the given table.
-    #
-    # An alias may also be specified for the table.
-    table: (table, alias = null) =>
-        table = @_sanitizeTable(table)
-        alias = @_sanitizeAlias(alias) if alias
-
-        @tables.push
-            name: table
-            alias: alias
-        @
-
-    # Update the given field with the given value.
-    # This will override any previously set value for the given field.
-    set: (field, value) =>
-        field = @_sanitizeField(field)
-        value = @_sanitizeValue(value)
-        @fields[field] = value
-        @
-
-
-    # Get the final fully constructed query string.
-    toString: =>
-        # basic checks
-        if 0 >= @tables.length then throw new Error "table() needs to be called"
-        fieldNames = (field for own field of @fields)
-        if 0 >= fieldNames.length then throw new Error "set() needs to be called"
-
-        ret = "UPDATE "
-
-        # tables
-        tables = ""
-        for table in @tables
-            tables += ", " if "" isnt tables
-            tables += table.name
-            tables += " AS `#{table.alias}`" if table.alias
-
-        ret += tables
-
-        # fields
-        fields = ""
-        for field in fieldNames
-            fields += ", " if "" isnt fields
-            fields += "#{field} = #{@_formatValue(@fields[field])}"
-        ret += " SET #{fields}"
-
-        # where
-        ret += @_whereString()
-
-        # order by
-        ret += @_orderString()
-
-        # limit
-        ret += @_limitString()
-
-        ret
+      super blocks
 
 
 
 
-# A DELETE query builder.
-#
-# Note that the query builder does not check the final query string for correctness.
-#
-# All the build methods in this object return the object instance for chained method calling purposes.
-class Delete extends JoinWhereOrderLimit
-    table: null
+# UPDATE query builder.
+class cls.Update extends cls.QueryBuilder
+  constructor: (options) ->
+    blocks = [
+      new cls.StringBlock(options, 'UPDATE'),
+      new cls.UpdateTableBlock(options),
+      new cls.SetFieldBlock(options),
+      new cls.WhereBlock(options),
+      new cls.OrderByBlock(options),
+      new cls.LimitBlock(options)
+    ]
 
-    # The table to delete from.
-    # Calling this will override any previously set value.
-    from: (table, alias) =>
-        table = @_sanitizeTable(table)
-        alias = @_sanitizeAlias(alias) if alias
-        @table =
-            name: table
-            alias: alias
-        @
+    super blocks
 
-    # Get the final fully constructed query string.
-    toString: =>
-        # basic checks
-        if not @table then throw new Error "from() needs to be called"
 
-        ret = "DELETE FROM #{@table.name}"
 
-        ret += " `#{@table.alias}`" if @table.alias
 
-        # joins
-        ret += @_joinString()
 
-        # where
-        ret += @_whereString()
+# DELETE query builder.
+class cls.Delete extends cls.QueryBuilder
+  constructor: (options) ->
+    blocks = [
+      new cls.StringBlock(options, 'DELETE'),
+      new cls.FromTableBlock(options),
+      new cls.JoinBlock(options),
+      new cls.WhereBlock(options),
+      new cls.OrderByBlock(options),
+      new cls.LimitBlock(options),
+    ]
 
-        # order by
-        ret += @_orderString()
+    super blocks
 
-        # limit
-        ret += @_limitString()
 
-        ret
 
 
 
 # An INSERT query builder.
 #
-# Note that the query builder does not check the final query string for correctness.
-#
-# All the build methods in this object return the object instance for chained method calling purposes.
-class Insert extends QueryBuilder
-    # options: see DefaultQueryBuilderOptions
-    constructor: (options) ->
-        super options
-        @table = null
-        @fields = {}
+class cls.Insert extends cls.BaseBuilder
+  constructor: (options) ->
+    blocks = [
+      new cls.StringBlock(options, 'INSERT'),
+      new cls.IntoTableBlock(options),
+      new cls.InsertIntoFieldBlock(options)
+    ]
 
-
-    # The table to insert into.
-    # This will override any previously set value.
-    into: (table) =>
-        table = @_sanitizeTable(table)
-        @table = table
-        @
-
-    # Set the given field to the given value.
-    # This will override any previously set value for the given field.
-    set: (field, value) =>
-        field = @_sanitizeField(field)
-        value = @_sanitizeValue(value)
-        @fields[field] = value
-        @
-
-    # Get the final fully constructed query string.
-    toString: =>
-        # basic checks
-        if not @table then throw new Error "into() needs to be called"
-        fieldNames = (name for own name of @fields)
-        if 0 >= fieldNames.length then throw new Error "set() needs to be called"
-
-        # fields
-        fields = ""
-        values = ""
-        for field in fieldNames
-            fields += ", " if "" isnt fields
-            fields += field
-            values += ", " if "" isnt values
-            values += @_formatValue(@fields[field])
-
-        "INSERT INTO #{@table} (#{fields}) VALUES (#{values})"
+    super blocks
 
 
 
-# Export as easily usable methods.
-_export = {
-    expr: -> new Expression
-    select: (options) -> new Select(options)
-    update: (options) -> new Update(options)
-    insert: (options) -> new Insert(options)
-    delete: (options) -> new Delete(options)
-    DefaultQueryBuilderOptions
-    Cloneable
-    Expression
-    QueryBuilder
-    WhereOrderLimit
-    JoinWhereOrderLimit
-    Select
-    Update
-    Insert
-    Delete
-}
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Exported API
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+squel =
+  expr: -> new cls.Expression
+  select: (options) -> new cls.Select(options)
+  update: (options) -> new cls.Update(options)
+  insert: (options) -> new cls.Insert(options)
+  delete: (options) -> new cls.Delete(options)
 
 # aliases
-_export.remove = _export.delete
+squel.remove = squel.delete
 
-module?.exports = _export
-window?.squel = _export
+# classes
+squel.classes = cls
+
+
+# AMD
+if define?.amd
+  define ->
+    return squel
+# CommonJS
+else if module?.exports
+  module.exports = squel
+# Browser
+else
+  window?.squel = squel
 

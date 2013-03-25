@@ -69,7 +69,7 @@ test['Default query builder options'] =
       autoQuoteFieldNames: false
       nameQuoteCharacter: '`'
       usingValuePlaceholders: false
-    }, squel.DefaultQueryBuilderOptions
+    }, squel.classes.DefaultQueryBuilderOptions
 
 
 
@@ -82,7 +82,7 @@ test['QueryBuilder base class'] =
 
   'constructor':
     'default options': ->
-      assert.same squel.DefaultQueryBuilderOptions, @inst.options
+      assert.same squel.classes.DefaultQueryBuilderOptions, @inst.options
 
     'overridden options': ->
       @inst = new squel.QueryBuilder
@@ -91,7 +91,7 @@ test['QueryBuilder base class'] =
         usingValuePlaceholders: true
         dummy3: true
 
-      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true

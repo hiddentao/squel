@@ -34,16 +34,14 @@ test['SELECT builder'] =
   beforeEach: ->
     @inst = squel.select()
 
-  'instanceof JoinWhereOrderLimit': ->
-    assert.instanceOf @inst, squel.JoinWhereOrderLimit
+  'instanceof QueryBuilder': ->
+    assert.instanceOf @inst, squel.classes.QueryBuilder
 
-  'default field values': ->
-    assert.same [], @inst.froms
-    assert.same [], @inst.fields
-    assert.same [], @inst.groups
-    assert.same null, @inst.offsets
-    assert.same false, @inst.useDistinct
-    assert.same squel.DefaultQueryBuilderOptions, @inst.options
+  'blocks':
+    'options': ->
+      for block in @inst.blocks
+        assert.same squel.classes.DefaultQueryBuilderOptions, block.options
+
 
   'constructor':
     'override options': ->
@@ -51,31 +49,24 @@ test['SELECT builder'] =
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same [], @inst.froms
-      assert.same [], @inst.fields
-      assert.same [], @inst.groups
-      assert.same null, @inst.offsets
-      assert.same false, @inst.useDistinct
-
-      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same expectedOptions, @inst.options
-
+      for block in @inst.blocks
+        assert.same expectedOptions, block.options
 
   '>> distinct()': ->
     assert.same @inst.distinct(), @inst
-    assert.ok @inst.useDistinct
 
   '>> from()':
     beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeTable')
-      test.mocker.spy(@inst, '_sanitizeAlias')
+      test.mocker.spy(squel.classes.Builder, '_sanitizeTable')
+      test.mocker.spy(squel.classes.Builder, '_sanitizeAlias')
 
     'args: ()': ->
       assert.throws (=> @inst.from()), 'table name must be a string'
-      assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
+      assert.ok squel.classes.Builder._sanitizeTable.calledWithExactly(undefined)
 
     'args: (table)':
       beforeEach: ->
