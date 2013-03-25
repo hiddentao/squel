@@ -281,7 +281,7 @@ class cls.Expression
 # that you do so using one or more custom building blocks.
 #
 # Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427
-class cls.BuildingBlock extends cls.BaseBuilder
+class cls.Block extends cls.BaseBuilder
   # Get input methods to expose within the query builder.
   #
   # By default all methods except the following get returned:
@@ -311,7 +311,7 @@ class cls.BuildingBlock extends cls.BaseBuilder
 
 
 # A String which always gets output
-class cls.StringBlock extends cls.BuildingBlock
+class cls.StringBlock extends cls.Block
   constructor: (options, str) ->
     super options
     @str = str
@@ -322,7 +322,7 @@ class cls.StringBlock extends cls.BuildingBlock
 
 
 # FROM table
-class cls.FromTableBlock extends cls.BuildingBlock
+class cls.FromTableBlock extends cls.Block
   constructor: (options) ->
     super options
     @froms = []
@@ -353,7 +353,7 @@ class cls.FromTableBlock extends cls.BuildingBlock
 
 
 # UPDATE table
-class cls.UpdateTableBlock extends cls.BuildingBlock
+class cls.UpdateTableBlock extends cls.Block
   constructor: (options) ->
     super options
     @tables = []
@@ -382,14 +382,14 @@ class cls.UpdateTableBlock extends cls.BuildingBlock
 
 
 # INTO table
-class cls.IntoTableBlock extends cls.BuildingBlock
+class cls.IntoTableBlock extends cls.Block
   constructor: (options) ->
     super options
     @table = null
 
   # Into given table.
-  table: (table) =>
-    table = @_sanitizeTable(table)
+  into: (table) =>
+    @table = @_sanitizeTable(table)
 
   buildStr: (queryBuilder) ->
     if not @table then throw new Error "into() needs to be called"
@@ -398,7 +398,7 @@ class cls.IntoTableBlock extends cls.BuildingBlock
 
 
 # Get field
-class cls.GetFieldBlock extends cls.BuildingBlock
+class cls.GetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
     @fields = []
@@ -429,7 +429,7 @@ class cls.GetFieldBlock extends cls.BuildingBlock
 
 
 # SET field=value
-class cls.SetFieldBlock extends cls.BuildingBlock
+class cls.SetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
     @fields = {}
@@ -455,7 +455,7 @@ class cls.SetFieldBlock extends cls.BuildingBlock
 
 
 # INSERT INTO ... field ... value
-class cls.InsertIntoFieldBlock extends cls.BuildingBlock
+class cls.InsertIntoFieldBlock extends cls.Block
   constructor: (options) ->
     super options
     @fields = {}
@@ -487,7 +487,7 @@ class cls.InsertIntoFieldBlock extends cls.BuildingBlock
 
 
 # DISTINCT
-class cls.DistinctBlock extends cls.BuildingBlock
+class cls.DistinctBlock extends cls.Block
   constructor: (options) ->
     super options
     @useDistinct = false
@@ -502,7 +502,7 @@ class cls.DistinctBlock extends cls.BuildingBlock
 
 
 # GROUP BY
-class cls.GroupByBlock extends cls.BuildingBlock
+class cls.GroupByBlock extends cls.Block
   constructor: (options) ->
     super options
     @groups = []
@@ -525,7 +525,7 @@ class cls.GroupByBlock extends cls.BuildingBlock
 
 
 # OFFSET x
-class cls.OffsetBlock extends cls.BuildingBlock
+class cls.OffsetBlock extends cls.Block
   constructor: (options) ->
     super options
     @offsets = null
@@ -539,11 +539,11 @@ class cls.OffsetBlock extends cls.BuildingBlock
     @offsets = start
 
   buildStr: (queryBuilder) ->
-    if (@offsets) "OFFSET #{@offsets}" else ""
+    if @offsets then "OFFSET #{@offsets}" else ""
 
 
 # WHERE
-class cls.WhereBlock extends cls.BuildingBlock
+class cls.WhereBlock extends cls.Block
   constructor: (options) ->
     super options
     @wheres = []
@@ -557,11 +557,11 @@ class cls.WhereBlock extends cls.BuildingBlock
       @wheres.push condition
 
   buildStr: (queryBuilder) ->
-    if (@offsets) "OFFSET #{@offsets}" else ""
+    if 0 < @wheres.length then "WHERE (" + @wheres.join(") AND (") + ")" else ""
 
 
 # ORDER BY
-class cls.OrderByBlock extends cls.BuildingBlock
+class cls.OrderByBlock extends cls.Block
   constructor: (options) ->
     super options
     @orders = []
@@ -573,21 +573,21 @@ class cls.OrderByBlock extends cls.BuildingBlock
     field = @_sanitizeField(field)
     @orders.push
       field: field
-      dir: if asc then "ASC" else "DESC"
+      dir: if asc then true else false
 
   buildStr: (queryBuilder) ->
     if 0 < @orders.length
       orders = ""
       for o in @orders
         orders += ", " if "" isnt orders
-        orders += "#{o.field} #{o.dir}"
+        orders += "#{o.field} #{if o.dir then 'ASC' else 'DESC'}"
       "ORDER BY #{orders}"
     else
       ""
 
 
 # LIMIT
-class cls.LimitBlock extends cls.BuildingBlock
+class cls.LimitBlock extends cls.Block
   constructor: (options) ->
     super options
     @limits = null
@@ -602,12 +602,12 @@ class cls.LimitBlock extends cls.BuildingBlock
 
 
   buildStr: (queryBuilder) ->
-    if @limits "LIMIT #{@limits}" else ""
+    if @limits then "LIMIT #{@limits}" else ""
 
 
 
 # JOIN
-class cls.JoinBlock extends cls.BuildingBlock
+class cls.JoinBlock extends cls.Block
   constructor: (options) ->
     super options
     @joins = []
@@ -620,12 +620,11 @@ class cls.JoinBlock extends cls.BuildingBlock
   # 'alias' is an optional alias for the table name.
   #
   # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
-  # an expression builder then it will only get evaluated during the final query string construction phase in
-  # toString().
+  # an expression builder then it gets evaluated straight away.
   #
   # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
   #
-  join: (table, alias, condition, type = 'INNER') =>
+  join: (table, alias = null, condition = null, type = 'INNER') =>
     table = @_sanitizeTable(table)
     alias = @_sanitizeAlias(alias) if alias
     condition = @_sanitizeCondition(condition) if condition
@@ -657,7 +656,8 @@ class cls.JoinBlock extends cls.BuildingBlock
     joins = ""
 
     for j in (@joins or [])
-      joins += " #{j.type} JOIN #{j.table}"
+      if joins isnt "" then joins += " "
+      joins += "#{j.type} JOIN #{j.table}"
       joins += " `#{j.alias}`" if j.alias
       joins += " ON (#{j.condition})" if j.condition
 
@@ -700,7 +700,7 @@ class cls.QueryBuilder extends cls.BaseBuilder
 
     # Get the final fully constructed query string.
     toString: =>
-      (block.buildStr(@) for block in @blocks).join(" ")
+      (block.buildStr(@) for block in @blocks).join(' ')
 
 
 

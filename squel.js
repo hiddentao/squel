@@ -283,15 +283,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  cls.BuildingBlock = (function(_super) {
+  cls.Block = (function(_super) {
 
-    __extends(BuildingBlock, _super);
+    __extends(Block, _super);
 
-    function BuildingBlock() {
-      return BuildingBlock.__super__.constructor.apply(this, arguments);
+    function Block() {
+      return Block.__super__.constructor.apply(this, arguments);
     }
 
-    BuildingBlock.prototype.exposedMethods = function() {
+    Block.prototype.exposedMethods = function() {
       var attr, ret, value;
       ret = {};
       for (attr in this) {
@@ -306,11 +306,11 @@ OTHER DEALINGS IN THE SOFTWARE.
       return ret;
     };
 
-    BuildingBlock.prototype.buildStr = function(queryBuilder) {
+    Block.prototype.buildStr = function(queryBuilder) {
       return '';
     };
 
-    return BuildingBlock;
+    return Block;
 
   })(cls.BaseBuilder);
 
@@ -329,7 +329,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return StringBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.FromTableBlock = (function(_super) {
 
@@ -376,7 +376,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return FromTableBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.UpdateTableBlock = (function(_super) {
 
@@ -423,7 +423,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return UpdateTableBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.IntoTableBlock = (function(_super) {
 
@@ -447,7 +447,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return IntoTableBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.GetFieldBlock = (function(_super) {
 
@@ -496,7 +496,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return GetFieldBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.SetFieldBlock = (function(_super) {
 
@@ -543,7 +543,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return SetFieldBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.InsertIntoFieldBlock = (function(_super) {
 
@@ -595,7 +595,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return InsertIntoFieldBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   DistinctBlock = (function(_super) {
 
@@ -620,7 +620,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return DistinctBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.GroupByBlock = (function(_super) {
 
@@ -656,7 +656,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return GroupByBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.OffsetBlock = (function(_super) {
 
@@ -683,7 +683,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return OffsetBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.WhereBlock = (function(_super) {
 
@@ -712,7 +712,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return WhereBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.OrderByBlock = (function(_super) {
 
@@ -755,7 +755,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return OrderByBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.LimitBlock = (function(_super) {
 
@@ -782,7 +782,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return LimitBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.JoinBlock = (function(_super) {
 
@@ -869,7 +869,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return JoinBlock;
 
-  })(cls.BuildingBlock);
+  })(cls.Block);
 
   cls.QueryBuilder = (function(_super) {
 
