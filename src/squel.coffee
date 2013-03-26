@@ -88,10 +88,10 @@ class cls.BaseBuilder extends cls.Cloneable
     t = typeof condition
     c = @_getObjectClassName(condition)
 
-    if 'cls.Expression' isnt c and "string" isnt t
-      throw new Error "condition must be a string or cls.Expression instance"
+    if 'Expression' isnt c and "string" isnt t
+      throw new Error "condition must be a string or Expression instance"
     # If it's an expression builder instance then convert it to string form.
-    if 'cls.Expression' is t or 'cls.Expression' is c
+    if 'Expression' is t or 'Expression' is c
       condition = condition.toString()
     condition
 
@@ -682,14 +682,16 @@ class cls.QueryBuilder extends cls.BaseBuilder
   # Constructor
   #
   # blocks - array of cls.BaseBuilderBlock instances to build the query with.
-  constructor: (blocks) ->
-    @blocks = blocks
+  constructor: (options, blocks) ->
+    super options
+
+    @blocks = blocks or []
 
     # Copy exposed methods into myself
     for block in @blocks
       for methodName, methodBody of block.exposedMethods()
         if @[methodName]?
-          throw new Error _getObjectClassName(@) + "already has a builder method called #{methodName}"
+          throw new Error "#{@_getObjectClassName(@)} already has a builder method called: #{methodName}"
 
         ( (name, body) =>
           @[name] = =>
@@ -698,9 +700,9 @@ class cls.QueryBuilder extends cls.BaseBuilder
         )(methodName, methodBody)
 
 
-    # Get the final fully constructed query string.
-    toString: =>
-      (block.buildStr(@) for block in @blocks).join(' ')
+  # Get the final fully constructed query string.
+  toString: =>
+    (block.buildStr(@) for block in @blocks).join(' ')
 
 
 
@@ -723,7 +725,7 @@ class cls.Select extends cls.QueryBuilder
         new cls.OffsetBlock(options)
       ]
 
-      super blocks
+      super options, blocks
 
 
 
@@ -740,7 +742,7 @@ class cls.Update extends cls.QueryBuilder
       new cls.LimitBlock(options)
     ]
 
-    super blocks
+    super options, blocks
 
 
 
@@ -758,7 +760,7 @@ class cls.Delete extends cls.QueryBuilder
       new cls.LimitBlock(options),
     ]
 
-    super blocks
+    super options, blocks
 
 
 
@@ -774,7 +776,7 @@ class cls.Insert extends cls.BaseBuilder
       new cls.InsertIntoFieldBlock(options)
     ]
 
-    super blocks
+    super options, blocks
 
 
 
