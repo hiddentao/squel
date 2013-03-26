@@ -350,11 +350,11 @@ test['QueryBuilder base class'] =
         assert.typeOf @inst.distinct, 'function'
         assert.typeOf @inst.limit, 'function'
 
-        @inst.limit(2)
+        assert.same @inst, @inst.limit(2)
         assert.ok limitSpy.calledOnce
         assert.ok limitSpy.calledOn(blocks[0])
 
-        @inst.distinct()
+        assert.same @inst, @inst.distinct()
         assert.ok distinctSpy.calledOnce
         assert.ok distinctSpy.calledOn(blocks[1])
 
@@ -372,8 +372,43 @@ test['QueryBuilder base class'] =
           assert.same 'Error: QueryBuilder already has a builder method called: distinct', err.toString()
 
 
+  'updateOptions()':
+    'updates query builder options': ->
+      oldOptions = _.extend({}, @inst.options)
+
+      @inst.updateOptions
+        updated: false
+
+      expected = _.extend oldOptions,
+        updated: false
+
+      assert.same expected, @inst.options
+
+    'updates building block options': ->
+      @inst.blocks = [
+        new squel.classes.Block()
+      ]
+      oldOptions = _.extend({}, @inst.blocks[0].options)
+
+      @inst.updateOptions
+        updated: false
+
+      expected = _.extend oldOptions,
+        updated: false
+
+      assert.same expected, @inst.blocks[0].options
+
+
+
   'toString()':
     'returns empty if no blocks': ->
+      assert.same '', @inst.toString()
+
+    'skips empty block strings': ->
+      @inst.blocks = [
+        new squel.classes.StringBlock({}, ''),
+      ]
+
       assert.same '', @inst.toString()
 
     'returns final query string': ->
@@ -392,6 +427,8 @@ test['QueryBuilder base class'] =
       assert.ok buildStrSpy.calledOn(@inst.blocks[0])
       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+
+
 
 
 

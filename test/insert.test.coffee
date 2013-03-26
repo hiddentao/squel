@@ -35,85 +35,20 @@ test['INSERT builder'] =
     @inst = squel.insert()
 
   'instanceof QueryBuilder': ->
-    assert.instanceOf @inst, squel.QueryBuilder
-
-  'default field values': ->
-    assert.same null, @inst.table
-    assert.same {}, @inst.fields
-    assert.same squel.classes.DefaultQueryBuilderOptions, @inst.options
+    assert.instanceOf @inst, squel.classes.QueryBuilder
 
   'constructor':
     'override options': ->
-      @inst = squel.insert
+      @inst = squel.update
         usingValuePlaceholders: true
         dummy: true
-
-      assert.same null, @inst.table
-      assert.same {}, @inst.fields
 
       expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same expectedOptions, @inst.options
-
-      
-  '>> into()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeTable')
-
-    'args: ()': ->
-      assert.throws (=> @inst.into()), 'table name must be a string'
-      assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
-
-    'args: (table)':
-      beforeEach: ->
-        @ret = @inst.into('table')
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.table, 'table'
-
-        assert.ok @inst._sanitizeTable.calledWithExactly('table')
-
-      '>> args(table2)': ->
-        assert.same @inst.into('table2'), @inst
-        assert.same @inst.table, 'table2'
-
-
-  '>> set()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeField')
-      test.mocker.spy(@inst, '_sanitizeValue')
-
-    'args: ()': ->
-      assert.throws (=> @inst.set()), 'field name must be a string'
-      assert.ok @inst._sanitizeField.calledWithExactly(undefined)
-
-    'args: (field)': ->
-      assert.throws (=> @inst.set('field')), 'field value must be a string, number, boolean or null'
-      assert.ok @inst._sanitizeField.calledWithExactly('field')
-      assert.ok @inst._sanitizeValue.calledWithExactly(undefined)
-
-    'args: (field, null)':
-      beforeEach: ->
-        @ret = @inst.set('field', null)
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.fields, { 'field': null }
-        assert.ok @inst._sanitizeField.calledWithExactly('field')
-        assert.ok @inst._sanitizeValue.calledWithExactly(null)
-
-      '>> args: (field, 1)':
-        beforeEach: ->
-          @ret = @inst.set('field', 1)
-
-        'update internal state': ->
-          assert.same @ret, @inst
-          assert.same @inst.fields, { 'field': 1 }
-          assert.ok @inst._sanitizeField.calledWithExactly('field')
-          assert.ok @inst._sanitizeValue.calledWithExactly(1)
+      for block in @inst.blocks
+        assert.same expectedOptions, block.options
 
 
   'build query':
@@ -140,7 +75,8 @@ test['INSERT builder'] =
           assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, \'str\')'
 
         'and when using value placeholders': ->
-          @inst.options.usingValuePlaceholders = true
+          @inst.updateOptions
+            usingValuePlaceholders: true
           @inst.set('field2', 'str')
           assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
 

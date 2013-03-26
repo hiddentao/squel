@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var DistinctBlock, cls, squel, _extend,
+  var cls, squel, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -97,10 +97,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       var c, t;
       t = typeof condition;
       c = this._getObjectClassName(condition);
-      if ('cls.Expression' !== c && "string" !== t) {
-        throw new Error("condition must be a string or cls.Expression instance");
+      if ('Expression' !== c && "string" !== t) {
+        throw new Error("condition must be a string or Expression instance");
       }
-      if ('cls.Expression' === t || 'cls.Expression' === c) {
+      if ('Expression' === t || 'Expression' === c) {
         condition = condition.toString();
       }
       return condition;
@@ -297,7 +297,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (attr in this) {
         if (!__hasProp.call(this, attr)) continue;
         value = this[attr];
-        if (typeof value === "Function") {
+        if (typeof value === "function") {
           if (attr.charAt(0) !== '_' && attr !== 'buildStr') {
             ret[attr] = value;
           }
@@ -336,6 +336,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(FromTableBlock, _super);
 
     function FromTableBlock(options) {
+      this.from = __bind(this.from, this);
       FromTableBlock.__super__.constructor.call(this, options);
       this.froms = [];
     }
@@ -347,6 +348,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       table = this._sanitizeTable(table);
       if (alias) {
         alias = this._sanitizeAlias(alias);
+      }
+      if (this.options.singleTable) {
+        this.froms = [];
       }
       return this.froms.push({
         name: table,
@@ -383,6 +387,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(UpdateTableBlock, _super);
 
     function UpdateTableBlock(options) {
+      this.table = __bind(this.table, this);
       UpdateTableBlock.__super__.constructor.call(this, options);
       this.tables = [];
     }
@@ -430,19 +435,20 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(IntoTableBlock, _super);
 
     function IntoTableBlock(options) {
+      this.into = __bind(this.into, this);
       IntoTableBlock.__super__.constructor.call(this, options);
       this.table = null;
     }
 
-    IntoTableBlock.prototype.table = function(table) {
-      return table = this._sanitizeTable(table);
+    IntoTableBlock.prototype.into = function(table) {
+      return this.table = this._sanitizeTable(table);
     };
 
     IntoTableBlock.prototype.buildStr = function(queryBuilder) {
       if (!this.table) {
         throw new Error("into() needs to be called");
       }
-      return this.table;
+      return "INTO " + this.table;
     };
 
     return IntoTableBlock;
@@ -597,13 +603,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
-  DistinctBlock = (function(_super) {
+  cls.DistinctBlock = (function(_super) {
 
     __extends(DistinctBlock, _super);
 
     function DistinctBlock(options) {
+      this.distinct = __bind(this.distinct, this);
       DistinctBlock.__super__.constructor.call(this, options);
-      this.use_distinct = false;
+      this.useDistinct = false;
     }
 
     DistinctBlock.prototype.distinct = function() {
@@ -674,8 +681,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     OffsetBlock.prototype.buildStr = function(queryBuilder) {
-      if (this.offsets("OFFSET " + this.offsets)) {
-
+      if (this.offsets) {
+        return "OFFSET " + this.offsets;
       } else {
         return "";
       }
@@ -703,8 +710,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildStr = function(queryBuilder) {
-      if (this.offsets("OFFSET " + this.offsets)) {
-
+      if (0 < this.wheres.length) {
+        return "WHERE (" + this.wheres.join(") AND (") + ")";
       } else {
         return "";
       }
@@ -731,7 +738,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       field = this._sanitizeField(field);
       return this.orders.push({
         field: field,
-        dir: asc ? "ASC" : "DESC"
+        dir: asc ? true : false
       });
     };
 
@@ -745,7 +752,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           if ("" !== orders) {
             orders += ", ";
           }
-          orders += "" + o.field + " " + o.dir;
+          orders += "" + o.field + " " + (o.dir ? 'ASC' : 'DESC');
         }
         return "ORDER BY " + orders;
       } else {
@@ -773,8 +780,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     LimitBlock.prototype.buildStr = function(queryBuilder) {
-      if (this.limits("LIMIT " + this.limits)) {
-
+      if (this.limits) {
+        return "LIMIT " + this.limits;
       } else {
         return "";
       }
@@ -801,6 +808,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     JoinBlock.prototype.join = function(table, alias, condition, type) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
       if (type == null) {
         type = 'INNER';
       }
@@ -856,7 +869,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       _ref = this.joins || [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         j = _ref[_i];
-        joins += " " + j.type + " JOIN " + j.table;
+        if (joins !== "") {
+          joins += " ";
+        }
+        joins += "" + j.type + " JOIN " + j.table;
         if (j.alias) {
           joins += " `" + j.alias + "`";
         }
@@ -875,10 +891,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(QueryBuilder, _super);
 
-    function QueryBuilder(blocks) {
+    function QueryBuilder(options, blocks) {
+      this.toString = __bind(this.toString, this);
+
       var block, methodBody, methodName, _fn, _i, _len, _ref, _ref1,
         _this = this;
-      this.block = blocks;
+      QueryBuilder.__super__.constructor.call(this, options);
+      this.blocks = blocks || [];
       _ref = this.blocks;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         block = _ref[_i];
@@ -890,29 +909,42 @@ OTHER DEALINGS IN THE SOFTWARE.
           };
         };
         for (methodName in _ref1) {
-          if (!__hasProp.call(_ref1, methodName)) continue;
           methodBody = _ref1[methodName];
           if (this[methodName] != null) {
-            throw new Error(_getObjectClassName(this) + ("already has a builder method called " + methodName));
+            throw new Error("" + (this._getObjectClassName(this)) + " already has a builder method called: " + methodName);
           }
           _fn(methodName, methodBody);
         }
       }
-      ({
-        toString: function() {
-          return ((function() {
-            var _j, _len1, _ref2, _results;
-            _ref2 = this.blocks;
-            _results = [];
-            for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-              block = _ref2[_j];
-              _results.push(block.buildStr(this));
-            }
-            return _results;
-          }).call(_this)).join(" ");
-        }
-      });
     }
+
+    QueryBuilder.prototype.updateOptions = function(options) {
+      var block, _i, _len, _ref, _results;
+      this.options = _extend({}, this.options, options);
+      _ref = this.blocks;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        block = _ref[_i];
+        _results.push(block.options = _extend({}, block.options, options));
+      }
+      return _results;
+    };
+
+    QueryBuilder.prototype.toString = function() {
+      var block;
+      return ((function() {
+        var _i, _len, _ref, _results;
+        _ref = this.blocks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          block = _ref[_i];
+          _results.push(block.buildStr(this));
+        }
+        return _results;
+      }).call(this)).filter(function(v) {
+        return 0 < v.length;
+      }).join(' ');
+    };
 
     return QueryBuilder;
 
@@ -924,8 +956,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Select(options) {
       var blocks;
-      blocks = [new cls.StringBlock(options, 'SELECT'), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)];
-      Select.__super__.constructor.call(this, blocks);
+      blocks = [new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)];
+      Select.__super__.constructor.call(this, options, blocks);
     }
 
     return Select;
@@ -939,7 +971,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     function Update(options) {
       var blocks;
       blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
-      Update.__super__.constructor.call(this, blocks);
+      Update.__super__.constructor.call(this, options, blocks);
     }
 
     return Update;
@@ -952,8 +984,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Delete(options) {
       var blocks;
-      blocks = [new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
-      Delete.__super__.constructor.call(this, blocks);
+      blocks = [
+        new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
+          singleTable: true
+        })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
+      ];
+      Delete.__super__.constructor.call(this, options, blocks);
     }
 
     return Delete;
@@ -967,12 +1003,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     function Insert(options) {
       var blocks;
       blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertIntoFieldBlock(options)];
-      Insert.__super__.constructor.call(this, blocks);
+      Insert.__super__.constructor.call(this, options, blocks);
     }
 
     return Insert;
 
-  })(cls.BaseBuilder);
+  })(cls.QueryBuilder);
 
   squel = {
     expr: function() {
@@ -1001,7 +1037,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return squel;
     });
   } else if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
-    module.export = squel;
+    module.exports = squel;
   } else {
     if (typeof window !== "undefined" && window !== null) {
       window.squel = squel;

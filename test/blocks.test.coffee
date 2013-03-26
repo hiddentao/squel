@@ -150,6 +150,24 @@ test['Blocks'] =
 
         assert.same [ { name: '_t', alias: '_a' }], @inst.froms
 
+
+      'handles single-table mode': ->
+        @inst.options.singleTable = true
+
+        @inst.from('table1')
+        @inst.from('table2')
+        @inst.from('table3')
+
+        expectedFroms = [
+          {
+            name: 'table3',
+            alias: null
+          }
+        ]
+
+        assert.same expectedFroms, @inst.froms
+
+
     'buildStr()':
       'requires at least one table to have been provided': ->
         try
@@ -288,7 +306,7 @@ test['Blocks'] =
       'returns formatted query phrase': ->
         @inst.into('table1')
 
-        assert.same 'table1', @inst.buildStr()
+        assert.same 'INTO table1', @inst.buildStr()
 
 
 

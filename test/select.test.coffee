@@ -37,12 +37,6 @@ test['SELECT builder'] =
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.classes.QueryBuilder
 
-  'blocks':
-    'options': ->
-      for block in @inst.blocks
-        assert.same squel.classes.DefaultQueryBuilderOptions, block.options
-
-
   'constructor':
     'override options': ->
       @inst = squel.select
@@ -56,185 +50,14 @@ test['SELECT builder'] =
       for block in @inst.blocks
         assert.same expectedOptions, block.options
 
-  '>> distinct()': ->
-    assert.same @inst.distinct(), @inst
-
-  '>> from()':
-    beforeEach: ->
-      test.mocker.spy(squel.classes.Builder, '_sanitizeTable')
-      test.mocker.spy(squel.classes.Builder, '_sanitizeAlias')
-
-    'args: ()': ->
-      assert.throws (=> @inst.from()), 'table name must be a string'
-      assert.ok squel.classes.Builder._sanitizeTable.calledWithExactly(undefined)
-
-    'args: (table)':
-      beforeEach: ->
-        @ret = @inst.from('table')
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.froms, [
-          {
-          name: 'table'
-          alias: null
-          }
-        ]
-
-        assert.ok @inst._sanitizeTable.calledWithExactly('table')
-        assert.ok @inst._sanitizeAlias.notCalled
-
-      '>> args(table2)': ->
-        assert.same @inst.from('table2'), @inst
-        assert.same @inst.froms, [
-          {
-          name: 'table'
-          alias: null
-          }
-          {
-          name: 'table2'
-          alias: null
-          }
-        ]
-
-    'args: (table, alias)': ->
-      @inst.from('table', 'alias')
-
-      assert.same @inst.froms, [
-        {
-        name: 'table'
-        alias: 'alias'
-        }
-      ]
-
-      assert.ok @inst._sanitizeTable.calledWithExactly('table')
-      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
-
-
-  '>> field()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeField')
-      test.mocker.spy(@inst, '_sanitizeAlias')
-
-    'args: ()': ->
-      assert.throws (=> @inst.field()), 'field name must be a string'
-      assert.ok @inst._sanitizeField.calledWithExactly(undefined)
-
-    'args: (field)':
-      beforeEach: ->
-        @ret = @inst.field('field')
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.fields, [
-          {
-            name: 'field'
-            alias: null
-          }
-        ]
-
-        assert.ok @inst._sanitizeField.calledWithExactly('field')
-        assert.ok @inst._sanitizeAlias.notCalled
-
-      '>> args(field2)': ->
-        assert.same @inst.field('field2'), @inst
-        assert.same @inst.fields, [
-          {
-            name: 'field'
-            alias: null
-          }
-          {
-            name: 'field2'
-            alias: null
-          }
-        ]
-
-    'args: (field, alias)': ->
-      @inst.field('field', 'alias')
-
-      assert.same @inst.fields, [
-        {
-        name: 'field'
-        alias: 'alias'
-        }
-      ]
-
-      assert.ok @inst._sanitizeField.calledWithExactly('field')
-      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
-
-
-  '>> group()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeField')
-
-    'args: ()': ->
-      assert.throws (=> @inst.group()), 'field name must be a string'
-      assert.ok @inst._sanitizeField.calledWithExactly(undefined)
-
-    'args: (field)':
-      beforeEach: ->
-        @ret = @inst.group('field')
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.groups, [ 'field' ]
-
-        assert.ok @inst._sanitizeField.calledWithExactly('field')
-
-      '>> args(field2)': ->
-        assert.same @inst.group('field2'), @inst
-        assert.same @inst.groups, [ 'field', 'field2' ]
-
-        
-  '>> offset()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeLimitOffset')
-
-    'args empty': ->
-      assert.throws (=> @inst.offset()), 'limit/offset must be >=0'
-
-      assert.ok @inst._sanitizeLimitOffset.calledWithExactly undefined
-      assert.same null, @inst.offsets
-
-    'args (0)':
-      beforeEach: ->
-        @ret = @inst.offset(0)
-
-      'updates internal state': ->
-        assert.same @ret, @inst
-
-        assert.ok @inst._sanitizeLimitOffset.calledWithExactly 0
-        assert.same 0, @inst.offsets
-
-      '>> args (2)':
-        beforeEach: ->
-          @ret = @inst.offset(2)
-
-        'updates internal state': ->
-          assert.same @ret, @inst
-
-          assert.ok @inst._sanitizeLimitOffset.calledWithExactly 2
-          assert.same 2, @inst.offsets
-
-
   'build query':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_joinString')
-      test.mocker.spy(@inst, '_whereString')
-      test.mocker.spy(@inst, '_orderString')
-      test.mocker.spy(@inst, '_limitString')
-
     'need to call from() first': ->
       assert.throws (=> @inst.toString()), 'from() needs to be called'
 
-    '>> from(table).from(table2, alias2':
+    '>> from(table).from(table2, alias2)':
       beforeEach: -> @inst.from('table').from('table2', 'alias2')
       toString: ->
         assert.same @inst.toString(), 'SELECT * FROM table, table2 `alias2`'
-        assert.ok @inst._joinString.calledOnce
-        assert.ok @inst._whereString.calledOnce
-        assert.ok @inst._orderString.calledOnce
-        assert.ok @inst._limitString.calledOnce
 
       '>> field(field1, fa1) >> field(field2)':
         beforeEach: -> @inst.field('field1', 'fa1').field('field2')

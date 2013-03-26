@@ -322,6 +322,9 @@ class cls.StringBlock extends cls.Block
 
 
 # FROM table
+#
+# Additional options:
+#  singleTable: if true then only one table is allowed
 class cls.FromTableBlock extends cls.Block
   constructor: (options) ->
     super options
@@ -333,6 +336,9 @@ class cls.FromTableBlock extends cls.Block
   from: (table, alias = null) =>
     table = @_sanitizeTable(table)
     alias = @_sanitizeAlias(alias) if alias
+
+    if @options.singleTable
+      @froms = []
 
     @froms.push
       name: table
@@ -393,7 +399,7 @@ class cls.IntoTableBlock extends cls.Block
 
   buildStr: (queryBuilder) ->
     if not @table then throw new Error "into() needs to be called"
-    @table
+    "INTO #{@table}"
 
 
 
@@ -700,9 +706,22 @@ class cls.QueryBuilder extends cls.BaseBuilder
         )(methodName, methodBody)
 
 
+  # Update query builder options
+  #
+  # This will update the options for all blocks too. Use this method with caution as it allows you to change the
+  # behaviour of your query builder mid-build.
+  updateOptions: (options) ->
+    @options = _extend({}, @options, options)
+    for block in @blocks
+      block.options = _extend({}, block.options, options)
+
+
+
   # Get the final fully constructed query string.
   toString: =>
-    (block.buildStr(@) for block in @blocks).join(' ')
+    (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(' ')
+
+
 
 
 
@@ -753,7 +772,7 @@ class cls.Delete extends cls.QueryBuilder
   constructor: (options) ->
     blocks = [
       new cls.StringBlock(options, 'DELETE'),
-      new cls.FromTableBlock(options),
+      new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
       new cls.JoinBlock(options),
       new cls.WhereBlock(options),
       new cls.OrderByBlock(options),
@@ -768,7 +787,7 @@ class cls.Delete extends cls.QueryBuilder
 
 # An INSERT query builder.
 #
-class cls.Insert extends cls.BaseBuilder
+class cls.Insert extends cls.QueryBuilder
   constructor: (options) ->
     blocks = [
       new cls.StringBlock(options, 'INSERT'),
