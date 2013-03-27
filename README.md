@@ -2,15 +2,15 @@
 
 [![Build Status](https://secure.travis-ci.org/hiddentao/squel.png)](http://travis-ci.org/hiddentao/squel)
 
-A simple, well tested SQL query string builder for Javascript.
+A flexible and powerful SQL query string builder for Javascript.
 
 ## Features
 
 * Works in node.js and in the browser.
-* Supports the construction of all standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
+* Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
+* Can be customized to support non-standard queries.
 * Uses method chaining for ease of use.
-* Well tested (~200 tests).
-* Small: ~3 KB when minified and gzipped.
+* Well tested (~230 tests).
 
 ## Installation
 
@@ -141,6 +141,70 @@ There is also an expression builder which allows you to build complex expression
     squel.select()
         .join( "test2", null, squel.expr().and("test.id = test2.id") )
         .where( squel.expr().or("test = 3").or("test = 4") )
+
+**Custom queries**
+
+Squel allows you to override the built-in query builders with your own as well as create your own types of queries:
+
+    // ------------------------------------------------------
+    // Setup the PRAGMA query builder
+    // ------------------------------------------------------
+    var util = require('util');   // to use util.inherits() from node.js
+
+    var CommandBlock = function() {};
+    util.inherits(CommandBlock, squel.cls.Block);
+
+    CommandBlock.prototype.compress = function() {
+      this._command = 'compress';
+    };
+
+    CommandBlock.prototype.buildStr = function() {
+      return this._command.toUpperCase();
+    };
+
+
+    // generic parameter block
+    var ParamBlock = function() {};
+    util.inherits(ParamBlock, squel.cls.Block);
+
+    ParamBlock.prototype.param = function(p) {
+      this._p = p;
+    };
+
+    ParamBlock.prototype.buildStr = function() {
+      return this._p;
+    };
+
+
+    // pragma query builder
+    var PragmaQuery = function(options) {
+      var blocks = [
+          new squel.cls.StringBlock(options, 'PRAGMA'),
+          new CommandBlock(),
+          new ParamBlock()
+      ];
+
+      squel.cls.QueryBuilder.call(this, options, blocks);
+    };
+    util.inherits(PragmaQuery, squel.cls.QueryBuilder);
+
+
+    // convenience method (we can override built-in squel methods this way too)
+    squel.pragma = function(options) {
+      return new PragmaQuery(options)
+    };
+
+
+    // ------------------------------------------------------
+    // Build a PRAGMA query
+    // ------------------------------------------------------
+
+    squel.pragma()
+      .compress()
+      .param('test')
+      .toString();
+
+    // 'PRAGMA COMPRESS test'
 
 
 ## Documentation

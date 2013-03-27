@@ -196,12 +196,12 @@ class cls.Expression
 
 
     # Begin a nested expression and combine it with the current expression using the intersection operator (AND).
-    and_begin: =>
+    and_begin: ->
         @_begin 'AND'
 
 
     # Begin a nested expression and combine it with the current expression using the union operator (OR).
-    or_begin: =>
+    or_begin: ->
         @_begin 'OR'
 
 
@@ -209,7 +209,7 @@ class cls.Expression
     # End the current compound expression.
     #
     # This will throw an error if begin() hasn't been called yet.
-    end: =>
+    end: ->
         if not @current.parent
             throw new Error "begin() needs to be called"
         @current = @current.parent
@@ -217,7 +217,7 @@ class cls.Expression
 
 
     # Combine the current expression with the given expression using the intersection operator (AND).
-    and: (expr) =>
+    and: (expr) ->
         if not expr or "string" isnt typeof expr
             throw new Error "expr must be a string"
         @current.nodes.push
@@ -226,7 +226,7 @@ class cls.Expression
         @
 
     # Combine the current expression with the given expression using the union operator (OR).
-    or: (expr) =>
+    or: (expr) ->
         if not expr or "string" isnt typeof expr
             throw new Error "expr must be a string"
         @current.nodes.push
@@ -236,7 +236,7 @@ class cls.Expression
 
 
     # Get the final fully constructed expression string.
-    toString: =>
+    toString: ->
         if null isnt @current.parent
             throw new Error "end() needs to be called"
         _toString @tree
@@ -292,10 +292,10 @@ class cls.Block extends cls.BaseBuilder
   exposedMethods: ->
     ret = {}
 
-    for own attr, value of @
-      if typeof value is "function"
-        if attr.charAt(0) isnt '_' and attr isnt 'buildStr'
-          ret[attr] = value
+    for attr, value of @
+      # only want functions from this class
+      if typeof value is "function" and attr.charAt(0) isnt '_' and !cls.Block::[attr]
+        ret[attr] = value
 
     ret
 
@@ -335,7 +335,7 @@ class cls.AbstractTableBlock extends cls.Block
   # An alias may also be specified for the table.
   #
   # Concrete subclasses should provide a method which calls this
-  _table: (table, alias = null) =>
+  _table: (table, alias = null) ->
     table = @_sanitizeTable(table)
     alias = @_sanitizeAlias(alias) if alias
 
@@ -360,14 +360,14 @@ class cls.AbstractTableBlock extends cls.Block
 
 # Update Table
 class cls.UpdateTableBlock extends cls.AbstractTableBlock
-  table: (table, alias = null) =>
+  table: (table, alias = null) ->
     @_table(table, alias)
 
 
 
 # FROM table
 class cls.FromTableBlock extends cls.AbstractTableBlock
-  from: (table, alias = null) =>
+  from: (table, alias = null) ->
     @_table(table, alias)
 
   buildStr: (queryBuilder) ->
@@ -391,7 +391,7 @@ class cls.IntoTableBlock extends cls.Block
     @table = null
 
   # Into given table.
-  into: (table) =>
+  into: (table) ->
     @table = @_sanitizeTable(table)
 
   buildStr: (queryBuilder) ->
@@ -412,7 +412,7 @@ class cls.GetFieldBlock extends cls.Block
   # e.g. DATE_FORMAT(a.started, "%H")
   #
   # An alias may also be specified for this field.
-  field: (field, alias = null) =>
+  field: (field, alias = null) ->
     field = @_sanitizeField(field)
     alias = @_sanitizeAlias(alias) if alias
 
@@ -439,7 +439,7 @@ class cls.SetFieldBlock extends cls.Block
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
-  set: (field, value) =>
+  set: (field, value) ->
     field = @_sanitizeField(field)
     value = @_sanitizeValue(value)
     @fields[field] = value
@@ -488,7 +488,7 @@ class cls.DistinctBlock extends cls.Block
     @useDistinct = false
 
   # Add the DISTINCT keyword to the query.
-  distinct: =>
+  distinct: ->
     @useDistinct = true
 
   buildStr: (queryBuilder) ->
@@ -503,7 +503,7 @@ class cls.GroupByBlock extends cls.Block
     @groups = []
 
   # Add a GROUP BY transformation for the given field.
-  group: (field) =>
+  group: (field) ->
     field = @_sanitizeField(field)
     @groups.push field
 
@@ -529,7 +529,7 @@ class cls.OffsetBlock extends cls.Block
   #
   # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
   # the offset.
-  offset: (start) =>
+  offset: (start) ->
     start = @_sanitizeLimitOffset(start)
     @offsets = start
 
@@ -546,7 +546,7 @@ class cls.WhereBlock extends cls.Block
   # Add a WHERE condition.
   #
   # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
-  where: (condition) =>
+  where: (condition) ->
     condition = @_sanitizeCondition(condition)
     if "" isnt condition
       @wheres.push condition
@@ -564,7 +564,7 @@ class cls.OrderByBlock extends cls.Block
   # Add an ORDER BY transformation for the given field in the given order.
   #
   # To specify descending order pass false for the 'asc' parameter.
-  order: (field, asc = true) =>
+  order: (field, asc = true) ->
     field = @_sanitizeField(field)
     @orders.push
       field: field
@@ -591,7 +591,7 @@ class cls.LimitBlock extends cls.Block
   #
   # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
   # the limit.
-  limit: (max) =>
+  limit: (max) ->
     max = @_sanitizeLimitOffset(max)
     @limits = max
 
@@ -619,7 +619,7 @@ class cls.JoinBlock extends cls.Block
   #
   # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
   #
-  join: (table, alias = null, condition = null, type = 'INNER') =>
+  join: (table, alias = null, condition = null, type = 'INNER') ->
     table = @_sanitizeTable(table)
     alias = @_sanitizeAlias(alias) if alias
     condition = @_sanitizeCondition(condition) if condition
@@ -633,17 +633,17 @@ class cls.JoinBlock extends cls.Block
 
 
   # Add a LEFT JOIN with the given table.
-  left_join: (table, alias = null, condition = null) =>
+  left_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'LEFT'
 
 
   # Add a RIGHT JOIN with the given table.
-  right_join: (table, alias = null, condition = null) =>
+  right_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'RIGHT'
 
 
   # Add an OUTER JOIN with the given table.
-  outer_join: (table, alias = null, condition = null) =>
+  outer_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'OUTER'
 
 
@@ -688,11 +688,11 @@ class cls.QueryBuilder extends cls.BaseBuilder
         if @[methodName]?
           throw new Error "#{@_getObjectClassName(@)} already has a builder method called: #{methodName}"
 
-        ( (name, body) =>
+        ( (block, name, body) =>
           @[name] = =>
-            body.apply(@, arguments)
+            body.apply(block, arguments)
             @
-        )(methodName, methodBody)
+        )(block, methodName, methodBody)
 
 
   # Update query builder options
@@ -707,7 +707,7 @@ class cls.QueryBuilder extends cls.BaseBuilder
 
 
   # Get the final fully constructed query string.
-  toString: =>
+  toString: ->
     (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(' ')
 
 

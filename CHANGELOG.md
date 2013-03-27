@@ -1,6 +1,11 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
+## 27 Mar 2013 (1.1)
+* Squel can now be customized to include proprietary commands and queries.
+* AMD support added.
+
+
 ## 4 Jan 2013 (1.0.6)
 * Squel can now be told to auto-quote table and field names.
 

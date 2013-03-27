@@ -30,8 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   var cls, squel, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   cls = {};
 
@@ -179,18 +178,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     Expression.prototype.current = null;
 
     function Expression() {
-      this.toString = __bind(this.toString, this);
-
-      this.or = __bind(this.or, this);
-
-      this.and = __bind(this.and, this);
-
-      this.end = __bind(this.end, this);
-
-      this.or_begin = __bind(this.or_begin, this);
-
-      this.and_begin = __bind(this.and_begin, this);
-
       var _this = this;
       this.tree = {
         parent: null,
@@ -295,12 +282,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       var attr, ret, value;
       ret = {};
       for (attr in this) {
-        if (!__hasProp.call(this, attr)) continue;
         value = this[attr];
-        if (typeof value === "function") {
-          if (attr.charAt(0) !== '_' && attr !== 'buildStr') {
-            ret[attr] = value;
-          }
+        if (typeof value === "function" && attr.charAt(0) !== '_' && !cls.Block.prototype[attr]) {
+          ret[attr] = value;
         }
       }
       return ret;
@@ -336,7 +320,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(AbstractTableBlock, _super);
 
     function AbstractTableBlock(options) {
-      this._table = __bind(this._table, this);
       AbstractTableBlock.__super__.constructor.call(this, options);
       this.tables = [];
     }
@@ -387,7 +370,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(UpdateTableBlock, _super);
 
     function UpdateTableBlock() {
-      this.table = __bind(this.table, this);
       return UpdateTableBlock.__super__.constructor.apply(this, arguments);
     }
 
@@ -407,7 +389,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(FromTableBlock, _super);
 
     function FromTableBlock() {
-      this.from = __bind(this.from, this);
       return FromTableBlock.__super__.constructor.apply(this, arguments);
     }
 
@@ -447,7 +428,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(IntoTableBlock, _super);
 
     function IntoTableBlock(options) {
-      this.into = __bind(this.into, this);
       IntoTableBlock.__super__.constructor.call(this, options);
       this.table = null;
     }
@@ -472,7 +452,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(GetFieldBlock, _super);
 
     function GetFieldBlock(options) {
-      this.field = __bind(this.field, this);
       GetFieldBlock.__super__.constructor.call(this, options);
       this.fields = [];
     }
@@ -521,7 +500,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(SetFieldBlock, _super);
 
     function SetFieldBlock(options) {
-      this.set = __bind(this.set, this);
       SetFieldBlock.__super__.constructor.call(this, options);
       this.fields = {};
     }
@@ -612,7 +590,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(DistinctBlock, _super);
 
     function DistinctBlock(options) {
-      this.distinct = __bind(this.distinct, this);
       DistinctBlock.__super__.constructor.call(this, options);
       this.useDistinct = false;
     }
@@ -638,7 +615,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(GroupByBlock, _super);
 
     function GroupByBlock(options) {
-      this.group = __bind(this.group, this);
       GroupByBlock.__super__.constructor.call(this, options);
       this.groups = [];
     }
@@ -674,7 +650,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(OffsetBlock, _super);
 
     function OffsetBlock(options) {
-      this.offset = __bind(this.offset, this);
       OffsetBlock.__super__.constructor.call(this, options);
       this.offsets = null;
     }
@@ -701,7 +676,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(WhereBlock, _super);
 
     function WhereBlock(options) {
-      this.where = __bind(this.where, this);
       WhereBlock.__super__.constructor.call(this, options);
       this.wheres = [];
     }
@@ -730,7 +704,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(OrderByBlock, _super);
 
     function OrderByBlock(options) {
-      this.order = __bind(this.order, this);
       OrderByBlock.__super__.constructor.call(this, options);
       this.orders = [];
     }
@@ -773,7 +746,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(LimitBlock, _super);
 
     function LimitBlock(options) {
-      this.limit = __bind(this.limit, this);
       LimitBlock.__super__.constructor.call(this, options);
       this.limits = null;
     }
@@ -800,13 +772,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(JoinBlock, _super);
 
     function JoinBlock(options) {
-      this.outer_join = __bind(this.outer_join, this);
-
-      this.right_join = __bind(this.right_join, this);
-
-      this.left_join = __bind(this.left_join, this);
-
-      this.join = __bind(this.join, this);
       JoinBlock.__super__.constructor.call(this, options);
       this.joins = [];
     }
@@ -896,8 +861,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(QueryBuilder, _super);
 
     function QueryBuilder(options, blocks) {
-      this.toString = __bind(this.toString, this);
-
       var block, methodBody, methodName, _fn, _i, _len, _ref, _ref1,
         _this = this;
       QueryBuilder.__super__.constructor.call(this, options);
@@ -906,9 +869,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         block = _ref[_i];
         _ref1 = block.exposedMethods();
-        _fn = function(name, body) {
+        _fn = function(block, name, body) {
           return _this[name] = function() {
-            body.apply(_this, arguments);
+            body.apply(block, arguments);
             return _this;
           };
         };
@@ -917,7 +880,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           if (this[methodName] != null) {
             throw new Error("" + (this._getObjectClassName(this)) + " already has a builder method called: " + methodName);
           }
-          _fn(methodName, methodBody);
+          _fn(block, methodName, methodBody);
         }
       }
     }
