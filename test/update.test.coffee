@@ -34,13 +34,8 @@ test['UPDATE builder'] =
   beforeEach: ->
     @inst = squel.update()
 
-  'instanceof WhereOrderLimit': ->
-    assert.instanceOf @inst, squel.WhereOrderLimit
-
-  'default field values': ->
-    assert.same [], @inst.tables
-    assert.same {}, @inst.fields
-    assert.same squel.DefaultQueryBuilderOptions, @inst.options
+  'instanceof QueryBuilder': ->
+    assert.instanceOf @inst, squel.cls.QueryBuilder
 
   'constructor':
     'override options': ->
@@ -48,108 +43,15 @@ test['UPDATE builder'] =
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same [], @inst.tables
-      assert.same {}, @inst.fields
-
-      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
-      assert.same expectedOptions, @inst.options
+
+      for block in @inst.blocks
+        assert.same expectedOptions, block.options
 
       
-  '>> table()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeTable')
-      test.mocker.spy(@inst, '_sanitizeAlias')
-
-    'args: ()': ->
-      assert.throws (=> @inst.table()), 'table name must be a string'
-      assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
-
-    'args: (table)':
-      beforeEach: ->
-        @ret = @inst.table('table')
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.tables, [
-          {
-          name: 'table'
-          alias: null
-          }
-        ]
-
-        assert.ok @inst._sanitizeTable.calledWithExactly('table')
-        assert.ok @inst._sanitizeAlias.notCalled
-
-      '>> args(table2)': ->
-        assert.same @inst.table('table2'), @inst
-        assert.same @inst.tables, [
-          {
-          name: 'table'
-          alias: null
-          }
-          {
-          name: 'table2'
-          alias: null
-          }
-        ]
-
-    'args: (table, alias)': ->
-      @inst.table('table', 'alias')
-
-      assert.same @inst.tables, [
-        {
-        name: 'table'
-        alias: 'alias'
-        }
-      ]
-
-      assert.ok @inst._sanitizeTable.calledWithExactly('table')
-      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
-
-
-  '>> set()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeField')
-      test.mocker.spy(@inst, '_sanitizeValue')
-
-    'args: ()': ->
-      assert.throws (=> @inst.set()), 'field name must be a string'
-      assert.ok @inst._sanitizeField.calledWithExactly(undefined)
-
-    'args: (field)': ->
-      assert.throws (=> @inst.set('field')), 'field value must be a string, number, boolean or null'
-      assert.ok @inst._sanitizeField.calledWithExactly('field')
-      assert.ok @inst._sanitizeValue.calledWithExactly(undefined)
-
-    'args: (field, null)':
-      beforeEach: ->
-        @ret = @inst.set('field', null)
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.fields, { 'field': null }
-        assert.ok @inst._sanitizeField.calledWithExactly('field')
-        assert.ok @inst._sanitizeValue.calledWithExactly(null)
-
-      '>> args: (field, 1)':
-        beforeEach: ->
-          @ret = @inst.set('field', 1)
-
-        'update internal state': ->
-          assert.same @ret, @inst
-          assert.same @inst.fields, { 'field': 1 }
-          assert.ok @inst._sanitizeField.calledWithExactly('field')
-          assert.ok @inst._sanitizeValue.calledWithExactly(1)
-
-
   'build query':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_whereString')
-      test.mocker.spy(@inst, '_orderString')
-      test.mocker.spy(@inst, '_limitString')
-
     'need to call table() first': ->
       assert.throws (=> @inst.toString()), 'table() needs to be called'
 
@@ -161,9 +63,6 @@ test['UPDATE builder'] =
       beforeEach: -> @inst.table('table', 't1').set('field', 1)
       toString: ->
         assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1'
-        assert.ok @inst._whereString.calledOnce
-        assert.ok @inst._orderString.calledOnce
-        assert.ok @inst._limitString.calledOnce
 
       '>> set(field2, 1.2)':
         beforeEach: -> @inst.set('field2', 1.2)
@@ -181,9 +80,10 @@ test['UPDATE builder'] =
           assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = \'str\''
 
         'and when using value placeholders': ->
-          @inst.options.usingValuePlaceholders = true
-          @inst.set('field2', 'str')
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = str'
+          @inst.updateOptions
+            usingValuePlaceholders: true
+          @inst.set('field2', '?')
+          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = ?'
 
       '>> set(field2, null)':
         beforeEach: -> @inst.set('field2', null)

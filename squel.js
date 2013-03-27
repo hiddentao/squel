@@ -27,11 +27,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var Cloneable, DefaultQueryBuilderOptions, Delete, Expression, Insert, JoinWhereOrderLimit, QueryBuilder, Select, Update, WhereOrderLimit, _export, _extend,
+  var cls, squel, _extend,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  cls = {};
 
   _extend = function() {
     var dst, k, sources, src, v, _i, _len;
@@ -51,7 +52,14 @@ OTHER DEALINGS IN THE SOFTWARE.
     return dst;
   };
 
-  Cloneable = (function() {
+  cls.DefaultQueryBuilderOptions = {
+    autoQuoteTableNames: false,
+    autoQuoteFieldNames: false,
+    nameQuoteCharacter: '`',
+    usingValuePlaceholders: false
+  };
+
+  cls.Cloneable = (function() {
 
     function Cloneable() {}
 
@@ -65,7 +73,104 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  Expression = (function() {
+  cls.BaseBuilder = (function(_super) {
+
+    __extends(BaseBuilder, _super);
+
+    function BaseBuilder(options) {
+      this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
+    }
+
+    BaseBuilder.prototype._getObjectClassName = function(obj) {
+      var arr;
+      if (obj && obj.constructor && obj.constructor.toString) {
+        arr = obj.constructor.toString().match(/function\s*(\w+)/);
+        if (arr && arr.length === 2) {
+          return arr[1];
+        }
+      }
+      return void 0;
+    };
+
+    BaseBuilder.prototype._sanitizeCondition = function(condition) {
+      var c, t;
+      t = typeof condition;
+      c = this._getObjectClassName(condition);
+      if ('Expression' !== c && "string" !== t) {
+        throw new Error("condition must be a string or Expression instance");
+      }
+      if ('Expression' === t || 'Expression' === c) {
+        condition = condition.toString();
+      }
+      return condition;
+    };
+
+    BaseBuilder.prototype._sanitizeName = function(value, type) {
+      if ("string" !== typeof value) {
+        throw new Error("" + type + " must be a string");
+      }
+      return value;
+    };
+
+    BaseBuilder.prototype._sanitizeField = function(item) {
+      var sanitized;
+      sanitized = this._sanitizeName(item, "field name");
+      if (this.options.autoQuoteFieldNames) {
+        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
+      } else {
+        return sanitized;
+      }
+    };
+
+    BaseBuilder.prototype._sanitizeTable = function(item) {
+      var sanitized;
+      sanitized = this._sanitizeName(item, "table name");
+      if (this.options.autoQuoteTableNames) {
+        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
+      } else {
+        return sanitized;
+      }
+    };
+
+    BaseBuilder.prototype._sanitizeAlias = function(item) {
+      return this._sanitizeName(item, "alias");
+    };
+
+    BaseBuilder.prototype._sanitizeLimitOffset = function(value) {
+      value = parseInt(value);
+      if (0 > value || isNaN(value)) {
+        throw new Error("limit/offset must be >=0");
+      }
+      return value;
+    };
+
+    BaseBuilder.prototype._sanitizeValue = function(item) {
+      var t;
+      t = typeof item;
+      if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
+        throw new Error("field value must be a string, number, boolean or null");
+      }
+      return item;
+    };
+
+    BaseBuilder.prototype._formatValue = function(value) {
+      if (null === value) {
+        value = "NULL";
+      } else if ("boolean" === typeof value) {
+        value = value ? "TRUE" : "FALSE";
+      } else if ("number" !== typeof value) {
+        if (false === this.options.usingValuePlaceholders) {
+          value = "'" + value + "'";
+        }
+      }
+      return value;
+    };
+
+    return BaseBuilder;
+
+  })(cls.Cloneable);
+
+  cls.Expression = (function() {
     var _toString;
 
     Expression.prototype.tree = null;
@@ -73,18 +178,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     Expression.prototype.current = null;
 
     function Expression() {
-      this.toString = __bind(this.toString, this);
-
-      this.or = __bind(this.or, this);
-
-      this.and = __bind(this.and, this);
-
-      this.end = __bind(this.end, this);
-
-      this.or_begin = __bind(this.or_begin, this);
-
-      this.and_begin = __bind(this.and_begin, this);
-
       var _this = this;
       this.tree = {
         parent: null,
@@ -177,315 +270,61 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  DefaultQueryBuilderOptions = {
-    autoQuoteTableNames: false,
-    autoQuoteFieldNames: false,
-    nameQuoteCharacter: '`',
-    usingValuePlaceholders: false
-  };
+  cls.Block = (function(_super) {
 
-  QueryBuilder = (function(_super) {
+    __extends(Block, _super);
 
-    __extends(QueryBuilder, _super);
-
-    function QueryBuilder(options) {
-      this.options = _extend({}, DefaultQueryBuilderOptions, options);
+    function Block() {
+      return Block.__super__.constructor.apply(this, arguments);
     }
 
-    QueryBuilder.prototype._getObjectClassName = function(obj) {
-      var arr;
-      if (obj && obj.constructor && obj.constructor.toString) {
-        arr = obj.constructor.toString().match(/function\s*(\w+)/);
-        if (arr && arr.length === 2) {
-          return arr[1];
+    Block.prototype.exposedMethods = function() {
+      var attr, ret, value;
+      ret = {};
+      for (attr in this) {
+        value = this[attr];
+        if (typeof value === "function" && attr.charAt(0) !== '_' && !cls.Block.prototype[attr]) {
+          ret[attr] = value;
         }
       }
-      return void 0;
+      return ret;
     };
 
-    QueryBuilder.prototype._sanitizeCondition = function(condition) {
-      var c, t;
-      t = typeof condition;
-      c = this._getObjectClassName(condition);
-      if ('Expression' !== c && "string" !== t) {
-        throw new Error("condition must be a string or Expression instance");
-      }
-      if ('Expression' === t || 'Expression' === c) {
-        condition = condition.toString();
-      }
-      return condition;
+    Block.prototype.buildStr = function(queryBuilder) {
+      return '';
     };
 
-    QueryBuilder.prototype._sanitizeName = function(value, type) {
-      if ("string" !== typeof value) {
-        throw new Error("" + type + " must be a string");
-      }
-      return value;
-    };
+    return Block;
 
-    QueryBuilder.prototype._sanitizeField = function(item) {
-      var sanitized;
-      sanitized = this._sanitizeName(item, "field name");
-      if (this.options.autoQuoteFieldNames) {
-        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
-      } else {
-        return sanitized;
-      }
-    };
+  })(cls.BaseBuilder);
 
-    QueryBuilder.prototype._sanitizeTable = function(item) {
-      var sanitized;
-      sanitized = this._sanitizeName(item, "table name");
-      if (this.options.autoQuoteTableNames) {
-        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
-      } else {
-        return sanitized;
-      }
-    };
+  cls.StringBlock = (function(_super) {
 
-    QueryBuilder.prototype._sanitizeAlias = function(item) {
-      return this._sanitizeName(item, "alias");
-    };
+    __extends(StringBlock, _super);
 
-    QueryBuilder.prototype._sanitizeLimitOffset = function(value) {
-      value = parseInt(value);
-      if (0 > value || isNaN(value)) {
-        throw new Error("limit/offset must be >=0");
-      }
-      return value;
-    };
-
-    QueryBuilder.prototype._sanitizeValue = function(item) {
-      var t;
-      t = typeof item;
-      if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
-        throw new Error("field value must be a string, number, boolean or null");
-      }
-      return item;
-    };
-
-    QueryBuilder.prototype._formatValue = function(value) {
-      if (null === value) {
-        value = "NULL";
-      } else if ("boolean" === typeof value) {
-        value = value ? "TRUE" : "FALSE";
-      } else if ("number" !== typeof value) {
-        if (false === this.options.usingValuePlaceholders) {
-          value = "'" + value + "'";
-        }
-      }
-      return value;
-    };
-
-    return QueryBuilder;
-
-  })(Cloneable);
-
-  WhereOrderLimit = (function(_super) {
-
-    __extends(WhereOrderLimit, _super);
-
-    function WhereOrderLimit(options) {
-      this._limitString = __bind(this._limitString, this);
-
-      this._orderString = __bind(this._orderString, this);
-
-      this._whereString = __bind(this._whereString, this);
-
-      this.limit = __bind(this.limit, this);
-
-      this.order = __bind(this.order, this);
-
-      this.where = __bind(this.where, this);
-      WhereOrderLimit.__super__.constructor.call(this, options);
-      this.wheres = [];
-      this.orders = [];
-      this.limits = null;
+    function StringBlock(options, str) {
+      StringBlock.__super__.constructor.call(this, options);
+      this.str = str;
     }
 
-    WhereOrderLimit.prototype.where = function(condition) {
-      condition = this._sanitizeCondition(condition);
-      if ("" !== condition) {
-        this.wheres.push(condition);
-      }
-      return this;
+    StringBlock.prototype.buildStr = function(queryBuilder) {
+      return this.str;
     };
 
-    WhereOrderLimit.prototype.order = function(field, asc) {
-      if (asc == null) {
-        asc = true;
-      }
-      field = this._sanitizeField(field);
-      this.orders.push({
-        field: field,
-        dir: asc ? "ASC" : "DESC"
-      });
-      return this;
-    };
+    return StringBlock;
 
-    WhereOrderLimit.prototype.limit = function(max) {
-      max = this._sanitizeLimitOffset(max);
-      this.limits = max;
-      return this;
-    };
+  })(cls.Block);
 
-    WhereOrderLimit.prototype._whereString = function() {
-      if (0 < this.wheres.length) {
-        return " WHERE (" + this.wheres.join(") AND (") + ")";
-      } else {
-        return "";
-      }
-    };
+  cls.AbstractTableBlock = (function(_super) {
 
-    WhereOrderLimit.prototype._orderString = function() {
-      var o, orders, _i, _len, _ref;
-      if (0 < this.orders.length) {
-        orders = "";
-        _ref = this.orders;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          o = _ref[_i];
-          if ("" !== orders) {
-            orders += ", ";
-          }
-          orders += "" + o.field + " " + o.dir;
-        }
-        return " ORDER BY " + orders;
-      } else {
-        return "";
-      }
-    };
+    __extends(AbstractTableBlock, _super);
 
-    WhereOrderLimit.prototype._limitString = function() {
-      if (this.limits) {
-        return " LIMIT " + this.limits;
-      } else {
-        return "";
-      }
-    };
-
-    return WhereOrderLimit;
-
-  })(QueryBuilder);
-
-  JoinWhereOrderLimit = (function(_super) {
-
-    __extends(JoinWhereOrderLimit, _super);
-
-    function JoinWhereOrderLimit(options) {
-      this._joinString = __bind(this._joinString, this);
-
-      this.outer_join = __bind(this.outer_join, this);
-
-      this.right_join = __bind(this.right_join, this);
-
-      this.left_join = __bind(this.left_join, this);
-
-      this.join = __bind(this.join, this);
-      JoinWhereOrderLimit.__super__.constructor.call(this, options);
-      this.joins = [];
+    function AbstractTableBlock(options) {
+      AbstractTableBlock.__super__.constructor.call(this, options);
+      this.tables = [];
     }
 
-    JoinWhereOrderLimit.prototype.join = function(table, alias, condition, type) {
-      if (type == null) {
-        type = 'INNER';
-      }
-      table = this._sanitizeTable(table);
-      if (alias) {
-        alias = this._sanitizeAlias(alias);
-      }
-      if (condition) {
-        condition = this._sanitizeCondition(condition);
-      }
-      this.joins.push({
-        type: type,
-        table: table,
-        alias: alias,
-        condition: condition
-      });
-      return this;
-    };
-
-    JoinWhereOrderLimit.prototype.left_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this.join(table, alias, condition, 'LEFT');
-    };
-
-    JoinWhereOrderLimit.prototype.right_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this.join(table, alias, condition, 'RIGHT');
-    };
-
-    JoinWhereOrderLimit.prototype.outer_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this.join(table, alias, condition, 'OUTER');
-    };
-
-    JoinWhereOrderLimit.prototype._joinString = function() {
-      var j, joins, _i, _len, _ref;
-      joins = "";
-      _ref = this.joins || [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        j = _ref[_i];
-        joins += " " + j.type + " JOIN " + j.table;
-        if (j.alias) {
-          joins += " `" + j.alias + "`";
-        }
-        if (j.condition) {
-          joins += " ON (" + j.condition + ")";
-        }
-      }
-      return joins;
-    };
-
-    return JoinWhereOrderLimit;
-
-  })(WhereOrderLimit);
-
-  Select = (function(_super) {
-
-    __extends(Select, _super);
-
-    function Select(options) {
-      this.toString = __bind(this.toString, this);
-
-      this.offset = __bind(this.offset, this);
-
-      this.group = __bind(this.group, this);
-
-      this.field = __bind(this.field, this);
-
-      this.from = __bind(this.from, this);
-
-      this.distinct = __bind(this.distinct, this);
-      Select.__super__.constructor.call(this, options);
-      this.froms = [];
-      this.fields = [];
-      this.groups = [];
-      this.offsets = null;
-      this.useDistinct = false;
-    }
-
-    Select.prototype.distinct = function() {
-      this.useDistinct = true;
-      return this;
-    };
-
-    Select.prototype.from = function(table, alias) {
+    AbstractTableBlock.prototype._table = function(table, alias) {
       if (alias == null) {
         alias = null;
       }
@@ -493,14 +332,131 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias) {
         alias = this._sanitizeAlias(alias);
       }
-      this.froms.push({
+      if (this.options.singleTable) {
+        this.tables = [];
+      }
+      return this.tables.push({
         name: table,
         alias: alias
       });
-      return this;
     };
 
-    Select.prototype.field = function(field, alias) {
+    AbstractTableBlock.prototype.buildStr = function(queryBuilder) {
+      var table, tables, _i, _len, _ref;
+      if (0 >= this.tables.length) {
+        throw new Error("table() needs to be called");
+      }
+      tables = "";
+      _ref = this.tables;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        table = _ref[_i];
+        if ("" !== tables) {
+          tables += ", ";
+        }
+        tables += table.name;
+        if (table.alias) {
+          tables += " AS `" + table.alias + "`";
+        }
+      }
+      return tables;
+    };
+
+    return AbstractTableBlock;
+
+  })(cls.Block);
+
+  cls.UpdateTableBlock = (function(_super) {
+
+    __extends(UpdateTableBlock, _super);
+
+    function UpdateTableBlock() {
+      return UpdateTableBlock.__super__.constructor.apply(this, arguments);
+    }
+
+    UpdateTableBlock.prototype.table = function(table, alias) {
+      if (alias == null) {
+        alias = null;
+      }
+      return this._table(table, alias);
+    };
+
+    return UpdateTableBlock;
+
+  })(cls.AbstractTableBlock);
+
+  cls.FromTableBlock = (function(_super) {
+
+    __extends(FromTableBlock, _super);
+
+    function FromTableBlock() {
+      return FromTableBlock.__super__.constructor.apply(this, arguments);
+    }
+
+    FromTableBlock.prototype.from = function(table, alias) {
+      if (alias == null) {
+        alias = null;
+      }
+      return this._table(table, alias);
+    };
+
+    FromTableBlock.prototype.buildStr = function(queryBuilder) {
+      var table, tables, _i, _len, _ref;
+      if (0 >= this.tables.length) {
+        throw new Error("from() needs to be called");
+      }
+      tables = "";
+      _ref = this.tables;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        table = _ref[_i];
+        if ("" !== tables) {
+          tables += ", ";
+        }
+        tables += table.name;
+        if (table.alias) {
+          tables += " `" + table.alias + "`";
+        }
+      }
+      return "FROM " + tables;
+    };
+
+    return FromTableBlock;
+
+  })(cls.AbstractTableBlock);
+
+  cls.IntoTableBlock = (function(_super) {
+
+    __extends(IntoTableBlock, _super);
+
+    function IntoTableBlock(options) {
+      IntoTableBlock.__super__.constructor.call(this, options);
+      this.table = null;
+    }
+
+    IntoTableBlock.prototype.into = function(table) {
+      return this.table = this._sanitizeTable(table);
+    };
+
+    IntoTableBlock.prototype.buildStr = function(queryBuilder) {
+      if (!this.table) {
+        throw new Error("into() needs to be called");
+      }
+      return "INTO " + this.table;
+    };
+
+    return IntoTableBlock;
+
+  })(cls.Block);
+
+  cls.GetFieldBlock = (function(_super) {
+
+    __extends(GetFieldBlock, _super);
+
+    function GetFieldBlock(options) {
+      GetFieldBlock.__super__.constructor.call(this, options);
+      this.fields = [];
+    }
+
+    GetFieldBlock.prototype.field = function(field, alias) {
       if (alias == null) {
         alias = null;
       }
@@ -508,34 +464,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias) {
         alias = this._sanitizeAlias(alias);
       }
-      this.fields.push({
+      return this.fields.push({
         name: field,
         alias: alias
       });
-      return this;
     };
 
-    Select.prototype.group = function(field) {
-      field = this._sanitizeField(field);
-      this.groups.push(field);
-      return this;
-    };
-
-    Select.prototype.offset = function(start) {
-      start = this._sanitizeLimitOffset(start);
-      this.offsets = start;
-      return this;
-    };
-
-    Select.prototype.toString = function() {
-      var f, field, fields, groups, ret, table, tables, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
-      if (0 >= this.froms.length) {
-        throw new Error("from() needs to be called");
-      }
-      ret = "SELECT ";
-      if (this.useDistinct) {
-        ret += "DISTINCT ";
-      }
+    GetFieldBlock.prototype.buildStr = function(queryBuilder) {
+      var field, fields, _i, _len, _ref;
       fields = "";
       _ref = this.fields;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -548,88 +484,35 @@ OTHER DEALINGS IN THE SOFTWARE.
           fields += " AS \"" + field.alias + "\"";
         }
       }
-      ret += "" === fields ? "*" : fields;
-      tables = "";
-      _ref1 = this.froms;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        table = _ref1[_j];
-        if ("" !== tables) {
-          tables += ", ";
-        }
-        tables += table.name;
-        if (table.alias) {
-          tables += " `" + table.alias + "`";
-        }
+      if ("" === fields) {
+        return "*";
+      } else {
+        return fields;
       }
-      ret += " FROM " + tables;
-      ret += this._joinString();
-      ret += this._whereString();
-      if (0 < this.groups.length) {
-        groups = "";
-        _ref2 = this.groups;
-        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-          f = _ref2[_k];
-          if ("" !== groups) {
-            groups += ", ";
-          }
-          groups += f;
-        }
-        ret += " GROUP BY " + groups;
-      }
-      ret += this._orderString();
-      ret += this._limitString();
-      if (this.offsets) {
-        ret += " OFFSET " + this.offsets;
-      }
-      return ret;
     };
 
-    return Select;
+    return GetFieldBlock;
 
-  })(JoinWhereOrderLimit);
+  })(cls.Block);
 
-  Update = (function(_super) {
+  cls.SetFieldBlock = (function(_super) {
 
-    __extends(Update, _super);
+    __extends(SetFieldBlock, _super);
 
-    function Update(options) {
-      this.toString = __bind(this.toString, this);
-
-      this.set = __bind(this.set, this);
-
-      this.table = __bind(this.table, this);
-      Update.__super__.constructor.call(this, options);
-      this.tables = [];
+    function SetFieldBlock(options) {
+      SetFieldBlock.__super__.constructor.call(this, options);
       this.fields = {};
     }
 
-    Update.prototype.table = function(table, alias) {
-      if (alias == null) {
-        alias = null;
-      }
-      table = this._sanitizeTable(table);
-      if (alias) {
-        alias = this._sanitizeAlias(alias);
-      }
-      this.tables.push({
-        name: table,
-        alias: alias
-      });
-      return this;
-    };
-
-    Update.prototype.set = function(field, value) {
+    SetFieldBlock.prototype.set = function(field, value) {
       field = this._sanitizeField(field);
       value = this._sanitizeValue(value);
       this.fields[field] = value;
       return this;
     };
 
-    Update.prototype.toString = function() {
-      var field, fieldNames, fields, ret, table, tables, _i, _j, _len, _len1, _ref;
-      if (0 >= this.tables.length) {
-        throw new Error("table() needs to be called");
-      }
+    SetFieldBlock.prototype.buildStr = function(queryBuilder) {
+      var field, fieldNames, fields, _i, _len;
       fieldNames = (function() {
         var _ref, _results;
         _ref = this.fields;
@@ -643,117 +526,32 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (0 >= fieldNames.length) {
         throw new Error("set() needs to be called");
       }
-      ret = "UPDATE ";
-      tables = "";
-      _ref = this.tables;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        table = _ref[_i];
-        if ("" !== tables) {
-          tables += ", ";
-        }
-        tables += table.name;
-        if (table.alias) {
-          tables += " AS `" + table.alias + "`";
-        }
-      }
-      ret += tables;
       fields = "";
-      for (_j = 0, _len1 = fieldNames.length; _j < _len1; _j++) {
-        field = fieldNames[_j];
+      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
+        field = fieldNames[_i];
         if ("" !== fields) {
           fields += ", ";
         }
         fields += "" + field + " = " + (this._formatValue(this.fields[field]));
       }
-      ret += " SET " + fields;
-      ret += this._whereString();
-      ret += this._orderString();
-      ret += this._limitString();
-      return ret;
+      return "SET " + fields;
     };
 
-    return Update;
+    return SetFieldBlock;
 
-  })(WhereOrderLimit);
+  })(cls.Block);
 
-  Delete = (function(_super) {
+  cls.InsertFieldValueBlock = (function(_super) {
 
-    __extends(Delete, _super);
+    __extends(InsertFieldValueBlock, _super);
 
-    function Delete() {
-      this.toString = __bind(this.toString, this);
-
-      this.from = __bind(this.from, this);
-      return Delete.__super__.constructor.apply(this, arguments);
-    }
-
-    Delete.prototype.table = null;
-
-    Delete.prototype.from = function(table, alias) {
-      table = this._sanitizeTable(table);
-      if (alias) {
-        alias = this._sanitizeAlias(alias);
-      }
-      this.table = {
-        name: table,
-        alias: alias
-      };
-      return this;
-    };
-
-    Delete.prototype.toString = function() {
-      var ret;
-      if (!this.table) {
-        throw new Error("from() needs to be called");
-      }
-      ret = "DELETE FROM " + this.table.name;
-      if (this.table.alias) {
-        ret += " `" + this.table.alias + "`";
-      }
-      ret += this._joinString();
-      ret += this._whereString();
-      ret += this._orderString();
-      ret += this._limitString();
-      return ret;
-    };
-
-    return Delete;
-
-  })(JoinWhereOrderLimit);
-
-  Insert = (function(_super) {
-
-    __extends(Insert, _super);
-
-    function Insert(options) {
-      this.toString = __bind(this.toString, this);
-
-      this.set = __bind(this.set, this);
-
-      this.into = __bind(this.into, this);
-      Insert.__super__.constructor.call(this, options);
-      this.table = null;
+    function InsertFieldValueBlock(options) {
+      InsertFieldValueBlock.__super__.constructor.call(this, options);
       this.fields = {};
     }
 
-    Insert.prototype.into = function(table) {
-      table = this._sanitizeTable(table);
-      this.table = table;
-      return this;
-    };
-
-    Insert.prototype.set = function(field, value) {
-      field = this._sanitizeField(field);
-      value = this._sanitizeValue(value);
-      this.fields[field] = value;
-      return this;
-    };
-
-    Insert.prototype.toString = function() {
+    InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
       var field, fieldNames, fields, name, values, _i, _len;
-      if (!this.table) {
-        throw new Error("into() needs to be called");
-      }
       fieldNames = (function() {
         var _ref, _results;
         _ref = this.fields;
@@ -780,49 +578,437 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         values += this._formatValue(this.fields[field]);
       }
-      return "INSERT INTO " + this.table + " (" + fields + ") VALUES (" + values + ")";
+      return "(" + fields + ") VALUES (" + values + ")";
     };
+
+    return InsertFieldValueBlock;
+
+  })(cls.SetFieldBlock);
+
+  cls.DistinctBlock = (function(_super) {
+
+    __extends(DistinctBlock, _super);
+
+    function DistinctBlock(options) {
+      DistinctBlock.__super__.constructor.call(this, options);
+      this.useDistinct = false;
+    }
+
+    DistinctBlock.prototype.distinct = function() {
+      return this.useDistinct = true;
+    };
+
+    DistinctBlock.prototype.buildStr = function(queryBuilder) {
+      if (this.useDistinct) {
+        return "DISTINCT";
+      } else {
+        return "";
+      }
+    };
+
+    return DistinctBlock;
+
+  })(cls.Block);
+
+  cls.GroupByBlock = (function(_super) {
+
+    __extends(GroupByBlock, _super);
+
+    function GroupByBlock(options) {
+      GroupByBlock.__super__.constructor.call(this, options);
+      this.groups = [];
+    }
+
+    GroupByBlock.prototype.group = function(field) {
+      field = this._sanitizeField(field);
+      return this.groups.push(field);
+    };
+
+    GroupByBlock.prototype.buildStr = function(queryBuilder) {
+      var f, groups, _i, _len, _ref;
+      groups = "";
+      if (0 < this.groups.length) {
+        _ref = this.groups;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          f = _ref[_i];
+          if ("" !== groups) {
+            groups += ", ";
+          }
+          groups += f;
+        }
+        groups = "GROUP BY " + groups;
+      }
+      return groups;
+    };
+
+    return GroupByBlock;
+
+  })(cls.Block);
+
+  cls.OffsetBlock = (function(_super) {
+
+    __extends(OffsetBlock, _super);
+
+    function OffsetBlock(options) {
+      OffsetBlock.__super__.constructor.call(this, options);
+      this.offsets = null;
+    }
+
+    OffsetBlock.prototype.offset = function(start) {
+      start = this._sanitizeLimitOffset(start);
+      return this.offsets = start;
+    };
+
+    OffsetBlock.prototype.buildStr = function(queryBuilder) {
+      if (this.offsets) {
+        return "OFFSET " + this.offsets;
+      } else {
+        return "";
+      }
+    };
+
+    return OffsetBlock;
+
+  })(cls.Block);
+
+  cls.WhereBlock = (function(_super) {
+
+    __extends(WhereBlock, _super);
+
+    function WhereBlock(options) {
+      WhereBlock.__super__.constructor.call(this, options);
+      this.wheres = [];
+    }
+
+    WhereBlock.prototype.where = function(condition) {
+      condition = this._sanitizeCondition(condition);
+      if ("" !== condition) {
+        return this.wheres.push(condition);
+      }
+    };
+
+    WhereBlock.prototype.buildStr = function(queryBuilder) {
+      if (0 < this.wheres.length) {
+        return "WHERE (" + this.wheres.join(") AND (") + ")";
+      } else {
+        return "";
+      }
+    };
+
+    return WhereBlock;
+
+  })(cls.Block);
+
+  cls.OrderByBlock = (function(_super) {
+
+    __extends(OrderByBlock, _super);
+
+    function OrderByBlock(options) {
+      OrderByBlock.__super__.constructor.call(this, options);
+      this.orders = [];
+    }
+
+    OrderByBlock.prototype.order = function(field, asc) {
+      if (asc == null) {
+        asc = true;
+      }
+      field = this._sanitizeField(field);
+      return this.orders.push({
+        field: field,
+        dir: asc ? true : false
+      });
+    };
+
+    OrderByBlock.prototype.buildStr = function(queryBuilder) {
+      var o, orders, _i, _len, _ref;
+      if (0 < this.orders.length) {
+        orders = "";
+        _ref = this.orders;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          o = _ref[_i];
+          if ("" !== orders) {
+            orders += ", ";
+          }
+          orders += "" + o.field + " " + (o.dir ? 'ASC' : 'DESC');
+        }
+        return "ORDER BY " + orders;
+      } else {
+        return "";
+      }
+    };
+
+    return OrderByBlock;
+
+  })(cls.Block);
+
+  cls.LimitBlock = (function(_super) {
+
+    __extends(LimitBlock, _super);
+
+    function LimitBlock(options) {
+      LimitBlock.__super__.constructor.call(this, options);
+      this.limits = null;
+    }
+
+    LimitBlock.prototype.limit = function(max) {
+      max = this._sanitizeLimitOffset(max);
+      return this.limits = max;
+    };
+
+    LimitBlock.prototype.buildStr = function(queryBuilder) {
+      if (this.limits) {
+        return "LIMIT " + this.limits;
+      } else {
+        return "";
+      }
+    };
+
+    return LimitBlock;
+
+  })(cls.Block);
+
+  cls.JoinBlock = (function(_super) {
+
+    __extends(JoinBlock, _super);
+
+    function JoinBlock(options) {
+      JoinBlock.__super__.constructor.call(this, options);
+      this.joins = [];
+    }
+
+    JoinBlock.prototype.join = function(table, alias, condition, type) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      if (type == null) {
+        type = 'INNER';
+      }
+      table = this._sanitizeTable(table);
+      if (alias) {
+        alias = this._sanitizeAlias(alias);
+      }
+      if (condition) {
+        condition = this._sanitizeCondition(condition);
+      }
+      this.joins.push({
+        type: type,
+        table: table,
+        alias: alias,
+        condition: condition
+      });
+      return this;
+    };
+
+    JoinBlock.prototype.left_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this.join(table, alias, condition, 'LEFT');
+    };
+
+    JoinBlock.prototype.right_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this.join(table, alias, condition, 'RIGHT');
+    };
+
+    JoinBlock.prototype.outer_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this.join(table, alias, condition, 'OUTER');
+    };
+
+    JoinBlock.prototype.buildStr = function(queryBuilder) {
+      var j, joins, _i, _len, _ref;
+      joins = "";
+      _ref = this.joins || [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        j = _ref[_i];
+        if (joins !== "") {
+          joins += " ";
+        }
+        joins += "" + j.type + " JOIN " + j.table;
+        if (j.alias) {
+          joins += " `" + j.alias + "`";
+        }
+        if (j.condition) {
+          joins += " ON (" + j.condition + ")";
+        }
+      }
+      return joins;
+    };
+
+    return JoinBlock;
+
+  })(cls.Block);
+
+  cls.QueryBuilder = (function(_super) {
+
+    __extends(QueryBuilder, _super);
+
+    function QueryBuilder(options, blocks) {
+      var block, methodBody, methodName, _fn, _i, _len, _ref, _ref1,
+        _this = this;
+      QueryBuilder.__super__.constructor.call(this, options);
+      this.blocks = blocks || [];
+      _ref = this.blocks;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        block = _ref[_i];
+        _ref1 = block.exposedMethods();
+        _fn = function(block, name, body) {
+          return _this[name] = function() {
+            body.apply(block, arguments);
+            return _this;
+          };
+        };
+        for (methodName in _ref1) {
+          methodBody = _ref1[methodName];
+          if (this[methodName] != null) {
+            throw new Error("" + (this._getObjectClassName(this)) + " already has a builder method called: " + methodName);
+          }
+          _fn(block, methodName, methodBody);
+        }
+      }
+    }
+
+    QueryBuilder.prototype.updateOptions = function(options) {
+      var block, _i, _len, _ref, _results;
+      this.options = _extend({}, this.options, options);
+      _ref = this.blocks;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        block = _ref[_i];
+        _results.push(block.options = _extend({}, block.options, options));
+      }
+      return _results;
+    };
+
+    QueryBuilder.prototype.toString = function() {
+      var block;
+      return ((function() {
+        var _i, _len, _ref, _results;
+        _ref = this.blocks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          block = _ref[_i];
+          _results.push(block.buildStr(this));
+        }
+        return _results;
+      }).call(this)).filter(function(v) {
+        return 0 < v.length;
+      }).join(' ');
+    };
+
+    return QueryBuilder;
+
+  })(cls.BaseBuilder);
+
+  cls.Select = (function(_super) {
+
+    __extends(Select, _super);
+
+    function Select(options) {
+      var blocks;
+      blocks = [new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)];
+      Select.__super__.constructor.call(this, options, blocks);
+    }
+
+    return Select;
+
+  })(cls.QueryBuilder);
+
+  cls.Update = (function(_super) {
+
+    __extends(Update, _super);
+
+    function Update(options) {
+      var blocks;
+      blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
+      Update.__super__.constructor.call(this, options, blocks);
+    }
+
+    return Update;
+
+  })(cls.QueryBuilder);
+
+  cls.Delete = (function(_super) {
+
+    __extends(Delete, _super);
+
+    function Delete(options) {
+      var blocks;
+      blocks = [
+        new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
+          singleTable: true
+        })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
+      ];
+      Delete.__super__.constructor.call(this, options, blocks);
+    }
+
+    return Delete;
+
+  })(cls.QueryBuilder);
+
+  cls.Insert = (function(_super) {
+
+    __extends(Insert, _super);
+
+    function Insert(options) {
+      var blocks;
+      blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options)];
+      Insert.__super__.constructor.call(this, options, blocks);
+    }
 
     return Insert;
 
-  })(QueryBuilder);
+  })(cls.QueryBuilder);
 
-  _export = {
+  squel = {
     expr: function() {
-      return new Expression;
+      return new cls.Expression;
     },
     select: function(options) {
-      return new Select(options);
+      return new cls.Select(options);
     },
     update: function(options) {
-      return new Update(options);
+      return new cls.Update(options);
     },
     insert: function(options) {
-      return new Insert(options);
+      return new cls.Insert(options);
     },
     "delete": function(options) {
-      return new Delete(options);
-    },
-    DefaultQueryBuilderOptions: DefaultQueryBuilderOptions,
-    Cloneable: Cloneable,
-    Expression: Expression,
-    QueryBuilder: QueryBuilder,
-    WhereOrderLimit: WhereOrderLimit,
-    JoinWhereOrderLimit: JoinWhereOrderLimit,
-    Select: Select,
-    Update: Update,
-    Insert: Insert,
-    Delete: Delete
+      return new cls.Delete(options);
+    }
   };
 
-  _export.remove = _export["delete"];
+  squel.remove = squel["delete"];
 
-  if (typeof module !== "undefined" && module !== null) {
-    module.exports = _export;
-  }
+  squel.cls = cls;
 
-  if (typeof window !== "undefined" && window !== null) {
-    window.squel = _export;
+  if (typeof define !== "undefined" && define !== null ? define.amd : void 0) {
+    define(function() {
+      return squel;
+    });
+  } else if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
+    module.exports = squel;
+  } else {
+    if (typeof window !== "undefined" && window !== null) {
+      window.squel = squel;
+    }
   }
 
 }).call(this);

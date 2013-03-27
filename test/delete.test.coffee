@@ -34,86 +34,24 @@ test['DELETE builder'] =
   beforeEach: ->
     @inst = squel.delete()
 
-  'instanceof Delete': ->
-    assert.instanceOf @inst, squel.Delete
-
-  'instanceof JoinWhereOrderLimit': ->
-    assert.instanceOf @inst, squel.JoinWhereOrderLimit
-
-  'default field values': ->
-    assert.same null, @inst.table
-    assert.same squel.DefaultQueryBuilderOptions, @inst.options
-
-  'alias is "remove"': ->
-    @alias_inst = squel.remove()
-    assert.instanceOf @alias_inst, squel.Delete
+  'instanceof QueryBuilder': ->
+    assert.instanceOf @inst, squel.cls.QueryBuilder
 
   'constructor':
     'override options': ->
-      @inst = squel.delete
+      @inst = squel.update
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same null, @inst.table
-
-      expectedOptions = _.extend {}, squel.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
 
-      assert.same expectedOptions, @inst.options
-
-  '>> from()':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_sanitizeTable')
-      test.mocker.spy(@inst, '_sanitizeAlias')
-
-    'args: ()': ->
-      assert.throws (=> @inst.from()), 'table name must be a string'
-      assert.ok @inst._sanitizeTable.calledWithExactly(undefined)
-
-    'args: (table)':
-      beforeEach: ->
-        @ret = @inst.from('table')
-
-      'update internal state': ->
-        assert.same @ret, @inst
-        assert.same @inst.table, {
-          name: 'table'
-          alias: undefined
-        }
-
-        assert.ok @inst._sanitizeTable.calledWithExactly('table')
-        assert.ok @inst._sanitizeAlias.notCalled
-
-      '>> args(table2)': ->
-        assert.same @inst.from('table2'), @inst
-        assert.same @inst.table, {
-          name: 'table2'
-          alias: undefined
-        }
-
-        assert.ok @inst._sanitizeTable.calledWithExactly('table2')
-
-    'args: (table, alias)': ->
-      @inst.from('table', 'alias')
-
-      assert.same @inst.table, {
-        name: 'table'
-        alias: 'alias'
-      }
-
-      assert.ok @inst._sanitizeTable.calledWithExactly('table')
-      assert.ok @inst._sanitizeAlias.calledWithExactly('alias')
-
+      for block in @inst.blocks
+        assert.same expectedOptions, block.options
 
 
   'build query':
-    beforeEach: ->
-      test.mocker.spy(@inst, '_joinString')
-      test.mocker.spy(@inst, '_whereString')
-      test.mocker.spy(@inst, '_orderString')
-      test.mocker.spy(@inst, '_limitString')
-
     'need to call from() first': ->
       assert.throws (=> @inst.toString()), 'from() needs to be called'
 
@@ -121,10 +59,6 @@ test['DELETE builder'] =
       beforeEach: -> @inst.from('table')
       toString: ->
         assert.same @inst.toString(), 'DELETE FROM table'
-        assert.ok @inst._joinString.calledOnce
-        assert.ok @inst._whereString.calledOnce
-        assert.ok @inst._orderString.calledOnce
-        assert.ok @inst._limitString.calledOnce
 
       '>> table(table2, t2)':
         beforeEach: -> @inst.from('table2', 't2')
