@@ -429,6 +429,20 @@ test['QueryBuilder base class'] =
       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
 
 
+  'cloning':
+    'blocks get cloned properly': ->
+      blockCloneSpy = test.mocker.spy(squel.cls.StringBlock.prototype, 'clone')
+
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, 'TEST')
+      ]
+
+      newinst = @inst.clone()
+      @inst.blocks[0].str = 'TEST2'
+
+      assert.same 'TEST', newinst.blocks[0].buildStr()
+
+
 
 
 

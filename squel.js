@@ -913,6 +913,20 @@ OTHER DEALINGS IN THE SOFTWARE.
       }).join(' ');
     };
 
+    QueryBuilder.prototype.clone = function() {
+      var block;
+      return new this.constructor(this.options, (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.blocks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          block = _ref[_i];
+          _results.push(block.clone());
+        }
+        return _results;
+      }).call(this));
+    };
+
     return QueryBuilder;
 
   })(cls.BaseBuilder);
@@ -921,9 +935,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Select, _super);
 
-    function Select(options) {
-      var blocks;
-      blocks = [new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)];
+    function Select(options, blocks) {
+      if (blocks == null) {
+        blocks = null;
+      }
+      blocks || (blocks = [new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)]);
       Select.__super__.constructor.call(this, options, blocks);
     }
 
@@ -935,9 +951,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Update, _super);
 
-    function Update(options) {
-      var blocks;
-      blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
+    function Update(options, blocks) {
+      if (blocks == null) {
+        blocks = null;
+      }
+      blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)]);
       Update.__super__.constructor.call(this, options, blocks);
     }
 
@@ -949,13 +967,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Delete, _super);
 
-    function Delete(options) {
-      var blocks;
-      blocks = [
+    function Delete(options, blocks) {
+      if (blocks == null) {
+        blocks = null;
+      }
+      blocks || (blocks = [
         new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
           singleTable: true
         })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
-      ];
+      ]);
       Delete.__super__.constructor.call(this, options, blocks);
     }
 
@@ -967,9 +987,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     __extends(Insert, _super);
 
-    function Insert(options) {
-      var blocks;
-      blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options)];
+    function Insert(options, blocks) {
+      if (blocks == null) {
+        blocks = null;
+      }
+      blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options)]);
       Insert.__super__.constructor.call(this, options, blocks);
     }
 
@@ -981,17 +1003,17 @@ OTHER DEALINGS IN THE SOFTWARE.
     expr: function() {
       return new cls.Expression;
     },
-    select: function(options) {
-      return new cls.Select(options);
+    select: function(options, blocks) {
+      return new cls.Select(options, blocks);
     },
-    update: function(options) {
-      return new cls.Update(options);
+    update: function(options, blocks) {
+      return new cls.Update(options, blocks);
     },
-    insert: function(options) {
-      return new cls.Insert(options);
+    insert: function(options, blocks) {
+      return new cls.Insert(options, blocks);
     },
-    "delete": function(options) {
-      return new cls.Delete(options);
+    "delete": function(options, blocks) {
+      return new cls.Delete(options, blocks);
     }
   };
 

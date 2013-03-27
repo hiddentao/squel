@@ -32,7 +32,8 @@ test = testCreator()
 
 test['DELETE builder'] =
   beforeEach: ->
-    @inst = squel.delete()
+    @func = squel.delete
+    @inst = @func()
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder
@@ -49,6 +50,11 @@ test['DELETE builder'] =
 
       for block in @inst.blocks
         assert.same expectedOptions, block.options
+
+    'override blocks': ->
+      block = new squel.cls.StringBlock('SELECT')
+      @inst = @func {}, [block]
+      assert.same [block], @inst.blocks
 
 
   'build query':
@@ -85,6 +91,12 @@ test['DELETE builder'] =
                 toString: ->
                   assert.same @inst.toString(), 'DELETE FROM table2 `t2` INNER JOIN other_table `o` ON (o.id = t2.id) WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
+  'cloning': ->
+    newinst = @inst.from('students').limit(10).clone()
+    newinst.limit(20)
+
+    assert.same 'DELETE FROM students LIMIT 10', @inst.toString()
+    assert.same 'DELETE FROM students LIMIT 20', newinst.toString()
 
 
 module?.exports[require('path').basename(__filename)] = test

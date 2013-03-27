@@ -32,7 +32,8 @@ test = testCreator()
 
 test['SELECT builder'] =
   beforeEach: ->
-    @inst = squel.select()
+    @func = squel.select
+    @inst = @func()
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder
@@ -49,6 +50,11 @@ test['SELECT builder'] =
 
       for block in @inst.blocks
         assert.same expectedOptions, block.options
+
+    'override blocks': ->
+      block = new squel.cls.StringBlock('SELECT')
+      @inst = @func {}, [block]
+      assert.same [block], @inst.blocks
 
   'build query':
     'need to call from() first': ->
@@ -99,6 +105,12 @@ test['SELECT builder'] =
                       toString: ->
                         assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2 OFFSET 3'
 
+  'cloning': ->
+    newinst = @inst.from('students').limit(10).clone()
+    newinst.limit(20)
+
+    assert.same 'SELECT * FROM students LIMIT 10', @inst.toString()
+    assert.same 'SELECT * FROM students LIMIT 20', newinst.toString()
 
 
 module?.exports[require('path').basename(__filename)] = test

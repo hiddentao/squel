@@ -10,7 +10,8 @@ A flexible and powerful SQL query string builder for Javascript.
 * Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
 * Can be customized to support non-standard queries.
 * Uses method chaining for ease of use.
-* Well tested (~230 tests).
+* Well tested (~240 tests).
+* Small: ~3.6 KB minified and gzipped
 
 ## Installation
 

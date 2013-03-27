@@ -30,53 +30,12 @@ test = testCreator()
 
 
 
-test['Custom queries and blocks'] =
-  beforeEach: ->
-    @originalSelect = squel.select
-
-  afterEach: ->
-    squel.select = @originalSelect
-
-  'customize existing query with new block': ->
-    # Create a date format block, as a way of telling the db what date format to use when outputting dates.
-    # (Note: we are just pretending that we can tell the db this!)
-    class DateFormatBlock extends squel.cls.Block
-      dateFormat: (formatStr) =>
-        @format = formatStr
-
-      buildStr: ->
-        "USING DATEFORMAT (#{@format})"
-
-    # Custom SELECT query
-    class CustomSelect extends squel.cls.QueryBuilder
-      constructor: (options) ->
-        blocks = [
-          new squel.cls.StringBlock(options, 'SELECT'),
-          new squel.cls.DistinctBlock(options),
-          new squel.cls.GetFieldBlock(options),
-          new squel.cls.FromTableBlock(options),
-          new squel.cls.JoinBlock(options),
-          new squel.cls.WhereBlock(options),
-          new DateFormatBlock(options),
-          new squel.cls.GroupByBlock(options),
-          new squel.cls.OrderByBlock(options),
-          new squel.cls.LimitBlock(options),
-          new squel.cls.OffsetBlock(options)
-        ]
-
-        super options, blocks
-
-    # Override squel.select()
-    squel.select = (options) -> new CustomSelect(options)
-
-    assert.same 'SELECT * FROM students USING DATEFORMAT (yyyy-mm-dd)', squel.select().from('students').dateFormat('yyyy-mm-dd').toString()
-
+test['Custom queries'] =
   'custom query': ->
-
     class CommandBlock extends squel.cls.Block
-      command: (command) =>
+      command: (command) ->
         @_command = command
-      compress: =>
+      compress: ->
         @command('compress')
       buildStr: ->
         if (!@_command or 0 is @_command.length) then throw new Error 'command() must be called'
@@ -84,7 +43,7 @@ test['Custom queries and blocks'] =
 
 
     class ParamBlock extends squel.cls.Block
-      param: (param) =>
+      param: (param) ->
         @param = param
       buildStr: ->
         if @param then @param else ""
@@ -104,7 +63,6 @@ test['Custom queries and blocks'] =
     squel.pragma = (options) -> new PragmaQuery(options)
 
     assert.same 'PRAGMA COMPRESS test', squel.pragma().compress().param('test').toString()
-
 
 
 

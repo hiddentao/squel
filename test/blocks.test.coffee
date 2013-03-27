@@ -69,6 +69,15 @@ test['Blocks'] =
         assert.ok undefined is _.find (name for name of @inst.exposedMethods()), (name) ->
           return name is 'buildStr'
 
+    'cloning copies the options over': ->
+      @inst.options.dummy = true;
+
+      newinst = @inst.clone()
+
+      @inst.options.dummy = false;
+
+      assert.same true, newinst.options.dummy
+
 
 
   'StringBlock':

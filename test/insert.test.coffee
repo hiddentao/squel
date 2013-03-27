@@ -32,7 +32,8 @@ test = testCreator()
 
 test['INSERT builder'] =
   beforeEach: ->
-    @inst = squel.insert()
+    @func = squel.insert
+    @inst = @func()
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder
@@ -49,6 +50,11 @@ test['INSERT builder'] =
 
       for block in @inst.blocks
         assert.same expectedOptions, block.options
+
+    'override blocks': ->
+      block = new squel.cls.StringBlock('SELECT')
+      @inst = @func {}, [block]
+      assert.same [block], @inst.blocks
 
 
   'build query':
@@ -90,6 +96,12 @@ test['INSERT builder'] =
         toString: ->
           assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, NULL)'
 
+  'cloning': ->
+    newinst = @inst.into('students').set('field', 1).clone()
+    newinst.set('field', 2).set('field2', true)
+
+    assert.same 'INSERT INTO students (field) VALUES (1)', @inst.toString()
+    assert.same 'INSERT INTO students (field, field2) VALUES (2, TRUE)', newinst.toString()
 
 
 module?.exports[require('path').basename(__filename)] = test

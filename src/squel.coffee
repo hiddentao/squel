@@ -705,10 +705,14 @@ class cls.QueryBuilder extends cls.BaseBuilder
       block.options = _extend({}, block.options, options)
 
 
-
   # Get the final fully constructed query string.
   toString: ->
     (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(' ')
+
+  # Deep clone
+  clone: ->
+    new @constructor @options, (block.clone() for block in @blocks)
+
 
 
 
@@ -719,8 +723,8 @@ class cls.QueryBuilder extends cls.BaseBuilder
 
 # SELECT query builder.
 class cls.Select extends cls.QueryBuilder
-    constructor: (options) ->
-      blocks = [
+    constructor: (options, blocks = null) ->
+      blocks or= [
         new cls.StringBlock(options, 'SELECT'),
         new cls.DistinctBlock(options),
         new cls.GetFieldBlock(options),
@@ -740,8 +744,8 @@ class cls.Select extends cls.QueryBuilder
 
 # UPDATE query builder.
 class cls.Update extends cls.QueryBuilder
-  constructor: (options) ->
-    blocks = [
+  constructor: (options, blocks = null) ->
+    blocks or= [
       new cls.StringBlock(options, 'UPDATE'),
       new cls.UpdateTableBlock(options),
       new cls.SetFieldBlock(options),
@@ -758,8 +762,8 @@ class cls.Update extends cls.QueryBuilder
 
 # DELETE query builder.
 class cls.Delete extends cls.QueryBuilder
-  constructor: (options) ->
-    blocks = [
+  constructor: (options, blocks = null) ->
+    blocks or= [
       new cls.StringBlock(options, 'DELETE'),
       new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
       new cls.JoinBlock(options),
@@ -777,8 +781,8 @@ class cls.Delete extends cls.QueryBuilder
 # An INSERT query builder.
 #
 class cls.Insert extends cls.QueryBuilder
-  constructor: (options) ->
-    blocks = [
+  constructor: (options, blocks = null) ->
+    blocks or= [
       new cls.StringBlock(options, 'INSERT'),
       new cls.IntoTableBlock(options),
       new cls.InsertFieldValueBlock(options)
@@ -796,12 +800,11 @@ class cls.Insert extends cls.QueryBuilder
 
 squel =
   expr: -> new cls.Expression
-  select: (options) -> new cls.Select(options)
-  update: (options) -> new cls.Update(options)
-  insert: (options) -> new cls.Insert(options)
-  delete: (options) -> new cls.Delete(options)
-
-# defaults
+  # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
+  select: (options, blocks) -> new cls.Select(options, blocks)
+  update: (options, blocks) -> new cls.Update(options, blocks)
+  insert: (options, blocks) -> new cls.Insert(options, blocks)
+  delete: (options, blocks) -> new cls.Delete(options, blocks)
 
 
 # aliases

@@ -32,7 +32,8 @@ test = testCreator()
 
 test['UPDATE builder'] =
   beforeEach: ->
-    @inst = squel.update()
+    @func = squel.update
+    @inst = @func()
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder
@@ -50,7 +51,12 @@ test['UPDATE builder'] =
       for block in @inst.blocks
         assert.same expectedOptions, block.options
 
-      
+    'override blocks': ->
+      block = new squel.cls.StringBlock('SELECT')
+      @inst = @func {}, [block]
+      assert.same [block], @inst.blocks
+
+
   'build query':
     'need to call table() first': ->
       assert.throws (=> @inst.toString()), 'table() needs to be called'
@@ -110,6 +116,13 @@ test['UPDATE builder'] =
                 toString: ->
                   assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
+
+  'cloning': ->
+    newinst = @inst.table('students').set('field', 1).clone()
+    newinst.set('field', 2).set('field2', true)
+
+    assert.same 'UPDATE students SET field = 1', @inst.toString()
+    assert.same 'UPDATE students SET field = 2, field2 = TRUE', newinst.toString()
 
 
 module?.exports[require('path').basename(__filename)] = test
