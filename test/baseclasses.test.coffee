@@ -118,10 +118,20 @@ test['Builder base class'] =
     beforeEach: ->
       test.mocker.spy @inst, '_getObjectClassName'
 
-    'if Expression': ->
-      e = squel.expr()
-      assert.same "", @inst._sanitizeCondition(e)
-      assert.ok @inst._getObjectClassName.calledWithExactly(e)
+    'if Expression':
+      'empty expression': ->
+        e = squel.expr()
+        assert.same "", @inst._sanitizeCondition(e)
+        assert.ok @inst._getObjectClassName.calledWithExactly(e)
+      'non-empty expression': ->
+        e = squel.expr()
+          .and("s.name <> 'Fred'")
+          .or_begin()
+            .or("s.id = 5")
+            .or("s.id = 6")
+          .end()
+        assert.same "s.name <> 'Fred' OR (s.id = 5 OR s.id = 6)", @inst._sanitizeCondition(e)
+        assert.ok @inst._getObjectClassName.calledWithExactly(e)
 
     'if string': ->
       s = 'BLA BLA'

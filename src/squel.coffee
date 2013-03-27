@@ -88,7 +88,7 @@ class cls.BaseBuilder extends cls.Cloneable
     t = typeof condition
     c = @_getObjectClassName(condition)
 
-    if 'Expression' isnt c and "string" isnt t
+    if 'Expression' isnt c and 'Expression' isnt t and "string" isnt t
       throw new Error "condition must be a string or Expression instance"
     # If it's an expression builder instance then convert it to string form.
     if 'Expression' is t or 'Expression' is c

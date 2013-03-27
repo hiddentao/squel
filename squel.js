@@ -96,7 +96,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       var c, t;
       t = typeof condition;
       c = this._getObjectClassName(condition);
-      if ('Expression' !== c && "string" !== t) {
+      if ('Expression' !== c && 'Expression' !== t && "string" !== t) {
         throw new Error("condition must be a string or Expression instance");
       }
       if ('Expression' === t || 'Expression' === c) {
