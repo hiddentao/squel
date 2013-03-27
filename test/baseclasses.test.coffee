@@ -32,7 +32,7 @@ test = testCreator()
 test['Cloneable base class'] =
   '>> clone()': ->
 
-    class Child extends squel.classes.Cloneable
+    class Child extends squel.cls.Cloneable
       constructor: ->
         @a = 1
         @b = 2.2
@@ -69,21 +69,21 @@ test['Default query builder options'] =
       autoQuoteFieldNames: false
       nameQuoteCharacter: '`'
       usingValuePlaceholders: false
-    }, squel.classes.DefaultQueryBuilderOptions
+    }, squel.cls.DefaultQueryBuilderOptions
 
 
 
 test['Builder base class'] =
   beforeEach: ->
-    @cls = squel.classes.BaseBuilder
+    @cls = squel.cls.BaseBuilder
     @inst = new @cls
 
   'instanceof Cloneable': ->
-    assert.instanceOf @inst, squel.classes.Cloneable
+    assert.instanceOf @inst, squel.cls.Cloneable
 
   'constructor':
     'default options': ->
-      assert.same squel.classes.DefaultQueryBuilderOptions, @inst.options
+      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
 
     'overridden options': ->
       @inst = new @cls
@@ -92,7 +92,7 @@ test['Builder base class'] =
         usingValuePlaceholders: true
         dummy3: true
 
-      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true
@@ -302,15 +302,15 @@ test['Builder base class'] =
 
 test['QueryBuilder base class'] =
   beforeEach: ->
-    @cls = squel.classes.QueryBuilder
+    @cls = squel.cls.QueryBuilder
     @inst = new @cls
 
   'instanceof base builder': ->
-    assert.instanceOf @inst, squel.classes.BaseBuilder
+    assert.instanceOf @inst, squel.cls.BaseBuilder
 
   'constructor':
     'default options': ->
-      assert.same squel.classes.DefaultQueryBuilderOptions, @inst.options
+      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
 
     'overridden options': ->
       @inst = new @cls
@@ -319,7 +319,7 @@ test['QueryBuilder base class'] =
         usingValuePlaceholders: true
         dummy3: true
 
-      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true
@@ -332,14 +332,14 @@ test['QueryBuilder base class'] =
 
     'blocks passed in':
       'exposes block methods': ->
-        limitExposedMethodsSpy = test.mocker.spy(squel.classes.LimitBlock.prototype, 'exposedMethods');
-        distinctExposedMethodsSpy = test.mocker.spy(squel.classes.DistinctBlock.prototype, 'exposedMethods');
-        limitSpy = test.mocker.spy(squel.classes.LimitBlock.prototype, 'limit')
-        distinctSpy = test.mocker.spy(squel.classes.DistinctBlock.prototype, 'distinct')
+        limitExposedMethodsSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'exposedMethods');
+        distinctExposedMethodsSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'exposedMethods');
+        limitSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'limit')
+        distinctSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'distinct')
 
         blocks = [
-          new squel.classes.LimitBlock(),
-          new squel.classes.DistinctBlock()
+          new squel.cls.LimitBlock(),
+          new squel.cls.DistinctBlock()
         ]
 
         @inst = new @cls({}, blocks)
@@ -361,8 +361,8 @@ test['QueryBuilder base class'] =
 
       'cannot expose the same method twice': ->
         blocks = [
-          new squel.classes.DistinctBlock(),
-          new squel.classes.DistinctBlock()
+          new squel.cls.DistinctBlock(),
+          new squel.cls.DistinctBlock()
         ]
 
         try
@@ -386,7 +386,7 @@ test['QueryBuilder base class'] =
 
     'updates building block options': ->
       @inst.blocks = [
-        new squel.classes.Block()
+        new squel.cls.Block()
       ]
       oldOptions = _.extend({}, @inst.blocks[0].options)
 
@@ -406,20 +406,20 @@ test['QueryBuilder base class'] =
 
     'skips empty block strings': ->
       @inst.blocks = [
-        new squel.classes.StringBlock({}, ''),
+        new squel.cls.StringBlock({}, ''),
       ]
 
       assert.same '', @inst.toString()
 
     'returns final query string': ->
       @inst.blocks = [
-        new squel.classes.StringBlock({}, 'STR1'),
-        new squel.classes.StringBlock({}, 'STR2'),
-        new squel.classes.StringBlock({}, 'STR3')
+        new squel.cls.StringBlock({}, 'STR1'),
+        new squel.cls.StringBlock({}, 'STR2'),
+        new squel.cls.StringBlock({}, 'STR3')
       ]
 
       i = 1
-      buildStrSpy = test.mocker.stub squel.classes.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+      buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
 
       assert.same 'ret2 ret3 ret4', @inst.toString()
 

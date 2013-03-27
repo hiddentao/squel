@@ -35,7 +35,7 @@ test['INSERT builder'] =
     @inst = squel.insert()
 
   'instanceof QueryBuilder': ->
-    assert.instanceOf @inst, squel.classes.QueryBuilder
+    assert.instanceOf @inst, squel.cls.QueryBuilder
 
   'constructor':
     'override options': ->
@@ -43,7 +43,7 @@ test['INSERT builder'] =
         usingValuePlaceholders: true
         dummy: true
 
-      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
 

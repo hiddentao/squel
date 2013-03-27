@@ -331,17 +331,17 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
-  cls.FromTableBlock = (function(_super) {
+  cls.AbstractTableBlock = (function(_super) {
 
-    __extends(FromTableBlock, _super);
+    __extends(AbstractTableBlock, _super);
 
-    function FromTableBlock(options) {
-      this.from = __bind(this.from, this);
-      FromTableBlock.__super__.constructor.call(this, options);
-      this.froms = [];
+    function AbstractTableBlock(options) {
+      this._table = __bind(this._table, this);
+      AbstractTableBlock.__super__.constructor.call(this, options);
+      this.tables = [];
     }
 
-    FromTableBlock.prototype.from = function(table, alias) {
+    AbstractTableBlock.prototype._table = function(table, alias) {
       if (alias == null) {
         alias = null;
       }
@@ -350,55 +350,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         alias = this._sanitizeAlias(alias);
       }
       if (this.options.singleTable) {
-        this.froms = [];
-      }
-      return this.froms.push({
-        name: table,
-        alias: alias
-      });
-    };
-
-    FromTableBlock.prototype.buildStr = function(queryBuilder) {
-      var table, tables, _i, _len, _ref;
-      if (0 >= this.froms.length) {
-        throw new Error("from() needs to be called");
-      }
-      tables = "";
-      _ref = this.froms;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        table = _ref[_i];
-        if ("" !== tables) {
-          tables += ", ";
-        }
-        tables += table.name;
-        if (table.alias) {
-          tables += " `" + table.alias + "`";
-        }
-      }
-      return "FROM " + tables;
-    };
-
-    return FromTableBlock;
-
-  })(cls.Block);
-
-  cls.UpdateTableBlock = (function(_super) {
-
-    __extends(UpdateTableBlock, _super);
-
-    function UpdateTableBlock(options) {
-      this.table = __bind(this.table, this);
-      UpdateTableBlock.__super__.constructor.call(this, options);
-      this.tables = [];
-    }
-
-    UpdateTableBlock.prototype.table = function(table, alias) {
-      if (alias == null) {
-        alias = null;
-      }
-      table = this._sanitizeTable(table);
-      if (alias) {
-        alias = this._sanitizeAlias(alias);
+        this.tables = [];
       }
       return this.tables.push({
         name: table,
@@ -406,7 +358,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       });
     };
 
-    UpdateTableBlock.prototype.buildStr = function(queryBuilder) {
+    AbstractTableBlock.prototype.buildStr = function(queryBuilder) {
       var table, tables, _i, _len, _ref;
       if (0 >= this.tables.length) {
         throw new Error("table() needs to be called");
@@ -426,9 +378,69 @@ OTHER DEALINGS IN THE SOFTWARE.
       return tables;
     };
 
-    return UpdateTableBlock;
+    return AbstractTableBlock;
 
   })(cls.Block);
+
+  cls.UpdateTableBlock = (function(_super) {
+
+    __extends(UpdateTableBlock, _super);
+
+    function UpdateTableBlock() {
+      this.table = __bind(this.table, this);
+      return UpdateTableBlock.__super__.constructor.apply(this, arguments);
+    }
+
+    UpdateTableBlock.prototype.table = function(table, alias) {
+      if (alias == null) {
+        alias = null;
+      }
+      return this._table(table, alias);
+    };
+
+    return UpdateTableBlock;
+
+  })(cls.AbstractTableBlock);
+
+  cls.FromTableBlock = (function(_super) {
+
+    __extends(FromTableBlock, _super);
+
+    function FromTableBlock() {
+      this.from = __bind(this.from, this);
+      return FromTableBlock.__super__.constructor.apply(this, arguments);
+    }
+
+    FromTableBlock.prototype.from = function(table, alias) {
+      if (alias == null) {
+        alias = null;
+      }
+      return this._table(table, alias);
+    };
+
+    FromTableBlock.prototype.buildStr = function(queryBuilder) {
+      var table, tables, _i, _len, _ref;
+      if (0 >= this.tables.length) {
+        throw new Error("from() needs to be called");
+      }
+      tables = "";
+      _ref = this.tables;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        table = _ref[_i];
+        if ("" !== tables) {
+          tables += ", ";
+        }
+        tables += table.name;
+        if (table.alias) {
+          tables += " `" + table.alias + "`";
+        }
+      }
+      return "FROM " + tables;
+    };
+
+    return FromTableBlock;
+
+  })(cls.AbstractTableBlock);
 
   cls.IntoTableBlock = (function(_super) {
 
@@ -551,24 +563,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
-  cls.InsertIntoFieldBlock = (function(_super) {
+  cls.InsertFieldValueBlock = (function(_super) {
 
-    __extends(InsertIntoFieldBlock, _super);
+    __extends(InsertFieldValueBlock, _super);
 
-    function InsertIntoFieldBlock(options) {
-      this.set = __bind(this.set, this);
-      InsertIntoFieldBlock.__super__.constructor.call(this, options);
+    function InsertFieldValueBlock(options) {
+      InsertFieldValueBlock.__super__.constructor.call(this, options);
       this.fields = {};
     }
 
-    InsertIntoFieldBlock.prototype.set = function(field, value) {
-      field = this._sanitizeField(field);
-      value = this._sanitizeValue(value);
-      this.fields[field] = value;
-      return this;
-    };
-
-    InsertIntoFieldBlock.prototype.buildStr = function(queryBuilder) {
+    InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
       var field, fieldNames, fields, name, values, _i, _len;
       fieldNames = (function() {
         var _ref, _results;
@@ -599,9 +603,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       return "(" + fields + ") VALUES (" + values + ")";
     };
 
-    return InsertIntoFieldBlock;
+    return InsertFieldValueBlock;
 
-  })(cls.Block);
+  })(cls.SetFieldBlock);
 
   cls.DistinctBlock = (function(_super) {
 
@@ -1002,7 +1006,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Insert(options) {
       var blocks;
-      blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertIntoFieldBlock(options)];
+      blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options)];
       Insert.__super__.constructor.call(this, options, blocks);
     }
 
@@ -1030,7 +1034,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   squel.remove = squel["delete"];
 
-  squel.classes = cls;
+  squel.cls = cls;
 
   if (typeof define !== "undefined" && define !== null ? define.amd : void 0) {
     define(function() {

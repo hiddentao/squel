@@ -33,17 +33,17 @@ test = testCreator()
 test['Blocks'] =
   'Block base class':
     beforeEach: ->
-      @inst = new squel.classes.Block()
+      @inst = new squel.cls.Block()
 
     'instanceof of BaseBuilder': ->
-      assert.instanceOf @inst, squel.classes.BaseBuilder
+      assert.instanceOf @inst, squel.cls.BaseBuilder
 
     'options': ->
-      expectedOptions = _.extend {}, squel.classes.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
 
-      @inst = new squel.classes.Block
+      @inst = new squel.cls.Block
         usingValuePlaceholders: true
         dummy: true
 
@@ -73,14 +73,14 @@ test['Blocks'] =
 
   'StringBlock':
     beforeEach: ->
-      @cls = squel.classes.StringBlock
+      @cls = squel.cls.StringBlock
       @inst = new @cls
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -98,14 +98,14 @@ test['Blocks'] =
 
   'FromTableBlock':
     beforeEach: ->
-      @cls = squel.classes.FromTableBlock
+      @cls = squel.cls.FromTableBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -114,7 +114,7 @@ test['Blocks'] =
         dummy:true
 
     'initial field values': ->
-      assert.same [], @inst.froms
+      assert.same [], @inst.tables
 
     'from()':
       'saves inputs': ->
@@ -137,7 +137,7 @@ test['Blocks'] =
           }
         ]
 
-        assert.same expectedFroms, @inst.froms
+        assert.same expectedFroms, @inst.tables
 
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
@@ -148,7 +148,7 @@ test['Blocks'] =
         assert.ok sanitizeTableSpy.calledWithExactly 'table'
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias'
 
-        assert.same [ { name: '_t', alias: '_a' }], @inst.froms
+        assert.same [ { name: '_t', alias: '_a' }], @inst.tables
 
 
       'handles single-table mode': ->
@@ -165,7 +165,7 @@ test['Blocks'] =
           }
         ]
 
-        assert.same expectedFroms, @inst.froms
+        assert.same expectedFroms, @inst.tables
 
 
     'buildStr()':
@@ -188,14 +188,14 @@ test['Blocks'] =
 
   'UpdateTableBlock':
     beforeEach: ->
-      @cls = squel.classes.UpdateTableBlock
+      @cls = squel.cls.UpdateTableBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -260,14 +260,14 @@ test['Blocks'] =
 
   'IntoTableBlock':
     beforeEach: ->
-      @cls = squel.classes.IntoTableBlock
+      @cls = squel.cls.IntoTableBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -313,14 +313,14 @@ test['Blocks'] =
 
   'GetFieldBlock':
     beforeEach: ->
-      @cls = squel.classes.GetFieldBlock
+      @cls = squel.cls.GetFieldBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -382,14 +382,14 @@ test['Blocks'] =
 
   'SetFieldBlock':
     beforeEach: ->
-      @cls = squel.classes.SetFieldBlock
+      @cls = squel.cls.SetFieldBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -452,16 +452,16 @@ test['Blocks'] =
 
 
 
-  'InsertIntoFieldBlock':
+  'InsertFieldValueBlock':
     beforeEach: ->
-      @cls = squel.classes.InsertIntoFieldBlock
+      @cls = squel.cls.InsertFieldValueBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -525,14 +525,14 @@ test['Blocks'] =
 
   'DistinctBlock':
     beforeEach: ->
-      @cls = squel.classes.DistinctBlock
+      @cls = squel.cls.DistinctBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -567,14 +567,14 @@ test['Blocks'] =
 
   'GroupByBlock':
     beforeEach: ->
-      @cls = squel.classes.GroupByBlock
+      @cls = squel.cls.GroupByBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -618,14 +618,14 @@ test['Blocks'] =
 
   'OffsetBlock':
     beforeEach: ->
-      @cls = squel.classes.OffsetBlock
+      @cls = squel.cls.OffsetBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -669,14 +669,14 @@ test['Blocks'] =
 
   'WhereBlock':
     beforeEach: ->
-      @cls = squel.classes.WhereBlock
+      @cls = squel.cls.WhereBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -722,14 +722,14 @@ test['Blocks'] =
 
   'OrderByBlock':
     beforeEach: ->
-      @cls = squel.classes.OrderByBlock
+      @cls = squel.cls.OrderByBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -790,14 +790,14 @@ test['Blocks'] =
 
   'LimitBlock':
     beforeEach: ->
-      @cls = squel.classes.LimitBlock
+      @cls = squel.cls.LimitBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -845,14 +845,14 @@ test['Blocks'] =
 
   'JoinBlock':
     beforeEach: ->
-      @cls = squel.classes.JoinBlock
+      @cls = squel.cls.JoinBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
-      assert.instanceOf @inst, squel.classes.Block
+      assert.instanceOf @inst, squel.cls.Block
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.classes.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true

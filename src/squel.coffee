@@ -321,45 +321,11 @@ class cls.StringBlock extends cls.Block
 
 
 
-# FROM table
+# Table specifier base class
 #
-# Additional options:
-#  singleTable: if true then only one table is allowed
-class cls.FromTableBlock extends cls.Block
-  constructor: (options) ->
-    super options
-    @froms = []
-
-  # Read data from the given table.
-  #
-  # An alias may also be specified for the table.
-  from: (table, alias = null) =>
-    table = @_sanitizeTable(table)
-    alias = @_sanitizeAlias(alias) if alias
-
-    if @options.singleTable
-      @froms = []
-
-    @froms.push
-      name: table
-      alias: alias
-
-  buildStr: (queryBuilder) ->
-    if 0 >= @froms.length
-      throw new Error "from() needs to be called"
-
-    tables = ""
-    for table in @froms
-      tables += ", " if "" isnt tables
-      tables += table.name
-      tables += " `#{table.alias}`" if table.alias
-
-    "FROM #{tables}"
-
-
-
-# UPDATE table
-class cls.UpdateTableBlock extends cls.Block
+# Additional options
+#  - singleTable - only allow one table to be specified
+class cls.AbstractTableBlock extends cls.Block
   constructor: (options) ->
     super options
     @tables = []
@@ -367,9 +333,14 @@ class cls.UpdateTableBlock extends cls.Block
   # Update given table.
   #
   # An alias may also be specified for the table.
-  table: (table, alias = null) =>
+  #
+  # Concrete subclasses should provide a method which calls this
+  _table: (table, alias = null) =>
     table = @_sanitizeTable(table)
     alias = @_sanitizeAlias(alias) if alias
+
+    if @options.singleTable
+      @tables = []
 
     @tables.push
       name: table
@@ -385,6 +356,32 @@ class cls.UpdateTableBlock extends cls.Block
       tables += " AS `#{table.alias}`" if table.alias
 
     tables
+
+
+# Update Table
+class cls.UpdateTableBlock extends cls.AbstractTableBlock
+  table: (table, alias = null) =>
+    @_table(table, alias)
+
+
+
+# FROM table
+class cls.FromTableBlock extends cls.AbstractTableBlock
+  from: (table, alias = null) =>
+    @_table(table, alias)
+
+  buildStr: (queryBuilder) ->
+    if 0 >= @tables.length then throw new Error "from() needs to be called"
+
+    tables = ""
+    for table in @tables
+      tables += ", " if "" isnt tables
+      tables += table.name
+      tables += " `#{table.alias}`" if table.alias
+
+    "FROM #{tables}"
+
+
 
 
 # INTO table
@@ -403,7 +400,7 @@ class cls.IntoTableBlock extends cls.Block
 
 
 
-# Get field
+# (SELECT) Get field
 class cls.GetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
@@ -434,7 +431,7 @@ class cls.GetFieldBlock extends cls.Block
 
 
 
-# SET field=value
+# (UPDATE) SET field=value
 class cls.SetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
@@ -460,19 +457,11 @@ class cls.SetFieldBlock extends cls.Block
     "SET #{fields}"
 
 
-# INSERT INTO ... field ... value
-class cls.InsertIntoFieldBlock extends cls.Block
+# (INSERT INTO) ... field ... value
+class cls.InsertFieldValueBlock extends cls.SetFieldBlock
   constructor: (options) ->
     super options
     @fields = {}
-
-  # Update the given field with the given value.
-  # This will override any previously set value for the given field.
-  set: (field, value) =>
-    field = @_sanitizeField(field)
-    value = @_sanitizeValue(value)
-    @fields[field] = value
-    @
 
   buildStr: (queryBuilder) ->
     fieldNames = (name for own name of @fields)
@@ -792,7 +781,7 @@ class cls.Insert extends cls.QueryBuilder
     blocks = [
       new cls.StringBlock(options, 'INSERT'),
       new cls.IntoTableBlock(options),
-      new cls.InsertIntoFieldBlock(options)
+      new cls.InsertFieldValueBlock(options)
     ]
 
     super options, blocks
@@ -812,11 +801,14 @@ squel =
   insert: (options) -> new cls.Insert(options)
   delete: (options) -> new cls.Delete(options)
 
+# defaults
+
+
 # aliases
 squel.remove = squel.delete
 
 # classes
-squel.classes = cls
+squel.cls = cls
 
 
 # AMD
