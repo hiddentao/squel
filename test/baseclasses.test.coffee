@@ -122,7 +122,6 @@ test['Builder base class'] =
       'empty expression': ->
         e = squel.expr()
         assert.same "", @inst._sanitizeCondition(e)
-        assert.ok @inst._getObjectClassName.calledWithExactly(e)
       'non-empty expression': ->
         e = squel.expr()
           .and("s.name <> 'Fred'")
@@ -131,17 +130,14 @@ test['Builder base class'] =
             .or("s.id = 6")
           .end()
         assert.same "s.name <> 'Fred' OR (s.id = 5 OR s.id = 6)", @inst._sanitizeCondition(e)
-        assert.ok @inst._getObjectClassName.calledWithExactly(e)
 
     'if string': ->
       s = 'BLA BLA'
       assert.same 'BLA BLA', @inst._sanitizeCondition(s)
-      assert.ok @inst._getObjectClassName.calledWithExactly(s)
 
     'if neither Expression nor String': ->
       testFn = => @inst._sanitizeCondition(1)
       assert.throws testFn, 'condition must be a string or Expression instance'
-      assert.ok @inst._getObjectClassName.calledWithExactly(1)
 
 
   '_sanitizeName':

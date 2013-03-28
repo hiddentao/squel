@@ -93,14 +93,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._sanitizeCondition = function(condition) {
-      var c, t;
-      t = typeof condition;
-      c = this._getObjectClassName(condition);
-      if ('Expression' !== c && 'Expression' !== t && "string" !== t) {
-        throw new Error("condition must be a string or Expression instance");
-      }
-      if ('Expression' === t || 'Expression' === c) {
+      if (condition instanceof cls.Expression) {
         condition = condition.toString();
+      }
+      if ("string" !== typeof condition) {
+        throw new Error("condition must be a string or Expression instance");
       }
       return condition;
     };

@@ -85,14 +85,13 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Sanitize the given condition.
   _sanitizeCondition: (condition) ->
-    t = typeof condition
-    c = @_getObjectClassName(condition)
-
-    if 'Expression' isnt c and 'Expression' isnt t and "string" isnt t
-      throw new Error "condition must be a string or Expression instance"
     # If it's an expression builder instance then convert it to string form.
-    if 'Expression' is t or 'Expression' is c
+    if condition instanceof cls.Expression
       condition = condition.toString()
+
+    if "string" isnt typeof condition
+      throw new Error "condition must be a string or Expression instance"
+
     condition
 
 
