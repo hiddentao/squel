@@ -45,6 +45,7 @@
                         <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
                         <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
                         <li><a href="#cloning" title="Cloning">Cloning</a></li>
+                        <li><a href="#custom" title="Custom queries">Custom queries</a></li>
                     </ul>
                 </li>
                 <li><a href="#tests" title="Running the tests">Tests</a></li>
@@ -814,7 +815,7 @@
     </section>
 
     <section id="cloning">
-      <a name="cloning" href="#expressions"><h2>Cloning</h2></a>
+      <a name="cloning" href="#cloning"><h2>Cloning</h2></a>
 
       <p>You can create a copy of a query builder instance using its <code>clone()</code> method. For example:</p>
 
@@ -823,9 +824,13 @@
 
           var select2 = select1.clone().field('id').where('name = "david"');
 
-          alert( select1 + " | " + select2 );
+          alert( select1 );
 
-          /*  SELECT * FROM students | SELECT id FROM students WHERE (name = "david")  */
+          /* SELECT * FROM students */
+
+          alert( select2 );
+
+          /* SELECT id FROM students WHERE (name = "david") */
       </pre>
 
       <p>Here is an example using an <code>INSERT</code> builder:</p>
@@ -837,10 +842,127 @@
 
           var insMark = insMathew.clone().set('name', 'Mark');
 
-          alert( insMathew + " | " + insMark );
+          alert( insMathew );
 
-          /*  INSERT INTO students (name) VALUES('Mathew') | INSERT INTO students (name) VALUES('Mark') */
+          /* INSERT INTO students (name) VALUES('Mathew') */
+
+          alert( insMark );
+
+          /* INSERT INTO students (name) VALUES('Mark') */
       </pre>
+
+    </section>
+
+    <section id="custom">
+      <a name="custom" href="#custom"><h2>Custom queries</h2></a>
+
+      <p>You can customize Squel's query building mechanism quite easily. For instance, if you wanted to add
+        <code>OFFSET</code> clauses to <code>UPDATE</code> queries you could do it as such:</p>
+
+      <pre class="brush: js">
+        /* We create a convenience method to make it easy to instantiate our customized UPDATE builder */
+        squel.myupdate = function(options) {
+          return squel.update(options, [
+            new squel.cls.StringBlock(options, 'UPDATE'),
+            new squel.cls.UpdateTableBlock(options),
+            new squel.cls.SetFieldBlock(options),
+            new squel.cls.WhereBlock(options),
+            new squel.cls.OrderByBlock(options),
+            new squel.cls.OffsetBlock(options),
+            new squel.cls.LimitBlock(options)
+          ]);
+        };
+
+        alert(
+          squel.myupdate()
+            .table('students')
+            .set('status', 'active')
+            .limit(10)
+            .offset(2)
+        );
+
+        /* UPDATE students SET status = 'active' OFFSET 2 LIMIT 10 */
+      </pre>
+
+      <p>Hopefully you can see that it is possible to totally override the built-in query building logic. Also notice
+        that each <em>building block</em> within a query can have a different set of <code>options</code> applied to it.
+      Check out <a href="https://github.com/hiddentao/squel/blob/master/src/squel.coffee">squel.coffee</a> to see
+        the available building blocks.</p>
+
+      <p>You can also build other types of queries and query clauses not already included in Squel. Let's say
+        you wanted to build a query structured as follows: <code>PRAGMA {command} {param}</code>:</p>
+
+      <pre class="brush: js">
+        /* OOP Inheritance mechanism (substitute your own favourite library for this!) */
+        Function.prototype.inheritsFrom = function( parentClassOrObject ) {
+          this.prototype = new parentClassOrObject;
+          this.prototype.constructor = this;
+          this.prototype.parent = parentClassOrObject.prototype;
+        };
+
+
+        /* Create the 'command' clause */
+
+        var CommandBlock = function() {};
+        CommandBlock.inheritsFrom(squel.cls.Block);
+
+        /* pass in a command */
+        CommandBlock.prototype.command = function(command) {
+          this._command = command;
+        };
+
+        /* output the query clause */
+        CommandBlock.prototype.buildStr = function() {
+          return this._command.toUpperCase();
+        };
+
+
+        /* Create the 'param' clause */
+
+        var ParamBlock = function() {};
+        ParamBlock.inheritsFrom(squel.cls.Block);
+
+        /* pass in a param */
+        ParamBlock.prototype.param = function(p) {
+          this._p = p;
+        };
+
+        /* output the query clause */
+        ParamBlock.prototype.buildStr = function() {
+          return this._p;
+        };
+
+
+        /* Create the 'PRAGMA' query builder */
+
+        var PragmaQuery = function(options) {
+          this.parent.constructor.call(this, options, [
+              new squel.cls.StringBlock(options, 'PRAGMA'),
+              new CommandBlock(),
+              new ParamBlock()
+          ]);
+        };
+        PragmaQuery.inheritsFrom(squel.cls.QueryBuilder);
+
+
+        /* Create squel.pragma() convenience method */
+
+        squel.pragma = function(options) {
+          return new PragmaQuery(options)
+        };
+
+
+        /* Try it out! */
+
+        alert(
+          squel.pragma()
+            .command('flush')
+            .param('students')
+        );
+
+        /* 'PRAGMA FLUSH students' */
+      </pre>
+
 
     </section>
 
@@ -901,7 +1023,7 @@
                 var elem = $(this);
                 var code = $("table", elem).text();
                 if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
-                    elem.addClass("executable").attr("title", "Click to run")
+                    elem.addClass("executable").attr("title", "Click to run");
                     elem.click(function(e) {
                         e.preventDefault();
                         eval(code);
