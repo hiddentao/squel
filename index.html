@@ -906,14 +906,19 @@
         var CommandBlock = function() {};
         CommandBlock.inheritsFrom(squel.cls.Block);
 
-        /* pass in a command */
-        CommandBlock.prototype.command = function(command) {
-          this._command = command;
+        /* methods prefixed with '_' are private and will not get exposed within the query builder */
+        CommandBlock.prototype._command = function(command) {
+          this.command = command;
+        };
+
+        /* this method will get exposed within the query builder */
+        CommandBlock.prototype.flush = function() {
+          this._command('flush');
         };
 
         /* output the query clause */
         CommandBlock.prototype.buildStr = function() {
-          return this._command.toUpperCase();
+          return this.command.toUpperCase();
         };
 
 
@@ -922,12 +927,10 @@
         var ParamBlock = function() {};
         ParamBlock.inheritsFrom(squel.cls.Block);
 
-        /* pass in a param */
         ParamBlock.prototype.param = function(p) {
           this._p = p;
         };
 
-        /* output the query clause */
         ParamBlock.prototype.buildStr = function() {
           return this._p;
         };
@@ -956,7 +959,7 @@
 
         alert(
           squel.pragma()
-            .command('flush')
+            .flush()
             .param('students')
         );
 
