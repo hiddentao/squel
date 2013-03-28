@@ -179,13 +179,11 @@ Squel allows you to override the built-in query builders with your own as well a
 
     // pragma query builder
     var PragmaQuery = function(options) {
-      var blocks = [
+      squel.cls.QueryBuilder.call(this, options, [
           new squel.cls.StringBlock(options, 'PRAGMA'),
           new CommandBlock(),
           new ParamBlock()
-      ];
-
-      squel.cls.QueryBuilder.call(this, options, blocks);
+      ]);
     };
     util.inherits(PragmaQuery, squel.cls.QueryBuilder);
 
