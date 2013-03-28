@@ -155,8 +155,14 @@ Squel allows you to override the built-in query builders with your own as well a
     var CommandBlock = function() {};
     util.inherits(CommandBlock, squel.cls.Block);
 
+    // private method - will not get exposed within the query builder
+    CommandBlock.prototype._command = function(_command) {
+      this._command = _command;
+    }
+
+    // public method - will get exposed within the query builder
     CommandBlock.prototype.compress = function() {
-      this._command = 'compress';
+      this._command('compress');
     };
 
     CommandBlock.prototype.buildStr = function() {
