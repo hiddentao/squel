@@ -27,6 +27,9 @@ Add the following inside your HTML:
 
     <script type="text/javascript" src="https://github.com/hiddentao/squel/raw/master/squel.min.js"></script>
 
+**NOTE: It is recommended that you do NOT create queries browser-side to run on the server as this massively increases
+your exposure to [SQL Injection](http://en.wikipedia.org/wiki/SQL_injection) attacks.**
+
 ## Examples
 
 Before running the examples ensure you have `squel` installed and enabled at the top of your script:
@@ -230,6 +233,7 @@ Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be fo
 
     $ npm install
     $ make test
+
 
 ## Contributing
 

@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao.com)
+Copyright (c) 2012-2013 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -47,8 +47,15 @@ cls.DefaultQueryBuilderOptions =
   # If true then field names will rendered inside quotes. The quote character used is configurable via the
   # nameQuoteCharacter option.
   autoQuoteFieldNames: false
+  # If true then alias names will rendered inside quotes. The quote character used is configurable via the
+  # tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.
+  autoQuoteAliasNames: true
   # The quote character used for when quoting table and field names
   nameQuoteCharacter: '`'
+  # The quote character used for when quoting table alias names
+  tableAliasQuoteCharacter: '`'
+  # The quote character used for when quoting table alias names
+  fieldAliasQuoteCharacter: '"'
   # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
   # parameterized querying).
   usingValuePlaceholders: false
@@ -118,8 +125,21 @@ class cls.BaseBuilder extends cls.Cloneable
     else
       sanitized
 
-  _sanitizeAlias: (item) ->
-    @_sanitizeName item, "alias"
+  _sanitizeTableAlias: (item) ->
+    sanitized = @_sanitizeName item, "table alias"
+
+    if @options.autoQuoteAliasNames
+      "#{@options.tableAliasQuoteCharacter}#{sanitized}#{@options.tableAliasQuoteCharacter}"
+    else
+      sanitized
+
+  _sanitizeFieldAlias: (item) ->
+    sanitized = @_sanitizeName item, "field alias"
+
+    if @options.autoQuoteAliasNames
+      "#{@options.fieldAliasQuoteCharacter}#{sanitized}#{@options.fieldAliasQuoteCharacter}"
+    else
+      sanitized
 
   # Sanitize the given limit/offset value.
   _sanitizeLimitOffset: (value) ->
@@ -336,7 +356,7 @@ class cls.AbstractTableBlock extends cls.Block
   # Concrete subclasses should provide a method which calls this
   _table: (table, alias = null) ->
     table = @_sanitizeTable(table)
-    alias = @_sanitizeAlias(alias) if alias
+    alias = @_sanitizeTableAlias(alias) if alias
 
     if @options.singleTable
       @tables = []
@@ -352,7 +372,7 @@ class cls.AbstractTableBlock extends cls.Block
     for table in @tables
       tables += ", " if "" isnt tables
       tables += table.name
-      tables += " AS `#{table.alias}`" if table.alias
+      tables += " AS #{table.alias}" if table.alias
 
     tables
 
@@ -376,7 +396,7 @@ class cls.FromTableBlock extends cls.AbstractTableBlock
     for table in @tables
       tables += ", " if "" isnt tables
       tables += table.name
-      tables += " `#{table.alias}`" if table.alias
+      tables += " #{table.alias}" if table.alias
 
     "FROM #{tables}"
 
@@ -413,7 +433,7 @@ class cls.GetFieldBlock extends cls.Block
   # An alias may also be specified for this field.
   field: (field, alias = null) ->
     field = @_sanitizeField(field)
-    alias = @_sanitizeAlias(alias) if alias
+    alias = @_sanitizeFieldAlias(alias) if alias
 
     @fields.push
       name: field
@@ -424,7 +444,7 @@ class cls.GetFieldBlock extends cls.Block
     for field in @fields
       fields += ", " if "" isnt fields
       fields += field.name
-      fields += " AS \"#{field.alias}\"" if field.alias
+      fields += " AS #{field.alias}" if field.alias
 
     if "" is fields then "*" else fields
 
@@ -620,7 +640,7 @@ class cls.JoinBlock extends cls.Block
   #
   join: (table, alias = null, condition = null, type = 'INNER') ->
     table = @_sanitizeTable(table)
-    alias = @_sanitizeAlias(alias) if alias
+    alias = @_sanitizeTableAlias(alias) if alias
     condition = @_sanitizeCondition(condition) if condition
 
     @joins.push
@@ -652,7 +672,7 @@ class cls.JoinBlock extends cls.Block
     for j in (@joins or [])
       if joins isnt "" then joins += " "
       joins += "#{j.type} JOIN #{j.table}"
-      joins += " `#{j.alias}`" if j.alias
+      joins += " #{j.alias}" if j.alias
       joins += " ON (#{j.condition})" if j.condition
 
     joins

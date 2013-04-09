@@ -138,7 +138,7 @@ test['Blocks'] =
           },
           {
             name: 'table2',
-            alias: 'alias2'
+            alias: '`alias2`'
           },
           {
             name: 'table3',
@@ -150,7 +150,7 @@ test['Blocks'] =
 
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeAlias', -> return '_a'
+        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
 
         @inst.from('table', 'alias')
 
@@ -228,7 +228,7 @@ test['Blocks'] =
           },
           {
           name: 'table2',
-          alias: 'alias2'
+          alias: '`alias2`'
           },
           {
           name: 'table3',
@@ -240,7 +240,7 @@ test['Blocks'] =
 
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeAlias', -> return '_a'
+        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
 
         @inst.table('table', 'alias')
 
@@ -353,7 +353,7 @@ test['Blocks'] =
           },
           {
           name: 'field2',
-          alias: 'alias2'
+          alias: '"alias2"'
           },
           {
           name: 'field3',
@@ -365,7 +365,7 @@ test['Blocks'] =
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeAlias', -> return '_a'
+        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeFieldAlias', -> return '_a'
 
         @inst.field('field1', 'alias1')
 
@@ -895,13 +895,13 @@ test['Blocks'] =
           {
             type: 'RIGHT',
             table: 'table3',
-            alias: 'alias3',
+            alias: '`alias3`',
             condition: 'c = 1'
           },
           {
             type: 'OUTER',
             table: 'table4',
-            alias: 'alias4',
+            alias: '`alias4`',
             condition: 'd = 1'
           }
         ]
@@ -910,7 +910,7 @@ test['Blocks'] =
 
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeAlias', -> return '_a'
+        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
         sanitizeConditionSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
 
         @inst.join('table1', 'alias1', 'a = 1')

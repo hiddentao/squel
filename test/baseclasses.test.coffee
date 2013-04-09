@@ -67,7 +67,10 @@ test['Default query builder options'] =
     assert.same {
       autoQuoteTableNames: false
       autoQuoteFieldNames: false
+      autoQuoteAliasNames: true
       nameQuoteCharacter: '`'
+      tableAliasQuoteCharacter: '`'
+      fieldAliasQuoteCharacter: '"'
       usingValuePlaceholders: false
     }, squel.cls.DefaultQueryBuilderOptions
 
@@ -209,12 +212,54 @@ test['Builder base class'] =
         assert.same '|abc|', @inst._sanitizeTable('abc')
 
 
-  '_sanitizeAlias': ->
-    test.mocker.spy @inst, '_sanitizeName'
+  '_sanitizeFieldAlias': ->
+    'default': ->
+      test.mocker.spy @inst, '_sanitizeName'
 
-    assert.same 'abc', @inst._sanitizeAlias('abc')
+      @inst._sanitizeFieldAlias('abc')
 
-    assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'alias'
+      assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'field alias'
+
+    'auto quote alias names is ON':
+      beforeEach: ->
+        @inst.options.autoQuoteAliasNames = true
+
+      'default quote character': ->
+        assert.same '"abc"', @inst._sanitizeFieldAlias('abc')
+
+      'custom quote character': ->
+        @inst.options.fieldAliasQuoteCharacter = '~'
+        assert.same '~abc~', @inst._sanitizeFieldAlias('abc')
+
+    'auto quote alias names is OFF': ->
+      @inst.options.autoQuoteAliasNames = false
+      assert.same 'abc', @inst._sanitizeFieldAlias('abc')
+
+
+
+  '_sanitizeTableAlias': ->
+    'default': ->
+      test.mocker.spy @inst, '_sanitizeName'
+
+      @inst._sanitizeTableAlias('abc')
+
+      assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table alias'
+
+    'auto quote alias names is ON':
+      beforeEach: ->
+        @inst.options.autoQuoteAliasNames = true
+
+      'default quote character': ->
+        assert.same '`abc`', @inst._sanitizeTableAlias('abc')
+
+      'custom quote character': ->
+        @inst.options.fieldAliasQuoteCharacter = '~'
+        assert.same '~abc~', @inst._sanitizeTableAlias('abc')
+
+    'auto quote alias names is OFF': ->
+      @inst.options.autoQuoteAliasNames = false
+      assert.same 'abc', @inst._sanitizeTableAlias('abc')
+
 
 
   '_sanitizeLimitOffset':
