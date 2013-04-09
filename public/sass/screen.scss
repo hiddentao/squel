@@ -11,6 +11,17 @@ body {
 
 p {
     margin: 0.8em 0;
+
+  &.warning {
+    @include border-radius(10px);
+    font-size: 140%;
+    line-height: 1.2em;
+    padding: 1em;
+    text-align: center;
+    background-color: #f00;
+    color: #fff;
+  }
+
 }
 
 em {

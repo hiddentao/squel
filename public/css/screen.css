@@ -14,12 +14,12 @@ time, mark, audio, video {
   margin: 0;
   padding: 0;
   border: 0;
-  font-size: 100%;
   font: inherit;
+  font-size: 100%;
   vertical-align: baseline;
 }
 
-body {
+html {
   line-height: 1;
 }
 
@@ -65,6 +65,19 @@ body {
 p {
   margin: 0.8em 0;
 }
+p.warning {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+  font-size: 140%;
+  line-height: 1.2em;
+  padding: 1em;
+  text-align: center;
+  background-color: #f00;
+  color: #fff;
+}
 
 em {
   font-style: italic;
@@ -91,11 +104,10 @@ a:hover {
 
 div.syntaxhighlighter {
   padding: 0.4em;
-  -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
   -ms-border-radius: 5px;
-  -khtml-border-radius: 5px;
+  -o-border-radius: 5px;
   border-radius: 5px;
 }
 
@@ -104,11 +116,10 @@ pre {
   font-family: 'Courier new', sans-serif;
   display: block;
   margin-bottom: 0 0 1em;
-  -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
   -ms-border-radius: 5px;
-  -khtml-border-radius: 5px;
+  -o-border-radius: 5px;
   border-radius: 5px;
   padding: 0.4em;
   color: #fff;
@@ -188,15 +199,13 @@ header nav ul li a {
   padding: 0.5em 1em;
   color: #666;
   text-decoration: none;
-  -moz-box-shadow: inset 0px 0px 2px #666666;
   -webkit-box-shadow: inset 0px 0px 2px #666666;
-  -o-box-shadow: inset 0px 0px 2px #666666;
+  -moz-box-shadow: inset 0px 0px 2px #666666;
   box-shadow: inset 0px 0px 2px #666666;
-  -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
   -ms-border-radius: 5px;
-  -khtml-border-radius: 5px;
+  -o-border-radius: 5px;
   border-radius: 5px;
 }
 header nav ul li a.external {
@@ -213,15 +222,13 @@ header nav ul.submenu {
   padding: 0.5em 1em;
   color: #666;
   text-decoration: none;
-  -moz-box-shadow: inset 0px 0px 2px #666666;
   -webkit-box-shadow: inset 0px 0px 2px #666666;
-  -o-box-shadow: inset 0px 0px 2px #666666;
+  -moz-box-shadow: inset 0px 0px 2px #666666;
   box-shadow: inset 0px 0px 2px #666666;
-  -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
   -ms-border-radius: 5px;
-  -khtml-border-radius: 5px;
+  -o-border-radius: 5px;
   border-radius: 5px;
   padding: 0.1em 0.5em;
 }
@@ -237,15 +244,13 @@ header nav ul.submenu li a {
   margin: 0;
   padding: 0.5em 0;
   border: none;
-  -moz-box-shadow: inset 0px 0px 0px #666666;
   -webkit-box-shadow: inset 0px 0px 0px #666666;
-  -o-box-shadow: inset 0px 0px 0px #666666;
+  -moz-box-shadow: inset 0px 0px 0px #666666;
   box-shadow: inset 0px 0px 0px #666666;
-  -moz-border-radius: 0px;
   -webkit-border-radius: 0px;
-  -o-border-radius: 0px;
+  -moz-border-radius: 0px;
   -ms-border-radius: 0px;
-  -khtml-border-radius: 0px;
+  -o-border-radius: 0px;
   border-radius: 0px;
 }
 
@@ -309,11 +314,10 @@ section h3 {
   font-family: 'Courier new', sans-serif;
   display: block;
   margin-bottom: 0 0 1em;
-  -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
   -ms-border-radius: 5px;
-  -khtml-border-radius: 5px;
+  -o-border-radius: 5px;
   border-radius: 5px;
   padding: 0.4em;
   color: #fff;
@@ -321,15 +325,13 @@ section h3 {
 }
 #home .right a {
   display: block;
-  -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
-  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
   -ms-border-radius: 5px;
-  -khtml-border-radius: 5px;
+  -o-border-radius: 5px;
   border-radius: 5px;
-  -moz-box-shadow: inset 0px 0px 2px #333333;
   -webkit-box-shadow: inset 0px 0px 2px #333333;
-  -o-box-shadow: inset 0px 0px 2px #333333;
+  -moz-box-shadow: inset 0px 0px 2px #333333;
   box-shadow: inset 0px 0px 2px #333333;
   border: 1px solid #666;
   margin-top: 0.8em;
@@ -429,10 +431,10 @@ section h3 {
   border: none;
   z-index: 10000;
   width: 250px;
-  -moz-transform: rotate(-45deg);
   -webkit-transform: rotate(-45deg);
-  -o-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
   -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
   transform: rotate(-45deg);
 }
 #github span {
@@ -444,18 +446,13 @@ section h3 {
   position: absolute;
   text-align: center;
   width: 250px;
-  -moz-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
   -webkit-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
-  -o-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
   box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 10px;
-  -moz-transition-property: opacity;
-  -webkit-transition-property: opacity;
-  -o-transition-property: opacity;
-  transition-property: opacity;
-  -moz-transition-duration: 1s;
-  -webkit-transition-duration: 1s;
-  -o-transition-duration: 1s;
-  transition-duration: 1s;
+  -webkit-transition: opacity, 1s;
+  -moz-transition: opacity, 1s;
+  -o-transition: opacity, 1s;
+  transition: opacity, 1s;
 }
 #github span:last-child {
   /* this is the backside */

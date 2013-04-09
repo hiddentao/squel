@@ -104,7 +104,8 @@
 
         <pre class="brush: js">alert( typeof window.squel );    // object</pre>
 
-        <p><em>Note: Most of the code examples on this page are clickable. Look for ones containing an <code>alert</code> call.</em></p>
+        <p class="warning">NOTE: It is recommended that you do NOT create queries browser-side to run on the
+          server as this massively increases your exposure to <a href="http://en.wikipedia.org/wiki/SQL_injection" target="_blank">SQL Injection</a> attacks.</p>
 
     </section>
 
@@ -133,7 +134,9 @@
             alert( s.toString() );    /* SELECT * FROM student */
         </pre>
 
-        You can simply write:
+        <p><em>Hint: You can run the example above by clicking it!</em></p>
+
+        <p>You can simply write:</p>
 
         <pre class="brush: js">
             alert( squel.select().from("students").toString() );  // SELECT * FROM students
@@ -726,6 +729,30 @@
         );
 
         /*   SELECT |name| AS "Student name" FROM |students|  */
+      </pre>
+
+      <p>As you can see above, Squel does however automatically add quotes to alias names. These too can be customized:</p>
+
+      <pre class="brush: js">
+        alert(
+          squel.select({ tableAliasQuoteCharacter: '|', fieldAliasQuoteCharacter: '~' })
+            .from("students", "s")
+            .field("name", "Student name")
+        );
+
+        /*   SELECT name AS ~Student name~ FROM students |s|  */
+      </pre>
+
+      <p>And you can turn off automatic alias quoting if you so desire:</p>
+
+      <pre class="brush: js">
+        alert(
+          squel.select({ autoQuoteAliasNames: false })
+            .from("students", "s")
+            .field("name", "Student_name")
+        );
+
+        /*   SELECT name AS Student_name FROM students s  */
       </pre>
 
     </section>
