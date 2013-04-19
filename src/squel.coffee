@@ -145,7 +145,7 @@ class cls.BaseBuilder extends cls.Cloneable
   _sanitizeLimitOffset: (value) ->
     value = parseInt(value)
     if 0 > value or isNaN(value)
-      throw new Error "limit/offset must be >=0"
+      throw new Error "limit/offset must be >= 0"
     value
 
   # Santize the given field value

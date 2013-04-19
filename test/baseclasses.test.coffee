@@ -289,7 +289,7 @@ test['Builder base class'] =
       assert.same 1, @inst._sanitizeLimitOffset 1
 
     'number < 0': ->
-      assert.throws (=> @inst._sanitizeLimitOffset(-1)), 'limit/offset must be >=0'
+      assert.throws (=> @inst._sanitizeLimitOffset(-1)), 'limit/offset must be >= 0'
 
   '_sanitizeValue':
     beforeEach: ->
