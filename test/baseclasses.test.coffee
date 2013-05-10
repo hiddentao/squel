@@ -72,6 +72,7 @@ test['Default query builder options'] =
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
       usingValuePlaceholders: false
+      valueHandlers: []
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -295,6 +296,9 @@ test['Builder base class'] =
     beforeEach: ->
       test.mocker.spy @inst, '_sanitizeValue'
 
+    afterEach: ->
+      squel.cls.valueHandlers.splice 0, squel.cls.valueHandlers.length
+
     'if string': ->
       assert.same 'bla', @inst._sanitizeValue('bla')
 
@@ -323,6 +327,16 @@ test['Builder base class'] =
     'if undefined': ->
       assert.throws (=> @inst._sanitizeValue(undefined)), 'field value must be a string, number, boolean or null'
 
+    'if date with custom handler': ->
+      @inst.registerValueHandler(Date, _.identity)
+      date = new Date
+      assert.same date, @inst._sanitizeValue(date)
+
+    'if date with global custom handler': ->
+      squel.registerValueHandler(Date, _.identity)
+      date = new Date
+      assert.same date, @inst._sanitizeValue(date)
+
 
   '_formatValue':
     'null': ->
@@ -347,7 +361,36 @@ test['Builder base class'] =
       @inst.options.usingValuePlaceholders = true
       assert.same "test", @inst._formatValue('test')
 
+    'date with custom handler': ->
+      date = new Date
+      dateString = date.toUTCString()
+      @inst.registerValueHandler Date, (d) -> d.toUTCString()
 
+      assert.same "'#{dateString}'", @inst._formatValue(date)
+
+      @inst.options.usingValuePlaceholders = false
+      assert.same "'#{dateString}'", @inst._formatValue(date)
+
+      @inst.options.usingValuePlaceholders = true
+      assert.same dateString, @inst._formatValue(date)
+
+    'arbitrary class with custom handler': ->
+      class MyClass
+      myObj = new MyClass
+
+      @inst.registerValueHandler MyClass, (val) -> 3.14
+
+      assert.same 3.14, @inst._formatValue(myObj)
+
+    'instance custom handler takes precedence': ->
+      @inst.registerValueHandler Date, (d) -> 'hello'
+      squel.registerValueHandler Date, (d) -> 'goodbye'
+
+      assert.same "'hello'", @inst._formatValue(new Date)
+
+      @inst = new @cls
+        valueHandlers: []
+      assert.same "'goodbye'", @inst._formatValue(new Date)
 
 
 

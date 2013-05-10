@@ -41,8 +41,8 @@ _extend = (dst, sources...) ->
 
 # Default query builder options
 cls.DefaultQueryBuilderOptions =
-# If true then table names will be rendered inside quotes. The quote character used is configurable via the
-# nameQuoteCharacter option.
+  # If true then table names will be rendered inside quotes. The quote character used is configurable via the
+  # nameQuoteCharacter option.
   autoQuoteTableNames: false
   # If true then field names will rendered inside quotes. The quote character used is configurable via the
   # nameQuoteCharacter option.
@@ -59,8 +59,33 @@ cls.DefaultQueryBuilderOptions =
   # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
   # parameterized querying).
   usingValuePlaceholders: false
+  # Custom value handlers
+  valueHandlers: []
 
+# Global custom value handlers for all instances of builder
+cls.valueHandlers = []
 
+registerValueHandler = (handlers, type, handler) ->
+  unless 'function' is typeof type
+   throw new Error "type must be a class constructor"
+
+  unless 'function' is typeof handler
+    throw new Error "handler must be a function"
+
+  handlers.push [type, handler]
+
+  return undefined
+
+getValueHandler = (value, handlerLists...) ->
+  for handlers in handlerLists
+    for [type, handler] in handlers
+      if value instanceof type
+        return handler
+  return undefined
+
+# Register a new value handler
+cls.registerValueHandler = (type, handler) ->
+  registerValueHandler cls.valueHandlers, type, handler
 
 # Base class for cloneable builders
 class cls.Cloneable
@@ -79,8 +104,11 @@ class cls.BaseBuilder extends cls.Cloneable
   # options is an Object overriding one or more of cls.DefaultQueryBuilderOptions
   #
   constructor: (options) ->
-    @options = _extend {}, cls.DefaultQueryBuilderOptions, options
+    defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
+    @options = _extend {}, defaults, options
 
+  registerValueHandler: (type, handler) ->
+    registerValueHandler @options.valueHandlers, type, handler
 
   # Get class name of given object.
   _getObjectClassName: (obj) ->
@@ -151,12 +179,25 @@ class cls.BaseBuilder extends cls.Cloneable
   # Santize the given field value
   _sanitizeValue: (item) ->
     t = typeof item
-    if null isnt item and "string" isnt t and "number" isnt t and "boolean" isnt t
-      throw new Error "field value must be a string, number, boolean or null"
+    if null is item
+      # null is allowed
+    else if "string" is t or "number" is t or "boolean" is t
+      # primitives are allowed
+    else
+      typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.valueHandlers)
+      unless typeIsValid
+        # type is not valid
+        throw new Error "field value must be a string, number, boolean or null"
     item
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value) ->
+    # user defined custom handlers takes precedence
+    customHandler = getValueHandler(value, @options.valueHandlers, cls.valueHandlers)
+    if customHandler
+      # use the custom handler if available
+      value = customHandler(value)
+
     if null is value
       value = "NULL"
     else if "boolean" is typeof value
@@ -836,7 +877,7 @@ squel =
   update: (options, blocks) -> new cls.Update(options, blocks)
   insert: (options, blocks) -> new cls.Insert(options, blocks)
   delete: (options, blocks) -> new cls.Delete(options, blocks)
-
+  registerValueHandler: cls.registerValueHandler
 
 # aliases
 squel.remove = squel.delete
