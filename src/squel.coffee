@@ -565,8 +565,20 @@ class cls.WhereBlock extends cls.Block
   # Add a WHERE condition.
   #
   # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
-  where: (condition) ->
+  where: (condition, values...) ->
     condition = @_sanitizeCondition(condition)
+
+    # substitute values into the condition
+    for value in values
+      if Array.isArray value
+        inValues = []
+        for item in value
+          inValues.push @_formatValue @_sanitizeValue item
+        value = "(#{inValues.join ', '})"
+      else
+        value = @_formatValue @_sanitizeValue value
+      condition = condition.replace '?', value
+
     if "" isnt condition
       @wheres.push condition
 
