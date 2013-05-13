@@ -691,7 +691,7 @@ test['Blocks'] =
         dummy: true
 
       assert.ok spy.calledWithExactly
-        dummy:true
+        dummy: true
 
     'initial field values': ->
       assert.same [], @inst.wheres
@@ -715,6 +715,21 @@ test['Blocks'] =
 
         assert.same ['_c'], @inst.wheres
 
+      'substitutes variadic arguments': ->
+        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (val) -> return "[#{val}]"
+
+        substitutes = ['hello', [1, 2, 3]]
+        @inst.where.apply @inst, [].concat ['a = ? and b in ?'], substitutes
+
+        expectedValues = _.flatten substitutes
+        for expectedValue, index in expectedValues
+          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+          assert.ok formatValueStub.getCall(index).calledWithExactly expectedValue
+
+        assert.same [
+          'a = [hello] and b in ([1], [2], [3])'
+        ], @inst.wheres
 
     'buildStr()':
       'output nothing if no conditions set': ->
