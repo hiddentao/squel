@@ -80,8 +80,8 @@ test['SELECT builder'] =
             toString: ->
               assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2'
 
-            '>> where(a = 1)':
-              beforeEach: -> @inst.where('a = 1')
+            '>> where(a = ?, 1)':
+              beforeEach: -> @inst.where('a = ?', 1)
               toString: ->
                 assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = 1) GROUP BY field, field2'
 

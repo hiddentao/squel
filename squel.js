@@ -703,8 +703,25 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.wheres = [];
     }
 
-    WhereBlock.prototype.where = function(condition) {
+    WhereBlock.prototype.where = function() {
+      var condition, inValues, item, value, values, _i, _j, _len, _len1;
+
+      condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       condition = this._sanitizeCondition(condition);
+      for (_i = 0, _len = values.length; _i < _len; _i++) {
+        value = values[_i];
+        if (Array.isArray(value)) {
+          inValues = [];
+          for (_j = 0, _len1 = value.length; _j < _len1; _j++) {
+            item = value[_j];
+            inValues.push(this._formatValue(this._sanitizeValue(item)));
+          }
+          value = "(" + (inValues.join(', ')) + ")";
+        } else {
+          value = this._formatValue(this._sanitizeValue(value));
+        }
+        condition = condition.replace('?', value);
+      }
       if ("" !== condition) {
         return this.wheres.push(condition);
       }
