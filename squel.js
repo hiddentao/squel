@@ -26,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var cls, squel, _extend, _ref, _ref1, _ref2,
+  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -59,7 +59,52 @@ OTHER DEALINGS IN THE SOFTWARE.
     nameQuoteCharacter: '`',
     tableAliasQuoteCharacter: '`',
     fieldAliasQuoteCharacter: '"',
-    usingValuePlaceholders: false
+    usingValuePlaceholders: false,
+    valueHandlers: []
+  };
+
+  cls.globalValueHandlers = [];
+
+  registerValueHandler = function(handlers, type, handler) {
+    var typeHandler, _i, _len;
+
+    if ('function' !== typeof type) {
+      throw new Error("type must be a class constructor");
+    }
+    if ('function' !== typeof handler) {
+      throw new Error("handler must be a function");
+    }
+    for (_i = 0, _len = handlers.length; _i < _len; _i++) {
+      typeHandler = handlers[_i];
+      if (typeHandler.type === type) {
+        typeHandler.handler = handler;
+        return;
+      }
+    }
+    return handlers.push({
+      type: type,
+      handler: handler
+    });
+  };
+
+  getValueHandler = function() {
+    var handlerLists, handlers, typeHandler, value, _i, _j, _len, _len1;
+
+    value = arguments[0], handlerLists = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    for (_i = 0, _len = handlerLists.length; _i < _len; _i++) {
+      handlers = handlerLists[_i];
+      for (_j = 0, _len1 = handlers.length; _j < _len1; _j++) {
+        typeHandler = handlers[_j];
+        if (value instanceof typeHandler.type) {
+          return typeHandler.handler;
+        }
+      }
+    }
+    return void 0;
+  };
+
+  cls.registerValueHandler = function(type, handler) {
+    return registerValueHandler(cls.globalValueHandlers, type, handler);
   };
 
   cls.Cloneable = (function() {
@@ -80,8 +125,16 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(BaseBuilder, _super);
 
     function BaseBuilder(options) {
-      this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
+      var defaults;
+
+      defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+      this.options = _extend({}, defaults, options);
     }
+
+    BaseBuilder.prototype.registerValueHandler = function(type, handler) {
+      registerValueHandler(this.options.valueHandlers, type, handler);
+      return this;
+    };
 
     BaseBuilder.prototype._getObjectClassName = function(obj) {
       var arr;
@@ -165,16 +218,29 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._sanitizeValue = function(item) {
-      var t;
+      var itemType, typeIsValid;
 
-      t = typeof item;
-      if (null !== item && "string" !== t && "number" !== t && "boolean" !== t) {
-        throw new Error("field value must be a string, number, boolean or null");
+      itemType = typeof item;
+      if (null === item) {
+
+      } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
+
+      } else {
+        typeIsValid = void 0 !== getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+        if (!typeIsValid) {
+          throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
+        }
       }
       return item;
     };
 
     BaseBuilder.prototype._formatValue = function(value) {
+      var customHandler;
+
+      customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
+      if (customHandler) {
+        value = customHandler(value);
+      }
       if (null === value) {
         value = "NULL";
       } else if ("boolean" === typeof value) {
@@ -1054,7 +1120,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     },
     "delete": function(options, blocks) {
       return new cls.Delete(options, blocks);
-    }
+    },
+    registerValueHandler: cls.registerValueHandler
   };
 
   squel.remove = squel["delete"];
