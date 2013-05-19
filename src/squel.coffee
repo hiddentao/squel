@@ -59,12 +59,16 @@ cls.DefaultQueryBuilderOptions =
   # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
   # parameterized querying).
   usingValuePlaceholders: false
-  # Custom value handlers
+  # Custom value handlers where key is the value type and the value is the handler function
   valueHandlers: []
 
 # Global custom value handlers for all instances of builder
-cls.valueHandlers = []
+cls.globalValueHandlers = []
 
+
+# Register a value type handler
+#
+# Note: this will override any existing handler registered for this value type.
 registerValueHandler = (handlers, type, handler) ->
   unless 'function' is typeof type
    throw new Error "type must be a class constructor"
@@ -72,20 +76,29 @@ registerValueHandler = (handlers, type, handler) ->
   unless 'function' is typeof handler
     throw new Error "handler must be a function"
 
-  handlers.push [type, handler]
+  for typeHandler in handlers
+    if typeHandler.type is type
+      typeHandler.handler = handler
+      return
 
-  return undefined
+  handlers.push
+    type: type
+    handler: handler
 
+
+# Get value type handler for given type
 getValueHandler = (value, handlerLists...) ->
   for handlers in handlerLists
-    for [type, handler] in handlers
-      if value instanceof type
-        return handler
-  return undefined
+    for typeHandler in handlers
+      if value instanceof typeHandler.type
+        return typeHandler.handler
+  undefined
+
 
 # Register a new value handler
 cls.registerValueHandler = (type, handler) ->
-  registerValueHandler cls.valueHandlers, type, handler
+  registerValueHandler cls.globalValueHandlers, type, handler
+
 
 # Base class for cloneable builders
 class cls.Cloneable
@@ -107,8 +120,12 @@ class cls.BaseBuilder extends cls.Cloneable
     defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
     @options = _extend {}, defaults, options
 
+  # Register a custom value handler for this builder instance.
+  #
+  # Note: this will override any globally registered handler for this value type.
   registerValueHandler: (type, handler) ->
     registerValueHandler @options.valueHandlers, type, handler
+    @
 
   # Get class name of given object.
   _getObjectClassName: (obj) ->
@@ -178,22 +195,22 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Santize the given field value
   _sanitizeValue: (item) ->
-    t = typeof item
+    itemType = typeof item
     if null is item
       # null is allowed
-    else if "string" is t or "number" is t or "boolean" is t
+    else if "string" is itemType or "number" is itemType or "boolean" is itemType
       # primitives are allowed
     else
-      typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.valueHandlers)
+      typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
       unless typeIsValid
         # type is not valid
-        throw new Error "field value must be a string, number, boolean or null"
+        throw new Error "field value must be a string, number, boolean, null or one of the registered custom value types"
     item
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value) ->
     # user defined custom handlers takes precedence
-    customHandler = getValueHandler(value, @options.valueHandlers, cls.valueHandlers)
+    customHandler = getValueHandler(value, @options.valueHandlers, cls.globalValueHandlers)
     if customHandler
       # use the custom handler if available
       value = customHandler(value)
