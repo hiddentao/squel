@@ -95,7 +95,7 @@ test['Register global custom value handler'] =
 
   'handler should be function': ->
     class MyClass
-    assert.throws (-> squel.registerValueHandler MyClass, 1), 'type must be a class constructor'
+    assert.throws (-> squel.registerValueHandler MyClass, 1), 'handler must be a function'
 
   'overrides existing handler': ->
     handler = -> 'test'
@@ -170,7 +170,7 @@ test['Builder base class'] =
 
     'handler should be function': ->
       class MyClass
-      assert.throws (=> @inst.registerValueHandler MyClass, 1), 'type must be a class constructor'
+      assert.throws (=> @inst.registerValueHandler MyClass, 1), 'handler must be a function'
 
     'overrides existing handler': ->
       handler = -> 'test'
