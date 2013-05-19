@@ -91,11 +91,11 @@ test['Register global custom value handler'] =
     assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[1]
 
   'type should be class constructor': ->
-    assert.throws (-> squel.registerValueHandler 1, null), 'Error: type must be a class constructor'
+    assert.throws (-> squel.registerValueHandler 1, null), 'type must be a class constructor'
 
   'handler should be function': ->
     class MyClass
-    assert.throws (-> squel.registerValueHandler MyClass, 1), 'Error: type must be a class constructor'
+    assert.throws (-> squel.registerValueHandler MyClass, 1), 'type must be a class constructor'
 
   'overrides existing handler': ->
     handler = -> 'test'
@@ -166,11 +166,11 @@ test['Builder base class'] =
       assert.same { type: Object, handler: handler }, @inst.options.valueHandlers[1]
 
     'type should be class constructor': ->
-      assert.throws (=> @inst.registerValueHandler 1, null), 'Error: type must be a class constructor'
+      assert.throws (=> @inst.registerValueHandler 1, null), 'type must be a class constructor'
 
     'handler should be function': ->
       class MyClass
-      assert.throws (=> @inst.registerValueHandler MyClass, 1), 'Error: type must be a class constructor'
+      assert.throws (=> @inst.registerValueHandler MyClass, 1), 'type must be a class constructor'
 
     'overrides existing handler': ->
       handler = -> 'test'
