@@ -72,7 +72,40 @@ test['Default query builder options'] =
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
       usingValuePlaceholders: false
+      valueHandlers: []
     }, squel.cls.DefaultQueryBuilderOptions
+
+
+
+test['Register global custom value handler'] =
+  'afterEach': ->
+    squel.cls.globalValueHandlers = []
+
+  'default': ->
+    handler = -> 'test'
+    squel.registerValueHandler(Date, handler)
+    squel.registerValueHandler(Object, handler)
+
+    assert.same 2, squel.cls.globalValueHandlers.length
+    assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[0]
+    assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[1]
+
+  'type should be class constructor': ->
+    assert.throws (-> squel.registerValueHandler 1, null), 'type must be a class constructor'
+
+  'handler should be function': ->
+    class MyClass
+    assert.throws (-> squel.registerValueHandler MyClass, 1), 'handler must be a function'
+
+  'overrides existing handler': ->
+    handler = -> 'test'
+    handler2 = -> 'test2'
+    squel.registerValueHandler(Date, handler)
+    squel.registerValueHandler(Date, handler2)
+
+    assert.same 1, squel.cls.globalValueHandlers.length
+    assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
+
 
 
 
@@ -93,13 +126,15 @@ test['Builder base class'] =
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true
-        dummy3: true
+        dummy3: true,
+        globalValueHandlers: [1]
 
       expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true
         dummy3: true
+        globalValueHandlers: [1]
 
       assert.same expectedOptions, @inst.options
 
@@ -116,6 +151,44 @@ test['Builder base class'] =
     assert.same @inst._getObjectClassName('a string'), 'String'
     assert.same @inst._getObjectClassName(new Object), 'Object'
     assert.same @inst._getObjectClassName(new Error), 'Error'
+
+  'registerValueHandler':
+    'afterEach': ->
+      squel.cls.globalValueHandlers = []
+
+    'default': ->
+      handler = -> 'test'
+      @inst.registerValueHandler(Date, handler)
+      @inst.registerValueHandler(Object, handler)
+
+      assert.same 2, @inst.options.valueHandlers.length
+      assert.same { type: Date, handler: handler }, @inst.options.valueHandlers[0]
+      assert.same { type: Object, handler: handler }, @inst.options.valueHandlers[1]
+
+    'type should be class constructor': ->
+      assert.throws (=> @inst.registerValueHandler 1, null), 'type must be a class constructor'
+
+    'handler should be function': ->
+      class MyClass
+      assert.throws (=> @inst.registerValueHandler MyClass, 1), 'handler must be a function'
+
+    'overrides existing handler': ->
+      handler = -> 'test'
+      handler2 = -> 'test2'
+      @inst.registerValueHandler(Date, handler)
+      @inst.registerValueHandler(Date, handler2)
+
+      assert.same 1, @inst.options.valueHandlers.length
+      assert.same { type: Date, handler: handler2 }, @inst.options.valueHandlers[0]
+
+    'does not touch global value handlers list': ->
+      oldGlobalHandlers = squel.cls.globalValueHandlers
+
+      handler = -> 'test'
+      @inst.registerValueHandler(Date, handler)
+
+      assert.same oldGlobalHandlers, squel.cls.globalValueHandlers
+
 
   '_sanitizeCondition':
     beforeEach: ->
@@ -291,9 +364,14 @@ test['Builder base class'] =
     'number < 0': ->
       assert.throws (=> @inst._sanitizeLimitOffset(-1)), 'limit/offset must be >= 0'
 
+
+
   '_sanitizeValue':
     beforeEach: ->
       test.mocker.spy @inst, '_sanitizeValue'
+
+    afterEach: ->
+      squel.cls.globalValueHandlers = []
 
     'if string': ->
       assert.same 'bla', @inst._sanitizeValue('bla')
@@ -312,16 +390,27 @@ test['Builder base class'] =
       assert.same 1.2, @inst._sanitizeValue(1.2)
 
     'if array': ->
-      assert.throws (=> @inst._sanitizeValue([1])), 'field value must be a string, number, boolean or null'
+      assert.throws (=> @inst._sanitizeValue([1])), 'field value must be a string, number, boolean, null or one of the registered custom value types'
 
     'if object': ->
-      assert.throws (=> @inst._sanitizeValue(new Object)), 'field value must be a string, number, boolean or null'
+      assert.throws (=> @inst._sanitizeValue(new Object)), 'field value must be a string, number, boolean, null or one of the registered custom value types'
 
     'if null': ->
       assert.same null, @inst._sanitizeValue(null)
 
     'if undefined': ->
-      assert.throws (=> @inst._sanitizeValue(undefined)), 'field value must be a string, number, boolean or null'
+      assert.throws (=> @inst._sanitizeValue(undefined)), 'field value must be a string, number, boolean, null or one of the registered custom value types'
+
+    'custom handlers':
+      'global': ->
+        squel.registerValueHandler(Date, _.identity)
+        date = new Date
+        assert.same date, @inst._sanitizeValue(date)
+
+      'instance': ->
+        @inst.registerValueHandler(Date, _.identity)
+        date = new Date
+        assert.same date, @inst._sanitizeValue(date)
 
 
   '_formatValue':
@@ -347,7 +436,32 @@ test['Builder base class'] =
       @inst.options.usingValuePlaceholders = true
       assert.same "test", @inst._formatValue('test')
 
+    'custom handlers':
+      'global': ->
+        class MyClass
+        myObj = new MyClass
 
+        squel.registerValueHandler MyClass, () -> 3.14
+
+        assert.same 3.14, @inst._formatValue(myObj)
+
+      'instance': ->
+        class MyClass
+        myObj = new MyClass
+
+        @inst.registerValueHandler MyClass, () -> 3.14
+
+        assert.same 3.14, @inst._formatValue(myObj)
+
+      'instance handler takes precedence over global': ->
+        @inst.registerValueHandler Date, (d) -> 'hello'
+        squel.registerValueHandler Date, (d) -> 'goodbye'
+
+        assert.same "'hello'", @inst._formatValue(new Date)
+
+        @inst = new @cls
+          valueHandlers: []
+        assert.same "'goodbye'", @inst._formatValue(new Date)
 
 
 
