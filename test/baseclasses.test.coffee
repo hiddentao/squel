@@ -275,7 +275,14 @@ test['Builder base class'] =
 
       assert.same 'abc', @inst._sanitizeTable('abc')
 
-      assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table name'
+      select = squel.select()
+      assert.same select, @inst._sanitizeTable(select)
+
+      invalid = {}
+      assert.throws (=> @inst._sanitizeTable(invalid)), 'table must be a string or a nestable object'
+
+      assert.same 'xyz', @inst._sanitizeTable('xyz', false)
+      assert.ok @inst._sanitizeName.calledWithExactly 'xyz', 'table name'
 
     'auto quote names':
       beforeEach: ->

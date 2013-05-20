@@ -68,53 +68,53 @@ test['UPDATE builder'] =
     '>> table(table, t1).set(field, 1)':
       beforeEach: -> @inst.table('table', 't1').set('field', 1)
       toString: ->
-        assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1'
+        assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1'
 
       '>> set(field2, 1.2)':
         beforeEach: -> @inst.set('field2', 1.2)
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = 1.2'
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = 1.2'
 
       '>> set(field2, true)':
         beforeEach: -> @inst.set('field2', true)
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = TRUE'
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = TRUE'
 
       '>> set(field2, "str")':
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = \'str\''
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = \'str\''
 
         'and when using value placeholders': ->
           @inst.updateOptions
             usingValuePlaceholders: true
           @inst.set('field2', '?')
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = ?'
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = ?'
 
       '>> set(field2, null)':
         beforeEach: -> @inst.set('field2', null)
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table AS `t1` SET field = 1, field2 = NULL'
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = NULL'
 
         '>> table(table2)':
           beforeEach: -> @inst.table('table2')
           toString: ->
-            assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL'
+            assert.same @inst.toString(), 'UPDATE table `t1`, table2 SET field = 1, field2 = NULL'
 
           '>> where(a = 1)':
             beforeEach: -> @inst.where('a = 1')
             toString: ->
-              assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1)'
+              assert.same @inst.toString(), 'UPDATE table `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1)'
 
             '>> order(a, true)':
               beforeEach: -> @inst.order('a', true)
               toString: ->
-                assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC'
+                assert.same @inst.toString(), 'UPDATE table `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC'
 
               '>> limit(2)':
                 beforeEach: -> @inst.limit(2)
                 toString: ->
-                  assert.same @inst.toString(), 'UPDATE table AS `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC LIMIT 2'
+                  assert.same @inst.toString(), 'UPDATE table `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
 
   'cloning': ->

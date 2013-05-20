@@ -162,8 +162,18 @@ class cls.BaseBuilder extends cls.Cloneable
     else
       sanitized
 
-  _sanitizeTable: (item) ->
-    sanitized = @_sanitizeName item, "table name"
+  _sanitizeTable: (item, allowNested = true) ->
+    if allowNested
+      if "string" is typeof item
+        sanitized = item
+      else if item instanceof cls.QueryBuilder and item.isNestable()
+        # allow nested queries
+        return item
+      else
+        throw new Error "table must be a string or a nestable object"
+    else
+      sanitized = @_sanitizeName item, 'table name'
+
 
     if @options.autoQuoteTableNames
       "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
@@ -413,14 +423,16 @@ class cls.AbstractTableBlock extends cls.Block
   #
   # Concrete subclasses should provide a method which calls this
   _table: (table, alias = null) ->
-    table = @_sanitizeTable(table)
     alias = @_sanitizeTableAlias(alias) if alias
+    # do not allow nested table if instance only accepts a single table
+    allowNested = not @options.singleTable
+    table = @_sanitizeTable(table, allowNested)
 
     if @options.singleTable
       @tables = []
 
     @tables.push
-      name: table
+      table: table
       alias: alias
 
   buildStr: (queryBuilder) ->
@@ -429,8 +441,15 @@ class cls.AbstractTableBlock extends cls.Block
     tables = ""
     for table in @tables
       tables += ", " if "" isnt tables
-      tables += table.name
-      tables += " AS #{table.alias}" if table.alias
+      if "string" is typeof table.table
+        tables += table.table
+      else
+        # building a nested query
+        tables += "(#{table.table})"
+
+      if table.alias
+        # add the table alias, the AS keyword is optional
+        tables += " #{table.alias}"
 
     tables
 
@@ -450,14 +469,9 @@ class cls.FromTableBlock extends cls.AbstractTableBlock
   buildStr: (queryBuilder) ->
     if 0 >= @tables.length then throw new Error "from() needs to be called"
 
-    tables = ""
-    for table in @tables
-      tables += ", " if "" isnt tables
-      tables += table.name
-      tables += " #{table.alias}" if table.alias
+    tables = super queryBuilder
 
     "FROM #{tables}"
-
 
 
 
@@ -469,7 +483,8 @@ class cls.IntoTableBlock extends cls.Block
 
   # Into given table.
   into: (table) ->
-    @table = @_sanitizeTable(table)
+    # do not allow nested table to be the target
+    @table = @_sanitizeTable(table, false)
 
   buildStr: (queryBuilder) ->
     if not @table then throw new Error "into() needs to be called"
@@ -741,7 +756,11 @@ class cls.JoinBlock extends cls.Block
 
     for j in (@joins or [])
       if joins isnt "" then joins += " "
-      joins += "#{j.type} JOIN #{j.table}"
+      joins += "#{j.type} JOIN "
+      if "string" is typeof j.table
+        joins += j.table
+      else
+        joins += "(#{j.table})"
       joins += " #{j.alias}" if j.alias
       joins += " ON (#{j.condition})" if j.condition
 
@@ -811,9 +830,9 @@ class cls.QueryBuilder extends cls.BaseBuilder
   clone: ->
     new @constructor @options, (block.clone() for block in @blocks)
 
-
-
-
+  # Determine whether the builder is nestable
+  isNestable: ->
+    false
 
 
 
@@ -836,6 +855,10 @@ class cls.Select extends cls.QueryBuilder
       ]
 
       super options, blocks
+
+    isNestable: ->
+      true
+
 
 
 
