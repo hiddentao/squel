@@ -360,19 +360,19 @@
                     .from("students")
                     .where("name = ? and age > ?", 'Thomas', 18)
             );
-            /*  SELECT id FROM students WHERE (name = 'Thomas' and age = 18)  */
+            /*  SELECT id FROM students WHERE (name = 'Thomas' and age > 18)  */
         </pre>
 
-        <p>Array values can be used to create in clauses:</p>
+        <p>Array values can be used to create <code>IN</code> clauses:</p>
 
         <pre class="brush: js">
             alert(
                 squel.select()
                     .field("id")
                     .from("students")
-                    .where("age in ?", [18, 19, 20])
+                    .where("age IN ?", [18, 19, 20])
             );
-            /*  SELECT id FROM students WHERE (age in (18, 19, 20))  */
+            /*  SELECT id FROM students WHERE (age IN (18, 19, 20))  */
         </pre>
 
         <p>Multiple filters are automatically combined using <code>AND</code>:</p>
