@@ -9,12 +9,12 @@
     <meta name="keywords" content="sql,javascript,nodejs,orm,mysql,github,vowsjs,coffeescript" />
     <meta name="description" content="Squel is a compact, lightweight Javascript library for building SQL query strings, usable with node.js or in the browser." />
 
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; minimum-scale=1; maximum-scale=1.0; user-scalable=0;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-    <link href='http://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/shCoreRDark.css" />
     <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/screen.css" />
     <link rel="stylesheet" type="text/css" media="print" href="public/css/print.css" />
@@ -349,6 +349,30 @@
                     .where("name = 'Thomas'")
             );
             /*  SELECT id FROM students WHERE (name = 'Thomas')  */
+        </pre>
+
+        <p><code>WHERE</code> clauses support parameter substitutions:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = ? and age > ?", 'Thomas', 18)
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas' and age = 18)  */
+        </pre>
+
+        <p>Array values can be used to create in clauses:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("age in ?", [18, 19, 20])
+            );
+            /*  SELECT id FROM students WHERE (age in (18, 19, 20))  */
         </pre>
 
         <p>Multiple filters are automatically combined using <code>AND</code>:</p>
@@ -1034,7 +1058,7 @@
     </footer>
 
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://raw.github.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
     <script type="text/javascript" src="public/js/shCore.js"></script>
     <script type="text/javascript" src="public/js/shBrushBash.js"></script>
     <script type="text/javascript" src="public/js/shBrushXml.js"></script>
