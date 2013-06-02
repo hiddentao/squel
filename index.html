@@ -48,8 +48,9 @@
                         <li><a href="#delete" title="DELETE queries">DELETE</a></li>
                         <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
                         <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
+                        <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
+                        <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
                         <li><a href="#cloning" title="Cloning">Cloning</a></li>
-                        <li><a href="#custom" title="Custom queries">Custom queries</a></li>
                     </ul>
                 </li>
                 <li><a href="#tests" title="Running the tests">Tests</a></li>
@@ -580,6 +581,8 @@
             /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
         </pre>
 
+        <p><em>Hint: Squel can also be configured to handle <code>Object</code> instances by <a href="#custom_types">registering custom value types</a></em>.</p>
+
         <p>You can use the <code>usingValuePlaceholders</code> option to stop Squel from automatically placing string
             field values within quotes. This is useful if, for example, you're using parameterized queries:</p>
 
@@ -869,47 +872,102 @@
 
     </section>
 
-    <section id="cloning">
-      <a name="cloning" href="#cloning"><h2>Cloning</h2></a>
+    <section id="custom_types">
+      <a name="custom_types" href="#custom_types"><h2>Custom value types</h2></a>
 
-      <p>You can create a copy of a query builder instance using its <code>clone()</code> method. For example:</p>
+      <p>Sometimes you might want to pass in <code>Object</code> instances as field values. For instance, let's say
+      you are updating a <code>DateTime</code> field. You could do the following:</p>
 
       <pre class="brush: js">
-          var select1 = squel.select().from('students');
+            var myDate = new Date(2012, 4, 22),
+                myDate2 = new Date(2013, 5, 30);
 
-          var select2 = select1.clone().field('id').where('name = "david"');
-
-          alert( select1 );
-
-          /* SELECT * FROM students */
-
-          alert( select2 );
-
-          /* SELECT id FROM students WHERE (name = "david") */
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("start_date", myDate.getFullYear() + '-' + myDate.getMonth() + '-' + myDate.getDate())
+                    .set("end_date", myDate2.getFullYear() + '-' + myDate2.getMonth() + '-' + myDate2.getDate())
+            );
+            /*  UPDATE students SET start_date = '2012-4-22', end_date = '2013-5-30' */
       </pre>
 
-      <p>Here is an example using an <code>INSERT</code> builder:</p>
+      <p>Functional but no so elegant. A better approach is to register the <code>Date</code> object type
+        with Squel as a custom value type. We will need to supply a handler function which will get called whenever an
+        object of type <code>Date</code> is encountered:</p>
 
       <pre class="brush: js">
-          var ins = squel.insert().into('students').set('name', 'David');
+            var myDate = new Date(2012, 4, 22),
+                myDate2 = new Date(2013, 5, 30);
 
-          var insMathew = ins.clone().set('name', 'Mathew');
+            /* Tell Squel how to handle Date objects */
+            squel.registerValueHandler(Date, function(date) {
+              return date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
+            });
 
-          var insMark = insMathew.clone().set('name', 'Mark');
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("start_date", myDate)
+                    .set("end_date", myDate2)
+            );
+            /*  UPDATE students SET start_date = '2012-4-22', end_date = '2013-5-30' */
+      </pre>
 
-          alert( insMathew );
+      <p>We can register any type of object as a custom value type, not just <code>Date</code>. Squel checks to see if
+        the runtime type of a passed-in value matches one of the registered value types - meaning that sub-types are automatically
+        supported.</p>
 
-          /* INSERT INTO students (name) VALUES('Mathew') */
+      <pre class="brush: js">
+            /* OOP Inheritance mechanism (substitute your own favourite library for this!) */
+            Function.prototype.inheritsFrom = function( parentClassOrObject ) {
+              this.prototype = new parentClassOrObject;
+              this.prototype.constructor = this;
+              this.prototype.parent = parentClassOrObject.prototype;
+            };
 
-          alert( insMark );
+            /* Base type */
+            var ClassA = function() { this.a = 1; };
 
-          /* INSERT INTO students (name) VALUES('Mark') */
+            /* Sub-type */
+            var ClassB = function() { this.a = 2; };
+            ClassB.inheritsFrom(ClassA);
+
+            /* Register base type */
+            squel.registerValueHandler(ClassA, function(obj) {
+              return obj.a;
+            });
+
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("value", new ClassB())
+            );
+            /*  UPDATE students SET value = 2 */
+      </pre>
+
+      <p>And finally, we can even override the registered handler for a value type on a per-instance basis.</p>
+
+      <pre class="brush: js">
+            /* Global handler */
+            squel.registerValueHandler(Date, function(date) {
+              return date.getFullYear();
+            });
+
+            alert(
+              squel.update()
+                .registerValueHandler(Date, function(date) {
+                  return '[' + date.getFullYear() + ']';
+                })
+                .table('students')
+                .set('value', new Date(2013,5,1))
+            );
+            /*  UPDATE students SET value = '[2013]' */
       </pre>
 
     </section>
 
-    <section id="custom">
-      <a name="custom" href="#custom"><h2>Custom queries</h2></a>
+    <section id="custom_queries">
+      <a name="custom_queries" href="#custom_queries"><h2>Custom queries</h2></a>
 
       <p>You can customize Squel's query building mechanism quite easily. For instance, if you wanted to add
         <code>OFFSET</code> clauses to <code>UPDATE</code> queries you could do it as such:</p>
@@ -1024,11 +1082,50 @@
 
     </section>
 
+    <section id="cloning">
+      <a name="cloning" href="#cloning"><h2>Cloning</h2></a>
+
+      <p>You can create a copy of a query builder instance using its <code>clone()</code> method. For example:</p>
+
+      <pre class="brush: js">
+          var select1 = squel.select().from('students');
+
+          var select2 = select1.clone().field('id').where('name = "david"');
+
+          alert( select1 );
+
+          /* SELECT * FROM students */
+
+          alert( select2 );
+
+          /* SELECT id FROM students WHERE (name = "david") */
+      </pre>
+
+      <p>Here is an example using an <code>INSERT</code> builder:</p>
+
+      <pre class="brush: js">
+          var ins = squel.insert().into('students').set('name', 'David');
+
+          var insMathew = ins.clone().set('name', 'Mathew');
+
+          var insMark = insMathew.clone().set('name', 'Mark');
+
+          alert( insMathew );
+
+          /* INSERT INTO students (name) VALUES('Mathew') */
+
+          alert( insMark );
+
+          /* INSERT INTO students (name) VALUES('Mark') */
+      </pre>
+
+    </section>
+
     <section id="tests" class="white_text">
         <a name="tests" href="#tests"><h2>Tests</h2></a>
 
         <p>
-            Tests are written as <a href="http://vowsjs.org/">vows</a> and can be found in the <code>test/</code> folder when you checkout the
+            Tests are written in <a href="http://visionmedia.github.io/mocha/">mocha</a> and can be found in the <code>test/</code> folder when you checkout the
             <a href="https://github.com/hiddentao/squel">source code</a>.
             To run them do the following:
         </p>
@@ -1036,12 +1133,6 @@
         <pre class="brush: shell">
             $ npm install
             $ make test
-        </pre>
-
-        <p>If the tests pass you should see something like this:</p>
-
-        <pre class="brush: shell">
-                &#10003; OK &raquo; 320 honored (0.236s)
         </pre>
 
         <p>
