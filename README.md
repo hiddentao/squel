@@ -11,7 +11,7 @@ A flexible and powerful SQL query string builder for Javascript.
 * Can be customized to support non-standard queries.
 * Uses method chaining for ease of use.
 * Well tested (~240 tests).
-* Small: ~3.6 KB minified and gzipped
+* Small: ~4 KB minified and gzipped
 
 ## Installation
 
@@ -111,7 +111,7 @@ Before running the examples ensure you have `squel` installed and enabled at the
     // DELETE FROM table1 WHERE (table1.id = 2) ORDER BY id DESC LIMIT 2
     squel.delete()
         .from("table1")
-        .where("table1.id = 2")
+        .where("table1.id = ?", 2)
         .order("id", false)
         .limit(2)
 
@@ -145,6 +145,26 @@ There is also an expression builder which allows you to build complex expression
     squel.select()
         .join( "test2", null, squel.expr().and("test.id = test2.id") )
         .where( squel.expr().or("test = 3").or("test = 4") )
+
+**Custom value types**
+
+By default Squel does not support the use of object instances as field values. Instead it lets you tell it how you want
+specific object types to be handled:
+
+    // handler for objects of type Date
+    squel.registerValueHandler(Date, function(date) {
+      return date.getFullYear() + '/' + date.getMonth() + '/' + date.getDate();
+    });
+
+    squel.update().
+      .table('students')
+      .set('start_date', new Date(2013, 5, 1))
+      .toString()
+
+    // UPDATE students SET start_date = '2013/5/1'
+
+
+_Note that custom value handlers can be overridden on a per-instance basis (see the [docs](http://squeljs.org/))_
 
 **Custom queries**
 
