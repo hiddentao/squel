@@ -784,6 +784,15 @@ class cls.QueryBuilder extends cls.BaseBuilder
         )(block, methodName, methodBody)
 
 
+  # Register a custom value handler for this query builder and all its contained blocks.
+  #
+  # Note: This will override any globally registered handler for this value type.
+  registerValueHandler: (type, handler) ->
+    for block in @blocks
+      block.registerValueHandler type, handler
+    super type, handler
+    @
+
   # Update query builder options
   #
   # This will update the options for all blocks too. Use this method with caution as it allows you to change the

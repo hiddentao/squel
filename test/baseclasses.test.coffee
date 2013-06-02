@@ -172,6 +172,10 @@ test['Builder base class'] =
       class MyClass
       assert.throws (=> @inst.registerValueHandler MyClass, 1), 'handler must be a function'
 
+    'returns instance for chainability': ->
+      handler = -> 'test'
+      assert.same @inst, @inst.registerValueHandler(Date, handler)
+
     'overrides existing handler': ->
       handler = -> 'test'
       handler2 = -> 'test2'
@@ -606,6 +610,36 @@ test['QueryBuilder base class'] =
       @inst.blocks[0].str = 'TEST2'
 
       assert.same 'TEST', newinst.blocks[0].buildStr()
+
+  'registerValueHandler':
+    'afterEach': ->
+      squel.cls.globalValueHandlers = []
+
+    'calls through to base class method': ->
+      baseBuilderSpy = test.mocker.spy(squel.cls.BaseBuilder.prototype, 'registerValueHandler')
+
+      handler = -> 'test'
+      @inst.registerValueHandler(Date, handler)
+
+      assert.ok baseBuilderSpy.calledOnce
+      assert.ok baseBuilderSpy.calledOn(@inst)
+
+    'returns instance for chainability': ->
+      handler = -> 'test'
+      assert.same @inst, @inst.registerValueHandler(Date, handler)
+
+    'calls through to blocks': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, ''),
+      ]
+
+      baseBuilderSpy = test.mocker.spy(@inst.blocks[0], 'registerValueHandler')
+
+      handler = -> 'test'
+      @inst.registerValueHandler(Date, handler)
+
+      assert.ok baseBuilderSpy.calledOnce
+      assert.ok baseBuilderSpy.calledOn(@inst.blocks[0])
 
 
 
