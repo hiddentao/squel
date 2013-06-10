@@ -133,15 +133,15 @@ test['Blocks'] =
 
         expectedFroms = [
           {
-            name: 'table1',
+            table: 'table1',
             alias: null
           },
           {
-            name: 'table2',
+            table: 'table2',
             alias: '`alias2`'
           },
           {
-            name: 'table3',
+            table: 'table3',
             alias: null
           }
         ]
@@ -154,10 +154,10 @@ test['Blocks'] =
 
         @inst.from('table', 'alias')
 
-        assert.ok sanitizeTableSpy.calledWithExactly 'table'
+        assert.ok sanitizeTableSpy.calledWithExactly 'table', true
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias'
 
-        assert.same [ { name: '_t', alias: '_a' }], @inst.tables
+        assert.same [ { table: '_t', alias: '_a' }], @inst.tables
 
 
       'handles single-table mode': ->
@@ -169,12 +169,40 @@ test['Blocks'] =
 
         expectedFroms = [
           {
-            name: 'table3',
+            table: 'table3',
             alias: null
           }
         ]
 
         assert.same expectedFroms, @inst.tables
+
+        try
+          @inst.from(squel.select())
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: table name must be a string', err.toString()
+
+
+      'handles nested table': ->
+        innerTable1 = squel.select()
+        innerTable2 = squel.select()
+
+        @inst.from(innerTable1)
+        @inst.from(innerTable2, 'Inner2')
+
+        expectedFroms = [
+          {
+            alias: null
+            table: innerTable1
+          }
+          {
+            alias: '`Inner2`'
+            table: innerTable2
+          }
+        ]
+
+
+
 
 
     'buildStr()':
@@ -192,7 +220,22 @@ test['Blocks'] =
 
         assert.same 'FROM table1, table2 `alias2`, table3', @inst.buildStr()
 
+      'handles nested table': ->
+        innerTable1 = squel.select().from('inner1')
+        innerTable2 = squel.select().from('inner2')
 
+        @inst.from(innerTable1)
+        @inst.from(innerTable2, 'inner2')
+
+        assert.same 'FROM (SELECT * FROM inner1), (SELECT * FROM inner2) `inner2`', @inst.buildStr()
+
+      'handles deeply nested tables': ->
+        innermost = squel.select().from('innermost')
+        inner = squel.select().from(innermost, 'innermost')
+
+        @inst.from(inner, 'inner')
+
+        assert.same 'FROM (SELECT * FROM (SELECT * FROM innermost) `innermost`) `inner`', @inst.buildStr()
 
 
   'UpdateTableBlock':
@@ -223,15 +266,15 @@ test['Blocks'] =
 
         expected = [
           {
-          name: 'table1',
+          table: 'table1',
           alias: null
           },
           {
-          name: 'table2',
+          table: 'table2',
           alias: '`alias2`'
           },
           {
-          name: 'table3',
+          table: 'table3',
           alias: null
           }
         ]
@@ -244,10 +287,10 @@ test['Blocks'] =
 
         @inst.table('table', 'alias')
 
-        assert.ok sanitizeTableSpy.calledWithExactly 'table'
+        assert.ok sanitizeTableSpy.calledWithExactly 'table', true
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias'
 
-        assert.same [ { name: '_t', alias: '_a' }], @inst.tables
+        assert.same [ { table: '_t', alias: '_a' }], @inst.tables
 
     'buildStr()':
       'requires at least one table to have been provided': ->
@@ -262,7 +305,7 @@ test['Blocks'] =
         @inst.table('table2', 'alias2')
         @inst.table('table3')
 
-        assert.same 'table1, table2 AS `alias2`, table3', @inst.buildStr()
+        assert.same 'table1, table2 `alias2`, table3', @inst.buildStr()
 
 
 
@@ -300,7 +343,7 @@ test['Blocks'] =
 
         @inst.into('table')
 
-        assert.ok sanitizeTableSpy.calledWithExactly 'table'
+        assert.ok sanitizeTableSpy.calledWithExactly 'table', false
 
         assert.same '_t', @inst.table
 
@@ -923,6 +966,45 @@ test['Blocks'] =
 
         assert.same expected, @inst.joins
 
+      'nested query': ->
+        inner1 = squel.select()
+        inner2 = squel.select()
+        inner3 = squel.select()
+        inner4 = squel.select()
+        @inst.join(inner1)
+        @inst.join(inner2, null, 'b = 1', 'LEFT')
+        @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
+        @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
+
+        expected = [
+          {
+            type: 'INNER',
+            table: inner1,
+            alias: null,
+            condition: null
+          },
+          {
+            type: 'LEFT',
+            table: inner2,
+            alias: null,
+            condition: 'b = 1'
+          },
+          {
+            type: 'RIGHT',
+            table: inner3,
+            alias: '`alias3`',
+            condition: 'c = 1'
+          },
+          {
+            type: 'OUTER',
+            table: inner4,
+            alias: '`alias4`',
+            condition: 'd = 1'
+          }
+        ]
+
+        assert.same expected, @inst.joins
+
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
         sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
@@ -967,6 +1049,17 @@ test['Blocks'] =
         @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
 
         assert.same 'INNER JOIN table1 LEFT JOIN table2 ON (b = 1) RIGHT JOIN table3 `alias3` ON (c = 1)', @inst.buildStr()
+
+      'output JOINs with nested query': ->
+        inner1 = squel.select().from('1')
+        inner2 = squel.select().from('2')
+        inner3 = squel.select().from('3')
+
+        @inst.join(inner1)
+        @inst.join(inner2, null, 'b = 1', 'LEFT')
+        @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
+
+        assert.same 'INNER JOIN (SELECT * FROM 1) LEFT JOIN (SELECT * FROM 2) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1)', @inst.buildStr()
 
 
 
