@@ -233,6 +233,19 @@
             /* SELECT * FROM students, lecturers `l`, admins */
         </pre>
 
+        <h3>Sub-queries as tables</h3>
+
+        <p>Instead of explicitly naming tables you can use SQL sub-queries as such:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from( squel.select().from('students'), 's' )
+                    .field('s.id')
+            );
+            /*  SELECT s.id FROM (SELECT * FROM students) `s` */
+        </pre>
+
         <h3>Fields</h3>
 
         <p>You can specify field names on their own or by the table they belong to:</p>
@@ -337,6 +350,17 @@
         </pre>
 
         <p><em>For an optional parameter such as an alias name, passing <code>null</code> is the same as omitting it.</em></p>
+
+        <p>You can also specify sub-queries in joins:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from('marks', 'm')
+                    .join( squel.select().from('students'), 's', 's.id = m.id' )
+            );
+            /*  SELECT * FROM marks `m` INNER JOIN (SELECT * FROM students) `s` ON (s.id = m.id) */
+        </pre>
 
         <h3>Filtering</h3>
 
