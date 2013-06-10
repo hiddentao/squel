@@ -56,7 +56,6 @@ test['DELETE builder'] =
       @inst = @func {}, [block]
       assert.same [block], @inst.blocks
 
-
   'build query':
     'need to call from() first': ->
       assert.throws (=> @inst.toString()), 'from() needs to be called'
@@ -97,6 +96,9 @@ test['DELETE builder'] =
 
     assert.same 'DELETE FROM students LIMIT 10', @inst.toString()
     assert.same 'DELETE FROM students LIMIT 20', newinst.toString()
+
+  'is nestable': ->
+    assert.same false, @inst.isNestable()
 
 
 module?.exports[require('path').basename(__filename)] = test

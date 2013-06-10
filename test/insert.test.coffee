@@ -103,5 +103,8 @@ test['INSERT builder'] =
     assert.same 'INSERT INTO students (field) VALUES (1)', @inst.toString()
     assert.same 'INSERT INTO students (field, field2) VALUES (2, TRUE)', newinst.toString()
 
+  'is nestable': ->
+    assert.same false, @inst.isNestable()
+
 
 module?.exports[require('path').basename(__filename)] = test

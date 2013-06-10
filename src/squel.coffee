@@ -162,7 +162,7 @@ class cls.BaseBuilder extends cls.Cloneable
     else
       sanitized
 
-  _sanitizeTable: (item, allowNested = true) ->
+  _sanitizeTable: (item, allowNested = false) ->
     if allowNested
       if "string" is typeof item
         sanitized = item
@@ -170,7 +170,7 @@ class cls.BaseBuilder extends cls.Cloneable
         # allow nested queries
         return item
       else
-        throw new Error "table must be a string or a nestable object"
+        throw new Error "table name must be a string or a nestable query instance"
     else
       sanitized = @_sanitizeName item, 'table name'
 
@@ -411,7 +411,8 @@ class cls.StringBlock extends cls.Block
 # Table specifier base class
 #
 # Additional options
-#  - singleTable - only allow one table to be specified
+#  - singleTable - only allow one table to be specified  (default: false)
+#  - allowNested - allow nested query to be specified as a table    (default: false)
 class cls.AbstractTableBlock extends cls.Block
   constructor: (options) ->
     super options
@@ -424,9 +425,7 @@ class cls.AbstractTableBlock extends cls.Block
   # Concrete subclasses should provide a method which calls this
   _table: (table, alias = null) ->
     alias = @_sanitizeTableAlias(alias) if alias
-    # do not allow nested table if instance only accepts a single table
-    allowNested = not @options.singleTable
-    table = @_sanitizeTable(table, allowNested)
+    table = @_sanitizeTable(table, @options.allowNested or false)
 
     if @options.singleTable
       @tables = []
@@ -436,7 +435,7 @@ class cls.AbstractTableBlock extends cls.Block
       alias: alias
 
   buildStr: (queryBuilder) ->
-    if 0 >= @tables.length then throw new Error "table() needs to be called"
+    if 0 >= @tables.length then throw new Error "_table() needs to be called"
 
     tables = ""
     for table in @tables
@@ -724,7 +723,7 @@ class cls.JoinBlock extends cls.Block
   # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
   #
   join: (table, alias = null, condition = null, type = 'INNER') ->
-    table = @_sanitizeTable(table)
+    table = @_sanitizeTable(table, true)
     alias = @_sanitizeTableAlias(alias) if alias
     condition = @_sanitizeCondition(condition) if condition
 
@@ -830,7 +829,7 @@ class cls.QueryBuilder extends cls.BaseBuilder
   clone: ->
     new @constructor @options, (block.clone() for block in @blocks)
 
-  # Determine whether the builder is nestable
+  # Get whether queries built with this builder can be nested within other queries
   isNestable: ->
     false
 
@@ -845,8 +844,8 @@ class cls.Select extends cls.QueryBuilder
         new cls.StringBlock(options, 'SELECT'),
         new cls.DistinctBlock(options),
         new cls.GetFieldBlock(options),
-        new cls.FromTableBlock(options),
-        new cls.JoinBlock(options),
+        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
+        new cls.JoinBlock(_extend({}, options, { allowNested: true })),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.OrderByBlock(options),

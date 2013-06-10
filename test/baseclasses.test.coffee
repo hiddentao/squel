@@ -270,19 +270,35 @@ test['Builder base class'] =
 
 
   '_sanitizeTable':
-    'default': ->
-      test.mocker.spy @inst, '_sanitizeName'
+    'nesting allowed':
+      'string': ->
+        assert.same 'abc', @inst._sanitizeTable('abc', true)
 
-      assert.same 'abc', @inst._sanitizeTable('abc')
+      'nestable query builder': ->
+        select = squel.select()
+        stub = test.mocker.stub select, 'isNestable', -> true
 
-      select = squel.select()
-      assert.same select, @inst._sanitizeTable(select)
+        assert.same select, @inst._sanitizeTable(select, true)
+        assert.ok stub.calledOnce
 
-      invalid = {}
-      assert.throws (=> @inst._sanitizeTable(invalid)), 'table must be a string or a nestable object'
+      'non-nestable query builder': ->
+        invalid = squel.select()
+        stub = test.mocker.stub invalid, 'isNestable', -> false
 
-      assert.same 'xyz', @inst._sanitizeTable('xyz', false)
-      assert.ok @inst._sanitizeName.calledWithExactly 'xyz', 'table name'
+        assert.throws (=> @inst._sanitizeTable(invalid, true)), 'table name must be a string or a nestable query instance'
+        assert.ok stub.calledOnce
+
+    'nesting not allowed': ->
+      'string': ->
+        test.mocker.spy @inst, '_sanitizeName'
+
+        assert.same 'abc', @inst._sanitizeTable('abc')
+
+        assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table name'
+
+      'nestable query builder': ->
+        select = squel.select()
+        assert.throws (=> @inst._sanitizeTable(select)), 'table name must be a string'
 
     'auto quote names':
       beforeEach: ->
@@ -648,6 +664,8 @@ test['QueryBuilder base class'] =
       assert.ok baseBuilderSpy.calledOnce
       assert.ok baseBuilderSpy.calledOn(@inst.blocks[0])
 
+  'is nestable': ->
+    assert.same false, @inst.isNestable()
 
 
 

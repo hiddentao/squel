@@ -124,5 +124,8 @@ test['UPDATE builder'] =
     assert.same 'UPDATE students SET field = 1', @inst.toString()
     assert.same 'UPDATE students SET field = 2, field2 = TRUE', newinst.toString()
 
+  'is nestable': ->
+    assert.same false, @inst.isNestable()
+
 
 module?.exports[require('path').basename(__filename)] = test

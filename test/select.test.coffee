@@ -49,7 +49,10 @@ test['SELECT builder'] =
         dummy: true
 
       for block in @inst.blocks
-        assert.same expectedOptions, block.options
+        if (block instanceof squel.cls.FromTableBlock) or (block instanceof squel.cls.JoinBlock)
+          assert.same _.extend({}, expectedOptions, { allowNested: true }), block.options
+        else
+          assert.same expectedOptions, block.options
 
     'override blocks': ->
       block = new squel.cls.StringBlock('SELECT')
@@ -105,12 +108,40 @@ test['SELECT builder'] =
                       toString: ->
                         assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2 OFFSET 3'
 
+    'nested queries':
+      'basic': ->
+        inner1 = squel.select().from('students')
+        inner2 = squel.select().from('scores')
+
+        @inst.from(inner1).from(inner2, 'scores')
+
+        assert.same @inst.toString(), "SELECT * FROM (SELECT * FROM students), (SELECT * FROM scores) `scores`"
+      'deep nesting': ->
+        inner1 = squel.select().from('students')
+        inner2 = squel.select().from(inner1)
+
+        @inst.from(inner2)
+
+        assert.same @inst.toString(), "SELECT * FROM (SELECT * FROM (SELECT * FROM students))"
+
+      'nesting in JOINs': ->
+        inner1 = squel.select().from('students')
+        inner2 = squel.select().from(inner1)
+
+        @inst.from('schools').join(inner2, 'meh', 'meh.ID = ID')
+
+        assert.same @inst.toString(), "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students)) `meh` ON (meh.ID = ID)"
+
+
   'cloning': ->
     newinst = @inst.from('students').limit(10).clone()
     newinst.limit(20)
 
     assert.same 'SELECT * FROM students LIMIT 10', @inst.toString()
     assert.same 'SELECT * FROM students LIMIT 20', newinst.toString()
+
+  'is nestable': ->
+    assert.same true, @inst.isNestable()
 
 
 module?.exports[require('path').basename(__filename)] = test

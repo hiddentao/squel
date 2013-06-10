@@ -104,10 +104,9 @@ test['Blocks'] =
         assert.same 'TAG', @inst.buildStr()
 
 
-
-  'FromTableBlock':
+  'AbstractTableBlock':
     beforeEach: ->
-      @cls = squel.cls.FromTableBlock
+      @cls = squel.cls.AbstractTableBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
@@ -125,146 +124,13 @@ test['Blocks'] =
     'initial field values': ->
       assert.same [], @inst.tables
 
-    'from()':
+    '_table()':
       'saves inputs': ->
-        @inst.from('table1')
-        @inst.from('table2', 'alias2')
-        @inst.from('table3')
+        @inst._table('table1')
+        @inst._table('table2', 'alias2')
+        @inst._table('table3')
 
         expectedFroms = [
-          {
-            table: 'table1',
-            alias: null
-          },
-          {
-            table: 'table2',
-            alias: '`alias2`'
-          },
-          {
-            table: 'table3',
-            alias: null
-          }
-        ]
-
-        assert.same expectedFroms, @inst.tables
-
-      'sanitizes inputs': ->
-        sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
-
-        @inst.from('table', 'alias')
-
-        assert.ok sanitizeTableSpy.calledWithExactly 'table', true
-        assert.ok sanitizeAliasSpy.calledWithExactly 'alias'
-
-        assert.same [ { table: '_t', alias: '_a' }], @inst.tables
-
-
-      'handles single-table mode': ->
-        @inst.options.singleTable = true
-
-        @inst.from('table1')
-        @inst.from('table2')
-        @inst.from('table3')
-
-        expectedFroms = [
-          {
-            table: 'table3',
-            alias: null
-          }
-        ]
-
-        assert.same expectedFroms, @inst.tables
-
-        try
-          @inst.from(squel.select())
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: table name must be a string', err.toString()
-
-
-      'handles nested table': ->
-        innerTable1 = squel.select()
-        innerTable2 = squel.select()
-
-        @inst.from(innerTable1)
-        @inst.from(innerTable2, 'Inner2')
-
-        expectedFroms = [
-          {
-            alias: null
-            table: innerTable1
-          }
-          {
-            alias: '`Inner2`'
-            table: innerTable2
-          }
-        ]
-
-
-
-
-
-    'buildStr()':
-      'requires at least one table to have been provided': ->
-        try
-          @inst.buildStr()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: from() needs to be called', err.toString()
-
-      'returns formatted query phrase': ->
-        @inst.from('table1')
-        @inst.from('table2', 'alias2')
-        @inst.from('table3')
-
-        assert.same 'FROM table1, table2 `alias2`, table3', @inst.buildStr()
-
-      'handles nested table': ->
-        innerTable1 = squel.select().from('inner1')
-        innerTable2 = squel.select().from('inner2')
-
-        @inst.from(innerTable1)
-        @inst.from(innerTable2, 'inner2')
-
-        assert.same 'FROM (SELECT * FROM inner1), (SELECT * FROM inner2) `inner2`', @inst.buildStr()
-
-      'handles deeply nested tables': ->
-        innermost = squel.select().from('innermost')
-        inner = squel.select().from(innermost, 'innermost')
-
-        @inst.from(inner, 'inner')
-
-        assert.same 'FROM (SELECT * FROM (SELECT * FROM innermost) `innermost`) `inner`', @inst.buildStr()
-
-
-  'UpdateTableBlock':
-    beforeEach: ->
-      @cls = squel.cls.UpdateTableBlock
-      @inst = new @cls()
-
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
-    'initial field values': ->
-      assert.same [], @inst.tables
-
-    'table()':
-      'saves inputs': ->
-        @inst.table('table1')
-        @inst.table('table2', 'alias2')
-        @inst.table('table3')
-
-        expected = [
           {
           table: 'table1',
           alias: null
@@ -279,18 +145,70 @@ test['Blocks'] =
           }
         ]
 
-        assert.same expected, @inst.tables
+        assert.same expectedFroms, @inst.tables
 
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
         sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
 
-        @inst.table('table', 'alias')
+        @inst._table('table', 'alias')
 
-        assert.ok sanitizeTableSpy.calledWithExactly 'table', true
+        assert.ok sanitizeTableSpy.calledWith 'table'
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias'
 
         assert.same [ { table: '_t', alias: '_a' }], @inst.tables
+
+
+      'handles single-table mode': ->
+        @inst.options.singleTable = true
+
+        @inst._table('table1')
+        @inst._table('table2')
+        @inst._table('table3')
+
+        expected = [
+          {
+          table: 'table3',
+          alias: null
+          }
+        ]
+
+        assert.same expected, @inst.tables
+
+
+      'if not allowing nested queries': ->
+        sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
+        innerTable = squel.select()
+
+        @inst.options.allowNested = false
+        @inst._table(innerTable)
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable, false
+
+      'if allowing nested queries': ->
+        sanitizeTableSpy = test.mocker.spy @cls.prototype, '_sanitizeTable'
+
+        innerTable1 = squel.select()
+        innerTable2 = squel.select()
+
+        @inst.options.allowNested = true
+        @inst._table(innerTable1)
+        @inst._table(innerTable2, 'Inner2')
+
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable1, true
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable2, true
+
+        expected = [
+          {
+          alias: null
+          table: innerTable1
+          }
+          {
+          alias: '`Inner2`'
+          table: innerTable2
+          }
+        ]
+
+        assert.same expected, @inst.tables
 
     'buildStr()':
       'requires at least one table to have been provided': ->
@@ -298,14 +216,101 @@ test['Blocks'] =
           @inst.buildStr()
           throw new Error 'should not reach here'
         catch err
-          assert.same 'Error: table() needs to be called', err.toString()
+          assert.same 'Error: _table() needs to be called', err.toString()
 
       'returns formatted query phrase': ->
-        @inst.table('table1')
-        @inst.table('table2', 'alias2')
-        @inst.table('table3')
+        @inst._table('table1')
+        @inst._table('table2', 'alias2')
+        @inst._table('table3')
 
         assert.same 'table1, table2 `alias2`, table3', @inst.buildStr()
+
+      'handles nested query': ->
+        innerTable1 = squel.select().from('inner1')
+        innerTable2 = squel.select().from('inner2')
+
+        @inst.options.allowNested = true
+        @inst._table(innerTable1)
+        @inst._table(innerTable2, 'inner2')
+
+        assert.same '(SELECT * FROM inner1), (SELECT * FROM inner2) `inner2`', @inst.buildStr()
+
+
+
+
+  'FromTableBlock':
+    beforeEach: ->
+      @cls = squel.cls.FromTableBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractTableBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractTableBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.AbstractTableBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'from()':
+      'calls base class handler': ->
+        baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, '_table'
+
+        @inst.from('table1')
+        @inst.from('table2', 'alias2')
+
+        assert.same 2, baseMethodSpy.callCount
+        assert.ok baseMethodSpy.calledWithExactly('table1', null)
+        assert.ok baseMethodSpy.calledWithExactly('table2', 'alias2')
+
+    'buildStr()':
+      'requires at least one table to have been provided': ->
+        try
+          @inst.buildStr()
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: from() needs to be called', err.toString()
+
+      'calls base class handler': ->
+        baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, 'buildStr', -> 'blah'
+
+        @inst.from('table')
+
+        assert.same 'FROM blah', @inst.buildStr()
+
+
+
+  'UpdateTableBlock':
+    beforeEach: ->
+      @cls = squel.cls.UpdateTableBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractTableBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractTableBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.AbstractTableBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'table()':
+      'calls base class handler': ->
+        baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, '_table'
+
+        @inst.table('table1')
+        @inst.table('table2', 'alias2')
+
+        assert.same 2, baseMethodSpy.callCount
+        assert.ok baseMethodSpy.calledWithExactly('table1', null)
+        assert.ok baseMethodSpy.calledWithExactly('table2', 'alias2')
+
 
 
 
@@ -966,45 +971,6 @@ test['Blocks'] =
 
         assert.same expected, @inst.joins
 
-      'nested query': ->
-        inner1 = squel.select()
-        inner2 = squel.select()
-        inner3 = squel.select()
-        inner4 = squel.select()
-        @inst.join(inner1)
-        @inst.join(inner2, null, 'b = 1', 'LEFT')
-        @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
-        @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
-
-        expected = [
-          {
-            type: 'INNER',
-            table: inner1,
-            alias: null,
-            condition: null
-          },
-          {
-            type: 'LEFT',
-            table: inner2,
-            alias: null,
-            condition: 'b = 1'
-          },
-          {
-            type: 'RIGHT',
-            table: inner3,
-            alias: '`alias3`',
-            condition: 'c = 1'
-          },
-          {
-            type: 'OUTER',
-            table: inner4,
-            alias: '`alias4`',
-            condition: 'd = 1'
-          }
-        ]
-
-        assert.same expected, @inst.joins
-
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
         sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
@@ -1012,7 +978,7 @@ test['Blocks'] =
 
         @inst.join('table1', 'alias1', 'a = 1')
 
-        assert.ok sanitizeTableSpy.calledWithExactly 'table1'
+        assert.ok sanitizeTableSpy.calledWithExactly 'table1', true
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
         assert.ok sanitizeConditionSpy.calledWithExactly 'a = 1'
 
@@ -1027,6 +993,44 @@ test['Blocks'] =
 
         assert.same expected, @inst.joins
 
+      'nested queries': ->
+        inner1 = squel.select()
+        inner2 = squel.select()
+        inner3 = squel.select()
+        inner4 = squel.select()
+        @inst.join(inner1)
+        @inst.join(inner2, null, 'b = 1', 'LEFT')
+        @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
+        @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
+
+        expected = [
+          {
+          type: 'INNER',
+          table: inner1,
+          alias: null,
+          condition: null
+          },
+          {
+          type: 'LEFT',
+          table: inner2,
+          alias: null,
+          condition: 'b = 1'
+          },
+          {
+          type: 'RIGHT',
+          table: inner3,
+          alias: '`alias3`',
+          condition: 'c = 1'
+          },
+          {
+          type: 'OUTER',
+          table: inner4,
+          alias: '`alias4`',
+          condition: 'd = 1'
+          }
+        ]
+
+        assert.same expected, @inst.joins
 
     'left_join()':
       'calls join()': ->

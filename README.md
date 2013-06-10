@@ -68,6 +68,16 @@ Before running the examples ensure you have `squel` installed and enabled at the
         .where("t2.name <> 'John'")
         .toString()
 
+You can use nested queries too:
+
+    // SELECT s.id FROM (SELECT * FROM students) `s` INNER JOIN (SELECT id FROM marks) `m` ON (m.id = s.id)
+    squel.select()
+        .from( squel.select().from('students'), 's' )
+        .field('id')
+        .join( squel.select().from('marks').field('id'), 'm', 'm.id = s.id' )
+        .toString()
+
+
 **UPDATE**
 
     // UPDATE test SET f1 = 1
