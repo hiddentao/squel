@@ -25,7 +25,7 @@ Install using [npm](http://npmjs.org/):
 
 Add the following inside your HTML:
 
-    <script type="text/javascript" src="https://github.com/hiddentao/squel/raw/master/squel.min.js"></script>
+    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
 
 **NOTE: It is recommended that you do NOT create queries browser-side to run on the server as this massively increases
 your exposure to [SQL Injection](http://en.wikipedia.org/wiki/SQL_injection) attacks.**
