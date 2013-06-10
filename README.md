@@ -23,7 +23,11 @@ Install using [npm](http://npmjs.org/):
 
 ### Browser
 
-Add the following inside your HTML:
+Use [bower](https://github.com/bower/bower) if you like:
+
+    $ bower install squel
+
+Or add the following inside your HTML:
 
     <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
 
