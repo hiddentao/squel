@@ -1,6 +1,10 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
+## 10 Jun 2013 (1.1.3)
+* Table names in SELECT queries can now be queries themselves (i.e. SQL sub statements)
+
+
 ## 2 Jun 2013 (1.1.2)
 * Parameterised WHERE clauses now supported.
 * Custom value types can now be handled in a special way. Global and per-instance handlers supported.
