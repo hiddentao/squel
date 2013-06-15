@@ -1,5 +1,7 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 15 Jun 2013 (1.1.4)
+* Added support for HAVING clauses in the select block builder.
 
 ## 10 Jun 2013 (1.1.3)
 * Table names in SELECT queries can now be queries themselves (i.e. SQL sub statements)

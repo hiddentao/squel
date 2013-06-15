@@ -657,6 +657,34 @@ class cls.WhereBlock extends cls.Block
   buildStr: (queryBuilder) ->
     if 0 < @wheres.length then "WHERE (" + @wheres.join(") AND (") + ")" else ""
 
+# HAVING
+class cls.HavingBlock extends cls.Block
+  constructor: (options) ->
+    super options
+    @havings = []
+
+  # Add a WHERE condition.
+  #
+  # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
+  having: (condition, values...) ->
+    condition = @_sanitizeCondition(condition)
+
+    # substitute values into the condition
+    for value in values
+      if Array.isArray value
+        inValues = []
+        for item in value
+          inValues.push @_formatValue @_sanitizeValue item
+        value = "(#{inValues.join ', '})"
+      else
+        value = @_formatValue @_sanitizeValue value
+      condition = condition.replace '?', value
+
+    if "" isnt condition
+      @havings.push condition
+
+  buildStr: (queryBuilder) ->
+    if 0 < @havings.length then "HAVING (" + @havings.join(") AND (") + ")" else ""
 
 # ORDER BY
 class cls.OrderByBlock extends cls.Block
@@ -848,6 +876,7 @@ class cls.Select extends cls.QueryBuilder
         new cls.JoinBlock(_extend({}, options, { allowNested: true })),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
+        new cls.HavingBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
         new cls.OffsetBlock(options)

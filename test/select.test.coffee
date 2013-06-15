@@ -93,20 +93,25 @@ test['SELECT builder'] =
                 toString: ->
                   assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2'
 
-                '>> order(a, true)':
-                  beforeEach: -> @inst.order('a', true)
+                '>> having(b = ?, 2)':
+                  beforeEach: -> @inst.having('b = ?', 2)
                   toString: ->
-                    assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC'
+                    assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 HAVING (b = 2)'
 
-                  '>> limit(2)':
-                    beforeEach: -> @inst.limit(2)
+                  '>> order(a, true)':
+                    beforeEach: -> @inst.order('a', true)
                     toString: ->
-                      assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2'
+                      assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 HAVING (b = 2) ORDER BY a ASC'
 
-                    '>> offset(3)':
-                      beforeEach: -> @inst.offset(3)
+                    '>> limit(2)':
+                      beforeEach: -> @inst.limit(2)
                       toString: ->
-                        assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2 OFFSET 3'
+                        assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 HAVING (b = 2) ORDER BY a ASC LIMIT 2'
+
+                      '>> offset(3)':
+                        beforeEach: -> @inst.offset(3)
+                        toString: ->
+                          assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 HAVING (b = 2) ORDER BY a ASC LIMIT 2 OFFSET 3'
 
     'nested queries':
       'basic': ->

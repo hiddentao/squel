@@ -799,6 +799,50 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
+  cls.HavingBlock = (function(_super) {
+
+    __extends(HavingBlock, _super);
+
+    function HavingBlock(options) {
+      HavingBlock.__super__.constructor.call(this, options);
+      this.havings = [];
+    }
+
+    HavingBlock.prototype.having = function() {
+      var condition, inValues, item, value, values, _i, _j, _len, _len1;
+      condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      condition = this._sanitizeCondition(condition);
+      for (_i = 0, _len = values.length; _i < _len; _i++) {
+        value = values[_i];
+        if (Array.isArray(value)) {
+          inValues = [];
+          for (_j = 0, _len1 = value.length; _j < _len1; _j++) {
+            item = value[_j];
+            inValues.push(this._formatValue(this._sanitizeValue(item)));
+          }
+          value = "(" + (inValues.join(', ')) + ")";
+        } else {
+          value = this._formatValue(this._sanitizeValue(value));
+        }
+        condition = condition.replace('?', value);
+      }
+      if ("" !== condition) {
+        return this.havings.push(condition);
+      }
+    };
+
+    HavingBlock.prototype.buildStr = function(queryBuilder) {
+      if (0 < this.havings.length) {
+        return "HAVING (" + this.havings.join(") AND (") + ")";
+      } else {
+        return "";
+      }
+    };
+
+    return HavingBlock;
+
+  })(cls.Block);
+
   cls.OrderByBlock = (function(_super) {
 
     __extends(OrderByBlock, _super);
@@ -1064,7 +1108,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           allowNested: true
         })), new cls.JoinBlock(_extend({}, options, {
           allowNested: true
-        })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)
+        })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)
       ]);
       Select.__super__.constructor.call(this, options, blocks);
     }
