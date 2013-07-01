@@ -670,9 +670,6 @@ test['Blocks'] =
 
         assert.same 'GROUP BY field1, field2', @inst.buildStr()
 
-
-
-
   'OffsetBlock':
     beforeEach: ->
       @cls = squel.cls.OffsetBlock
@@ -722,6 +719,71 @@ test['Blocks'] =
 
         assert.same 'OFFSET 12', @inst.buildStr()
 
+  'HavingBlock':
+    beforeEach: ->
+      @cls = squel.cls.HavingBlock
+      @inst = new @cls()
+
+    'instanceof of Block': ->
+      assert.instanceOf @inst, squel.cls.Block
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy: true
+
+    'initial field values': ->
+      assert.same [], @inst.havings
+
+    'having()':
+      'adds to list': ->
+        @inst.having('a = 1')
+        @inst.having('b = 2 OR c = 3')
+
+        assert.same [
+          'a = 1',
+          'b = 2 OR c = 3'
+        ], @inst.havings
+
+      'sanitizes inputs': ->
+        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+
+        @inst.having('a = 1')
+
+        assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
+
+        assert.same ['_c'], @inst.havings
+
+      'substitutes variadic arguments': ->
+        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (val) -> return "[#{val}]"
+
+        substitutes = ['hello', [1, 2, 3]]
+        @inst.having.apply @inst, [].concat ['a = ? and b in ?'], substitutes
+
+        expectedValues = _.flatten substitutes
+        for expectedValue, index in expectedValues
+          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+          assert.ok formatValueStub.getCall(index).calledWithExactly expectedValue
+
+        assert.same [
+          'a = [hello] and b in ([1], [2], [3])'
+        ], @inst.havings
+
+    'buildStr()':
+      'output nothing if no conditions set': ->
+        @inst.havings = []
+        assert.same '', @inst.buildStr()
+
+      'output HAVING ': ->
+        @inst.having('a = 1')
+        @inst.having('b = 2 OR c = 3')
+
+        assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3)', @inst.buildStr()
 
 
   'WhereBlock':

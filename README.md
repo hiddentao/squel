@@ -57,7 +57,7 @@ Before running the examples ensure you have `squel` installed and enabled at the
         .limit(20)
         .toString()
 
-    // SELECT t1.id, t2.name FROM table `t1` LEFT JOIN table2 `t2` ON (t1.id = t2.id) WHERE (t2.name <> 'Mark') AND (t2.name <> 'John') GROUP BY t1.id
+    // SELECT t1.id, t2.name FROM table `t1` LEFT JOIN table2 `t2` ON (t1.id = t2.id) WHERE (t2.name <> 'Mark') AND (t2.name <> 'John') GROUP BY t1.id HAVING (AVG(t2.score) >= '5') AND (COUNT(t2.apples) > '42')
     squel.select()
         .from("table", "t1")
         .field("t1.id")
@@ -66,6 +66,8 @@ Before running the examples ensure you have `squel` installed and enabled at the
         .group("t1.id")
         .where("t2.name <> 'Mark'")
         .where("t2.name <> 'John'")
+        .having("AVG(t2.score) >= ?", 5)
+        .having("COUNT(t2.apples) >= ?", 42)
         .toString()
 
 You can use nested queries too:
