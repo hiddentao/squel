@@ -65,6 +65,14 @@ test['INSERT builder'] =
       @inst.into('table')
       assert.throws (=> @inst.toString()), 'set() needs to be called'
 
+    '>> into(table).set(field, 1).returning("*")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('*')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING *'
+    '>> into(table).set(field, 1).returning("id")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('id')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
     '>> into(table).set(field, 1)':
       beforeEach: -> @inst.into('table').set('field', 1)
       toString: ->
