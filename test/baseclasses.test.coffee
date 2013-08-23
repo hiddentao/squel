@@ -73,6 +73,7 @@ test['Default query builder options'] =
       fieldAliasQuoteCharacter: '"'
       usingValuePlaceholders: false
       valueHandlers: []
+      numberedParameters: true
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -619,6 +620,56 @@ test['QueryBuilder base class'] =
       assert.ok buildStrSpy.calledOn(@inst.blocks[0])
       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+
+
+  'toParam()':
+    'returns empty if no blocks': ->
+      assert.same { text: '', values: [] }, @inst.toParam()
+
+    'skips empty block strings': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, ''),
+      ]
+
+      assert.same { text: '', values: [] }, @inst.toParam()
+
+    'returns final query string': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, 'STR1'),
+        new squel.cls.StringBlock({}, 'STR2'),
+        new squel.cls.StringBlock({}, 'STR3')
+      ]
+
+      i = 1
+      buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+
+      assert.same { text: 'ret2 ret3 ret4', values: [] }, @inst.toParam()
+
+      assert.ok buildStrSpy.calledThrice
+      assert.ok buildStrSpy.calledOn(@inst.blocks[0])
+      assert.ok buildStrSpy.calledOn(@inst.blocks[1])
+      assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+
+    'returns query with numbered parameters': ->
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
+
+      buildStrSpy = test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+
+      assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
+
+    'returns query with unnumbered parameters': ->
+      @inst = new @cls
+        numberedParameters: false
+
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
+
+      buildStrSpy = test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+
+      assert.same { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}, @inst.toParam()
 
 
   'cloning':

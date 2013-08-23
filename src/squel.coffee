@@ -61,6 +61,8 @@ cls.DefaultQueryBuilderOptions =
   usingValuePlaceholders: false
   # Custom value handlers where key is the value type and the value is the handler function
   valueHandlers: []
+  # number parameters return from toParam as $1, $2, etc
+  numberedParameters: true
 
 # Global custom value handlers for all instances of builder
 cls.globalValueHandlers = []
@@ -396,6 +398,8 @@ class cls.Block extends cls.BaseBuilder
   buildStr: (queryBuilder) ->
     ''
 
+  buildParam: (queryBuilder) ->
+    { text: @buildStr(queryBuilder), values: [] }
 
 # A String which always gets output
 class cls.StringBlock extends cls.Block
@@ -547,6 +551,19 @@ class cls.SetFieldBlock extends cls.Block
 
     "SET #{fields}"
 
+  buildParam: (queryBuilder) ->
+    fieldNames = (field for own field of @fields)
+    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+
+    fields = ""
+    values = []
+    for field in fieldNames
+      fields += ", " if "" isnt fields
+      fields += "#{field} = ?"
+      values.push @_formatValue @fields[field]
+
+    { text: "SET #{fields}", values: values }
+
 
 # (INSERT INTO) ... field ... value
 class cls.InsertFieldValueBlock extends cls.SetFieldBlock
@@ -568,6 +585,23 @@ class cls.InsertFieldValueBlock extends cls.SetFieldBlock
       values += @_formatValue(@fields[field])
 
     "(#{fields}) VALUES (#{values})"
+
+  buildParam: (queryBuilder) ->
+    fieldNames = (name for own name of @fields)
+    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+
+    # fields
+    fields = ""
+    values = ""
+    valuesArr = []
+    for field in fieldNames
+      fields += ", " if "" isnt fields
+      fields += field
+      values += ", " if "" isnt values
+      values += "?"
+      valuesArr.push @_formatValue(@fields[field])
+
+    { text: "(#{fields}) VALUES (#{values})", values: valuesArr }
 
 
 
@@ -633,12 +667,14 @@ class cls.WhereBlock extends cls.Block
   constructor: (options) ->
     super options
     @wheres = []
+    @wheresParam = []
 
   # Add a WHERE condition.
   #
   # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
   where: (condition, values...) ->
     condition = @_sanitizeCondition(condition)
+    whereParam = { text: condition, values: [] }
 
     # substitute values into the condition
     for value in values
@@ -647,15 +683,25 @@ class cls.WhereBlock extends cls.Block
         for item in value
           inValues.push @_formatValue @_sanitizeValue item
         value = "(#{inValues.join ', '})"
+        whereParam.text = condition.replace '?', "(#{('?' for item in inValues).join ', '})"
+        whereParam.values = inValues
       else
         value = @_formatValue @_sanitizeValue value
+        whereParam.values.push value
       condition = condition.replace '?', value
 
     if "" isnt condition
       @wheres.push condition
 
+    if "" isnt whereParam.text
+      @wheresParam.push whereParam
+
   buildStr: (queryBuilder) ->
     if 0 < @wheres.length then "WHERE (" + @wheres.join(") AND (") + ")" else ""
+
+  buildParam: (queryBuilder) ->
+    text: if 0 < @wheresParam.length then "WHERE (" + ( where.text for where in @wheresParam ).join(") AND (") + ")" else ""
+    values: [].concat ( where.values for where in @wheresParam )...
 
 
 # ORDER BY
@@ -824,6 +870,17 @@ class cls.QueryBuilder extends cls.BaseBuilder
   # Get the final fully constructed query string.
   toString: ->
     (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(' ')
+
+  # Get the final fully constructed query param obj.
+  toParam: ->
+    result = { text: '', values: [] }
+    blocks = (block.buildParam(@) for block in @blocks)
+    result.text = (block.text for block in blocks).filter( (v) -> return (0 < v.length)).join(' ')
+    result.values = [].concat (block.values for block in blocks)...
+    if @options.numberedParameters
+      i = 0
+      result.text = result.text.replace /\?/g, () -> return '$' + ++i
+    result
 
   # Deep clone
   clone: ->
