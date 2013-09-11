@@ -591,8 +591,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     SetFieldBlock.prototype.set = function(field, value) {
       field = this._sanitizeField(field);
       value = this._sanitizeValue(value);
-      this.fields[field] = value;
-      return this;
+      return this.fields[field] = value;
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
@@ -644,7 +643,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           fields += ", ";
         }
         fields += "" + field + " = ?";
-        values.push(this._formatValue(this.fields[field]));
+        values.push(this.fields[field]);
       }
       return {
         text: "SET " + fields,
@@ -723,7 +722,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           values += ", ";
         }
         values += "?";
-        valuesArr.push(this._formatValue(this.fields[field]));
+        valuesArr.push(this.fields[field]);
       }
       return {
         text: "(" + fields + ") VALUES (" + values + ")",

@@ -538,7 +538,6 @@ class cls.SetFieldBlock extends cls.Block
     field = @_sanitizeField(field)
     value = @_sanitizeValue(value)
     @fields[field] = value
-    @
 
   buildStr: (queryBuilder) ->
     fieldNames = (field for own field of @fields)
@@ -560,7 +559,7 @@ class cls.SetFieldBlock extends cls.Block
     for field in fieldNames
       fields += ", " if "" isnt fields
       fields += "#{field} = ?"
-      values.push @_formatValue @fields[field]
+      values.push @fields[field]
 
     { text: "SET #{fields}", values: values }
 
@@ -599,7 +598,7 @@ class cls.InsertFieldValueBlock extends cls.SetFieldBlock
       fields += field
       values += ", " if "" isnt values
       values += "?"
-      valuesArr.push @_formatValue(@fields[field])
+      valuesArr.push @fields[field]
 
     { text: "(#{fields}) VALUES (#{values})", values: valuesArr }
 

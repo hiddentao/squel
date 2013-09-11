@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>  <html> <head>   <title>squel.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               squel.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h1>#</h1>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Copyright</span> <span class="p">(</span><span class="nx">c</span><span class="p">)</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">2013</span> <span class="nx">Ramesh</span> <span class="nx">Nair</span> <span class="p">(</span><span class="nx">hiddentao</span><span class="p">.</span><span class="nx">com</span><span class="p">)</span>
 
 <span class="nx">Permission</span> <span class="o">is</span> <span class="nx">hereby</span> <span class="nx">granted</span><span class="p">,</span> <span class="nx">free</span> <span class="k">of</span> <span class="nx">charge</span><span class="p">,</span> <span class="nx">to</span> <span class="nx">any</span> <span class="nx">person</span>
@@ -140,6 +141,758 @@ The 'type' parameter is used to construct a meaningful error message in case val
 
 <hr />             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>An SQL expression builder.</p>
 
+=======
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>#</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h1">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1>#</h1>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Copyright (c) <span class="number">2012</span>-<span class="number">2013</span> Ramesh Nair (hiddentao.com)
+
+Permission <span class="keyword">is</span> hereby granted, free <span class="keyword">of</span> charge, to any person
+obtaining a copy <span class="keyword">of</span> <span class="keyword">this</span> software <span class="keyword">and</span> associated documentation
+files (the <span class="string">"Software"</span>), to deal <span class="keyword">in</span> the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
+copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
+Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
+conditions:
+
+The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
+included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
+
+THE SOFTWARE IS PROVIDED <span class="string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h1">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h1>#</h1>
+<p>Holds classes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>cls = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Extend given object&#39;s with other objects&#39; properties, overriding existing ones if necessary</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">_extend</span></span> = (dst, sources...) -&gt;
+    <span class="keyword">if</span> sources
+        <span class="keyword">for</span> src <span class="keyword">in</span> sources
+            <span class="keyword">if</span> src
+                <span class="keyword">for</span> own k,v <span class="keyword">of</span> src
+                    dst[k] = v
+    dst</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Default query builder options</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>cls.DefaultQueryBuilderOptions =</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>If true then table names will be rendered inside quotes. The quote character used is configurable via the
+nameQuoteCharacter option.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  autoQuoteTableNames: <span class="literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>If true then field names will rendered inside quotes. The quote character used is configurable via the
+nameQuoteCharacter option.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  autoQuoteFieldNames: <span class="literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>If true then alias names will rendered inside quotes. The quote character used is configurable via the
+tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  autoQuoteAliasNames: <span class="literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>The quote character used for when quoting table and field names</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  nameQuoteCharacter: <span class="string">'`'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>The quote character used for when quoting table alias names</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  tableAliasQuoteCharacter: <span class="string">'`'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>The quote character used for when quoting table alias names</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  fieldAliasQuoteCharacter: <span class="string">'"'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
+parameterized querying).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  usingValuePlaceholders: <span class="literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Custom value handlers where key is the value type and the value is the handler function</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  valueHandlers: []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>number parameters return from toParam as $1, $2, etc</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  numberedParameters: <span class="literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Global custom value handlers for all instances of builder</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>cls.globalValueHandlers = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Register a value type handler</p>
+<p>Note: this will override any existing handler registered for this value type.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">registerValueHandler</span></span> = (handlers, type, handler) -&gt;
+  <span class="keyword">unless</span> <span class="string">'function'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> type
+   <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"type must be a class constructor"</span>
+
+  <span class="keyword">unless</span> <span class="string">'function'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> handler
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"handler must be a function"</span>
+
+  <span class="keyword">for</span> typeHandler <span class="keyword">in</span> handlers
+    <span class="keyword">if</span> typeHandler.type <span class="keyword">is</span> type
+      typeHandler.handler = handler
+      <span class="keyword">return</span>
+
+  handlers.push
+    type: type
+    handler: handler</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Get value type handler for given type</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">getValueHandler</span></span> = (value, handlerLists...) -&gt;
+  <span class="keyword">for</span> handlers <span class="keyword">in</span> handlerLists
+    <span class="keyword">for</span> typeHandler <span class="keyword">in</span> handlers
+      <span class="keyword">if</span> value <span class="keyword">instanceof</span> typeHandler.type
+        <span class="keyword">return</span> typeHandler.handler
+  <span class="literal">undefined</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Register a new value handler</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>cls.<span class="function"><span class="title">registerValueHandler</span></span> = (type, handler) -&gt;
+  registerValueHandler cls.globalValueHandlers, type, handler</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Base class for cloneable builders</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Cloneable</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Clone this builder</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  clone: -&gt;
+    newInstance = <span class="keyword">new</span> <span class="property">@constructor</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Fast deep copy using JSON conversion, see <a href="http://stackoverflow.com/a/5344074">http://stackoverflow.com/a/5344074</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    _extend newInstance, JSON.parse(JSON.stringify(@))</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Base class for all builders</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">BaseBuilder</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Cloneable</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Constructor</p>
+<p>options is an Object overriding one or more of cls.DefaultQueryBuilderOptions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  constructor: (options) -&gt;
+    defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
+    <span class="property">@options</span> = _extend {}, defaults, options</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Register a custom value handler for this builder instance.</p>
+<p>Note: this will override any globally registered handler for this value type.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  registerValueHandler: (type, handler) -&gt;
+    registerValueHandler <span class="property">@options</span>.valueHandlers, type, handler
+    @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Get class name of given object.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _getObjectClassName: (obj) -&gt;
+    <span class="keyword">if</span> obj &amp;&amp; obj.constructor &amp;&amp; obj.constructor.toString
+      arr = obj.constructor.toString().match <span class="regexp">/function\s*(\w+)/</span>;
+      <span class="keyword">if</span> arr &amp;&amp; arr.length <span class="keyword">is</span> <span class="number">2</span>
+        <span class="keyword">return</span> arr[<span class="number">1</span>]
+    <span class="keyword">return</span> <span class="literal">undefined</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Sanitize the given condition.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _sanitizeCondition: (condition) -&gt;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>If it&#39;s an expression builder instance then convert it to string form.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">if</span> condition <span class="keyword">instanceof</span> cls.Expression
+      condition = condition.toString()
+
+    <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> condition
+      <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"condition must be a string or Expression instance"</span>
+
+    condition</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Sanitize the given name.
+The &#39;type&#39; parameter is used to construct a meaningful error message in case validation fails.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _sanitizeName: (value, type) -&gt;
+    <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> value
+      <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{type}</span> must be a string"</span>
+    value
+
+  _sanitizeField: (item) -&gt;
+    sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"field name"</span>
+
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteFieldNames
+      <span class="string">"<span class="subst">#{@options.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.nameQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
+      sanitized
+
+  _sanitizeTable: (item, allowNested = <span class="literal">false</span>) -&gt;
+    <span class="keyword">if</span> allowNested
+      <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> item
+        sanitized = item
+      <span class="keyword">else</span> <span class="keyword">if</span> item <span class="keyword">instanceof</span> cls.QueryBuilder <span class="keyword">and</span> item.isNestable()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>allow nested queries</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">return</span> item
+      <span class="keyword">else</span>
+        <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"table name must be a string or a nestable query instance"</span>
+    <span class="keyword">else</span>
+      sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">'table name'</span>
+
+
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteTableNames
+      <span class="string">"<span class="subst">#{@options.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.nameQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
+      sanitized
+
+  _sanitizeTableAlias: (item) -&gt;
+    sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"table alias"</span>
+
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteAliasNames
+      <span class="string">"<span class="subst">#{@options.tableAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.tableAliasQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
+      sanitized
+
+  _sanitizeFieldAlias: (item) -&gt;
+    sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"field alias"</span>
+
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteAliasNames
+      <span class="string">"<span class="subst">#{@options.fieldAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.fieldAliasQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
+      sanitized</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Sanitize the given limit/offset value.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _sanitizeLimitOffset: (value) -&gt;
+    value = parseInt(value)
+    <span class="keyword">if</span> <span class="number">0</span> &gt; value <span class="keyword">or</span> isNaN(value)
+      <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"limit/offset must be &gt;= 0"</span>
+    value</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Santize the given field value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _sanitizeValue: (item) -&gt;
+    itemType = <span class="keyword">typeof</span> item
+    <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">is</span> item</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>null is allowed</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> itemType <span class="keyword">or</span> <span class="string">"number"</span> <span class="keyword">is</span> itemType <span class="keyword">or</span> <span class="string">"boolean"</span> <span class="keyword">is</span> itemType</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>primitives are allowed</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">else</span>
+      typeIsValid = <span class="literal">undefined</span> <span class="keyword">isnt</span> getValueHandler(item, <span class="property">@options</span>.valueHandlers, cls.globalValueHandlers)
+      <span class="keyword">unless</span> typeIsValid</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>type is not valid</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"field value must be a string, number, boolean, null or one of the registered custom value types"</span>
+    item</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Format the given field value for inclusion into the query string</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _formatValue: (value) -&gt;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>user defined custom handlers takes precedence</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    customHandler = getValueHandler(value, <span class="property">@options</span>.valueHandlers, cls.globalValueHandlers)
+    <span class="keyword">if</span> customHandler</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>use the custom handler if available</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      value = customHandler(value)
+
+    <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">is</span> value
+      value = <span class="string">"NULL"</span>
+    <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">"boolean"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> value
+      value = <span class="keyword">if</span> value <span class="keyword">then</span> <span class="string">"TRUE"</span> <span class="keyword">else</span> <span class="string">"FALSE"</span>
+    <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">"number"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> value
+      <span class="keyword">if</span> <span class="literal">false</span> <span class="keyword">is</span> <span class="property">@options</span>.usingValuePlaceholders
+        value = <span class="string">"'<span class="subst">#{value}</span>'"</span>
+    value</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <h2>cls.Expressions</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>An SQL expression builder.</p>
+>>>>>>> a6e5748... Don't double _formatValue params
 <p>SQL expressions are used in WHERE and ON clauses to filter data by various criteria.</p>
 
 <p>This builder works by building up the expression as a hierarchical tree of nodes. The toString() method then
@@ -147,6 +900,7 @@ traverses this tree in order to build the final expression string.</p>
 
 <p>cls.Expressions can be nested. Nested expression contains can themselves contain nested expressions.
 When rendered a nested expression will be fully contained within brackets.</p>
+<<<<<<< HEAD
 
 <p>All the build methods in this object return the object instance for chained method calling purposes.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">cls</span><span class="p">.</span><span class="nx">Expression</span></pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-39">&#182;</a>               </div>               <p>The expression tree.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">tree: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>The part of the expression tree we're currently working on.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">current: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>Initialise the expression.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">constructor: </span><span class="o">-&gt;</span>
         <span class="vi">@tree =</span>
@@ -198,12 +952,321 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
 <hr />             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-53">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-53">&#182;</a>               </div>               <p>A building block represents a single build-step within a query building process.</p>
 
+=======
+<p>All the build methods in this object return the object instance for chained method calling purposes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Expression</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <p>The expression tree.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    tree: <span class="literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>The part of the expression tree we&#39;re currently working on.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    current: <span class="literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <p>Initialise the expression.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    constructor: -&gt;
+        <span class="property">@tree</span> =
+            parent: <span class="literal">null</span>
+            nodes: []
+        <span class="property">@current</span> = <span class="property">@tree</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
+              </div>
+              <p>Begin a nested expression and combine it with the current expression using the given operator.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="property">@_begin</span> = (op) =&gt;
+            new_tree =
+                type: op
+                parent: <span class="property">@current</span>
+                nodes: []
+            <span class="property">@current</span>.nodes.push new_tree
+            <span class="property">@current</span> = <span class="property">@current</span>.nodes[<span class="property">@current</span>.nodes.length-<span class="number">1</span>]
+            @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-46">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <p>Begin a nested expression and combine it with the current expression using the intersection operator (AND).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    and_begin: -&gt;
+        <span class="property">@_begin</span> <span class="string">'AND'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-47">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <p>Begin a nested expression and combine it with the current expression using the union operator (OR).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    or_begin: -&gt;
+        <span class="property">@_begin</span> <span class="string">'OR'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-48">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <p>End the current compound expression.</p>
+<p>This will throw an error if begin() hasn&#39;t been called yet.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    end: -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@current</span>.parent
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"begin() needs to be called"</span>
+        <span class="property">@current</span> = <span class="property">@current</span>.parent
+        @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>Combine the current expression with the given expression using the intersection operator (AND).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">and</span>: (expr) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> expr <span class="keyword">or</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> expr
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"expr must be a string"</span>
+        <span class="property">@current</span>.nodes.push
+            type: <span class="string">'AND'</span>
+            expr: expr
+        @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-50">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <p>Combine the current expression with the given expression using the union operator (OR).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">or</span>: (expr) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> expr <span class="keyword">or</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> expr
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"expr must be a string"</span>
+        <span class="property">@current</span>.nodes.push
+            type: <span class="string">'OR'</span>
+            expr: expr
+        @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-51">&#182;</a>
+              </div>
+              <p>Get the final fully constructed expression string.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    toString: -&gt;
+        <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">isnt</span> <span class="property">@current</span>.parent
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"end() needs to be called"</span>
+        _toString <span class="property">@tree</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-52">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-52">&#182;</a>
+              </div>
+              <p>Get a string representation of the given expression tree node.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="function"><span class="title">_toString</span></span> = (node) -&gt;
+        str = <span class="string">""</span>
+        <span class="keyword">for</span> child <span class="keyword">in</span> node.nodes
+            <span class="keyword">if</span> child.expr?
+                nodeStr = child.expr
+            <span class="keyword">else</span>
+                nodeStr = _toString(child)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-53">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-53">&#182;</a>
+              </div>
+              <p>wrap nested expressions in brackets</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> nodeStr
+                    nodeStr = <span class="string">"("</span> + nodeStr + <span class="string">")"</span>
+            <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> nodeStr</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-54">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <p>if this isn&#39;t first expression then add the operator</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> str <span class="keyword">then</span> str += <span class="string">" "</span> + child.type + <span class="string">" "</span>
+                str += nodeStr
+        str</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-55">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-55">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-56">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-56">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-57">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-57">&#182;</a>
+              </div>
+              <h2>Building blocks</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-58">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-58">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-59">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-59">&#182;</a>
+              </div>
+              <p>A building block represents a single build-step within a query building process.</p>
+>>>>>>> a6e5748... Don't double _formatValue params
 <p>Query builders consist of one or more building blocks which get run in a particular order. Building blocks can
 optionally specify methods to expose through the query builder interface. They can access all the input data for
 the query builder and manipulate it as necessary, as well as append to the final query string output.</p>
 
 <p>If you wish to customize how queries get built or add proprietary query phrases and content then it is recommended
 that you do so using one or more custom building blocks.</p>
+<<<<<<< HEAD
 
 <p>Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">cls</span><span class="p">.</span><span class="nx">Block</span> <span class="k">extends</span> <span class="nx">cls</span><span class="p">.</span><span class="nx">BaseBuilder</span></pre></div>             </td>           </tr>                               <tr id="section-54">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-54">&#182;</a>               </div>               <p>Get input methods to expose within the query builder.</p>
 
@@ -219,9 +1282,68 @@ that you do so using one or more custom building blocks.</p>
 
     <span class="nx">ret</span></pre></div>             </td>           </tr>                               <tr id="section-56">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-56">&#182;</a>               </div>               <p>Build this block.</p>
 
+=======
+<p>Original idea posted in <a href="https://github.com/hiddentao/export/issues/10#issuecomment-15016427">https://github.com/hiddentao/export/issues/10#issuecomment-15016427</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Block</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">BaseBuilder</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-60">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-60">&#182;</a>
+              </div>
+              <p>Get input methods to expose within the query builder.</p>
+<p>By default all methods except the following get returned:
+  methods prefixed with _
+  constructor and buildStr()</p>
+<p>@return Object key -&gt; function pairs</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  exposedMethods: -&gt;
+    ret = {}
+
+    <span class="keyword">for</span> attr, value <span class="keyword">of</span> @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-61">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-61">&#182;</a>
+              </div>
+              <p>only want functions from this class</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">is</span> <span class="string">"function"</span> <span class="keyword">and</span> attr.charAt(<span class="number">0</span>) <span class="keyword">isnt</span> <span class="string">'_'</span> <span class="keyword">and</span> !cls.Block::[attr]
+        ret[attr] = value
+
+    ret</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-62">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-62">&#182;</a>
+              </div>
+              <p>Build this block.</p>
+>>>>>>> a6e5748... Don't double _formatValue params
 <p>Subclasses may override this method.</p>
 
 <p>@param queryBuilder cls.QueryBuilder a reference to the query builder that owns this block.</p>
+<<<<<<< HEAD
 
 <p>@return String the string representing this block</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildStr: </span><span class="nf">(queryBuilder) -&gt;</span>
     <span class="s">&#39;&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-57">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-57">&#182;</a>               </div>               <p>A String which always gets output</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">cls</span><span class="p">.</span><span class="nx">StringBlock</span> <span class="k">extends</span> <span class="nx">cls</span><span class="p">.</span><span class="nx">Block</span>
@@ -566,3 +1688,1334 @@ behaviour of your query builder mid-build.</p>             </td>             <td
   <span class="nb">window</span><span class="o">?</span><span class="p">.</span><span class="nv">squel = </span><span class="nx">squel</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+=======
+<p>@return String the string representing this block</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  buildStr: (queryBuilder) -&gt;
+    <span class="string">''</span>
+
+  buildParam: (queryBuilder) -&gt;
+    { text: <span class="property">@buildStr</span>(queryBuilder), values: [] }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-63">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-63">&#182;</a>
+              </div>
+              <p>A String which always gets output</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">StringBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options, str) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@str</span> = str
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="property">@str</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-64">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-64">&#182;</a>
+              </div>
+              <p>Table specifier base class</p>
+<p>Additional options
+ - singleTable - only allow one table to be specified  (default: false)
+ - allowNested - allow nested query to be specified as a table    (default: false)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@tables</span> = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-65">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-65">&#182;</a>
+              </div>
+              <p>Update given table.</p>
+<p>An alias may also be specified for the table.</p>
+<p>Concrete subclasses should provide a method which calls this</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _table: (table, alias = <span class="literal">null</span>) -&gt;
+    alias = <span class="property">@_sanitizeTableAlias</span>(alias) <span class="keyword">if</span> alias
+    table = <span class="property">@_sanitizeTable</span>(table, <span class="property">@options</span>.allowNested <span class="keyword">or</span> <span class="literal">false</span>)
+
+    <span class="keyword">if</span> <span class="property">@options</span>.singleTable
+      <span class="property">@tables</span> = []
+
+    <span class="property">@tables</span>.push
+      table: table
+      alias: alias
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@tables</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"_table() needs to be called"</span>
+
+    tables = <span class="string">""</span>
+    <span class="keyword">for</span> table <span class="keyword">in</span> <span class="property">@tables</span>
+      tables += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> tables
+      <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> table.table
+        tables += table.table
+      <span class="keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-66">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-66">&#182;</a>
+              </div>
+              <p>building a nested query</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        tables += <span class="string">"(<span class="subst">#{table.table}</span>)"</span>
+
+      <span class="keyword">if</span> table.alias</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-67">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-67">&#182;</a>
+              </div>
+              <p>add the table alias, the AS keyword is optional</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        tables += <span class="string">" <span class="subst">#{table.alias}</span>"</span>
+
+    tables</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-68">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-68">&#182;</a>
+              </div>
+              <p>Update Table</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">UpdateTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span></span>
+  table: (table, alias = <span class="literal">null</span>) -&gt;
+    <span class="property">@_table</span>(table, alias)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-69">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-69">&#182;</a>
+              </div>
+              <p>FROM table</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">FromTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span></span>
+  from: (table, alias = <span class="literal">null</span>) -&gt;
+    <span class="property">@_table</span>(table, alias)
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@tables</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"from() needs to be called"</span>
+
+    tables = <span class="keyword">super</span> queryBuilder
+
+    <span class="string">"FROM <span class="subst">#{tables}</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-70">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-70">&#182;</a>
+              </div>
+              <p>INTO table</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">IntoTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@table</span> = <span class="literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-71">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-71">&#182;</a>
+              </div>
+              <p>Into given table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  into: (table) -&gt;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-72">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-72">&#182;</a>
+              </div>
+              <p>do not allow nested table to be the target</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="property">@table</span> = <span class="property">@_sanitizeTable</span>(table, <span class="literal">false</span>)
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@table</span> <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"into() needs to be called"</span>
+    <span class="string">"INTO <span class="subst">#{@table}</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-73">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-73">&#182;</a>
+              </div>
+              <p>(SELECT) Get field</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">GetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@fields</span> = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-74">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-74">&#182;</a>
+              </div>
+              <p>Add the given field to the final result set.</p>
+<p>The &#39;field&#39; parameter does not necessarily have to be a fieldname. It can use database functions too,
+e.g. DATE_FORMAT(a.started, &quot;%H&quot;)</p>
+<p>An alias may also be specified for this field.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  field: (field, alias = <span class="literal">null</span>) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    alias = <span class="property">@_sanitizeFieldAlias</span>(alias) <span class="keyword">if</span> alias
+
+    <span class="property">@fields</span>.push
+      name: field
+      alias: alias
+
+  buildStr: (queryBuilder) -&gt;
+    fields = <span class="string">""</span>
+    <span class="keyword">for</span> field <span class="keyword">in</span> <span class="property">@fields</span>
+      fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+      fields += field.name
+      fields += <span class="string">" AS <span class="subst">#{field.alias}</span>"</span> <span class="keyword">if</span> field.alias
+
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">is</span> fields <span class="keyword">then</span> <span class="string">"*"</span> <span class="keyword">else</span> fields</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-75">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-75">&#182;</a>
+              </div>
+              <p>(UPDATE) SET field=value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@fields</span> = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-76">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-76">&#182;</a>
+              </div>
+              <p>Update the given field with the given value.
+This will override any previously set value for the given field.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  set: (field, value) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    value = <span class="property">@_sanitizeValue</span>(value)
+    <span class="property">@fields</span>[field] = value
+
+  buildStr: (queryBuilder) -&gt;
+    fieldNames = (field <span class="keyword">for</span> own field <span class="keyword">of</span> <span class="property">@fields</span>)
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
+
+    fields = <span class="string">""</span>
+    <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
+      fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+      fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{@_formatValue(@fields[field])}</span>"</span>
+
+    <span class="string">"SET <span class="subst">#{fields}</span>"</span>
+
+  buildParam: (queryBuilder) -&gt;
+    fieldNames = (field <span class="keyword">for</span> own field <span class="keyword">of</span> <span class="property">@fields</span>)
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
+
+    fields = <span class="string">""</span>
+    values = []
+    <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
+      fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+      fields += <span class="string">"<span class="subst">#{field}</span> = ?"</span>
+      values.push <span class="property">@fields</span>[field]
+
+    { text: <span class="string">"SET <span class="subst">#{fields}</span>"</span>, values: values }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-77">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-77">&#182;</a>
+              </div>
+              <p>(INSERT INTO) ... field ... value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">InsertFieldValueBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@fields</span> = {}
+
+  buildStr: (queryBuilder) -&gt;
+    fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-78">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-78">&#182;</a>
+              </div>
+              <p>fields</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    fields = <span class="string">""</span>
+    values = <span class="string">""</span>
+    <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
+      fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+      fields += field
+      values += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> values
+      values += <span class="property">@_formatValue</span>(<span class="property">@fields</span>[field])
+
+    <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span>
+
+  buildParam: (queryBuilder) -&gt;
+    fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-79">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-79">&#182;</a>
+              </div>
+              <p>fields</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    fields = <span class="string">""</span>
+    values = <span class="string">""</span>
+    valuesArr = []
+    <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
+      fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+      fields += field
+      values += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> values
+      values += <span class="string">"?"</span>
+      valuesArr.push <span class="property">@_formatValue</span>(<span class="property">@fields</span>[field])
+
+    { text: <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span>, values: valuesArr }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-80">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-80">&#182;</a>
+              </div>
+              <p>DISTINCT</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">DistinctBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@useDistinct</span> = <span class="literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-81">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-81">&#182;</a>
+              </div>
+              <p>Add the DISTINCT keyword to the query.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  distinct: -&gt;
+    <span class="property">@useDistinct</span> = <span class="literal">true</span>
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@useDistinct</span> <span class="keyword">then</span> <span class="string">"DISTINCT"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-82">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-82">&#182;</a>
+              </div>
+              <p>GROUP BY</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">GroupByBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@groups</span> = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-83">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-83">&#182;</a>
+              </div>
+              <p>Add a GROUP BY transformation for the given field.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  group: (field) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    <span class="property">@groups</span>.push field
+
+  buildStr: (queryBuilder) -&gt;
+    groups = <span class="string">""</span>
+
+    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@groups</span>.length
+      <span class="keyword">for</span> f <span class="keyword">in</span> <span class="property">@groups</span>
+        groups += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> groups
+        groups += f
+      groups = <span class="string">"GROUP BY <span class="subst">#{groups}</span>"</span>
+
+    groups</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-84">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-84">&#182;</a>
+              </div>
+              <p>OFFSET x</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">OffsetBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@offsets</span> = <span class="literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-85">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-85">&#182;</a>
+              </div>
+              <p>Set the OFFSET transformation.</p>
+<p>Call this will override the previously set offset for this query. Also note that Passing 0 for &#39;max&#39; will remove
+the offset.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  offset: (start) -&gt;
+    start = <span class="property">@_sanitizeLimitOffset</span>(start)
+    <span class="property">@offsets</span> = start
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@offsets</span> <span class="keyword">then</span> <span class="string">"OFFSET <span class="subst">#{@offsets}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-86">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-86">&#182;</a>
+              </div>
+              <p>WHERE</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">WhereBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@wheres</span> = []
+    <span class="property">@wheresParam</span> = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-87">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-87">&#182;</a>
+              </div>
+              <p>Add a WHERE condition.</p>
+<p>When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  where: (condition, values...) -&gt;
+    condition = <span class="property">@_sanitizeCondition</span>(condition)
+    whereParam = { text: condition, values: [] }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-88">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-88">&#182;</a>
+              </div>
+              <p>substitute values into the condition</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">for</span> value <span class="keyword">in</span> values
+      <span class="keyword">if</span> Array.isArray value
+        inValues = []
+        <span class="keyword">for</span> item <span class="keyword">in</span> value
+          inValues.push <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> item
+        value = <span class="string">"(<span class="subst">#{inValues.join ', '}</span>)"</span>
+        whereParam.text = condition.replace <span class="string">'?'</span>, <span class="string">"(<span class="subst">#{('?' <span class="keyword">for</span> item <span class="keyword">in</span> inValues).join ', '}</span>)"</span>
+        whereParam.values = inValues
+      <span class="keyword">else</span>
+        value = <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> value
+        whereParam.values.push value
+      condition = condition.replace <span class="string">'?'</span>, value
+
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> condition
+      <span class="property">@wheres</span>.push condition
+
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> whereParam.text
+      <span class="property">@wheresParam</span>.push whereParam
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheres</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + <span class="property">@wheres</span>.join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
+
+  buildParam: (queryBuilder) -&gt;
+    text: <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheresParam</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + ( where.text <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> ).join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
+    values: [].concat ( where.values <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> )...</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-89">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-89">&#182;</a>
+              </div>
+              <p>ORDER BY</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">OrderByBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@orders</span> = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-90">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-90">&#182;</a>
+              </div>
+              <p>Add an ORDER BY transformation for the given field in the given order.</p>
+<p>To specify descending order pass false for the &#39;asc&#39; parameter.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  order: (field, asc = <span class="literal">true</span>) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    <span class="property">@orders</span>.push
+      field: field
+      dir: <span class="keyword">if</span> asc <span class="keyword">then</span> <span class="literal">true</span> <span class="keyword">else</span> <span class="literal">false</span>
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@orders</span>.length
+      orders = <span class="string">""</span>
+      <span class="keyword">for</span> o <span class="keyword">in</span> <span class="property">@orders</span>
+        orders += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> orders
+        orders += <span class="string">"<span class="subst">#{o.field}</span> <span class="subst">#{<span class="keyword">if</span> o.dir <span class="keyword">then</span> 'ASC' <span class="keyword">else</span> 'DESC'}</span>"</span>
+      <span class="string">"ORDER BY <span class="subst">#{orders}</span>"</span>
+    <span class="keyword">else</span>
+      <span class="string">""</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-91">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-91">&#182;</a>
+              </div>
+              <p>LIMIT</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">LimitBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@limits</span> = <span class="literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-92">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-92">&#182;</a>
+              </div>
+              <p>Set the LIMIT transformation.</p>
+<p>Call this will override the previously set limit for this query. Also note that Passing 0 for &#39;max&#39; will remove
+the limit.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  limit: (max) -&gt;
+    max = <span class="property">@_sanitizeLimitOffset</span>(max)
+    <span class="property">@limits</span> = max
+
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@limits</span> <span class="keyword">then</span> <span class="string">"LIMIT <span class="subst">#{@limits}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-93">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-93">&#182;</a>
+              </div>
+              <p>JOIN</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">JoinBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@joins</span> = []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-94">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-94">&#182;</a>
+              </div>
+              <p>Add a JOIN with the given table.</p>
+<p>&#39;table&#39; is the name of the table to join with.</p>
+<p>&#39;alias&#39; is an optional alias for the table name.</p>
+<p>&#39;condition&#39; is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
+an expression builder then it gets evaluated straight away.</p>
+<p>&#39;type&#39; must be either one of INNER, OUTER, LEFT or RIGHT. Default is &#39;INNER&#39;.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>, type = <span class="string">'INNER'</span>) -&gt;
+    table = <span class="property">@_sanitizeTable</span>(table, <span class="literal">true</span>)
+    alias = <span class="property">@_sanitizeTableAlias</span>(alias) <span class="keyword">if</span> alias
+    condition = <span class="property">@_sanitizeCondition</span>(condition) <span class="keyword">if</span> condition
+
+    <span class="property">@joins</span>.push
+      type: type
+      table: table
+      alias: alias
+      condition: condition
+    @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-95">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-95">&#182;</a>
+              </div>
+              <p>Add a LEFT JOIN with the given table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  left_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'LEFT'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-96">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-96">&#182;</a>
+              </div>
+              <p>Add a RIGHT JOIN with the given table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  right_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'RIGHT'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-97">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-97">&#182;</a>
+              </div>
+              <p>Add an OUTER JOIN with the given table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  outer_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'OUTER'</span>
+
+
+  buildStr: (queryBuilder) -&gt;
+    joins = <span class="string">""</span>
+
+    <span class="keyword">for</span> j <span class="keyword">in</span> (<span class="property">@joins</span> <span class="keyword">or</span> [])
+      <span class="keyword">if</span> joins <span class="keyword">isnt</span> <span class="string">""</span> <span class="keyword">then</span> joins += <span class="string">" "</span>
+      joins += <span class="string">"<span class="subst">#{j.type}</span> JOIN "</span>
+      <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> j.table
+        joins += j.table
+      <span class="keyword">else</span>
+        joins += <span class="string">"(<span class="subst">#{j.table}</span>)"</span>
+      joins += <span class="string">" <span class="subst">#{j.alias}</span>"</span> <span class="keyword">if</span> j.alias
+      joins += <span class="string">" ON (<span class="subst">#{j.condition}</span>)"</span> <span class="keyword">if</span> j.condition
+
+    joins</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-98">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-98">&#182;</a>
+              </div>
+              <p>RETURNING</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">ReturningBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@str</span> = <span class="literal">null</span>
+
+  returning: (ret) -&gt;
+    <span class="property">@str</span> = <span class="property">@_sanitizeField</span>(ret)
+
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@str</span> <span class="keyword">then</span> <span class="string">"RETURNING <span class="subst">#{@str}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-99">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-99">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-100">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-100">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-101">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-101">&#182;</a>
+              </div>
+              <h2>Query builders</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-102">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-102">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-103">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-103">&#182;</a>
+              </div>
+              <p>Query builder base class</p>
+<p>Note that the query builder does not check the final query string for correctness.</p>
+<p>All the build methods in this object return the object instance for chained method calling purposes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">BaseBuilder</span></span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-104">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-104">&#182;</a>
+              </div>
+              <p>Constructor</p>
+<p>blocks - array of cls.BaseBuilderBlock instances to build the query with.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  constructor: (options, blocks) -&gt;
+    <span class="keyword">super</span> options
+
+    <span class="property">@blocks</span> = blocks <span class="keyword">or</span> []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-105">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-105">&#182;</a>
+              </div>
+              <p>Copy exposed methods into myself</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
+      <span class="keyword">for</span> methodName, methodBody <span class="keyword">of</span> block.exposedMethods()
+        <span class="keyword">if</span> @[methodName]?
+          <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{@_getObjectClassName(@)}</span> already has a builder method called: <span class="subst">#{methodName}</span>"</span>
+
+        ( (block, name, body) =&gt;
+          @[name] = =&gt;
+            body.apply(block, arguments)
+            @
+        )(block, methodName, methodBody)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-106">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-106">&#182;</a>
+              </div>
+              <p>Register a custom value handler for this query builder and all its contained blocks.</p>
+<p>Note: This will override any globally registered handler for this value type.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  registerValueHandler: (type, handler) -&gt;
+    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
+      block.registerValueHandler type, handler
+    <span class="keyword">super</span> type, handler
+    @</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-107">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-107">&#182;</a>
+              </div>
+              <p>Update query builder options</p>
+<p>This will update the options for all blocks too. Use this method with caution as it allows you to change the
+behaviour of your query builder mid-build.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  updateOptions: (options) -&gt;
+    <span class="property">@options</span> = _extend({}, <span class="property">@options</span>, options)
+    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
+      block.options = _extend({}, block.options, options)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-108">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-108">&#182;</a>
+              </div>
+              <p>Get the final fully constructed query string.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  toString: -&gt;
+    (block.buildStr(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>).filter( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length)).join(<span class="string">' '</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-109">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-109">&#182;</a>
+              </div>
+              <p>Get the final fully constructed query param obj.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  toParam: -&gt;
+    result = { text: <span class="string">''</span>, values: [] }
+    blocks = (block.buildParam(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)
+    result.<span class="function"><span class="title">text</span></span> = (block.text <span class="keyword">for</span> block <span class="keyword">in</span> blocks).filter( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length)).join(<span class="string">' '</span>)
+    result.values = [].concat (block.values <span class="keyword">for</span> block <span class="keyword">in</span> blocks)...
+    <span class="keyword">if</span> <span class="property">@options</span>.numberedParameters
+      i = <span class="number">0</span>
+      result.text = result.text.replace <span class="regexp">/\?/g</span>, () -&gt; <span class="keyword">return</span> <span class="string">'$'</span> + ++i
+    result</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-110">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-110">&#182;</a>
+              </div>
+              <p>Deep clone</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  clone: -&gt;
+    <span class="keyword">new</span> <span class="property">@constructor</span> <span class="property">@options</span>, (block.clone() <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-111">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-111">&#182;</a>
+              </div>
+              <p>Get whether queries built with this builder can be nested within other queries</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  isNestable: -&gt;
+    <span class="literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-112">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-112">&#182;</a>
+              </div>
+              <p>SELECT query builder.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Select</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+      blocks <span class="keyword">or</span>= [
+        <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'SELECT'</span>),
+        <span class="keyword">new</span> cls.DistinctBlock(options),
+        <span class="keyword">new</span> cls.GetFieldBlock(options),
+        <span class="keyword">new</span> cls.FromTableBlock(_extend({}, options, { allowNested: <span class="literal">true</span> })),
+        <span class="keyword">new</span> cls.JoinBlock(_extend({}, options, { allowNested: <span class="literal">true</span> })),
+        <span class="keyword">new</span> cls.WhereBlock(options),
+        <span class="keyword">new</span> cls.GroupByBlock(options),
+        <span class="keyword">new</span> cls.OrderByBlock(options),
+        <span class="keyword">new</span> cls.LimitBlock(options),
+        <span class="keyword">new</span> cls.OffsetBlock(options)
+      ]
+
+      <span class="keyword">super</span> options, blocks
+
+    isNestable: -&gt;
+      <span class="literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-113">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-113">&#182;</a>
+              </div>
+              <p>UPDATE query builder.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Update</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+    blocks <span class="keyword">or</span>= [
+      <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'UPDATE'</span>),
+      <span class="keyword">new</span> cls.UpdateTableBlock(options),
+      <span class="keyword">new</span> cls.SetFieldBlock(options),
+      <span class="keyword">new</span> cls.WhereBlock(options),
+      <span class="keyword">new</span> cls.OrderByBlock(options),
+      <span class="keyword">new</span> cls.LimitBlock(options)
+    ]
+
+    <span class="keyword">super</span> options, blocks</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-114">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-114">&#182;</a>
+              </div>
+              <p>DELETE query builder.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Delete</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+    blocks <span class="keyword">or</span>= [
+      <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'DELETE'</span>),
+      <span class="keyword">new</span> cls.FromTableBlock( _extend({}, options, { singleTable: <span class="literal">true</span> }) ),
+      <span class="keyword">new</span> cls.JoinBlock(options),
+      <span class="keyword">new</span> cls.WhereBlock(options),
+      <span class="keyword">new</span> cls.OrderByBlock(options),
+      <span class="keyword">new</span> cls.LimitBlock(options),
+    ]
+
+    <span class="keyword">super</span> options, blocks</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-115">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-115">&#182;</a>
+              </div>
+              <p>An INSERT query builder.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Insert</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+    blocks <span class="keyword">or</span>= [
+      <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'INSERT'</span>),
+      <span class="keyword">new</span> cls.IntoTableBlock(options),
+      <span class="keyword">new</span> cls.InsertFieldValueBlock(options),
+      <span class="keyword">new</span> cls.ReturningBlock(options)
+    ]
+
+    <span class="keyword">super</span> options, blocks</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-116">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-116">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-117">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-117">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-118">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-118">&#182;</a>
+              </div>
+              <h2>Exported API</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-119">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-119">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-120">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-120">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>squel =
+  expr: -&gt; <span class="keyword">new</span> cls.Expression</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-121">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-121">&#182;</a>
+              </div>
+              <p>Don&#39;t have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  select: (options, blocks) -&gt; <span class="keyword">new</span> cls.Select(options, blocks)
+  update: (options, blocks) -&gt; <span class="keyword">new</span> cls.Update(options, blocks)
+  insert: (options, blocks) -&gt; <span class="keyword">new</span> cls.Insert(options, blocks)
+  <span class="keyword">delete</span>: (options, blocks) -&gt; <span class="keyword">new</span> cls.Delete(options, blocks)
+  registerValueHandler: cls.registerValueHandler</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-122">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-122">&#182;</a>
+              </div>
+              <p>aliases</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>squel.remove = squel.<span class="keyword">delete</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-123">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-123">&#182;</a>
+              </div>
+              <p>classes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>squel.cls = cls</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-124">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-124">&#182;</a>
+              </div>
+              <p>AMD</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">if</span> define?.amd
+  define -&gt;
+    <span class="keyword">return</span> squel</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-125">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-125">&#182;</a>
+              </div>
+              <p>CommonJS</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">else</span> <span class="keyword">if</span> module?.exports
+  module.exports = squel</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-126">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-126">&#182;</a>
+              </div>
+              <p>Browser</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">else</span>
+  window?.squel = squel</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
+>>>>>>> a6e5748... Don't double _formatValue params
