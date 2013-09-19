@@ -130,7 +130,7 @@ header {
         padding: 0.5em 0 0 0;
     }
 
-    nav {
+    nav.top {
         display: inline-block;
         margin: 0 0 0 1em;
         font-size: 80%;
@@ -159,30 +159,43 @@ header {
                 }
             }
         }
+    }
 
-        ul.submenu {
-            display: none;
-            @include nav-button;
-            padding: 0.1em 0.5em;
+    nav.guide {
+      display: block;
+      position: absolute;
+      background-color: #000;
+      top: 70px;
+      width: 100%;
+      padding: 0 0 0.8em 0;
+      font-size: 60%;
 
-            li {
-                display: block;
-                margin: 0;
-                padding: 0;
-                text-align: center;
+      ul {
+        list-style: none;
+        display: block;
+        margin: 0;
+        padding: 0;
 
-                a {
-                    display: block;
-                    width: 100%;
-                    margin: 0;
-                    padding: 0.5em 0;
-                    border: none;
-                    @include single-box-shadow(#666,0px,0px,0px,false,true);
-                    @include border-radius(0px);
-                }
-            }
+        li {
+          display: inline-block;
+          margin: 0;
+          padding: 0;
+          text-align: center;
+
+          a {
+            color: #fff;
+            padding: 0.2em 0.5em;
+            background-color: #000;
+            border: none;
+            @include border-radius(5px);
+          }
+
+          &.active a {
+            background-color: #fff;
+            color: #000;
+          }
         }
-
+      }
     }
 }
 
@@ -219,10 +232,11 @@ section {
 }
 
 
+
 #home {
+    padding-top: 150px;
     background-color: #ED5E11;
     border-bottom: none;
-    padding-top: 100px;
     text-align: center;
 
     .left {
@@ -325,10 +339,6 @@ section {
 
 
 @media only screen and (max-width: 800px) {
-    #github {
-        display: none !important;
-    }
-
     /* force text-wrap in code blocks */
     pre, div.syntaxhighlighter .line {
         white-space: pre-wrap !important;       /* css-3 */
@@ -365,6 +375,3 @@ section {
     }
 }
 
-
-
-@import "_fork_me_on_github.scss";

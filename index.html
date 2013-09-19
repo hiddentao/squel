@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<!-- For some reason we need this in here otherwise asset loading fails in Github due to incorrect base URL path being used -->
-	<base href="http://hiddentao.github.io/squel/" />
+	  <!-- For some reason we need this in here otherwise asset loading fails in Github due to incorrect base URL path being used -->
+	  <!--<base href="http://hiddentao.github.io/squel/" />-->
 
     <title>Squel.js - SQL query string builder for Javascript</title>
 
@@ -27,111 +27,108 @@
 <body>
 
 
-    <a id="github" href="https://github.com/hiddentao/squel">
-      <span>Fork me on GitHub!</span>
-      <span>I love you :-)</span>
-    </a>
-
     <header>
         <div id="logo">Squel.js</div>
-        <nav>
+        <nav class="top">
             <ul>
-                <li><a href="#home" title="Home">Home</a></li>
-                <li>
-                    <a href="#docs" title="View documentation">Docs</a>
-                    <ul class="submenu">
-                        <li><a href="#installation" title="Installation instructions">Installation</a></li>
-                        <li><a href="#overview" title="Overview">Overview</a></li>
-                        <li><a href="#select" title="SELECT queries">SELECT</a></li>
-                        <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
-                        <li><a href="#insert" title="INSERT queries">INSERT</a></li>
-                        <li><a href="#delete" title="DELETE queries">DELETE</a></li>
-                        <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
-                        <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
-                        <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
-                        <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
-                        <li><a href="#cloning" title="Cloning">Cloning</a></li>
-                    </ul>
-                </li>
-                <li><a href="#tests" title="Running the tests">Tests</a></li>
+                <li><a href="index.html" title="Guide">Guide</a></li>
+                <!--<li><a href="api.html" title="API">API</a></li>-->
+                <li><a class="external" href="https://github.com/hiddentao/squel" title="Github">Source</a></li>
                 <li><a class="external" href="http://prezi.com/8fdvjo6ripkw/squeljs/" title="View the presentation">Prezi</a></li>
             </ul>
+        </nav>
+        <nav class="guide">
+          <ul>
+            <li class="active"><a href="#installation" title="Installation instructions">Installation</a></li>
+            <li><a href="#overview" title="Overview">Overview</a></li>
+            <li><a href="#select" title="SELECT queries">SELECT</a></li>
+            <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
+            <li><a href="#delete" title="DELETE queries">DELETE</a></li>
+            <li><a href="#insert" title="INSERT queries">INSERT</a></li>
+            <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
+            <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
+            <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
+            <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
+            <li><a href="#cloning" title="Cloning">Cloning</a></li>
+          </ul>
         </nav>
     </header>
 
     <section id="home">
-        <a name="home"></a>
+      <a name="home"></a>
 
-        <div class="left white_text">
-            <p class="heading">Squel.js</p>
-            <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
-            <p class="sub">- usable with node.js or in the browser.</p>
-            <p class="sub">- well tested (~ 240 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha</a> tests).</p>
-        </div>
+      <div class="left white_text">
+        <p class="heading">Squel.js</p>
+        <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
+        <p class="sub">- usable with node.js or in the browser.</p>
+        <p class="sub">- well tested (~ 240 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha</a> tests).</p>
+      </div>
 
-        <div class="right">
-            <p class="npm">
-                npm install squel
-            </p>
-            <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download production version">
-                <p class="label">Production version</p>
-                <p class="stats">(~4 KB minified + gzipped)</p>
-            </a>
-            <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
-                <p class="label">Development version</p>
-                <p class="stats">(~30 KB)</p>
-            </a>
-        </div>
+      <div class="right">
+        <p class="npm">
+          npm install squel
+        </p>
+        <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download production version">
+          <p class="label">Production version</p>
+          <p class="stats">(~4 KB minified + gzipped)</p>
+        </a>
+        <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
+          <p class="label">Development version</p>
+          <p class="stats">(~30 KB)</p>
+        </a>
+      </div>
 
     </section>
 
     <a name="docs"></a>
     <section id="installation" class="white_text">
-        <a name="installation" href="#installation"><h2>Installation</h2></a>
+      <a name="installation" href="#installation"><h2>Installation</h2></a>
 
-        <h3>Node.js</h3>
+      <h3>Node.js</h3>
 
-        <p>To install for node.js use <code>npm</code>:</p>
+      <pre class="brush: shell">npm install squel</pre>
 
-        <pre class="brush: shell">npm install squel</pre>
+      <p>Once done you can use <code>require</code> to access the API:</p>
 
-        <p>Once done you can use <code>require</code> to access the API:</p>
+      <pre class="brush: js">var squel = require("squel");</pre>
 
-        <pre class="brush: js">var squel = require("squel");</pre>
+      <h3>Bower</h3>
 
-        <h3>Browser</h3>
+      <pre class="brush: shell">bower install squel</pre>
 
-        <p>To use within a webpage include the following within your HTML <code>body</code> section, near the bottom:</p>
+      <h3>Browser</h3>
 
-        <pre class="brush: html">&lt;script type="text/javascript" src="/your/path/to/squel.min.js"&gt;&lt;/script&gt;</pre>
+      <p>Include the following within your HTML <code>body</code> section, near the bottom:</p>
 
-        <p>Once loaded the <code>squel</code> API will be available in the global object:</p>
+      <pre class="brush: html">&lt;script type="text/javascript" src="/your/path/to/squel.min.js"&gt;&lt;/script&gt;</pre>
 
-        <pre class="brush: js">alert( typeof window.squel );    // object</pre>
+      <p>Once loaded the <code>squel</code> API will be available in the global object:</p>
 
-        <p class="warning">NOTE: It is recommended that you do NOT create queries browser-side to run on the
-          server as this massively increases your exposure to <a href="http://en.wikipedia.org/wiki/SQL_injection" target="_blank">SQL Injection</a> attacks.</p>
+      <pre class="brush: js">alert( typeof window.squel );    // object</pre>
+
+      <p class="warning">NOTE: It is recommended that you do NOT create queries browser-side to run on the
+        server as this massively increases your exposure to <a href="http://en.wikipedia.org/wiki/SQL_injection" target="_blank">SQL Injection</a> attacks.</p>
 
     </section>
 
     <section id="overview">
-        <a name="overview" href="#overview"><h2>Overview</h2></a>
+      <a name="overview" href="#overview"><h2>Overview</h2></a>
 
-        <p><code>Squel</code> helps you quickly and easily build SQL query strings through an object oriented API.
-            There are two main benefits to using Squel to build your queries:</p>
+      <p><code>Squel</code> helps you quickly and easily build SQL query strings through an object oriented API.
+        There are two main benefits to using Squel to build your queries:</p>
 
-        <ol>
-            <li><strong>It requires less effort</strong> - instead of having to use brittle methods like string
-                concatenation and substitution you get a nice clean API to do the hard work for you.</li>
-            <li><strong>It lets you build flexibly</strong> - Sometimes you don't yet know what your final query ought
-                to look like until you've checked information from various other parts of your program. Representing the
-            query as an object which can be manipulated allows you to be flexible about how you build it.</li>
-        </ol>
+      <ol>
+        <li><strong>It requires less effort</strong> - instead of having to use brittle methods like string
+          concatenation and substitution you get a nice clean API to do the hard work for you.</li>
+        <li><strong>It lets you build flexibly</strong> - Sometimes you don't yet know what your final query ought
+          to look like until you've checked information from various other parts of your program. Representing the
+          query as an object which can be manipulated allows you to be flexible about how you build it.</li>
+      </ol>
 
-        <p>Ok, now you're convinced! Before you get stuck in here are a few things to be aware of...</p>
+      <p>Ok, now you're convinced! Before you get stuck in here are a few things to be aware of...</p>
 
-        <p>Squel uses <a href="http://en.wikipedia.org/wiki/Method_chaining">method chaining</a> to
-            make things easy. For example, instead of writing:</p>
+      <p>Squel uses <a href="http://en.wikipedia.org/wiki/Method_chaining">method chaining</a> to
+        make things easy. For example, instead of writing:</p>
 
         <pre class="brush: js">
             var s = squel.select();
@@ -139,27 +136,27 @@
             alert( s.toString() );    /* SELECT * FROM student */
         </pre>
 
-        <p><em>Hint: You can run the example above by clicking it!</em></p>
+      <p><em>Hint: You can run the example above by clicking it!</em></p>
 
-        <p>You can simply write:</p>
+      <p>You can simply write:</p>
 
         <pre class="brush: js">
             alert( squel.select().from("students").toString() );  // SELECT * FROM students
         </pre>
 
-        What's even better, the <code>toString()</code> method gets called automatically by the Javascript interpreter
-        whenever a string representation of an object is needed. So we can actually simplify the previous statement to:
+      What's even better, the <code>toString()</code> method gets called automatically by the Javascript interpreter
+      whenever a string representation of an object is needed. So we can actually simplify the previous statement to:
 
         <pre class="brush: js">
             alert( squel.select().from("students") );  /* SELECT * FROM students */
         </pre>
 
-        <p><em>Note: All of Squel's builders provide the <code>toString()</code> method. It is this
-            method which constructs the final query string.</em></p>
+      <p><em>Note: All of Squel's builders provide the <code>toString()</code> method. It is this
+        method which constructs the final query string.</em></p>
 
-        <p>Squel does not check to see if your final query is semantically correct (i.e. that it makes
-            sense). Your database engine already does a good enough job of that. On the plus side Squel allows you
-            to use proprietary database functions and other complex constructs:</p>
+      <p>Squel does not check to see if your final query is semantically correct (i.e. that it makes
+        sense). Your database engine already does a good enough job of that. On the plus side Squel allows you
+        to use proprietary database functions and other complex constructs:</p>
 
         <pre class="brush: js">
             alert(
@@ -184,22 +181,22 @@
             */
         </pre>
 
-        <p><em>Note: Unless stated otherwise all query builder methods require string arguments. Passing in objects,
-            arrays or functions will result in exceptions being thrown.</em></p>
+      <p><em>Note: Unless stated otherwise all query builder methods require string arguments. Passing in objects,
+        arrays or functions will result in exceptions being thrown.</em></p>
 
 
     </section>
 
     <section id="select">
-        <a name="select" href="#select"><h2>SELECT</h2></a>
+    <a name="select" href="#select"><h2>SELECT</h2></a>
 
-        <p>To get an instance of the <code>SELECT</code> query builder:</p>
+    <p>To get an instance of the <code>SELECT</code> query builder:</p>
 
         <pre class="brush: js">
             var q = squel.select();
         </pre>
 
-        <p>Calling <code>toString()</code> on it now will throw an exception:</p>
+    <p>Calling <code>toString()</code> on it now will throw an exception:</p>
 
         <pre class="brush: js">
             try {
@@ -209,7 +206,7 @@
             }
         </pre>
 
-        <p>Thus, at a minimum the name of a table to fetch data from must be provided:</p>
+    <p>Thus, at a minimum the name of a table to fetch data from must be provided:</p>
 
         <pre class="brush: js">
             alert(
@@ -219,9 +216,9 @@
             /* SELECT * FROM students */
         </pre>
 
-        <h3>Multiple tables</h3>
+    <h3>Multiple tables</h3>
 
-        <p>You can select data from multiple tables and provide aliases where needed:</p>
+    <p>You can select data from multiple tables and provide aliases where needed:</p>
 
         <pre class="brush: js">
             alert(
@@ -233,9 +230,9 @@
             /* SELECT * FROM students, lecturers `l`, admins */
         </pre>
 
-        <h3>Sub-queries as tables</h3>
+    <h3>Sub-queries as tables</h3>
 
-        <p>Instead of explicitly naming tables you can use SQL sub-queries as such:</p>
+    <p>Instead of explicitly naming tables you can use SQL sub-queries as such:</p>
 
         <pre class="brush: js">
             alert(
@@ -246,9 +243,9 @@
             /*  SELECT s.id FROM (SELECT * FROM students) `s` */
         </pre>
 
-        <h3>Fields</h3>
+    <h3>Fields</h3>
 
-        <p>You can specify field names on their own or by the table they belong to:</p>
+    <p>You can specify field names on their own or by the table they belong to:</p>
 
         <pre class="brush: js">
             alert(
@@ -260,7 +257,7 @@
             /* SELECT id, students.name FROM students */
         </pre>
 
-        <p>Field names can be given aliases in order to customize the column names in the query results :</p>
+    <p>Field names can be given aliases in order to customize the column names in the query results :</p>
 
         <pre class="brush: js">
             alert(
@@ -272,7 +269,7 @@
             /* SELECT id AS "Id", students.name AS "Student Name" FROM students */
         </pre>
 
-        <p>Database functions can be used in place of field names for more complex results:</p>
+    <p>Database functions can be used in place of field names for more complex results:</p>
 
         <pre class="brush: js">
             alert(
@@ -292,7 +289,7 @@
             */
         </pre>
 
-        <p>If you wish to obtain <code>DISTINCT</code> results you can do so:</p>
+    <p>If you wish to obtain <code>DISTINCT</code> results you can do so:</p>
 
         <pre class="brush: js">
             alert(
@@ -304,10 +301,10 @@
             /*  SELECT DISTINCT id FROM students    */
         </pre>
 
-        <h3>Joins</h3>
+    <h3>Joins</h3>
 
-        Squel supports <code>INNER</code>, <code>OUTER</code>, <code>LEFT</code> and <code>RIGHT</code> joins. To do an
-        <code>INNER</code> join:
+    Squel supports <code>INNER</code>, <code>OUTER</code>, <code>LEFT</code> and <code>RIGHT</code> joins. To do an
+    <code>INNER</code> join:
 
         <pre class="brush: js">
             alert(
@@ -318,7 +315,7 @@
             /*  SELECT * FROM students INNER JOIN teachers */
         </pre>
 
-        You can specify table aliases:
+    You can specify table aliases:
 
         <pre class="brush: js">
             alert(
@@ -333,7 +330,7 @@
             */
         </pre>
 
-        And you can specify JOIN-ing conditions:
+    And you can specify JOIN-ing conditions:
 
         <pre class="brush: js">
             alert(
@@ -349,9 +346,9 @@
             */
         </pre>
 
-        <p><em>For an optional parameter such as an alias name, passing <code>null</code> is the same as omitting it.</em></p>
+    <p><em>For an optional parameter such as an alias name, passing <code>null</code> is the same as omitting it.</em></p>
 
-        <p>You can also specify sub-queries in joins:</p>
+    <p>You can also specify sub-queries in joins:</p>
 
         <pre class="brush: js">
             alert(
@@ -362,9 +359,9 @@
             /*  SELECT * FROM marks `m` INNER JOIN (SELECT * FROM students) `s` ON (s.id = m.id) */
         </pre>
 
-        <h3>Filtering</h3>
+    <h3>Filtering</h3>
 
-        <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
+    <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
 
         <pre class="brush: js">
             alert(
@@ -376,7 +373,7 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas')  */
         </pre>
 
-        <p><code>WHERE</code> clauses support parameter substitutions:</p>
+    <p><code>WHERE</code> clauses support parameter substitutions:</p>
 
         <pre class="brush: js">
             alert(
@@ -388,7 +385,7 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas' and age > 18)  */
         </pre>
 
-        <p>Array values can be used to create <code>IN</code> clauses:</p>
+    <p>Array values can be used to create <code>IN</code> clauses:</p>
 
         <pre class="brush: js">
             alert(
@@ -400,7 +397,7 @@
             /*  SELECT id FROM students WHERE (age IN (18, 19, 20))  */
         </pre>
 
-        <p>Multiple filters are automatically combined using <code>AND</code>:</p>
+    <p>Multiple filters are automatically combined using <code>AND</code>:</p>
 
         <pre class="brush: js">
             alert(
@@ -413,7 +410,7 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas') AND (age > 18)  */
         </pre>
 
-        <p>Also filter using <code>OR</code> or any other operator you like:</p>
+    <p>Also filter using <code>OR</code> or any other operator you like:</p>
 
         <pre class="brush: js">
             alert(
@@ -426,7 +423,7 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) AND (id BETWEEN 200 and 300) */
         </pre>
 
-        <p>You can also pass in <a href="#expressions">Expressions</a>:</p>
+    <p>You can also pass in <a href="#expressions">Expressions</a>:</p>
 
         <pre class="brush: js">
             alert(
@@ -440,7 +437,7 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) */
         </pre>
 
-        <h3>Sorting</h3>
+    <h3>Sorting</h3>
 
         <pre class="brush: js">
             alert(
@@ -453,7 +450,7 @@
             /*  SELECT id FROM students ORDER BY id ASC, name ASC */
         </pre>
 
-        <p>Use the second argument of <code>order()</code> to change the direction of a sort:</p>
+    <p>Use the second argument of <code>order()</code> to change the direction of a sort:</p>
 
         <pre class="brush: js">
             alert(
@@ -466,7 +463,7 @@
             /*  SELECT id FROM students ORDER BY id ASC, name DESC */
         </pre>
 
-        <h3>Grouping</h3>
+    <h3>Grouping</h3>
 
         <pre class="brush: js">
             alert(
@@ -478,7 +475,7 @@
             /*  SELECT id FROM students GR0UP BY id */
         </pre>
 
-        <p>Grouping on multiple fields is supported:</p>
+    <p>Grouping on multiple fields is supported:</p>
 
         <pre class="brush: js">
             alert(
@@ -491,9 +488,9 @@
             /*  SELECT id FROM students GR0UP BY id, students.name */
         </pre>
 
-        <h3>Ranges</h3>
+    <h3>Ranges</h3>
 
-        <p>To <code>LIMIT</code> the number of results:</p>
+    <p>To <code>LIMIT</code> the number of results:</p>
 
         <pre class="brush: js">
             alert(
@@ -504,7 +501,7 @@
             /*  SELECT * FROM students LIMIT 10 */
         </pre>
 
-        <p>To remove the previously set limit:</p>
+    <p>To remove the previously set limit:</p>
 
         <pre class="brush: js">
             alert(
@@ -516,7 +513,7 @@
             /*  SELECT * FROM students */
         </pre>
 
-        <p>To specify the <code>OFFSET</code> of the first row to return:</p>
+    <p>To specify the <code>OFFSET</code> of the first row to return:</p>
 
         <pre class="brush: js">
             alert(
@@ -527,7 +524,7 @@
             /*  SELECT * FROM students OFFSET 102 */
         </pre>
 
-        <p>Same as for <code>limit()</code>, you can remove a previously set offset:</p>
+    <p>Same as for <code>limit()</code>, you can remove a previously set offset:</p>
 
         <pre class="brush: js">
             alert(
@@ -541,18 +538,16 @@
 
     </section>
 
-
-
     <section id="update">
-        <a name="update" href="#update"><h2>UPDATE</h2></a>
+      <a name="update" href="#update"><h2>UPDATE</h2></a>
 
-        <p>To get an instance of the <code>UPDATE</code> query builder:</p>
+      <p>To get an instance of the <code>UPDATE</code> query builder:</p>
 
         <pre class="brush: js">
             var q = squel.update();
         </pre>
 
-        <p>You need to supply at least one table name and one field to update:</p>
+      <p>You need to supply at least one table name and one field to update:</p>
 
         <pre class="brush: js">
             alert(
@@ -563,7 +558,7 @@
             /*  UPDATE students SET name = "Thomas" */
         </pre>
 
-        <p>Multiple table names can be supplied along with aliases:</p>
+      <p>Multiple table names can be supplied along with aliases:</p>
 
         <pre class="brush: js">
             alert(
@@ -575,10 +570,10 @@
             /*  UPDATE students, teachers `t` SET t.name = "Fred" */
         </pre>
 
-        <h3>Field values</h3>
+      <h3>Field values</h3>
 
-        <p>Not all field values within a query need to be surrounded by quotes. Squel figures out how to represent each
-            field value based on its runtime type:</p>
+      <p>Not all field values within a query need to be surrounded by quotes. Squel figures out how to represent each
+        field value based on its runtime type:</p>
 
         <pre class="brush: js">
             alert(
@@ -592,7 +587,7 @@
             /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE */
         </pre>
 
-        <p>You can even use <code>NULL</code> values:</p>
+      <p>You can even use <code>NULL</code> values:</p>
 
         <pre class="brush: js">
             alert(
@@ -605,10 +600,10 @@
             /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
         </pre>
 
-        <p><em>Hint: Squel can also be configured to handle <code>Object</code> instances by <a href="#custom_types">registering custom value types</a></em>.</p>
+      <p><em>Hint: Squel can also be configured to handle <code>Object</code> instances by <a href="#custom_types">registering custom value types</a></em>.</p>
 
-        <p>You can use the <code>usingValuePlaceholders</code> option to stop Squel from automatically placing string
-            field values within quotes. This is useful if, for example, you're using parameterized queries:</p>
+      <p>You can use the <code>usingValuePlaceholders</code> option to stop Squel from automatically placing string
+        field values within quotes. This is useful if, for example, you're using parameterized queries:</p>
 
         <pre class="brush: js">
             alert(
@@ -621,10 +616,10 @@
             /*  UPDATE students SET name = ?, age = 29, nickname = NULL */
         </pre>
 
-        <h3>Filtering, sorting and limits</h3>
+      <h3>Filtering, sorting and limits</h3>
 
-        <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same
-            way they are by the <a href="#select">SELECT</a> builder:</p>
+      <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same
+        way they are by the <a href="#select">SELECT</a> builder:</p>
 
         <pre class="brush: js">
             alert(
@@ -642,18 +637,16 @@
 
     </section>
 
-
-
     <section id="delete">
-        <a name="delete" href="#delete"><h2>DELETE</h2></a>
+      <a name="delete" href="#delete"><h2>DELETE</h2></a>
 
-        <p>To get an instance of the <code>DELETE</code> query builder:</p>
+      <p>To get an instance of the <code>DELETE</code> query builder:</p>
 
         <pre class="brush: js">
             var q = squel.delete();
         </pre>
 
-        <p>You can also use the alias <code>remove()</code>:</p>
+      <p>You can also use the alias <code>remove()</code>:</p>
 
         <pre class="brush: js">
             var q = squel.remove();
@@ -669,10 +662,10 @@
             /*  DELETE FROM students */
         </pre>
 
-        <h3>Joins</h3>
+      <h3>Joins</h3>
 
-        <p>The <code>join()</code> and related methods are supported the same way
-          they are by the <a href="#select">SELECT</a> builder:</p>
+      <p>The <code>join()</code> and related methods are supported the same way
+        they are by the <a href="#select">SELECT</a> builder:</p>
 
         <pre class="brush: js">
             alert(
@@ -685,8 +678,8 @@
 
       <h3>Filtering, sorting and limits</h3>
 
-        <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same way
-            they are by the <a href="#select">SELECT</a> builder:</p>
+      <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same way
+        they are by the <a href="#select">SELECT</a> builder:</p>
 
         <pre class="brush: js">
             alert(
@@ -702,17 +695,16 @@
 
     </section>
 
-
     <section id="insert">
-        <a name="insert" href="#insert"><h2>INSERT</h2></a>
+      <a name="insert" href="#insert"><h2>INSERT</h2></a>
 
-        <p>To get an instance of the <code>INSERT</code> query builder:</p>
+      <p>To get an instance of the <code>INSERT</code> query builder:</p>
 
         <pre class="brush: js">
             var q = squel.insert();
         </pre>
 
-        <p>At least the table name and one field must be supplied:</p>
+      <p>At least the table name and one field must be supplied:</p>
 
         <pre class="brush: js">
             alert(
@@ -723,8 +715,8 @@
             /*  INSERT INTO students (name) VALUES ("Thomas") */
         </pre>
 
-        <p>Squel out how to treat each field value based on its runtime type, same as it does for
-            <a href="#update">UPDATE</a> queries:</p>
+      <p>Squel out how to treat each field value based on its runtime type, same as it does for
+        <a href="#update">UPDATE</a> queries:</p>
 
         <pre class="brush: js">
             alert(
@@ -739,8 +731,8 @@
             /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ("Thomas", 29, 90.2, TRUE, NULL) */
         </pre>
 
-        <p>And same as for <a href="#update">UPDATE</a> queries, you can use the <code>usingValuePlaceholders</code> option to
-            stop Squel from automatically placing string field values within quotes:</p>
+      <p>And same as for <a href="#update">UPDATE</a> queries, you can use the <code>usingValuePlaceholders</code> option to
+        stop Squel from automatically placing string field values within quotes:</p>
 
         <pre class="brush: js">
             alert(
@@ -756,7 +748,6 @@
         </pre>
 
     </section>
-
 
     <section id="autoquotes">
       <a name="autoquotes" href="#autoquotes"><h2>Automatic quotes</h2></a>
@@ -812,12 +803,11 @@
 
     </section>
 
-
     <section id="expressions">
-        <a name="expressions" href="#expressions"><h2>Expressions</h2></a>
+      <a name="expressions" href="#expressions"><h2>Expressions</h2></a>
 
-        <p>Squel lets you use use complex expressions strings in <code>WHERE</code> and <code>ON</code> clauses. For
-            example:</p>
+      <p>Squel lets you use use complex expressions strings in <code>WHERE</code> and <code>ON</code> clauses. For
+        example:</p>
 
         <pre class="brush: js">
             alert(
@@ -831,15 +821,15 @@
                         OR (nickname = 'Hardy')) */
         </pre>
 
-        <p>But having to change an expression string like that later on will be error-prone. It would be nice if you could build it
-            the same way you build queries. Luckily Squel provides an expression builder just for this purpose. To
-            get an instance of the builder:</p>
+      <p>But having to change an expression string like that later on will be error-prone. It would be nice if you could build it
+        the same way you build queries. Luckily Squel provides an expression builder just for this purpose. To
+        get an instance of the builder:</p>
 
         <pre class="brush: js">
             var q = squel.expr();
         </pre>
 
-        <p>To build the above expression string these are the calls you would make:</p>
+      <p>To build the above expression string these are the calls you would make:</p>
 
         <pre class="brush: js">
             alert(
@@ -860,13 +850,13 @@
             */
         </pre>
 
-        <p>Straight away the benefit of using the expression builder can be seen as it has simplified the
-            expression (<code>AND</code> has precendence over <code>OR</code>). Not to mention that it's easier to
-            figure out the meaning of the expression looking at this code than from the big string we were
-            using earlier.</p>
+      <p>Straight away the benefit of using the expression builder can be seen as it has simplified the
+        expression (<code>AND</code> has precendence over <code>OR</code>). Not to mention that it's easier to
+        figure out the meaning of the expression looking at this code than from the big string we were
+        using earlier.</p>
 
-        <p>As a convenience expression builder instances can be used in calls to <code>where()</code> and
-            <code>join()</code> when using the query builders:</p>
+      <p>As a convenience expression builder instances can be used in calls to <code>where()</code> and
+        <code>join()</code> when using the query builders:</p>
 
         <pre class="brush: js">
             alert(
@@ -900,7 +890,7 @@
       <a name="custom_types" href="#custom_types"><h2>Custom value types</h2></a>
 
       <p>Sometimes you might want to pass in <code>Object</code> instances as field values. For instance, let's say
-      you are updating a <code>DateTime</code> field. You could do the following:</p>
+        you are updating a <code>DateTime</code> field. You could do the following:</p>
 
       <pre class="brush: js">
             var myDate = new Date(2012, 4, 22),
@@ -1023,7 +1013,7 @@
 
       <p>Hopefully you can see that it is possible to totally override the built-in query building logic. Also notice
         that each <em>building block</em> within a query can have a different set of <code>options</code> applied to it.
-      Check out <a href="https://github.com/hiddentao/squel/blob/master/src/squel.coffee">squel.coffee</a> to see
+        Check out <a href="https://github.com/hiddentao/squel/blob/master/src/squel.coffee">squel.coffee</a> to see
         the available building blocks.</p>
 
       <p>You can also build other types of queries and query clauses not already included in Squel. Let's say
@@ -1146,25 +1136,25 @@
     </section>
 
     <section id="tests" class="white_text">
-        <a name="tests" href="#tests"><h2>Tests</h2></a>
+      <a name="tests" href="#tests"><h2>Tests</h2></a>
 
-        <p>
-            Tests are written in <a href="http://visionmedia.github.io/mocha/">mocha</a> and can be found in the <code>test/</code> folder when you checkout the
-            <a href="https://github.com/hiddentao/squel">source code</a>.
-            To run them do the following:
-        </p>
+      <p>
+        Tests are written in <a href="http://visionmedia.github.io/mocha/">mocha</a> and can be found in the <code>test/</code> folder when you checkout the
+        <a href="https://github.com/hiddentao/squel">source code</a>.
+        To run them do the following:
+      </p>
 
         <pre class="brush: shell">
             $ npm install
             $ make test
         </pre>
 
-        <p>
-            The tests get automatically run by the <em>Travis CI</em>
-            build system every time changes are made to Squel.
+      <p>
+        The tests get automatically run by the <em>Travis CI</em>
+        build system every time changes are made to Squel.
 
-            The current build status is: <a class="img" href="http://travis-ci.org/hiddentao/squel" title="View squel on Travis"><img alt="Build Status" src="https://secure.travis-ci.org/hiddentao/squel.png"></a>
-        </p>
+        The current build status is: <a class="img" href="http://travis-ci.org/hiddentao/squel" title="View squel on Travis"><img alt="Build Status" src="https://secure.travis-ci.org/hiddentao/squel.png"></a>
+      </p>
 
     </section>
 
@@ -1178,49 +1168,7 @@
     <script type="text/javascript" src="public/js/shBrushBash.js"></script>
     <script type="text/javascript" src="public/js/shBrushXml.js"></script>
     <script type="text/javascript" src="public/js/shBrushJScript.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            // highlight code blocks
-            SyntaxHighlighter.defaults['gutter'] = false;
-            SyntaxHighlighter.defaults['toolbar'] = false;
-            SyntaxHighlighter.highlight();
-
-            // nav menus
-            handleNavMenus();
-
-            // allow viewer to execute highlighted js code blocks
-            enableRunnableSections();
-        });
-        function enableRunnableSections() {
-            $(".syntaxhighlighter").each(function(){
-                var elem = $(this);
-                var code = $("table", elem).text();
-                if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
-                    elem.addClass("executable").attr("title", "Click to run");
-                    elem.click(function(e) {
-                        e.preventDefault();
-                        eval(code);
-                    });
-                }
-            });
-        }
-        function handleNavMenus() {
-            $("ul.submenu").each(function(){
-                var submenu = $(this);
-                submenu.hide();
-                var parentItem = submenu.parent();
-                parentItem.mouseenter(function(){
-                    submenu.css({
-                        "position": "absolute",
-                        "top": (parentItem.offset().top - $(window).scrollTop() + parentItem.height() + 15) + "px",
-                        "left": (parentItem.offset().left) + "px"
-                    }).show();
-                }).mouseleave(function(){
-                    submenu.hide();
-                });
-            });
-        }
-    </script>
+    <script type="text/javascript" src="public/js/app.js"></script>
 
     <script type="text/javascript">
       var _gaq = _gaq || [];
