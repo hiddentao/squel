@@ -591,7 +591,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     SetFieldBlock.prototype.set = function(field, value) {
       field = this._sanitizeField(field);
       value = this._sanitizeValue(value);
-      return this.fields[field] = value;
+      this.fields[field] = value;
+      return this;
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {

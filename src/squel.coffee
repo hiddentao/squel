@@ -538,6 +538,7 @@ class cls.SetFieldBlock extends cls.Block
     field = @_sanitizeField(field)
     value = @_sanitizeValue(value)
     @fields[field] = value
+    @
 
   buildStr: (queryBuilder) ->
     fieldNames = (field for own field of @fields)
