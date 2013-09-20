@@ -338,6 +338,14 @@ section {
 }
 
 
+#api {
+  padding-top: 150px;
+  border-bottom: none;
+}
+
+
+/* Handle different screen sizes, etc. */
+
 @media only screen and (max-width: 800px) {
     /* force text-wrap in code blocks */
     pre, div.syntaxhighlighter .line {
@@ -362,6 +370,7 @@ section {
         padding: 0 2em 1.5em 1em;
     }
 
+    #api,
     #home {
         padding-top: 30px;
 

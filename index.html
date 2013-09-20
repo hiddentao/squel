@@ -2,7 +2,7 @@
 <html>
 <head>
 	  <!-- For some reason we need this in here otherwise asset loading fails in Github due to incorrect base URL path being used -->
-	  <base href="http://hiddentao.github.io/squel/" />
+	  <!--<base href="http://hiddentao.github.io/squel/" />-->
 
     <title>Squel.js - SQL query string builder for Javascript</title>
 
@@ -32,7 +32,7 @@
         <nav class="top">
             <ul>
                 <li><a href="index.html" title="Guide">Guide</a></li>
-                <!--<li><a href="api.html" title="API">API</a></li>-->
+                <li><a href="api.html" title="API">API</a></li>
                 <li><a class="external" href="https://github.com/hiddentao/squel" title="Github">Source</a></li>
                 <li><a class="external" href="http://prezi.com/8fdvjo6ripkw/squeljs/" title="View the presentation">Prezi</a></li>
             </ul>
@@ -1139,19 +1139,17 @@
       <a name="tests" href="#tests"><h2>Tests</h2></a>
 
       <p>
-        Tests are written in <a href="http://visionmedia.github.io/mocha/">mocha</a> and can be found in the <code>test/</code> folder when you checkout the
-        <a href="https://github.com/hiddentao/squel">source code</a>.
-        To run them do the following:
+        Tests are written in <a href="http://visionmedia.github.io/mocha/">mocha</a> and can be found in the <code>test/</code> folder. To run them:
       </p>
 
         <pre class="brush: shell">
+            $ npm install -g grunt-cli
             $ npm install
-            $ make test
+            $ grunt test
         </pre>
 
       <p>
-        The tests get automatically run by the <em>Travis CI</em>
-        build system every time changes are made to Squel.
+        The tests get automatically run by <em>Travis CI</em> every time changes are made to Squel.
 
         The current build status is: <a class="img" href="http://travis-ci.org/hiddentao/squel" title="View squel on Travis"><img alt="Build Status" src="https://secure.travis-ci.org/hiddentao/squel.png"></a>
       </p>
