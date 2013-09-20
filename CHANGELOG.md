@@ -1,6 +1,10 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
+## In progress...
+* Switched from Make to Grunt
+
+
 ## 10 Jun 2013 (1.1.3)
 * Table names in SELECT queries can now be queries themselves (i.e. SQL sub statements)
 

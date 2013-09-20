@@ -249,25 +249,24 @@ Squel allows you to override the built-in query builders with your own as well a
     // 'PRAGMA COMPRESS test'
 
 
+## Building it
+
+We use Grunt to do the build and [docco](http://jashkenas.github.com/docco/) to build annotated source code docs.
+
+    $ npm install -g grunt-cli
+    $ npm install -g docco
+    $ npm install
+    $ grunt <-- this will build the code and run the tests
+
+Annotated source code can be found in the `docs/` folder.
+
+Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be found in the `test/` folder. To run them:
+
+    $ grunt test
+
 ## Documentation
 
-Full API documentation is available at [http://squeljs.org/](http://squeljs.org/).
-
-Annotated source code can be found in the `docs/` folder. This is built using
-[docco](http://jashkenas.github.com/docco/). To build it yourself you will first need to have the latest dev version
-of [pygment](http://pygments.org/download/) installed in your local Python environment. Then do the following inside
-the project folder:
-
-    $ npm install
-    $ make docs
-
-## Testing
-
-Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be found in the `test/` folder. To run them do the following:
-
-    $ npm install
-    $ make test
-
+Full documentation (guide and API) is available at [http://squeljs.org/](http://squeljs.org/).
 
 ## Contributing
 
