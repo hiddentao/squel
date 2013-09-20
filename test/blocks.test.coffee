@@ -505,6 +505,30 @@ test['Blocks'] =
         assert.ok formatValueSpy.calledWithExactly 'value2'
         assert.ok formatValueSpy.calledWithExactly 'value3'
 
+    'buildParam()':
+      'needs at least one field to have been provided': ->
+        @inst.fields = []
+        try
+          @inst.buildParam()
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: set() needs to be called', err.toString()
+
+      'calls formatValue() for each field value': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+
+        @inst.fields =
+          'field1': 'value1',
+          'field2': 'value2',
+          'field3': 'value3'
+
+        assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
+
+        assert.ok formatValueSpy.calledThrice
+        assert.ok formatValueSpy.calledWithExactly 'value1'
+        assert.ok formatValueSpy.calledWithExactly 'value2'
+        assert.ok formatValueSpy.calledWithExactly 'value3'
+
 
 
 
@@ -571,6 +595,30 @@ test['Blocks'] =
           'field3': 'value3'
 
         assert.same '(field1, field2, field3) VALUES ([value1], [value2], [value3])', @inst.buildStr()
+
+        assert.ok formatValueSpy.calledThrice
+        assert.ok formatValueSpy.calledWithExactly 'value1'
+        assert.ok formatValueSpy.calledWithExactly 'value2'
+        assert.ok formatValueSpy.calledWithExactly 'value3'
+
+    'buildParam()':
+      'needs at least one field to have been provided': ->
+        @inst.fields = []
+        try
+          @inst.buildParam()
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: set() needs to be called', err.toString()
+
+      'calls formatValue() for each field value': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+
+        @inst.fields =
+          'field1': 'value1',
+          'field2': 'value2',
+          'field3': 'value3'
+
+        assert.same { text: '(field1, field2, field3) VALUES (?, ?, ?)', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
 
         assert.ok formatValueSpy.calledThrice
         assert.ok formatValueSpy.calledWithExactly 'value1'
@@ -785,10 +833,23 @@ test['Blocks'] =
         assert.same '', @inst.buildStr()
 
       'output WHERE ': ->
-        @inst.where('a = 1')
-        @inst.where('b = 2 OR c = 3')
+        @inst.where('a = ?', 1)
+        @inst.where('b = ? OR c = ?', 2, 3)
+        @inst.where('d in ?', [1, 2, 3])
 
-        assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3)', @inst.buildStr()
+        assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (1, 2, 3))', @inst.buildStr()
+
+    'buildParam()':
+      'output nothing if no conditions set': ->
+        @inst.wheres = []
+        assert.same { text: '', values: [] }, @inst.buildParam()
+
+      'output WHERE ': ->
+        @inst.where('a = ?', 1)
+        @inst.where('b = ? OR c = ?', 2, 3)
+        @inst.where('d in ?', [1, 2, 3])
+
+        assert.same { text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 1, 2, 3] }, @inst.buildParam()
 
 
 
