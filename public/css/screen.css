@@ -377,9 +377,95 @@ section h3 {
   border-bottom: none;
 }
 
+/* API page */
 #api {
-  padding-top: 150px;
+  padding: 100px 7em 2em;
   border-bottom: none;
+  width: 60%;
+}
+#api article {
+  margin-bottom: 2em;
+}
+#api article h2 {
+  font-family: 'Armata', 'Courier', sans-serif;
+}
+#api article h2 span {
+  color: #ccc;
+  font-style: italic;
+}
+#api article .parameters {
+  background-color: #efefef;
+  margin-top: 1em;
+  padding: 0.8em;
+}
+#api article .parameters > ul:before {
+  content: 'Parameters:';
+  font-weight: bold;
+}
+#api article .parameters li {
+  margin-top: 1.5em;
+}
+#api article .parameters li span {
+  display: inline-block;
+  margin-right: 1em;
+}
+#api article .parameters li .name, #api article .parameters li .type, #api article .parameters li .default {
+  font-family: 'Armata', 'Courier', sans-serif;
+}
+#api article .parameters li .type:before {
+  content: '{';
+}
+#api article .parameters li .type:after {
+  content: '}';
+}
+#api article .parameters li .default {
+  font-style: italic;
+}
+#api article .parameters li .description {
+  display: block;
+  margin-top: 0.5em;
+}
+#api article .returns {
+  background-color: #efefef;
+  margin-top: 1em;
+  padding: 0.8em;
+}
+#api article .returns > span:before {
+  content: 'Returns: ';
+  font-weight: bold;
+}
+
+aside {
+  position: fixed;
+  top: 100px;
+  right: 4em;
+  width: 15%;
+  background-color: #efefef;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+  border-radius: 5px;
+  padding: 1em;
+}
+aside > ul {
+  font-family: 'Armata', 'Courier', sans-serif;
+}
+aside > ul > li {
+  margin-bottom: 1em;
+}
+aside > ul > li > ul {
+  display: none;
+}
+aside > ul > li li {
+  padding: 0.1em 0;
+}
+aside > ul ul {
+  margin-left: 0.5em;
+}
+aside > ul li.active > a {
+  background-color: #00f;
+  color: #fff;
 }
 
 /* Handle different screen sizes, etc. */
@@ -423,4 +509,6 @@ section h3 {
     margin: 0;
     padding-bottom: 0.7em;
   }
+
+  aside-display: none;
 }

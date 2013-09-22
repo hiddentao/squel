@@ -38,8 +38,8 @@
             </ul>
         </nav>
         <nav class="guide">
-          <ul>
-            <li class="active"><a href="#installation" title="Installation instructions">Installation</a></li>
+          <ul class="scrollSpy">
+            <li><a href="#installation" title="Installation instructions">Installation</a></li>
             <li><a href="#overview" title="Overview">Overview</a></li>
             <li><a href="#select" title="SELECT queries">SELECT</a></li>
             <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
@@ -360,6 +360,7 @@
         </pre>
 
     <h3>Filtering</h3>
+    <a name="filtering" href="#filtering" />
 
     <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
 
@@ -1167,6 +1168,19 @@
     <script type="text/javascript" src="public/js/shBrushXml.js"></script>
     <script type="text/javascript" src="public/js/shBrushJScript.js"></script>
     <script type="text/javascript" src="public/js/app.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        initScrollSpyMenus();
+
+        // highlight code blocks
+        SyntaxHighlighter.defaults['gutter'] = false;
+        SyntaxHighlighter.defaults['toolbar'] = false;
+        SyntaxHighlighter.highlight();
+
+        // allow viewer to execute highlighted js code blocks
+        enableRunnableSections();
+      });
+    </script>
 
     <script type="text/javascript">
       var _gaq = _gaq || [];

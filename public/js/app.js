@@ -1,17 +1,32 @@
 // Thanks to http://jsfiddle.net/mekwall/up4nu/
 
-$(function() {
+function enableRunnableSections() {
+  $(".syntaxhighlighter").each(function(){
+    var elem = $(this);
+    var code = $("table", elem).text();
+    if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
+      elem.addClass("executable").attr("title", "Click to run");
+      elem.click(function(e) {
+        e.preventDefault();
+        eval(code);
+      });
+    }
+  });
+}
+
+
+function initScrollSpyMenus() {
   // Cache selectors
   var lastId,
-    topMenu = $("header nav.guide"),
+    topMenu = $(".scrollSpy"),
     topMenuHeight = topMenu.outerHeight()+15,
-    // All list items
-    menuItems = topMenu.find("a"),
-    // Anchors corresponding to menu items
-    scrollItems = menuItems.map(function(){
-      var item = $($(this).attr("href"));
-      if (item.length) { return item; }
-    });
+  // All list items
+  menuItems = topMenu.find("a"),
+  // Anchors corresponding to menu items
+  scrollItems = menuItems.map(function(){
+    var item = $($(this).attr("href"));
+    if (item.length) { return item; }
+  });
 
   // Bind click handler to menu items
   // so we can get a fancy scroll animation
@@ -38,35 +53,28 @@ $(function() {
     cur = cur[cur.length-1];
     var id = cur && cur.length ? cur[0].id : "";
 
+    var oldActiveItem = menuItems.filter("[href=#"+lastId+"]").parent(),
+      newActiveItem = menuItems.filter("[href=#"+id+"]").parent();
+
     if (lastId !== id) {
       lastId = id;
-      // Set/remove active class
-      menuItems
-        .parent().removeClass("active")
-        .end().filter("[href=#"+id+"]").parent().addClass("active");
-    }
-  });
 
-  // highlight code blocks
-  SyntaxHighlighter.defaults['gutter'] = false;
-  SyntaxHighlighter.defaults['toolbar'] = false;
-  SyntaxHighlighter.highlight();
+      // remove indicator from old
+      oldActiveItem.removeClass('active');
 
-  // allow viewer to execute highlighted js code blocks
-  enableRunnableSections();
-});
+      var oldParentItem = oldActiveItem.parent().hasClass('scrollSpy') ? oldActiveItem : oldActiveItem.parent().parent();
+      var newParentItem = newActiveItem.parent().hasClass('scrollSpy') ? newActiveItem: newActiveItem.parent().parent();
 
+      // parents changed?
+      if (oldParentItem.children('a').attr('href') !== newParentItem.children('a').attr('href')) {
+        // close old submenu
+        oldParentItem.children('ul').hide();
+        // open new submenu
+        newParentItem.children('ul').show();
+      }
 
-function enableRunnableSections() {
-  $(".syntaxhighlighter").each(function(){
-    var elem = $(this);
-    var code = $("table", elem).text();
-    if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
-      elem.addClass("executable").attr("title", "Click to run");
-      elem.click(function(e) {
-        e.preventDefault();
-        eval(code);
-      });
+      // add indicator
+      newActiveItem.addClass("active")
     }
   });
 }

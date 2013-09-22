@@ -1,6 +1,11 @@
 @import "compass/reset";
 @import "compass";
 
+
+@mixin code-font {
+  font-family: 'Armata', 'Courier', sans-serif;
+}
+
 body {
     font-family: Arial, Verdana, sans-serif;
     font-size: 15px;
@@ -29,8 +34,8 @@ em {
 }
 
 code {
-    font-family: 'Armata', 'Courier', sans-serif;
-    font-weight: bold;
+  @include code-font;
+  font-weight: bold;
 }
 
 strong {
@@ -338,10 +343,115 @@ section {
 }
 
 
+/* API page */
+
 #api {
-  padding-top: 150px;
+  padding: 100px 7em 2em;
   border-bottom: none;
+  width: 60%;
+
+  article {
+    margin-bottom: 2em;
+
+    h2 {
+      @include code-font;
+
+      span {
+        color: #ccc;
+        font-style: italic;
+      }
+    }
+
+    .parameters {
+      background-color: #efefef;
+      margin-top: 1em;
+      padding: 0.8em;
+
+      & > ul:before {
+        content: 'Parameters:';
+        font-weight: bold;
+      }
+
+      li {
+        margin-top: 1.5em;
+
+        span {
+          display: inline-block;
+          margin-right: 1em;
+        }
+
+        .name, .type, .default {
+          @include code-font;
+        }
+
+        .type:before {
+          content: '{';
+        }
+        .type:after {
+          content: '}';
+        }
+
+        .default {
+          font-style: italic;
+        }
+
+        .description {
+          display: block;
+          margin-top: 0.5em;
+        }
+      }
+    }
+
+    .returns {
+      background-color: #efefef;
+      margin-top: 1em;
+      padding: 0.8em;
+
+      & > span:before {
+        content: 'Returns: ';
+        font-weight: bold;
+      }
+    }
+  }
+
 }
+
+aside {
+  position: fixed;
+  top: 100px;
+  right: 4em;
+  width: 15%;
+  background-color: #efefef;
+  @include border-radius(5px);
+  padding: 1em;
+
+  & > ul {
+    @include code-font;
+
+    & > li {
+      margin-bottom: 1em;
+
+      & > ul {
+        display: none;  // this will be shown when user selects is parent (see api.js)
+      }
+
+      & li {
+        padding: 0.1em 0;
+      }
+    }
+
+    & ul {
+      margin-left: 0.5em;
+    }
+
+    li.active > a {
+      background-color: #00f;
+      color: #fff;
+    }
+  }
+}
+
+
 
 
 /* Handle different screen sizes, etc. */
@@ -381,6 +491,10 @@ section {
             margin: 0;
             padding-bottom: 0.7em;
         }
+    }
+
+    aside: {
+      display: none;
     }
 }
 

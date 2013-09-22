@@ -39,23 +39,505 @@
   </nav>
 </header>
 
-<section id="api">
-  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis tincidunt arcu mi, ac dictum mi auctor eget. Donec id augue sed libero adipiscing imperdiet et non metus. Nam vel diam ut est feugiat hendrerit. Praesent vestibulum varius augue, eu ultricies enim ullamcorper sed. Integer vel sem tincidunt, dignissim orci eu, fermentum quam. Vestibulum commodo, arcu sed interdum volutpat, arcu erat tempus urna, eu placerat nibh sem vitae mauris. In commodo at neque sed elementum. Morbi molestie, odio a pellentesque lacinia, velit augue laoreet sapien, sit amet egestas nisi sapien sed massa. Nunc cursus nibh non leo malesuada, in tempus orci ultrices. Aenean iaculis elementum justo id blandit. Sed elementum at elit vel sollicitudin. Nullam ac ante eros. Pellentesque porttitor leo ut metus ullamcorper, sed rutrum ipsum tincidunt. Aenean libero erat, facilisis eget nunc id, luctus condimentum turpis.
+<aside><ul class="scrollSpy"></ul></aside>
 
-  Praesent scelerisque condimentum nisl, eu pellentesque quam iaculis at. Phasellus vel commodo purus. Maecenas ac justo quis ipsum pellentesque imperdiet. Maecenas bibendum lorem egestas diam adipiscing, vel pulvinar felis pulvinar. In eu varius purus. Vivamus euismod diam at massa molestie eleifend. Curabitur bibendum urna dui, sit amet tincidunt arcu tincidunt eget. Nulla et volutpat nibh. Quisque laoreet ligula sit amet urna aliquet, commodo eleifend diam euismod. Suspendisse non enim sit amet felis elementum egestas. Donec laoreet ipsum ac augue faucibus, id scelerisque eros viverra. Mauris facilisis diam arcu, et egestas mi dictum sed. Proin volutpat velit vitae porta tincidunt.
-</section>
+<section id="api">Loading...</section>
+
 
 <footer class="white_text">
   Developed by <a href="http://twitter.com/hiddentao">@hiddentao</a>. Source on <a href="https://github.com/hiddentao/squel">Github</a>.
 </footer>
 
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+<script type="text/javascript" src="public/js/jquery-2.0.3.js"></script>
 <script type="text/javascript" src="public/js/shCore.js"></script>
 <script type="text/javascript" src="public/js/shBrushBash.js"></script>
 <script type="text/javascript" src="public/js/shBrushXml.js"></script>
 <script type="text/javascript" src="public/js/shBrushJScript.js"></script>
 <script type="text/javascript" src="public/js/app.js"></script>
+<script type="text/javascript" src="public/js/api.js"></script>
+<script type="text/javascript">
+  $(function() {
+    buildApiDocs({
+      'select()': {
+        desc: 'Create a SELECT query builder instance.',
+        returns: '[[cls.Select]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.distinct()': {
+            desc: 'Insert the DISTINCT keyword.',
+            returns: '[[cls.Select]]'
+          },
+          '.field()': {
+            desc: 'Set a field to select data for.',
+            params: {
+              name: {
+                desc: 'Name of field (or an SQL expression such as <code>DATE_FORMAT</code>).',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.from()': {
+            desc: 'A table to select data from.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.join()': {
+            desc: 'Add an INNER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.left_join()': {
+            desc: 'Add a LEFT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.right_join()': {
+            desc: 'Add a RIGHT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.outer_join()': {
+            desc: 'Add an OUTER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.where()': {
+            desc: 'Add a WHERE condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="guide.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.order()': {
+            desc: 'Add an ORDER BY clause.',
+            params: {
+              field: {
+                desc: 'Name of field to sort by.',
+                type: 'String'
+              },
+              'direction': {
+                desc: 'Sort direction. <code>true</code> = ascending, <code>false</code> = descending.',
+                type: 'Boolean',
+                defaultValue: true
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.group()': {
+            desc: 'Add an GROUP BY clause.',
+            params: {
+              field: {
+                desc: 'Name of field to group by.',
+                type: 'String'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.limit()': {
+            desc: 'Add a LIMIT clause.',
+            params: {
+              limit: {
+                desc: 'Number of records to limit to.',
+                type: 'Integer'
+              }
+            },
+            returns: '[[cls.Select]]'
+          },
+          '.offset()': {
+            desc: 'Add an OFFSET clause.',
+            params: {
+              limit: {
+                desc: 'Index of record to start fetching from.',
+                type: 'Integer'
+              }
+            },
+            returns: '[[cls.Select]]'
+          }
+        }
+      }, // select
+
+      'update()': {
+        desc: 'Create an UPDATE query builder instance.',
+        returns: '[[cls.Update]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.table()': {
+            desc: 'A table to update.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Update]]'
+          },
+          '.set()': {
+            desc: 'Set a field to a value.',
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              value: {
+                type: 'Any',
+                desc: 'Value to set to field.'
+              }
+            },
+            returns: '[[cls.Update]]'
+          },
+          '.where()': {
+            desc: 'Add a WHERE condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="guide.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: '[[cls.Update]]'
+          },
+          '.limit()': {
+            desc: 'Add a LIMIT clause.',
+            params: {
+              limit: {
+                desc: 'Number of records to limit update to.',
+                type: 'Integer'
+              }
+            },
+            returns: '[[cls.Update]]'
+          },
+          '.offset()': {
+            desc: 'Add an OFFSET clause.',
+            params: {
+              limit: {
+                desc: 'Index of record to start updating from.',
+                type: 'Integer'
+              }
+            },
+            returns: '[[cls.Update]]'
+          }
+        }
+      }, // update
+
+      'delete()': {
+        desc: 'Create a DELETE query builder instance.',
+        returns: '[[cls.Delete]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.from()': {
+            desc: 'A table to delete data from.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.join()': {
+            desc: 'Add an INNER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.left_join()': {
+            desc: 'Add a LEFT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.right_join()': {
+            desc: 'Add a RIGHT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.outer_join()': {
+            desc: 'Add an OUTER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.where()': {
+            desc: 'Add a WHERE condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="guide.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.limit()': {
+            desc: 'Add a LIMIT clause.',
+            params: {
+              limit: {
+                desc: 'Number of records to limit deletion to.',
+                type: 'Integer'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          },
+          '.offset()': {
+            desc: 'Add an OFFSET clause.',
+            params: {
+              limit: {
+                desc: 'Index of record to start deleting from.',
+                type: 'Integer'
+              }
+            },
+            returns: '[[cls.Delete]]'
+          }
+        }
+      }, // delete
+
+      'insert()': {
+        desc: 'Create an INSERT query builder instance.',
+        returns: '[[cls.Insert]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.into()': {
+            desc: 'The table to insert into.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              }
+            },
+            returns: '[[cls.Insert]]'
+          },
+          '.set()': {
+            desc: 'Set a field to a value.',
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              value: {
+                type: 'Any',
+                desc: 'Value to set to field.'
+              }
+            },
+            returns: '[[cls.Insert]]'
+          }
+        }
+      }, // update
+
+      cls: {
+        desc: 'The list of classes in Squel.',
+        children: {
+          '.DefaultQueryBuilderOptions': {
+            desc: 'Default configuration options for all query builders. These can be overridden in the query builder constructors.'
+          }
+        }
+      }
+    });
+  });
+</script>
 
 <script type="text/javascript">
   var _gaq = _gaq || [];
