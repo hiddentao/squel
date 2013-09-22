@@ -58,7 +58,7 @@
 <script type="text/javascript" src="public/js/api.js"></script>
 <script type="text/javascript">
   $(function() {
-    buildApiDocs({
+    var tree = {
       'select()': {
         desc: 'Create a SELECT query builder instance.',
         returns: '[[cls.Select]]',
@@ -77,7 +77,7 @@
         children: {
           '.distinct()': {
             desc: 'Insert the DISTINCT keyword.',
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.field()': {
             desc: 'Set a field to select data for.',
@@ -92,7 +92,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.from()': {
             desc: 'A table to select data from.',
@@ -107,7 +107,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.join()': {
             desc: 'Add an INNER JOIN.',
@@ -127,7 +127,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.left_join()': {
             desc: 'Add a LEFT JOIN.',
@@ -147,7 +147,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.right_join()': {
             desc: 'Add a RIGHT JOIN.',
@@ -167,7 +167,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.outer_join()': {
             desc: 'Add an OUTER JOIN.',
@@ -187,7 +187,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.where()': {
             desc: 'Add a WHERE condition.',
@@ -202,7 +202,7 @@
                 defaultValue: null
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.order()': {
             desc: 'Add an ORDER BY clause.',
@@ -217,7 +217,7 @@
                 defaultValue: true
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.group()': {
             desc: 'Add an GROUP BY clause.',
@@ -227,7 +227,7 @@
                 type: 'String'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.limit()': {
             desc: 'Add a LIMIT clause.',
@@ -237,7 +237,7 @@
                 type: 'Integer'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           },
           '.offset()': {
             desc: 'Add an OFFSET clause.',
@@ -247,7 +247,7 @@
                 type: 'Integer'
               }
             },
-            returns: '[[cls.Select]]'
+            returns: 'this'
           }
         }
       }, // select
@@ -281,7 +281,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Update]]'
+            returns: 'this'
           },
           '.set()': {
             desc: 'Set a field to a value.',
@@ -295,7 +295,7 @@
                 desc: 'Value to set to field.'
               }
             },
-            returns: '[[cls.Update]]'
+            returns: 'this'
           },
           '.where()': {
             desc: 'Add a WHERE condition.',
@@ -310,7 +310,7 @@
                 defaultValue: null
               }
             },
-            returns: '[[cls.Update]]'
+            returns: 'this'
           },
           '.limit()': {
             desc: 'Add a LIMIT clause.',
@@ -320,7 +320,7 @@
                 type: 'Integer'
               }
             },
-            returns: '[[cls.Update]]'
+            returns: 'this'
           },
           '.offset()': {
             desc: 'Add an OFFSET clause.',
@@ -330,7 +330,7 @@
                 type: 'Integer'
               }
             },
-            returns: '[[cls.Update]]'
+            returns: 'this'
           }
         }
       }, // update
@@ -364,7 +364,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.join()': {
             desc: 'Add an INNER JOIN.',
@@ -384,7 +384,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.left_join()': {
             desc: 'Add a LEFT JOIN.',
@@ -404,7 +404,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.right_join()': {
             desc: 'Add a RIGHT JOIN.',
@@ -424,7 +424,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.outer_join()': {
             desc: 'Add an OUTER JOIN.',
@@ -444,7 +444,7 @@
                 defaultValue: 'null'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.where()': {
             desc: 'Add a WHERE condition.',
@@ -459,7 +459,7 @@
                 defaultValue: null
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.limit()': {
             desc: 'Add a LIMIT clause.',
@@ -469,7 +469,7 @@
                 type: 'Integer'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           },
           '.offset()': {
             desc: 'Add an OFFSET clause.',
@@ -479,7 +479,7 @@
                 type: 'Integer'
               }
             },
-            returns: '[[cls.Delete]]'
+            returns: 'this'
           }
         }
       }, // delete
@@ -508,7 +508,7 @@
                 type: 'String'
               }
             },
-            returns: '[[cls.Insert]]'
+            returns: 'this'
           },
           '.set()': {
             desc: 'Set a field to a value.',
@@ -522,20 +522,144 @@
                 desc: 'Value to set to field.'
               }
             },
-            returns: '[[cls.Insert]]'
+            returns: 'this'
+          }
+        }
+      }, // update
+
+      'expr()': {
+        desc: 'Create an SQL expression query builder instance.',
+        returns: '[[cls.Expression]]',
+        children: {
+          '.and_begin()': {
+            desc: 'Begin a nested expression to <code>AND</code> with the current expression.',
+            returns: 'this'
+          },
+          '.or_begin()': {
+            desc: 'Begin a nested expression to <code>OR</code> with the current expression.',
+            returns: 'this'
+          },
+          '.end()': {
+            desc: 'End the current expression. If we are currently inside a nested expression then this will end the nested expression.',
+            returns: 'this'
+          },
+          '.and()': {
+            desc: 'Add to the current expression using <code>AND</code>.',
+            params: {
+              expr: {
+                desc: 'The expression to add',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.or()': {
+            desc: 'Add to the current expression using <code>OR</code>.',
+            params: {
+              expr: {
+                desc: 'The expression to add',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.toString()': {
+            desc: 'Build and return the final expression string.',
+            returns: 'String'
           }
         }
       }, // update
 
       cls: {
-        desc: 'The list of classes in Squel.',
+        desc: 'Classes and global methods in Squel.',
         children: {
           '.DefaultQueryBuilderOptions': {
             desc: 'Default configuration options for all query builders. These can be overridden in the query builder constructors.'
+          },
+          '.registerValueHandler()': {
+            desc: 'Register a custom value type handler. We may wish to use custom value types (e.g. <code>Date</code>) and have ' +
+                'Squel automatically take care of formatting them when building the output query string. Note that this ' +
+                'will override any globally registered handlers set via [[cls.registerValueHandler]].',
+            params: {
+              'type': {
+                desc: 'The class object representing the value type to handle',
+                type: 'Class'
+              },
+              'handler': {
+                desc: 'The handler method to call when we wish to format this value for output in a query string',
+                type: 'Function'
+              }
+            },
+            returns: 'this'
+          },
+          '.Expression': {
+            desc: 'Expression builder class.'
+          },
+          '.Block': {
+            desc: 'Base class for all query building blocks. Inherits from [[cls.BaseBuilder]].'
+          },
+          '.Select': {
+            desc: 'SELECT query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.Update': {
+            desc: 'UPDATE query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.Delete': {
+            desc: 'DELETE query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.Insert': {
+            desc: 'INSERT query builder. Inherits from [[cls.QueryBuilder]].'
           }
         }
       }
-    });
+    };
+
+
+    var commonQueryBuilderMethods = {
+      '.updateOptions()': {
+        desc: 'Update query builder configuration options. This will pass on the options to all the registered [[cls.Block]] objects.',
+        params: {
+          'options': {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object'
+          }
+        }
+      },
+      '.registerValueHandler()': {
+        desc: 'Register a custom value type handler. We may wish to use custom value types (e.g. <code>Date</code>) and have ' +
+            'Squel automatically take care of formatting them when building the output query string.',
+        params: {
+          'type': {
+            desc: 'The class object representing the value type to handle',
+            type: 'Class'
+          },
+          'handler': {
+            desc: 'The handler method to call when we wish to format this value for output in a query string',
+            type: 'Function'
+          }
+        },
+        returns: 'this'
+      },
+      '.isNestable()': {
+        desc: 'Get whether this query builder can be nested inside another query (e.g. inner SELECT).',
+        returns: 'Boolean'
+      },
+      '.clone()': {
+        desc: 'Clone this object instance.',
+        returns: 'Object'
+      },
+      '.toString()': {
+        desc: 'Build and return the final query string.',
+        returns: 'String'
+      }
+    };
+
+    $.extend(tree['select()'].children, commonQueryBuilderMethods);
+    $.extend(tree['update()'].children, commonQueryBuilderMethods);
+    $.extend(tree['delete()'].children, commonQueryBuilderMethods);
+    $.extend(tree['insert()'].children, commonQueryBuilderMethods);
+
+    buildApiDocs(tree);
   });
 </script>
 

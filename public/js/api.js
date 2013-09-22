@@ -62,7 +62,7 @@ var _addEntry = function(key, value) {
   }
 
   if (value.returns) {
-    jqDiv.append('<div class="returns"><span>' + _formatStr(value.returns) + '</span></div>');
+    jqDiv.append('<div class="returns"><span><code>' + _formatStr(value.returns) + '</code></span></div>');
   }
 
   jqAPISection.append(jqDiv);
@@ -119,9 +119,6 @@ var buildApiDocs = function(tree) {
       jqChildList.show();
     });
   });
-
-  // expand first item in sidebar
-  $('aside > ul > li:first-child').children('ul').show();
 
   // remove loading indicators
   jqAPISection.children('.loading').remove();
