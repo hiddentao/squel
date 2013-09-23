@@ -1446,7 +1446,7 @@ This will override any previously set value for the given field.</p>
     <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
       fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
       fields += <span class="string">"<span class="subst">#{field}</span> = ?"</span>
-      values.push <span class="property">@fields</span>[field]
+      values.push <span class="property">@_formatValue</span> <span class="property">@fields</span>[field]
 
     { text: <span class="string">"SET <span class="subst">#{fields}</span>"</span>, values: values }</pre></div></div>
             
@@ -1520,7 +1520,7 @@ This will override any previously set value for the given field.</p>
       fields += field
       values += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> values
       values += <span class="string">"?"</span>
-      valuesArr.push <span class="property">@fields</span>[field]
+      valuesArr.push <span class="property">@_formatValue</span> <span class="property">@fields</span>[field]
 
     { text: <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span>, values: valuesArr }</pre></div></div>
             

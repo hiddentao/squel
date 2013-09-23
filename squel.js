@@ -644,7 +644,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           fields += ", ";
         }
         fields += "" + field + " = ?";
-        values.push(this.fields[field]);
+        values.push(this._formatValue(this.fields[field]));
       }
       return {
         text: "SET " + fields,
@@ -723,7 +723,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           values += ", ";
         }
         values += "?";
-        valuesArr.push(this.fields[field]);
+        valuesArr.push(this._formatValue(this.fields[field]));
       }
       return {
         text: "(" + fields + ") VALUES (" + values + ")",
