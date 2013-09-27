@@ -495,7 +495,19 @@ class cls.IntoTableBlock extends cls.Block
 class cls.GetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
-    @fields = []
+    @_fields = []
+
+
+  # Add the given fields to the final result set.
+  #
+  # The parameter is an Object containing field names (or database functions) as the keys and aliases for the fields
+  # as the values. If the value for a key is null then no alias is set for that field.
+  #
+  # Internally this method simply calls the field() method of this block to add each individual field.
+  fields: (_fields) ->
+    for field, alias of _fields
+      @field(field, alias)
+
 
   # Add the given field to the final result set.
   #
@@ -507,13 +519,13 @@ class cls.GetFieldBlock extends cls.Block
     field = @_sanitizeField(field)
     alias = @_sanitizeFieldAlias(alias) if alias
 
-    @fields.push
+    @_fields.push
       name: field
       alias: alias
 
   buildStr: (queryBuilder) ->
     fields = ""
-    for field in @fields
+    for field in @_fields
       fields += ", " if "" isnt fields
       fields += field.name
       fields += " AS #{field.alias}" if field.alias

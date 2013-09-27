@@ -3,6 +3,7 @@
 
 ## In progress...
 * Switched from Make to Grunt
+* Added `fields()` method to SELECT builder (#29).
 
 
 ## 10 Jun 2013 (1.1.3)
