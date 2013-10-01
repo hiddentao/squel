@@ -802,6 +802,7 @@ class cls.JoinBlock extends cls.Block
 
 
 
+
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # Query builders
@@ -978,4 +979,26 @@ else if module?.exports
 # Browser
 else
   window?.squel = squel
+
+
+
+
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Squel SQL flavours
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+# Available flavours
+squel.flavours = {}
+
+# Setup Squel for a particular SQL flavour
+squel.useFlavour = (flavour) ->
+  if squel.flavours[flavour] instanceof Function
+    squel.flavours[flavour].call null, squel
+  else
+    throw new Error "Flavour not available: #{flavour}"
+  squel
+
 

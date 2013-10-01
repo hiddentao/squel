@@ -10,15 +10,32 @@ module.exports = function (grunt) {
       docs: 'docs'
     },
     coffee: {
-      build: {
+      build_basic: {
         files: [{
-          src: 'src/*.coffee',
+          src: 'src/squel.coffee',
+          dest: './squel-basic.js'
+        }]
+      },
+      build_full: {
+        options: {
+          join: true
+        },
+        files: [{
+          src: ['src/squel.coffee', 'src/postgres.coffee'],
           dest: './squel.js'
         }]
       }
     },
     uglify: {
-      build: {
+      build_basic: {
+        options: {
+          banner: '/*! squel | https://github.com/hiddentao/squel | BSD license */'
+        },
+        files: {
+          './squel-basic.min.js': [ './squel-basic.js' ]
+        }
+      },
+      build_full: {
         options: {
           banner: '/*! squel | https://github.com/hiddentao/squel | BSD license */'
         },
@@ -47,18 +64,20 @@ module.exports = function (grunt) {
 
 
   grunt.registerTask('test', [
+    'clean:build',
+    'coffee',
     'mochaTest'
   ]);
 
   grunt.registerTask('build', [
     'clean',
-    'coffee:build',
-    'uglify:build',
+    'coffee',
+    'mochaTest',
+    'uglify',
     'shell:docs'
   ]);
 
   grunt.registerTask('default', [
-    'test',
     'build'
   ]);
 };

@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../src/squel"
+squel = require "../squel"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
@@ -106,6 +106,28 @@ test['Register global custom value handler'] =
     assert.same 1, squel.cls.globalValueHandlers.length
     assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
 
+
+
+test['Load an SQL flavour'] =
+  beforeEach: ->
+    @flavoursBackup = squel.flavours
+    squel.flavours = {}
+
+  afterEach: ->
+    squel.flavours = @flavoursBackup
+
+  'invalid flavour': ->
+    assert.throws (-> squel.useFlavour 'test'), 'Flavour not available: test'
+
+  'flavour reference should be a function': ->
+    squel.flavours['test'] = 'blah'
+    assert.throws (-> squel.useFlavour 'test'), 'Flavour not available: test'
+
+  'flavour setup function gets executed': ->
+    squel.flavours['test'] = test.mocker.spy()
+    squel.useFlavour 'test'
+    assert.ok squel.flavours['test'].calledOnce
+    assert.ok squel.flavours['test'].calledWithExactly squel
 
 
 

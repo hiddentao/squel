@@ -11,8 +11,8 @@ A flexible and powerful SQL query string builder for Javascript.
 * Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
 * Can be customized to support non-standard queries.
 * Uses method chaining for ease of use.
-* Well tested (~240 tests).
-* Small: ~4 KB minified and gzipped
+* Well tested (~290 tests).
+* Small: <4 KB minified and gzipped
 
 ## Installation
 
@@ -30,10 +30,18 @@ Use [bower](https://github.com/bower/bower) if you like:
 
 Or add the following inside your HTML:
 
-    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel-basic.min.js"></script>
 
 **NOTE: It is recommended that you do NOT create queries browser-side to run on the server as this massively increases
 your exposure to [SQL Injection](http://en.wikipedia.org/wiki/SQL_injection) attacks.**
+
+## Available files
+
+* `squel.js` - unminified version of Squel with the standard commands and all available non-standard commands added
+* `squel.min.js` - minified version of `squel.js`
+* `squel-basic.js` - unminified version of Squel with only the standard SQL commands
+* `squel-basic.min.js` - minified version of `squel-basic.js`
+
 
 ## Examples
 
@@ -250,6 +258,28 @@ Squel allows you to override the built-in query builders with your own as well a
     // 'PRAGMA COMPRESS test'
 
 
+## Non-standard SQL
+
+Squel supports the standard SQL commands and reserved words. However a number of database engines provide their own
+non-standard commands. To make things easy Squel allows for different 'flavours' of SQL to be loaded and used.
+
+At the moment there is a Postgres flavour which augments query builders with additional commands (e.g. `INSERT ... RETURNING`)
+for use with the Postgres database engine.
+
+To use this in node.js:
+
+    var squel = require('squel').useFlavour('postgres');
+
+For the browser:
+
+    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript">
+      squel.useFlavour('postgres');
+    </script>
+
+Read the the [API docs](http://squeljs.org/api.html) to find out available commands. Flavours of SQL which get added to
+Squel in the future will be usable in the above manner.
+
 ## Building it
 
 We use Grunt to do the build and [docco](http://jashkenas.github.com/docco/) to build annotated source code docs.
@@ -268,6 +298,7 @@ Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be fo
 ## Documentation
 
 Full documentation (guide and API) is available at [http://squeljs.org/](http://squeljs.org/).
+
 
 ## Contributing
 

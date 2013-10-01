@@ -30,39 +30,21 @@ test = testCreator()
 
 
 
-test['Custom queries'] =
-  'custom query': ->
-    class CommandBlock extends squel.cls.Block
-      command: (command) ->
-        @_command = command
-      compress: ->
-        @command('compress')
-      buildStr: ->
-        if (!@_command or 0 is @_command.length) then throw new Error 'command() must be called'
-        @_command.toUpperCase()
+test['Postgres flavour'] =
+  beforeEach: -> squel.useFlavour 'postgres'
 
+  'INSERT builder':
+    beforeEach: -> @inst = squel.insert()
 
-    class ParamBlock extends squel.cls.Block
-      param: (param) ->
-        @param = param
-      buildStr: ->
-        if @param then @param else ""
+    '>> into(table).set(field, 1).returning("*")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('*')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING *'
 
-
-    class PragmaQuery extends squel.cls.QueryBuilder
-      constructor: (options) ->
-        blocks = [
-          new squel.cls.StringBlock(options, 'PRAGMA'),
-          new CommandBlock(options),
-          new ParamBlock(options)
-        ]
-
-        super options, blocks
-
-    # squel method
-    squel.pragma = (options) -> new PragmaQuery(options)
-
-    assert.same 'PRAGMA COMPRESS test', squel.pragma().compress().param('test').toString()
+    '>> into(table).set(field, 1).returning("id")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('id')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
 
 
