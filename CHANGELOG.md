@@ -5,6 +5,7 @@
 * Switched from Make to Grunt
 * Added `fields()` method to SELECT builder (#29)
 * Expression trees can now be cloned (#31)
+* Added concept of SQL 'flavours' and merged in the Postgres `RETURNING` command #33
 
 
 ## 10 Jun 2013 (1.1.3)
