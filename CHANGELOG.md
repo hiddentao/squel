@@ -1,7 +1,7 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
-## In progress...
+## 2 Oct 2013 (1.2)
 * Switched from Make to Grunt
 * Added `fields()` method to SELECT builder (#29)
 * Expression trees can now be cloned (#31)
