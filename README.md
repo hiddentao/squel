@@ -264,7 +264,7 @@ Squel allows you to override the built-in query builders with your own as well a
 Squel supports the standard SQL commands and reserved words. However a number of database engines provide their own
 non-standard commands. To make things easy Squel allows for different 'flavours' of SQL to be loaded and used.
 
-At the moment there is a Postgres flavour which augments query builders with additional commands (e.g. `INSERT ... RETURNING`)
+At the moment Squel provides a Postgres flavour which augments query builders with additional commands (e.g. `INSERT ... RETURNING`)
 for use with the Postgres database engine.
 
 To use this in node.js:
@@ -278,7 +278,9 @@ For the browser:
       squel.useFlavour('postgres');
     </script>
 
-Read the the [API docs](http://squeljs.org/api.html) to find out available commands. Flavours of SQL which get added to
+(Internally the flavour setup method simply utilizes the [custom query mechanism](http://hiddentao.github.io/squel/#custom_queries) to effect changes).
+
+Read the the [API docs](http://hiddentao.github.io/squel/api.html) to find out available commands. Flavours of SQL which get added to
 Squel in the future will be usable in the above manner.
 
 ## Building it
