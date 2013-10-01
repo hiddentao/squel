@@ -800,6 +800,18 @@ class cls.JoinBlock extends cls.Block
     joins
 
 
+# RETURNING
+class cls.ReturningBlock extends cls.Block
+  constructor: (options) ->
+    super options
+    @str = null
+
+  returning: (ret) ->
+    @str = @_sanitizeField(ret)
+
+
+  buildStr: (queryBuilder) ->
+    if @str then "RETURNING #{@str}" else ""
 
 
 
@@ -940,7 +952,8 @@ class cls.Insert extends cls.QueryBuilder
     blocks or= [
       new cls.StringBlock(options, 'INSERT'),
       new cls.IntoTableBlock(options),
-      new cls.InsertFieldValueBlock(options)
+      new cls.InsertFieldValueBlock(options),
+      new cls.ReturningBlock(options)
     ]
 
     super options, blocks
