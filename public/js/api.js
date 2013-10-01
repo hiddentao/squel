@@ -39,6 +39,10 @@ var _addEntry = function(key, value) {
 
   jqDiv.append('<div class="description">' + _formatStr(value.desc) + '</div>');
 
+  if (value.flavours) {
+    jqDiv.append('<div class="flavours">Only in flavours: <span>' + value.flavours.join(', ') + '</span></div>');
+  }
+
   if (value.params) {
     var jqParamsList = $('<ul />');
 
@@ -63,6 +67,26 @@ var _addEntry = function(key, value) {
 
   if (value.returns) {
     jqDiv.append('<div class="returns"><span><code>' + _formatStr(value.returns) + '</code></span></div>');
+  }
+
+  if (value.subKeys) {
+    var jqSubKeyList = $('<ul />');
+
+    _each(value.subKeys, function(paramName, paramMeta) {
+      var jqParamItem = $('<li />');
+
+      jqParamItem.append('<span class="name">' + paramName + '</span>');
+      jqParamItem.append('<span class="type">' + _formatStr(paramMeta.type) + '</span>');
+      var desc = paramMeta.desc;
+      desc = desc + ' Default is <code>' + paramMeta.defaultValue + '</code>.';
+      jqParamItem.append('<span class="description">' + _formatStr(desc) + '</span>');
+
+      jqSubKeyList.append(jqParamItem);
+    });
+
+    var jqSubKeyDiv = $('<div class="subKeys" />');
+    jqSubKeyDiv.append(jqSubKeyList);
+    jqDiv.append(jqSubKeyDiv);
   }
 
   jqAPISection.append(jqDiv);

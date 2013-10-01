@@ -393,34 +393,54 @@ section h3 {
   color: #ccc;
   font-style: italic;
 }
+#api article .flavours {
+  background-color: #faa;
+  margin-top: 1em;
+  padding: 0.8em;
+  font-weight: bold;
+}
+#api article .flavours span {
+  font-weight: normal;
+}
+#api article .subKeys,
 #api article .parameters {
   background-color: #efefef;
   margin-top: 1em;
   padding: 0.8em;
 }
-#api article .parameters > ul:before {
+#api article .subKeys.parameters > ul:before,
+#api article .parameters.parameters > ul:before {
   content: 'Parameters:';
   font-weight: bold;
 }
+#api article .subKeys li,
 #api article .parameters li {
   margin-top: 1.5em;
 }
+#api article .subKeys li span,
 #api article .parameters li span {
   display: inline-block;
   margin-right: 1em;
 }
-#api article .parameters li .name, #api article .parameters li .type, #api article .parameters li .default {
+#api article .subKeys li .name, #api article .subKeys li .type, #api article .subKeys li .default,
+#api article .parameters li .name,
+#api article .parameters li .type,
+#api article .parameters li .default {
   font-family: 'Armata', 'Courier', sans-serif;
 }
+#api article .subKeys li .type:before,
 #api article .parameters li .type:before {
   content: '{';
 }
+#api article .subKeys li .type:after,
 #api article .parameters li .type:after {
   content: '}';
 }
+#api article .subKeys li .default,
 #api article .parameters li .default {
   font-style: italic;
 }
+#api article .subKeys li .description,
 #api article .parameters li .description {
   display: block;
   margin-top: 0.5em;

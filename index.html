@@ -49,6 +49,7 @@
             <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
             <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
             <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
+            <li><a href="#db_support" title="Database engine support">DB support</a></li>
             <li><a href="#cloning" title="Cloning">Cloning</a></li>
           </ul>
         </nav>
@@ -1094,6 +1095,31 @@
         /* 'PRAGMA FLUSH students' */
       </pre>
 
+
+    </section>
+
+    <section id="db_support">
+      <a name="db_support" href="#db_support"><h2>Database support</h2></a>
+
+      <p>Although you can use Squel's query customization mechanism to add support for your desired commands it would be
+      nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
+      <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
+      version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
+        <a href="http://www.postgresql.org/">Postgres</a> flavour of SQL:</p>
+
+      <pre class="brush: js">
+        /* Tell squel to use the Postgres flavour */
+        squel.useFlavour('postgres');
+
+        alert(
+          squel.insert()
+            .into('table')
+            .set('field', 1)
+            .returning('*')
+        );
+
+        /*  INSERT INTO table (field) VALUES (1) RETURNING *  */
+      </pre>
 
     </section>
 

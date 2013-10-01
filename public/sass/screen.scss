@@ -362,12 +362,24 @@ section {
       }
     }
 
+    .flavours {
+      background-color: #faa;
+      margin-top: 1em;
+      padding: 0.8em;
+      font-weight: bold;
+
+      span {
+        font-weight: normal;
+      }
+    }
+
+    .subKeys,
     .parameters {
       background-color: #efefef;
       margin-top: 1em;
       padding: 0.8em;
 
-      & > ul:before {
+      &.parameters > ul:before {
         content: 'Parameters:';
         font-weight: bold;
       }

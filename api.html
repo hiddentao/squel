@@ -94,6 +94,16 @@
             },
             returns: 'this'
           },
+          '.fields()': {
+            desc: 'Set fields to select data for.',
+            params: {
+              fields: {
+                desc: 'List of field:alias pairs.',
+                type: 'Object'
+              }
+            },
+            returns: 'this'
+          },
           '.from()': {
             desc: 'A table to select data from.',
             params: {
@@ -523,9 +533,20 @@
               }
             },
             returns: 'this'
+          },
+          '.returning()': {
+            desc: 'Add a RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              str: {
+                desc: 'What to return with the query.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
           }
         }
-      }, // update
+      }, // insert
 
       'expr()': {
         desc: 'Create an SQL expression query builder instance.',
@@ -563,18 +584,65 @@
             },
             returns: 'this'
           },
+          '.clone()': {
+            desc: 'Clone this object instance.',
+            returns: '[[cls.Expression]]'
+          },
           '.toString()': {
             desc: 'Build and return the final expression string.',
             returns: 'String'
           }
         }
-      }, // update
+      }, // expr
 
       cls: {
         desc: 'Classes and global methods in Squel.',
         children: {
           '.DefaultQueryBuilderOptions': {
-            desc: 'Default configuration options for all query builders. These can be overridden in the query builder constructors.'
+            desc: 'Default configuration options for all query builders. These can be overridden in the query builder constructors.',
+            subKeys: {
+              autoQuoteTableNames: {
+                desc: 'If <code>true</code> then table names will be rendered inside quotes. The quote character used is configurable via the <code>nameQuoteCharacter</code> option.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              autoQuoteFieldNames: {
+                desc: 'If <code>true</code> then field names will be rendered inside quotes. The quote character used is configurable via the <code>nameQuoteCharacter</code> option.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              autoQuoteAliasNames: {
+                desc: 'If <code>true</code> then alias names will be rendered inside quotes. The quote character used is configurable via the <code>tableAliasQuoteCharacter</code> and <code>fieldAliasQuoteCharacter</code> options.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              nameQuoteCharacter: {
+                desc: 'The quote character used when quoting table and field names.',
+                type: 'String',
+                defaultValue: '`'
+              },
+              tableAliasQuoteCharacter: {
+                desc: 'The quote character used when quoting table alias names.',
+                type: 'String',
+                defaultValue: '`'
+              },
+              fieldAliasQuoteCharacter: {
+                desc: 'The quote character used when quoting field alias names.',
+                type: 'String',
+                defaultValue: '"'
+              },
+              usingValuePlaceholders: {
+                desc: 'If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for parameterized querying).',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              customValueHandlers: {
+                desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
+                type: 'Array',
+                defaultValue: '[]'
+
+              }
+            }
           },
           '.registerValueHandler()': {
             desc: 'Register a custom value type handler. We may wish to use custom value types (e.g. <code>Date</code>) and have ' +
@@ -591,6 +659,9 @@
               }
             },
             returns: 'this'
+          },
+          '.globalValueHandlers': {
+            desc: 'List of custom value type handlers registered via [[cls.registerValueHandler]].',
           },
           '.Expression': {
             desc: 'Expression builder class.'
@@ -609,6 +680,16 @@
           },
           '.Insert': {
             desc: 'INSERT query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.useFlavour()': {
+            desc: 'Load and use the given SQL flavour.',
+            params: {
+              'flavour': {
+                desc: 'The flavour of SQL to use. At the moment only <code>postgres</code> is supported.',
+                type: 'String'
+              }
+            },
+            returns: 'squel'
           }
         }
       }
