@@ -255,7 +255,7 @@ class cls.BaseBuilder extends cls.Cloneable
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class cls.Expression
+class cls.Expression extends cls.Cloneable
 
     # The expression tree.
     tree: null
@@ -345,6 +345,28 @@ class cls.Expression
                 if "" isnt str then str += " " + child.type + " "
                 str += nodeStr
         str
+
+    ###
+    Clone this expression.
+
+    Note that the algorithm contained within this method is probably non-optimal, so please avoid cloning large
+    expression trees.
+    ###
+    clone: ->
+      newInstance = new @constructor;
+
+      (_cloneTree = (node) ->
+        for child in node.nodes
+          if child.expr?
+            newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
+          else
+            newInstance._begin child.type
+            _cloneTree child
+            if not @current is child
+              newInstance.end()
+      )(@tree)
+
+      newInstance
 
 
 
