@@ -1,6 +1,10 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
+## ??? (1.2.1)
+* Added ON DUPLICATE KEY UPDATE clause for MySQL flavour (#36)
+
+
 ## 2 Oct 2013 (1.2)
 * Switched from Make to Grunt
 * Added `fields()` method to SELECT builder (#29)
