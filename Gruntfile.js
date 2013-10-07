@@ -21,7 +21,7 @@ module.exports = function (grunt) {
           join: true
         },
         files: [{
-          src: ['src/squel.coffee', 'src/postgres.coffee'],
+          src: ['src/squel.coffee', 'src/postgres.coffee', 'src/mysql.coffee'],
           dest: './squel.js'
         }]
       }

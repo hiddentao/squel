@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012-2013 Ramesh Nair (hiddentao.com)
+Copyright (c) Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -1200,7 +1200,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   };
 
   /*
-  Copyright (c) 2012-2013 Ramesh Nair (hiddentao.com)
+  Copyright (c) Ramesh Nair (hiddentao.com)
   
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation
@@ -1264,6 +1264,102 @@ OTHER DEALINGS IN THE SOFTWARE.
       return Insert;
 
     })(cls.QueryBuilder);
+  };
+
+  /*
+  Copyright (c) Ramesh Nair (hiddentao.com)
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+  
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+  */
+
+
+  squel.flavours['mysql'] = function() {
+    cls = squel.cls;
+    return cls.InsertFieldValueBlock = (function(_super) {
+      __extends(InsertFieldValueBlock, _super);
+
+      function InsertFieldValueBlock(options) {
+        InsertFieldValueBlock.__super__.constructor.call(this, options);
+        this.fields = {};
+        this._duplicateKeyUpdates = {};
+      }
+
+      InsertFieldValueBlock.prototype.set = function(field, value, options) {
+        field = this._sanitizeField(field);
+        value = this._sanitizeValue(value);
+        this.fields[field] = value;
+        if ((options != null ? options.duplicateKeyUpdate : void 0) !== void 0) {
+          this._duplicateKeyUpdates[field] = this._sanitizeValue(options.duplicateKeyUpdate);
+        }
+        return this;
+      };
+
+      InsertFieldValueBlock.prototype.buildStr = function() {
+        var field, fieldNames, fields, name, str, value, values, _i, _len, _ref3;
+        fieldNames = (function() {
+          var _ref3, _results;
+          _ref3 = this.fields;
+          _results = [];
+          for (name in _ref3) {
+            if (!__hasProp.call(_ref3, name)) continue;
+            _results.push(name);
+          }
+          return _results;
+        }).call(this);
+        if (0 >= fieldNames.length) {
+          throw new Error("set() needs to be called");
+        }
+        fields = "";
+        values = "";
+        for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
+          field = fieldNames[_i];
+          if ("" !== fields) {
+            fields += ", ";
+          }
+          fields += field;
+          if ("" !== values) {
+            values += ", ";
+          }
+          values += this._formatValue(this.fields[field]);
+        }
+        str = "(" + fields + ") VALUES (" + values + ")";
+        fields = "";
+        _ref3 = this._duplicateKeyUpdates;
+        for (field in _ref3) {
+          value = _ref3[field];
+          if ("" !== fields) {
+            fields += ", ";
+          }
+          fields += "" + field + " = " + (this._formatValue(value));
+        }
+        if (fields !== "") {
+          str = "" + str + " ON DUPLICATE KEY UPDATE " + fields;
+        }
+        return str;
+      };
+
+      return InsertFieldValueBlock;
+
+    })(cls.SetFieldBlock);
   };
 
 }).call(this);

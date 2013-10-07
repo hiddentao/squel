@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>#</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="mysql.html">
+                mysql.coffee
+              </a>
+            
+              
+              <a class="source" href="postgres.html">
+                postgres.coffee
+              </a>
+            
+              
+              <a class="source" href="squel.html">
+                squel.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h1">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1>#</h1>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Copyright (c) Ramesh Nair (hiddentao.com)
+
+Permission <span class="keyword">is</span> hereby granted, free <span class="keyword">of</span> charge, to any person
+obtaining a copy <span class="keyword">of</span> <span class="keyword">this</span> software <span class="keyword">and</span> associated documentation
+files (the <span class="string">"Software"</span>), to deal <span class="keyword">in</span> the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
+copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
+Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
+conditions:
+
+The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
+included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
+
+THE SOFTWARE IS PROVIDED <span class="string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h1">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h1>#</h1>
+<p>This file contains additional Squel commands for use with the Postgres DB engine</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'mysql'</span>] = -&gt;
+  cls = squel.cls</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>(INSERT INTO) ... field ... value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">InsertFieldValueBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span></span>
+    constructor: (options) -&gt;
+      <span class="keyword">super</span> options
+      <span class="property">@fields</span> = {}
+      <span class="property">@_duplicateKeyUpdates</span> = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Update the given field with the given value.
+options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for
+the option is the value used to update the key with</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    set: (field, value, options) -&gt;
+      field = <span class="property">@_sanitizeField</span>(field)
+      value = <span class="property">@_sanitizeValue</span>(value)
+      <span class="property">@fields</span>[field] = value
+      <span class="property">@_duplicateKeyUpdates</span>[field] = <span class="property">@_sanitizeValue</span>(options.duplicateKeyUpdate) <span class="keyword">if</span> options?.duplicateKeyUpdate <span class="keyword">isnt</span> <span class="literal">undefined</span>
+      @
+
+    buildStr: -&gt;
+      fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
+      <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>fields</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      fields = <span class="string">""</span>
+      values = <span class="string">""</span>
+      <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
+        fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+        fields += field
+        values += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> values
+        values += <span class="property">@_formatValue</span>(<span class="property">@fields</span>[field])
+
+      str = <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>ON DUPLICATE KEY UPDATE</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      fields = <span class="string">""</span>
+      <span class="keyword">for</span> field, value <span class="keyword">of</span> <span class="property">@_duplicateKeyUpdates</span>
+        fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+        fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{@_formatValue(value)}</span>"</span>
+
+      <span class="keyword">if</span> fields <span class="keyword">isnt</span> <span class="string">""</span>
+        str = <span class="string">"<span class="subst">#{str}</span> ON DUPLICATE KEY UPDATE <span class="subst">#{fields}</span>"</span>
+
+      str</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
