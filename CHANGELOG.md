@@ -1,7 +1,7 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 
-## ??? (1.2.1)
+## 7 Oct 2013 (1.2.1)
 * Added ON DUPLICATE KEY UPDATE clause for MySQL flavour (#36)
 * Added single quote replacement option for Postgres flavour (#35)
 
