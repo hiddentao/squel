@@ -49,8 +49,8 @@
             <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
             <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
             <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
-            <li><a href="#db_support" title="Database engine support">DB support</a></li>
             <li><a href="#cloning" title="Cloning">Cloning</a></li>
+            <li><a href="#db_engines" title="Database engine support">Database support</a></li>
           </ul>
         </nav>
     </header>
@@ -1098,31 +1098,6 @@
 
     </section>
 
-    <section id="db_support">
-      <a name="db_support" href="#db_support"><h2>Database support</h2></a>
-
-      <p>Although you can use Squel's query customization mechanism to add support for your desired commands it would be
-      nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
-      <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
-      version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
-        <a href="http://www.postgresql.org/">Postgres</a> flavour of SQL:</p>
-
-      <pre class="brush: js">
-        /* Tell squel to use the Postgres flavour */
-        squel.useFlavour('postgres');
-
-        alert(
-          squel.insert()
-            .into('table')
-            .set('field', 1)
-            .returning('*')
-        );
-
-        /*  INSERT INTO table (field) VALUES (1) RETURNING *  */
-      </pre>
-
-    </section>
-
     <section id="cloning">
       <a name="cloning" href="#cloning"><h2>Cloning</h2></a>
 
@@ -1162,24 +1137,30 @@
 
     </section>
 
-    <section id="tests" class="white_text">
-      <a name="tests" href="#tests"><h2>Tests</h2></a>
+    <section id="db_engines">
+      <a name="db_engines" href="#db_engines"><h2>Database engines</h2></a>
 
-      <p>
-        Tests are written in <a href="http://visionmedia.github.io/mocha/">mocha</a> and can be found in the <code>test/</code> folder. To run them:
-      </p>
+      <p>Although you can use Squel's query customization mechanism to add support for your desired commands it would be
+      nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
+      <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
+      version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
+        <a href="http://www.postgresql.org/">Postgres</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL:</p>
 
-        <pre class="brush: shell">
-            $ npm install -g grunt-cli
-            $ npm install
-            $ grunt test
-        </pre>
+      <pre class="brush: js">
+        /* Tell squel to use the Postgres flavour */
+        squel.useFlavour('postgres');
 
-      <p>
-        The tests get automatically run by <em>Travis CI</em> every time changes are made to Squel.
+        alert(
+          squel.insert()
+            .into('table')
+            .set('field', 1)
+            .returning('*')
+        );
 
-        The current build status is: <a class="img" href="http://travis-ci.org/hiddentao/squel" title="View squel on Travis"><img alt="Build Status" src="https://secure.travis-ci.org/hiddentao/squel.png"></a>
-      </p>
+        /*  INSERT INTO table (field) VALUES (1) RETURNING *  */
+      </pre>
+
+      <p>The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</p>
 
     </section>
 
