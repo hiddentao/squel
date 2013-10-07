@@ -3,6 +3,7 @@
 
 ## ??? (1.2.1)
 * Added ON DUPLICATE KEY UPDATE clause for MySQL flavour (#36)
+* Added single quote replacement option for Postgres flavour (#35)
 
 
 ## 2 Oct 2013 (1.2)

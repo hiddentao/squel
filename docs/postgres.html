@@ -100,6 +100,53 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
+              <p>If true then replaces all single quotes. The replacement string used is configurable via the singleQuoteReplacement option</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.replaceSingleQuotes = <span class="literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>The single quote string to replace single quotes in queries</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.singleQuoteReplacement = <span class="string">'\'\''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Escape strings using the options</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  cls.BaseBuilder.prototype.<span class="function"><span class="title">_escapeValue</span></span> = (value) -&gt;
+    <span class="keyword">return</span> value <span class="keyword">unless</span> <span class="literal">true</span> <span class="keyword">is</span> <span class="property">@options</span>.replaceSingleQuotes
+    value.replace <span class="regexp">/\'/g</span>, <span class="property">@options</span>.singleQuoteReplacement</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
               <p>RETURNING</p>
 
             </div>
@@ -118,11 +165,11 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>INSERT query builder</p>
 

@@ -217,8 +217,8 @@ class cls.BaseBuilder extends cls.Cloneable
         throw new Error "field value must be a string, number, boolean, null or one of the registered custom value types"
     item
 
-  # Escapes the string value. This is a placeholder for the flavours to implement it.
-  _escapeValue: (value) -> value
+  # Escape a string value, e.g. escape quotes and other characters within it.
+  _escapeValue: (str) -> str
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value) ->

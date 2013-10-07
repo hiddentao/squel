@@ -462,6 +462,11 @@ test['Builder base class'] =
         assert.same date, @inst._sanitizeValue(date)
 
 
+  '_escapeValue':
+    'str': ->
+      assert.same 'str', @inst._escapeValue('str')
+
+
   '_formatValue':
     'null': ->
       assert.same 'NULL', @inst._formatValue(null)
@@ -477,13 +482,20 @@ test['Builder base class'] =
       assert.same 1.2, @inst._formatValue(1.2)
 
     'string': ->
+      escapedValue = undefined
+      test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+
       assert.same "'test'", @inst._formatValue('test')
 
       @inst.options.usingValuePlaceholders = false
       assert.same "'test'", @inst._formatValue('test')
+      assert.ok @inst._escapeValue.calledWithExactly('test')
+      escapedValue = 'blah'
+      assert.same "'blah'", @inst._formatValue('test')
 
       @inst.options.usingValuePlaceholders = true
       assert.same "test", @inst._formatValue('test')
+      assert.ok @inst._escapeValue.calledWithExactly('test')
 
     'custom handlers':
       'global': ->

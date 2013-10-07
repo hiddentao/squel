@@ -33,6 +33,11 @@ squel.flavours['postgres'] = ->
   # The single quote string to replace single quotes in queries
   cls.DefaultQueryBuilderOptions.singleQuoteReplacement = '\'\''
 
+  # Escape strings using the options
+  cls.BaseBuilder.prototype._escapeValue = (value) ->
+    return value unless true is @options.replaceSingleQuotes
+    value.replace /\'/g, @options.singleQuoteReplacement
+
   # RETURNING
   class cls.ReturningBlock extends cls.Block
     constructor: (options) ->
@@ -57,8 +62,4 @@ squel.flavours['postgres'] = ->
       ]
       super options, blocks
 
-  # Escape strings using the options
-  cls.BaseBuilder.prototype._escapeValue = (value) ->
-    return value unless true is @options.replaceSingleQuotes
-    value.replace /\'/g, @options.singleQuoteReplacement
 

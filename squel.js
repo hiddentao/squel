@@ -235,6 +235,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       return item;
     };
 
+    BaseBuilder.prototype._escapeValue = function(str) {
+      return str;
+    };
+
     BaseBuilder.prototype._formatValue = function(value) {
       var customHandler;
       customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
@@ -247,6 +251,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         value = value ? "TRUE" : "FALSE";
       } else if ("number" !== typeof value) {
         if (false === this.options.usingValuePlaceholders) {
+          value = this._escapeValue(value);
           value = "'" + value + "'";
         }
       }
@@ -1227,6 +1232,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   squel.flavours['postgres'] = function() {
     cls = squel.cls;
+    cls.DefaultQueryBuilderOptions.replaceSingleQuotes = false;
+    cls.DefaultQueryBuilderOptions.singleQuoteReplacement = '\'\'';
+    cls.BaseBuilder.prototype._escapeValue = function(value) {
+      if (true !== this.options.replaceSingleQuotes) {
+        return value;
+      }
+      return value.replace(/\'/g, this.options.singleQuoteReplacement);
+    };
     cls.ReturningBlock = (function(_super) {
       __extends(ReturningBlock, _super);
 
