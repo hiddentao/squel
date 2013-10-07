@@ -46,6 +46,42 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
+  'Default query builder options': ->
+    assert.same {
+      replaceSingleQuotes: false,
+      singleQuoteReplacement: "''",
+      autoQuoteTableNames: false
+      autoQuoteFieldNames: false
+      autoQuoteAliasNames: true
+      nameQuoteCharacter: '`'
+      tableAliasQuoteCharacter: '`'
+      fieldAliasQuoteCharacter: '"'
+      usingValuePlaceholders: false
+      valueHandlers: []
+    }, squel.cls.DefaultQueryBuilderOptions
 
+  'Builder base class':
+    beforeEach: ->
+      @inst = new squel.cls.BaseBuilder()
+
+    '_formatValue':
+      'string': ->
+        assert.same "'test'", @inst._formatValue('test')
+
+        @inst.options.usingValuePlaceholders = false
+        assert.same "'test'", @inst._formatValue('test')
+
+        @inst.options.usingValuePlaceholders = true
+        assert.same "test", @inst._formatValue('test')
+
+        @inst.options.usingValuePlaceholders = false
+        @inst.options.replaceSingleQuotes = true
+        assert.same "'te''st'", @inst._formatValue("te'st")
+
+        @inst.options.singleQuoteReplacement = '--'
+        assert.same "'te--st'", @inst._formatValue("te'st")
+
+        @inst.options.replaceSingleQuotes = false
+        assert.same "'te'st'", @inst._formatValue("te'st")
 
 module?.exports[require('path').basename(__filename)] = test
