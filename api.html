@@ -527,23 +527,9 @@
               value: {
                 type: 'Any',
                 desc: 'Value to set to field.'
-              }
-            },
-            returns: 'this'
-          },
-          '.set(,,options)': {
-            desc: 'Set a field to a value and optionally add an <code>ON DUPLICATE KEY UPDATE</code> clause for it.',
-            flavours: ['mysql'],
-            params: {
-              name: {
-                desc: 'Name of field.',
-                type: 'String'
-              },
-              value: {
-                type: 'Any',
-                desc: 'Value to set to field.'
               },
               'options.duplicateKeyUpdate': {
+                flavours: ['mysql'],
                 type: 'Any',
                 desc: 'Value to set to field using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.'
               }
@@ -656,7 +642,18 @@
                 desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
                 type: 'Array',
                 defaultValue: '[]'
-
+              },
+              replaceSingleQuotes: {
+                flavours: ['postgres'],
+                desc: 'Whether to replace single quotes within strings - useful for escaping purposes',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              singleQuoteReplacement: {
+                flavours: ['postgres'],
+                desc: 'What to replace single quotes with if <code>replaceSingleQuotes</code> is enabled.',
+                type: 'String',
+                defaultValue: '\'\''
               }
             }
           },

@@ -445,6 +445,12 @@ section h3 {
   display: block;
   margin-top: 0.5em;
 }
+#api article .subKeys li .flavours,
+#api article .parameters li .flavours {
+  display: inline-block;
+  padding: 0.2em;
+  margin-top: 0;
+}
 #api article .returns {
   background-color: #efefef;
   margin-top: 1em;

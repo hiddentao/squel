@@ -51,6 +51,12 @@ var _addEntry = function(key, value) {
 
       jqParamItem.append('<span class="name">' + paramName + '</span>');
       jqParamItem.append('<span class="type">' + _formatStr(paramMeta.type) + '</span>');
+
+      //flavour?
+      if (paramMeta.flavours) {
+        jqParamItem.append('<span class="flavours">Only in flavours: <span>' + paramMeta.flavours.join(', ') + '</span></span>');
+      }
+
       var desc = paramMeta.desc;
       if (undefined !== paramMeta.defaultValue) {
         desc = '<em>Optional</em>. ' + desc + ' Default is <code>' + paramMeta.defaultValue + '</code>.';
@@ -77,6 +83,12 @@ var _addEntry = function(key, value) {
 
       jqParamItem.append('<span class="name">' + paramName + '</span>');
       jqParamItem.append('<span class="type">' + _formatStr(paramMeta.type) + '</span>');
+
+      //flavour?
+      if (paramMeta.flavours) {
+        jqParamItem.append('<span class="flavours">Only in flavours: <span>' + paramMeta.flavours.join(', ') + '</span></span>');
+      }
+
       var desc = paramMeta.desc;
       desc = desc + ' Default is <code>' + paramMeta.defaultValue + '</code>.';
       jqParamItem.append('<span class="description">' + _formatStr(desc) + '</span>');
