@@ -62,4 +62,17 @@ squel.flavours['postgres'] = ->
       ]
       super options, blocks
 
+  # UPDATE query builder.
+  class cls.Update extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'UPDATE'),
+        new cls.UpdateTableBlock(options),
+        new cls.SetFieldBlock(options),
+        new cls.WhereBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+        new cls.ReturningBlock(options)
+      ]
 
+      super options, blocks

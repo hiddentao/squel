@@ -46,6 +46,19 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
+  'UPDATE builder':
+    beforeEach: -> @inst = squel.update()
+
+    '>> table(table).set(field, 1).returning("*")':
+      beforeEach: -> @inst.table('table').set('field', 1).returning('*')
+      toString: ->
+        assert.same @inst.toString(), 'UPDATE table SET field = 1 RETURNING *'
+
+    '>> table(table).set(field, 1).returning("id")':
+      beforeEach: -> @inst.table('table').set('field', 1).returning('id')
+      toString: ->
+        assert.same @inst.toString(), 'UPDATE table SET field = 1 RETURNING id'
+
 
   'Default query builder options': ->
     assert.same {
