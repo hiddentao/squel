@@ -61,7 +61,7 @@ cls.DefaultQueryBuilderOptions =
   usingValuePlaceholders: false
   # Custom value handlers where key is the value type and the value is the handler function
   valueHandlers: []
-  # number parameters return from toParam as $1, $2, etc
+  # number parameters returned from toParam as $1, $2, etc
   numberedParameters: true
 
 # Global custom value handlers for all instances of builder
@@ -918,7 +918,7 @@ class cls.QueryBuilder extends cls.BaseBuilder
     result.values = [].concat (block.values for block in blocks)...
     if @options.numberedParameters
       i = 0
-      result.text = result.text.replace /\?/g, () -> return '$' + ++i
+      result.text = result.text.replace /\?/g, () -> return "$#{++i}"
     result
 
   # Deep clone
