@@ -1,6 +1,7 @@
 # squel - SQL query string builder
 
 [![Build Status](https://secure.travis-ci.org/hiddentao/squel.png)](http://travis-ci.org/hiddentao/squel) [![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel)
+[![NPM](https://nodei.co/npm/squel.png?stars&downloads)](https://nodei.co/npm/squel/)
 
 A flexible and powerful SQL query string builder for Javascript.
 
@@ -8,10 +9,11 @@ A flexible and powerful SQL query string builder for Javascript.
 
 * Works in node.js and in the browser.
 * Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
-* Can be customized to support non-standard queries.
+* Supports non-standard commands for popular DB engines such as Postgres.
+* Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
-* Well tested (~240 tests).
-* Small: ~4 KB minified and gzipped
+* Well tested (~290 tests).
+* Small: <4 KB minified and gzipped
 
 ## Installation
 
@@ -29,10 +31,18 @@ Use [bower](https://github.com/bower/bower) if you like:
 
 Or add the following inside your HTML:
 
-    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel-basic.min.js"></script>
 
 **NOTE: It is recommended that you do NOT create queries browser-side to run on the server as this massively increases
 your exposure to [SQL Injection](http://en.wikipedia.org/wiki/SQL_injection) attacks.**
+
+## Available files
+
+* `squel.js` - unminified version of Squel with the standard commands and all available non-standard commands added
+* `squel.min.js` - minified version of `squel.js`
+* `squel-basic.js` - unminified version of Squel with only the standard SQL commands
+* `squel-basic.min.js` - minified version of `squel-basic.js`
+
 
 ## Examples
 
@@ -249,24 +259,48 @@ Squel allows you to override the built-in query builders with your own as well a
     // 'PRAGMA COMPRESS test'
 
 
+## Non-standard SQL
+
+Squel supports the standard SQL commands and reserved words. However a number of database engines provide their own
+non-standard commands. To make things easy Squel allows for different 'flavours' of SQL to be loaded and used.
+
+At the moment Squel provides a Postgres flavour which augments query builders with additional commands (e.g. `INSERT ... RETURNING`)
+for use with the Postgres database engine.
+
+To use this in node.js:
+
+    var squel = require('squel').useFlavour('postgres');
+
+For the browser:
+
+    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript">
+      squel.useFlavour('postgres');
+    </script>
+
+(Internally the flavour setup method simply utilizes the [custom query mechanism](http://hiddentao.github.io/squel/#custom_queries) to effect changes).
+
+Read the the [API docs](http://hiddentao.github.io/squel/api.html) to find out available commands. Flavours of SQL which get added to
+Squel in the future will be usable in the above manner.
+
+## Building it
+
+We use Grunt to do the build and [docco](http://jashkenas.github.com/docco/) to build annotated source code docs.
+
+    $ npm install -g grunt-cli
+    $ npm install -g docco
+    $ npm install
+    $ grunt <-- this will build the code and run the tests
+
+Annotated source code can be found in the `docs/` folder.
+
+Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be found in the `test/` folder. To run them:
+
+    $ grunt test
+
 ## Documentation
 
-Full API documentation is available at [http://squeljs.org/](http://squeljs.org/).
-
-Annotated source code can be found in the `docs/` folder. This is built using
-[docco](http://jashkenas.github.com/docco/). To build it yourself you will first need to have the latest dev version
-of [pygment](http://pygments.org/download/) installed in your local Python environment. Then do the following inside
-the project folder:
-
-    $ npm install
-    $ make docs
-
-## Testing
-
-Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be found in the `test/` folder. To run them do the following:
-
-    $ npm install
-    $ make test
+Full documentation (guide and API) is available at [http://squeljs.org/](http://squeljs.org/).
 
 
 ## Contributing

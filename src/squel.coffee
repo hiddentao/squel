@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012-2013 Ramesh Nair (hiddentao.com)
+Copyright (c) Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -219,6 +219,9 @@ class cls.BaseBuilder extends cls.Cloneable
         throw new Error "field value must be a string, number, boolean, null or one of the registered custom value types"
     item
 
+  # Escape a string value, e.g. escape quotes and other characters within it.
+  _escapeValue: (str) -> str
+
   # Format the given field value for inclusion into the query string
   _formatValue: (value) ->
     # user defined custom handlers takes precedence
@@ -233,6 +236,7 @@ class cls.BaseBuilder extends cls.Cloneable
       value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
       if false is @options.usingValuePlaceholders
+        value = @_escapeValue(value)
         value = "'#{value}'"
     value
 
@@ -257,7 +261,7 @@ class cls.BaseBuilder extends cls.Cloneable
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class cls.Expression
+class cls.Expression extends cls.Cloneable
 
     # The expression tree.
     tree: null
@@ -347,6 +351,28 @@ class cls.Expression
                 if "" isnt str then str += " " + child.type + " "
                 str += nodeStr
         str
+
+    ###
+    Clone this expression.
+
+    Note that the algorithm contained within this method is probably non-optimal, so please avoid cloning large
+    expression trees.
+    ###
+    clone: ->
+      newInstance = new @constructor;
+
+      (_cloneTree = (node) ->
+        for child in node.nodes
+          if child.expr?
+            newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
+          else
+            newInstance._begin child.type
+            _cloneTree child
+            if not @current is child
+              newInstance.end()
+      )(@tree)
+
+      newInstance
 
 
 
@@ -499,7 +525,19 @@ class cls.IntoTableBlock extends cls.Block
 class cls.GetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
-    @fields = []
+    @_fields = []
+
+
+  # Add the given fields to the final result set.
+  #
+  # The parameter is an Object containing field names (or database functions) as the keys and aliases for the fields
+  # as the values. If the value for a key is null then no alias is set for that field.
+  #
+  # Internally this method simply calls the field() method of this block to add each individual field.
+  fields: (_fields) ->
+    for field, alias of _fields
+      @field(field, alias)
+
 
   # Add the given field to the final result set.
   #
@@ -511,13 +549,13 @@ class cls.GetFieldBlock extends cls.Block
     field = @_sanitizeField(field)
     alias = @_sanitizeFieldAlias(alias) if alias
 
-    @fields.push
+    @_fields.push
       name: field
       alias: alias
 
   buildStr: (queryBuilder) ->
     fields = ""
-    for field in @fields
+    for field in @_fields
       fields += ", " if "" isnt fields
       fields += field.name
       fields += " AS #{field.alias}" if field.alias
@@ -814,6 +852,7 @@ class cls.JoinBlock extends cls.Block
 
 
 
+
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # Query builders
@@ -1001,4 +1040,26 @@ else if module?.exports
 # Browser
 else
   window?.squel = squel
+
+
+
+
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Squel SQL flavours
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+# Available flavours
+squel.flavours = {}
+
+# Setup Squel for a particular SQL flavour
+squel.useFlavour = (flavour) ->
+  if squel.flavours[flavour] instanceof Function
+    squel.flavours[flavour].call null, squel
+  else
+    throw new Error "Flavour not available: #{flavour}"
+  squel
+
 

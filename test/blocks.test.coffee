@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../src/squel"
+squel = require "../squel"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
@@ -386,7 +386,39 @@ test['Blocks'] =
         dummy:true
 
     'initial field values': ->
-      assert.same [], @inst.fields
+      assert.same [], @inst._fields
+
+    'fields()':
+      'saves inputs': ->
+        fieldSpy = test.mocker.spy(@inst, 'field')
+
+        @inst.fields(
+          'field1': null
+          'field2': 'alias2'
+          'field3': null
+        )
+
+        expected = [
+          {
+            name: 'field1',
+            alias: null
+          },
+          {
+            name: 'field2',
+            alias: '"alias2"'
+          },
+          {
+            name: 'field3',
+            alias: null
+          }
+        ]
+
+        assert.ok fieldSpy.calledThrice
+        assert.ok fieldSpy.calledWithExactly('field1', null)
+        assert.ok fieldSpy.calledWithExactly('field2', 'alias2')
+        assert.ok fieldSpy.calledWithExactly('field3', null)
+
+        assert.same expected, @inst._fields
 
     'field()':
       'saves inputs': ->
@@ -409,7 +441,7 @@ test['Blocks'] =
           }
         ]
 
-        assert.same expected, @inst.fields
+        assert.same expected, @inst._fields
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
@@ -420,11 +452,11 @@ test['Blocks'] =
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
 
-        assert.same [ { name: '_f', alias: '_a' } ], @inst.fields
+        assert.same [ { name: '_f', alias: '_a' } ], @inst._fields
 
     'buildStr()':
       'returns all fields when none provided': ->
-        @inst.fields = []
+        @inst._fields = []
         assert.same '*', @inst.buildStr()
 
       'returns formatted query phrase': ->

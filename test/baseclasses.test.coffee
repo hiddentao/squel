@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../src/squel"
+squel = require "../squel"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
@@ -107,6 +107,28 @@ test['Register global custom value handler'] =
     assert.same 1, squel.cls.globalValueHandlers.length
     assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
 
+
+
+test['Load an SQL flavour'] =
+  beforeEach: ->
+    @flavoursBackup = squel.flavours
+    squel.flavours = {}
+
+  afterEach: ->
+    squel.flavours = @flavoursBackup
+
+  'invalid flavour': ->
+    assert.throws (-> squel.useFlavour 'test'), 'Flavour not available: test'
+
+  'flavour reference should be a function': ->
+    squel.flavours['test'] = 'blah'
+    assert.throws (-> squel.useFlavour 'test'), 'Flavour not available: test'
+
+  'flavour setup function gets executed': ->
+    squel.flavours['test'] = test.mocker.spy()
+    squel.useFlavour 'test'
+    assert.ok squel.flavours['test'].calledOnce
+    assert.ok squel.flavours['test'].calledWithExactly squel
 
 
 
@@ -441,6 +463,11 @@ test['Builder base class'] =
         assert.same date, @inst._sanitizeValue(date)
 
 
+  '_escapeValue':
+    'str': ->
+      assert.same 'str', @inst._escapeValue('str')
+
+
   '_formatValue':
     'null': ->
       assert.same 'NULL', @inst._formatValue(null)
@@ -456,13 +483,20 @@ test['Builder base class'] =
       assert.same 1.2, @inst._formatValue(1.2)
 
     'string': ->
+      escapedValue = undefined
+      test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+
       assert.same "'test'", @inst._formatValue('test')
 
       @inst.options.usingValuePlaceholders = false
       assert.same "'test'", @inst._formatValue('test')
+      assert.ok @inst._escapeValue.calledWithExactly('test')
+      escapedValue = 'blah'
+      assert.same "'blah'", @inst._formatValue('test')
 
       @inst.options.usingValuePlaceholders = true
       assert.same "test", @inst._formatValue('test')
+      assert.ok @inst._escapeValue.calledWithExactly('test')
 
     'custom handlers':
       'global': ->

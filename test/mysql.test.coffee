@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao.com)
+Copyright (c) Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -30,40 +30,28 @@ test = testCreator()
 
 
 
-test['Custom queries'] =
-  'custom query': ->
-    class CommandBlock extends squel.cls.Block
-      command: (command) ->
-        @_command = command
-      compress: ->
-        @command('compress')
-      buildStr: ->
-        if (!@_command or 0 is @_command.length) then throw new Error 'command() must be called'
-        @_command.toUpperCase()
+test['MySQL flavour'] =
+  beforeEach: -> squel.useFlavour 'mysql'
 
+  'INSERT builder':
+    beforeEach: -> @inst = squel.insert()
 
-    class ParamBlock extends squel.cls.Block
-      param: (param) ->
-        @param = param
-      buildStr: ->
-        if @param then @param else ""
+    '>> into(table).set(field, 1).set(field1, 2, { duplicateKeyUpdate: 5 }).set(field2, 3, { duplicateKeyUpdate: "str" })':
+      beforeEach: ->
+        test.mocker.spy squel.cls.BaseBuilder.prototype, '_sanitizeValue'
+        test.mocker.spy squel.cls.BaseBuilder.prototype, '_formatValue'
+        @inst
+          .into('table')
+          .set('field', 1)
+          .set('field1', 2, { duplicateKeyUpdate: 5 })
+          .set('field2', 3, { duplicateKeyUpdate: 'str' })
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field, field1, field2) VALUES (1, 2, 3) ON DUPLICATE KEY UPDATE field1 = 5, field2 = \'str\''
 
-
-    class PragmaQuery extends squel.cls.QueryBuilder
-      constructor: (options) ->
-        blocks = [
-          new squel.cls.StringBlock(options, 'PRAGMA'),
-          new CommandBlock(options),
-          new ParamBlock(options)
-        ]
-
-        super options, blocks
-
-    # squel method
-    squel.pragma = (options) -> new PragmaQuery(options)
-
-    assert.same 'PRAGMA COMPRESS test', squel.pragma().compress().param('test').toString()
-
+        assert.ok @inst._sanitizeValue.calledWithExactly(5)
+        assert.ok @inst._sanitizeValue.calledWithExactly('str')
+        assert.ok @inst._formatValue.calledWithExactly(5)
+        assert.ok @inst._formatValue.calledWithExactly('str')
 
 
 module?.exports[require('path').basename(__filename)] = test

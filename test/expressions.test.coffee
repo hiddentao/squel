@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../src/squel"
+squel = require "../squel"
 {testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
@@ -206,6 +206,12 @@ test['Expression builder base class'] =
                           '>> toString()': ->
                             assert.same @inst.toString(), "test = 4 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
 
+  'cloning': ->
+    newinst = @inst.or("test = 4").and_begin().or("inner = 1").or("inner = 2").clone()
+    newinst.or('inner = 3')
+
+    assert.same 'test = 4 AND (inner = 1 OR inner = 2)', @inst.end().toString()
+    assert.same 'test = 4 AND (inner = 1 OR inner = 2 OR inner = 3)', newinst.end().toString()
 
 
 

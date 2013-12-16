@@ -1,5 +1,20 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 16 Dec 2013 (2.0.0)
+* Added RETURNING clause to UPDATE queries for Postgres flavour (#42)
+
+
+## 7 Oct 2013 (1.2.1)
+* Added ON DUPLICATE KEY UPDATE clause for MySQL flavour (#36)
+* Added single quote replacement option for Postgres flavour (#35)
+
+
+## 2 Oct 2013 (1.2)
+* Switched from Make to Grunt
+* Added `fields()` method to SELECT builder (#29)
+* Expression trees can now be cloned (#31)
+* Added concept of SQL 'flavours' and merged in the Postgres `RETURNING` command #33
+
 
 ## 10 Jun 2013 (1.1.3)
 * Table names in SELECT queries can now be queries themselves (i.e. SQL sub statements)
