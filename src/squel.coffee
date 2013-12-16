@@ -61,7 +61,7 @@ cls.DefaultQueryBuilderOptions =
   usingValuePlaceholders: false
   # Custom value handlers where key is the value type and the value is the handler function
   valueHandlers: []
-  # number parameters returned from toParam as $1, $2, etc
+  # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?'
   numberedParameters: false
 
 # Global custom value handlers for all instances of builder
@@ -1015,6 +1015,7 @@ class cls.Insert extends cls.QueryBuilder
 # ---------------------------------------------------------------------------------------------------------
 
 squel =
+  VERSION: '2.0.0'
   expr: -> new cls.Expression
   # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
   select: (options, blocks) -> new cls.Select(options, blocks)

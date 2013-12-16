@@ -1324,6 +1324,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
+    VERSION: '2.0.0',
     expr: function() {
       return new cls.Expression;
     },

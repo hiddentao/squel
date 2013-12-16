@@ -28,6 +28,9 @@ squel = require "../squel-basic"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
+test['Version number'] =
+  assert.same squel.VERSION, '2.0.0'
+
 
 test['Cloneable base class'] =
   '>> clone()': ->
