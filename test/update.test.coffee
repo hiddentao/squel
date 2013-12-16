@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../squel"
+squel = require "../squel-basic"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
@@ -90,6 +90,14 @@ test['UPDATE builder'] =
             usingValuePlaceholders: true
           @inst.set('field2', '?')
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = ?'
+
+        'and when parameterized':
+          beforeEach: -> @inst.set('field2', 'str')
+          toParam: ->
+            assert.same @inst.toParam(), {
+              text: 'UPDATE table `t1` SET field = ?, field2 = ?'
+              values: [1, '\'str\'']
+            }
 
       '>> set(field2, null)':
         beforeEach: -> @inst.set('field2', null)

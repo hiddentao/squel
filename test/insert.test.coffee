@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../squel"
+squel = require "../squel-basic"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
@@ -85,6 +85,13 @@ test['INSERT builder'] =
             usingValuePlaceholders: true
           @inst.set('field2', 'str')
           assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
+
+        'and when parameterized': ->
+          beforeEach: -> @inst.set('field2', 'str')
+          assert.same @inst.toParam(), {
+            text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
+            values: [1, '\'str\'']
+          }
 
       '>> set(field2, true)':
         beforeEach: -> @inst.set('field2', true)
