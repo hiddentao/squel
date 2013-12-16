@@ -139,6 +139,22 @@ You can use nested queries too:
         .order("id", false)
         .limit(2)
 
+**Paramterized queries**
+
+Use the `useParam()` method to obtain a parameterized query with a separate list of formatted parameter values:
+
+    // { text: "INSERT INTO test (f1, f2, f3, f4, f5) VALUES (?, ?, ?, ?, ?)", values: [1, 1.2, "TRUE", "blah", "NULL"] }
+    squel.insert()
+        .into("test")
+        .set("f1", 1)
+        .set("f2", 1.2)
+        .set("f3", true)
+        .set("f4", "blah")
+        .set("f5", null)
+        .toParam()
+
+
+
 **Expression builder**
 
 There is also an expression builder which allows you to build complex expressions for `WHERE` and `ON` clauses:
