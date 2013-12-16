@@ -2,6 +2,7 @@
 
 ## 16 Dec 2013 (2.0.0)
 * Added RETURNING clause to UPDATE queries for Postgres flavour (#42)
+* Added better support for parameterized queries (#34)
 
 
 ## 7 Oct 2013 (1.2.1)
