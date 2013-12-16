@@ -324,6 +324,10 @@ Full documentation (guide and API) is available at [http://squeljs.org/](http://
 If you wish to submit a pull request please update and/or create new tests for any changes you make and ensure all the
 tests pass.
 
+## Ports to other languages
+
+* .NET - https://github.com/seymourpoler/PetProjects/tree/master/SQUEL
+
 ---
 
 Homepage: [http://squeljs.org](http://squeljs.org/)
