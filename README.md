@@ -331,10 +331,10 @@ tests pass.
 ---
 
 Homepage: [http://squeljs.org](http://squeljs.org/)
+
 Source: [https://github.com/hiddentao/squel](https://github.com/hiddentao/squel)
 
-
-Copyright (c) 2012 [Ramesh Nair](http://www.hiddentao.com/)
+Copyright (c) [Ramesh Nair](http://www.hiddentao.com/)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
