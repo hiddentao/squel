@@ -1263,7 +1263,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return ReturningBlock;
 
     })(cls.Block);
-    return cls.Insert = (function(_super) {
+    cls.Insert = (function(_super) {
       __extends(Insert, _super);
 
       function Insert(options, blocks) {
@@ -1275,6 +1275,20 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
 
       return Insert;
+
+    })(cls.QueryBuilder);
+    return cls.Update = (function(_super) {
+      __extends(Update, _super);
+
+      function Update(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)]);
+        Update.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Update;
 
     })(cls.QueryBuilder);
   };
