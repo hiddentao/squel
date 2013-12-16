@@ -775,8 +775,8 @@
         alert(
           squel.update()
             .table("students")
-            .set("a = ?", 12)
-            .set("b = ?", true)
+            .set("a", 12)
+            .set("b", true)
             .toString()
         );
 
