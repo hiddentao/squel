@@ -59,7 +59,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     fieldAliasQuoteCharacter: '"',
     usingValuePlaceholders: false,
     valueHandlers: [],
-    numberedParameters: true
+    numberedParameters: false
   };
 
   cls.globalValueHandlers = [];

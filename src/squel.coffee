@@ -62,7 +62,7 @@ cls.DefaultQueryBuilderOptions =
   # Custom value handlers where key is the value type and the value is the handler function
   valueHandlers: []
   # number parameters returned from toParam as $1, $2, etc
-  numberedParameters: true
+  numberedParameters: false
 
 # Global custom value handlers for all instances of builder
 cls.globalValueHandlers = []

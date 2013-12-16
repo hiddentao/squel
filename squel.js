@@ -59,7 +59,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     fieldAliasQuoteCharacter: '"',
     usingValuePlaceholders: false,
     valueHandlers: [],
-    numberedParameters: true
+    numberedParameters: false
   };
 
   cls.globalValueHandlers = [];
@@ -1399,6 +1399,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     cls = squel.cls;
     cls.DefaultQueryBuilderOptions.replaceSingleQuotes = false;
     cls.DefaultQueryBuilderOptions.singleQuoteReplacement = '\'\'';
+    cls.DefaultQueryBuilderOptions.numberedParameters = true;
     cls.BaseBuilder.prototype._escapeValue = function(value) {
       if (true !== this.options.replaceSingleQuotes) {
         return value;

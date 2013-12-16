@@ -32,6 +32,8 @@ squel.flavours['postgres'] = ->
   cls.DefaultQueryBuilderOptions.replaceSingleQuotes = false
   # The single quote string to replace single quotes in queries
   cls.DefaultQueryBuilderOptions.singleQuoteReplacement = '\'\''
+  # Numbered parameters
+  cls.DefaultQueryBuilderOptions.numberedParameters = true
 
   # Escape strings using the options
   cls.BaseBuilder.prototype._escapeValue = (value) ->

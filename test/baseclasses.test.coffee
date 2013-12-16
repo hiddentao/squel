@@ -73,7 +73,7 @@ test['Default query builder options'] =
       fieldAliasQuoteCharacter: '"'
       usingValuePlaceholders: false
       valueHandlers: []
-      numberedParameters: true
+      numberedParameters: false
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -684,26 +684,26 @@ test['QueryBuilder base class'] =
       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
 
-    'returns query with numbered parameters': ->
-      @inst.blocks = [
-        new squel.cls.WhereBlock({}),
-      ]
-
-      buildStrSpy = test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
-
-      assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
-
     'returns query with unnumbered parameters': ->
-      @inst = new @cls
-        numberedParameters: false
-
       @inst.blocks = [
         new squel.cls.WhereBlock({}),
       ]
 
-      buildStrSpy = test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+      test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
 
       assert.same { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}, @inst.toParam()
+
+    'returns query with numbered parameters': ->
+      @inst = new @cls
+        numberedParameters: true
+
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
+
+      test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+
+      assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
 
 
   'cloning':
