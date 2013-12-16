@@ -1221,7 +1221,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (this.options.numberedParameters) {
         i = 0;
         result.text = result.text.replace(/\?/g, function() {
-          return '$' + ++i;
+          return "$" + (++i);
         });
       }
       return result;
