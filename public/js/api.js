@@ -90,7 +90,14 @@ var _addEntry = function(key, value) {
       }
 
       var desc = paramMeta.desc;
-      desc = desc + ' Default is <code>' + paramMeta.defaultValue + '</code>.';
+      if (!(paramMeta.defaultValue instanceof Object)) {
+        paramMeta.defaultValue = { base: paramMeta.defaultValue };
+      }
+      var defaultValueBits = [];
+      _each(paramMeta.defaultValue, function(flavour, value) {
+        defaultValueBits.push(("base" !== flavour ? flavour + ': ' : '') + '<code>' + value + '</code>');
+      });
+      desc += ' <strong>Default: (' + defaultValueBits.join(', ') + ')</strong>.';
       jqParamItem.append('<span class="description">' + _formatStr(desc) + '</span>');
 
       jqSubKeyList.append(jqParamItem);

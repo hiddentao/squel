@@ -2,7 +2,7 @@
 <html>
 <head>
 	  <!-- For some reason we need this in here otherwise asset loading fails in Github due to incorrect base URL path being used -->
-	  <base href="http://hiddentao.github.io/squel/" />
+	  <!--<base href="http://hiddentao.github.io/squel/" />-->
 
     <title>Squel.js - SQL query string builder for Javascript</title>
 
@@ -45,6 +45,7 @@
             <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
             <li><a href="#delete" title="DELETE queries">DELETE</a></li>
             <li><a href="#insert" title="INSERT queries">INSERT</a></li>
+            <li><a href="#parameters" title="Parameterized queries">Parameters</a></li>
             <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
             <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
             <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
@@ -361,7 +362,7 @@
         </pre>
 
     <h3>Filtering</h3>
-    <a name="filtering" href="#filtering" />
+    <a name="filtering" href="#filtering"></a>
 
     <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
 
@@ -375,29 +376,9 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas')  */
         </pre>
 
-    <p><code>WHERE</code> clauses support parameter substitutions:</p>
+    Parameters substitution is supported. As of Squel v2.0.0 the parameter substitution mechanism has been vastly
+    improved for all query builders and now has its <a href="#parameters">own documentation section</a>.
 
-        <pre class="brush: js">
-            alert(
-                squel.select()
-                    .field("id")
-                    .from("students")
-                    .where("name = ? and age > ?", 'Thomas', 18)
-            );
-            /*  SELECT id FROM students WHERE (name = 'Thomas' and age > 18)  */
-        </pre>
-
-    <p>Array values can be used to create <code>IN</code> clauses:</p>
-
-        <pre class="brush: js">
-            alert(
-                squel.select()
-                    .field("id")
-                    .from("students")
-                    .where("age IN ?", [18, 19, 20])
-            );
-            /*  SELECT id FROM students WHERE (age IN (18, 19, 20))  */
-        </pre>
 
     <p>Multiple filters are automatically combined using <code>AND</code>:</p>
 
@@ -604,19 +585,7 @@
 
       <p><em>Hint: Squel can also be configured to handle <code>Object</code> instances by <a href="#custom_types">registering custom value types</a></em>.</p>
 
-      <p>You can use the <code>usingValuePlaceholders</code> option to stop Squel from automatically placing string
-        field values within quotes. This is useful if, for example, you're using parameterized queries:</p>
-
-        <pre class="brush: js">
-            alert(
-                squel.update({ usingValuePlaceholders: true })
-                    .table("students")
-                    .set("name", "?")
-                    .set("age", 29)
-                    .set("nickname", null)
-            );
-            /*  UPDATE students SET name = ?, age = 29, nickname = NULL */
-        </pre>
+      <p>Parameter substitution for parameterized queries is also supported, see the section on <a href="#parameters">Parameters</a>.</p>
 
       <h3>Filtering, sorting and limits</h3>
 
@@ -748,6 +717,98 @@
             );
             /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES (?, 29, 90.2, TRUE, NULL) */
         </pre>
+
+    </section>
+
+    <section id="parameters">
+      <a name="parameters" href="#parameters"><h2>Parameters</h2></a>
+
+      <p>
+        Squel makes it very easy to build and use parameterized queries. Every query builder provides a
+        <code>toParam()</code> method which gives you final query string separate to any parameters values previously
+        passed in:
+      </p>
+
+      <pre class="brush: js">
+        alert(JSON.stringify(
+          squel.select()
+            .from("students")
+            .where("a = ? AND b = ?", "test", 1)
+            .toParam()
+        ));
+
+        /*
+          {
+            text:  SELECT * FROM students WHERE (a = ? AND b = ?),
+            values:  [ "'test'", 1 ]
+          }
+        */
+      </pre>
+
+      As you can see the parameter placeholders are non-numbered by default. To enable numbering use the
+      <code>numberedParameters</code> option:
+
+      <pre class="brush: js">
+        alert(JSON.stringify(
+          squel.insert({ numberedParameters: true })
+            .into("students")
+            .set("a", "test")
+            .set("b", 1)
+            .set("c", null)
+            .toParam()
+        ));
+
+        /*
+          {
+            text:  INSERT INTO students (a, b, c) VALUES ($1, $2, $3),
+            values:  [ "'test'", 1, "NULL" ]
+          }
+        */
+      </pre>
+
+      <em>Note: For the Postgres flavour numbered parameters are enabled by default.</em>
+
+      If, instead of calling <code>toParam()</code> you call <code>toString()</code> as normal, then Squel will
+      automatically interpolate the parameter values into the query string:
+
+      <pre class="brush: js">
+        alert(
+          squel.update()
+            .table("students")
+            .set("a = ?", 12)
+            .set("b = ?", true)
+            .toString()
+        );
+
+        /*
+          UPDATE students SET a = 12, b = TRUE
+        */
+      </pre>
+
+      <strong>Note: it is better to use <code>toParam()</code> rather than <code>toString()</code> as it gives you the
+        opportunity to use your database engine methods to safely escape and interpolate your parameters.</strong>
+
+      <p>Array values can be used to create <code>IN</code> clauses:</p>
+
+      <pre class="brush: js">
+          alert(JSON.stringify(
+              squel.select()
+                  .field("id")
+                  .from("students")
+                  .where("age IN ?", [18, 19, 20])
+                  .toParam()
+          ));
+
+          /*
+            {
+              text:  SELECT id FROM students WHERE (age IN (?, ? ?)),
+              values: [ 18, 19, 20 ]
+            }
+          */
+      </pre>
+
+      <em>Squel previously provided the <code>usingValuePlaceholders</code> option as a way of enabling parameterized
+      queries. This has been deprecated as of version 2.0.0 and will be removed in future versions.</em>
 
     </section>
 
@@ -1169,7 +1230,7 @@
     </footer>
 
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+    <script type="text/javascript" src="public/js/squel.js"></script>
     <script type="text/javascript" src="public/js/shCore.js"></script>
     <script type="text/javascript" src="public/js/shBrushBash.js"></script>
     <script type="text/javascript" src="public/js/shBrushXml.js"></script>

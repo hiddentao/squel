@@ -338,6 +338,17 @@
               }
             },
             returns: 'this'
+          },
+          '.returning()': {
+            desc: 'Add a RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              str: {
+                desc: 'What to return with the query.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
           }
         }
       }, // update
@@ -634,7 +645,7 @@
                 defaultValue: '"'
               },
               usingValuePlaceholders: {
-                desc: 'If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for parameterized querying).',
+                desc: '<strong>DEPRECATED in 2.0.0</strong>. If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for parameterized querying).',
                 type: 'Boolean',
                 defaultValue: 'false'
               },
@@ -642,6 +653,14 @@
                 desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
                 type: 'Array',
                 defaultValue: '[]'
+              },
+              numberedParameters: {
+                desc: 'Whether to use numbered parameters placeholders when building parameterized query strings.',
+                type: 'Boolean',
+                defaultValue: {
+                  base: 'false',
+                  postgres: 'true'
+                }
               },
               replaceSingleQuotes: {
                 flavours: ['postgres'],
