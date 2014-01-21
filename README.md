@@ -33,8 +33,7 @@ Or add the following inside your HTML:
 
     <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel-basic.min.js"></script>
 
-**NOTE: It is recommended that you do NOT create queries browser-side to run on the server as this massively increases
-your exposure to [SQL Injection](http://en.wikipedia.org/wiki/SQL_injection) attacks.**
+**WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
 ## Available files
 
