@@ -574,7 +574,7 @@ class cls.SetFieldBlock extends cls.Block
   # This will override any previously set value for the given field.
   set: (field, value) ->
     field = @_sanitizeField(field)
-    value = @_sanitizeValue(value)
+    value = @_sanitizeValue(value) if typeof value isnt 'undefined'
     @fields[field] = value
     @
 
@@ -585,7 +585,12 @@ class cls.SetFieldBlock extends cls.Block
     fields = ""
     for field in fieldNames
       fields += ", " if "" isnt fields
-      fields += "#{field} = #{@_formatValue(@fields[field])}"
+
+      value = @fields[field]
+      if typeof value is 'undefined'
+        fields += field
+      else
+        fields += "#{field} = #{@_formatValue(value)}"
 
     "SET #{fields}"
 

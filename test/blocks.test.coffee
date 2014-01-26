@@ -494,11 +494,13 @@ test['Blocks'] =
         @inst.set('field1', 'value1')
         @inst.set('field2', 'value2')
         @inst.set('field3', 'value3')
+        @inst.set('field4')
 
         expected =
           'field1': 'value1',
           'field2': 'value2',
-          'field3': 'value3'
+          'field3': 'value3',
+          'field4': undefined
 
         assert.same expected, @inst.fields
 
