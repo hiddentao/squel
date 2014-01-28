@@ -486,8 +486,11 @@ test['Blocks'] =
       assert.ok spy.calledWithExactly
         dummy:true
 
-    'initial field values': ->
+    'initial fields': ->
       assert.same [], @inst.fields
+
+    'initial values': ->
+      assert.same [], @inst.values
 
     'set()':
       'saves inputs': ->
@@ -500,7 +503,11 @@ test['Blocks'] =
           'field2': 'value2',
           'field3': 'value3'
 
-        assert.same expected, @inst.fields
+        expectedFields = [ 'field1', 'field2', 'field3' ]
+        expectedValues = [ [ 'value1', 'value2', 'value3' ] ]
+
+        assert.same expectedFields, @inst.fields
+        assert.same expectedValues, @inst.values
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
@@ -511,7 +518,8 @@ test['Blocks'] =
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
 
-        assert.same { '_f': '_v' }, @inst.fields
+        assert.same [ '_f' ], @inst.fields
+        assert.same [ [ '_v' ] ], @inst.values
 
     'buildStr()':
       'needs at least one field to have been provided': ->
@@ -525,10 +533,8 @@ test['Blocks'] =
       'calls formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        @inst.fields =
-          'field1': 'value1',
-          'field2': 'value2',
-          'field3': 'value3'
+        @inst.fields = [ 'field1', 'field2', 'field3' ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
         assert.same 'SET field1 = [value1], field2 = [value2], field3 = [value3]', @inst.buildStr()
 
@@ -549,10 +555,8 @@ test['Blocks'] =
       'calls formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        @inst.fields =
-          'field1': 'value1',
-          'field2': 'value2',
-          'field3': 'value3'
+        @inst.fields = [ 'field1', 'field2', 'field3' ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
         assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
 
@@ -582,8 +586,11 @@ test['Blocks'] =
       assert.ok spy.calledWithExactly
         dummy:true
 
-    'initial field values': ->
+    'initial fields': ->
       assert.same [], @inst.fields
+
+    'initial values': ->
+      assert.same [], @inst.values
 
     'set()':
       'saves inputs': ->
@@ -591,12 +598,11 @@ test['Blocks'] =
         @inst.set('field2', 'value2')
         @inst.set('field3', 'value3')
 
-        expected =
-          'field1': 'value1',
-          'field2': 'value2',
-          'field3': 'value3'
+        expectedFields = [ 'field1', 'field2', 'field3' ]
+        expectedValues = [ [ 'value1', 'value2', 'value3' ] ]
 
-        assert.same expected, @inst.fields
+        assert.same expectedFields, @inst.fields
+        assert.same expectedValues, @inst.values
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
@@ -607,7 +613,8 @@ test['Blocks'] =
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
 
-        assert.same { '_f': '_v' }, @inst.fields
+        assert.same [ '_f' ], @inst.fields
+        assert.same [ [ '_v' ] ], @inst.values
 
     'buildStr()':
       'needs at least one field to have been provided': ->
@@ -621,12 +628,10 @@ test['Blocks'] =
       'calls formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        @inst.fields =
-          'field1': 'value1',
-          'field2': 'value2',
-          'field3': 'value3'
+        @inst.fields = [ 'field1', 'field2', 'field3' ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
-        assert.same '(field1, field2, field3) VALUES ([value1], [value2], [value3])', @inst.buildStr()
+        assert.same '(field1,field2,field3) VALUES ([value1],[value2],[value3])', @inst.buildStr()
 
         assert.ok formatValueSpy.calledThrice
         assert.ok formatValueSpy.calledWithExactly 'value1'
@@ -645,12 +650,10 @@ test['Blocks'] =
       'calls formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        @inst.fields =
-          'field1': 'value1',
-          'field2': 'value2',
-          'field3': 'value3'
+        @inst.fields = [ 'field1', 'field2', 'field3' ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
-        assert.same { text: '(field1, field2, field3) VALUES (?, ?, ?)', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
+        assert.same { text: '(field1, field2, field3) VALUES (?, ?, ?)', values: [ ['[value1]', '[value2]', '[value3]' ] ] }, @inst.buildParam()
 
         assert.ok formatValueSpy.calledThrice
         assert.ok formatValueSpy.calledWithExactly 'value1'

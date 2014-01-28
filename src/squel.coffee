@@ -568,37 +568,81 @@ class cls.GetFieldBlock extends cls.Block
 class cls.SetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
-    @fields = {}
+    @fields = []
+    @values = []
+    @caller = this.constructor.caller.name
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
   set: (field, value) ->
-    field = @_sanitizeField(field)
-    value = @_sanitizeValue(value)
-    @fields[field] = value
-    @
+    throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
+
+    # Explicity overwrite existing fields
+    index = @fields.indexOf(@_sanitizeField(field))
+    if index isnt -1
+      @values[0][index] = @_sanitizeValue(value)
+    else
+      @fields.push @_sanitizeField(field)
+
+      # The first value added needs to add the array
+      if Array.isArray(@values[0])
+        @values[0].push @_sanitizeValue(value)
+      else
+        @values.push [@_sanitizeValue(value)]
+    this
+
+  # Insert fields based on the key/value pairs in an object
+  setFields: (fields) ->
+    throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
+
+    for field of fields
+      @set field, fields[field]
+    this
+
+  # Insert multiple rows for the given fields. Accepts an array of
+  # objects. # This will override all previously set values for every field.
+  setFieldsRows: (fieldsRows) ->
+    throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
+    throw new Error "It\'s not possible to set rows of fields on an UPDATE SET." if this.caller is "Update"
+
+    # Reset the objects stored fields and values
+    @fields = []
+    @values = []
+    for i in [0...fieldsRows.length]
+      for field of fieldsRows[i]
+
+        index = @fields.indexOf(@_sanitizeField(field))
+        throw new Error 'All fields in a new row must match the fields in the first row.' if i > 0 and index is -1
+
+        # Add field only if it hasn't been added before
+        @fields.push @_sanitizeField(field) if index is -1
+
+        # The first value added needs to add the array
+        if Array.isArray(@values[i])
+          @values[i].push @_sanitizeValue(fieldsRows[i][field])
+        else
+          @values.push [@_sanitizeValue(fieldsRows[i][field])]
+    this
 
   buildStr: (queryBuilder) ->
-    fieldNames = (field for own field of @fields)
-    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
 
     fields = ""
-    for field in fieldNames
+    for i in [0...@fields.length]
       fields += ", " if "" isnt fields
-      fields += "#{field} = #{@_formatValue(@fields[field])}"
+      fields += "#{@fields[i]} = #{@_formatValue(@values[0][i])}"
 
     "SET #{fields}"
 
   buildParam: (queryBuilder) ->
-    fieldNames = (field for own field of @fields)
-    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
 
     fields = ""
     values = []
-    for field in fieldNames
+    for i in [0...@fields.length]
       fields += ", " if "" isnt fields
-      fields += "#{field} = ?"
-      values.push @_formatValue @fields[field]
+      fields += "#{@fields[i]} = ?"
+      values.push @_formatValue(@values[0][i])
 
     { text: "SET #{fields}", values: values }
 
@@ -607,37 +651,37 @@ class cls.SetFieldBlock extends cls.Block
 class cls.InsertFieldValueBlock extends cls.SetFieldBlock
   constructor: (options) ->
     super options
-    @fields = {}
+    @fields = []
+    @values = []
 
   buildStr: (queryBuilder) ->
-    fieldNames = (name for own name of @fields)
-    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
 
-    # fields
-    fields = ""
-    values = ""
-    for field in fieldNames
-      fields += ", " if "" isnt fields
-      fields += field
-      values += ", " if "" isnt values
-      values += @_formatValue(@fields[field])
+    values = []
+    for i in [0...@values.length]
+      for j in [0...@values[i].length]
+        values[i] = [] unless Array.isArray(values[i])
+        values[i][j] = @_formatValue(@values[i][j])
 
-    "(#{fields}) VALUES (#{values})"
+    "(#{@fields}) VALUES (#{values.join('), (')})"
 
   buildParam: (queryBuilder) ->
-    fieldNames = (name for own name of @fields)
-    if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
 
     # fields
     fields = ""
     values = ""
     valuesArr = []
-    for field in fieldNames
+    for i in [0...@fields.length]
       fields += ", " if "" isnt fields
-      fields += field
+      fields += @fields[i]
       values += ", " if "" isnt values
       values += "?"
-      valuesArr.push @_formatValue @fields[field]
+
+     for i in [0...@values.length]
+      for j in [0...@values[i].length]
+        valuesArr[i] = [] unless Array.isArray(valuesArr[i])
+        valuesArr[i].push @_formatValue(@values[i][j])
 
     { text: "(#{fields}) VALUES (#{values})", values: valuesArr }
 

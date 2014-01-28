@@ -635,66 +635,98 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function SetFieldBlock(options) {
       SetFieldBlock.__super__.constructor.call(this, options);
-      this.fields = {};
+      this.fields = [];
+      this.values = [];
+      this.caller = this.constructor.caller.name;
     }
 
     SetFieldBlock.prototype.set = function(field, value) {
-      field = this._sanitizeField(field);
-      value = this._sanitizeValue(value);
-      this.fields[field] = value;
+      var index;
+      if (this.values.length > 1) {
+        throw new Error("Cannot call set or setFields on multiple rows of fields.");
+      }
+      index = this.fields.indexOf(this._sanitizeField(field));
+      if (index !== -1) {
+        this.values[0][index] = this._sanitizeValue(value);
+      } else {
+        this.fields.push(this._sanitizeField(field));
+        if (Array.isArray(this.values[0])) {
+          this.values[0].push(this._sanitizeValue(value));
+        } else {
+          this.values.push([this._sanitizeValue(value)]);
+        }
+      }
+      return this;
+    };
+
+    SetFieldBlock.prototype.setFields = function(fields) {
+      var field;
+      if (typeof fields !== 'object') {
+        throw new Error("Expected an object but got " + typeof fields);
+      }
+      for (field in fields) {
+        this.set(field, fields[field]);
+      }
+      return this;
+    };
+
+    SetFieldBlock.prototype.setFieldsRows = function(fieldsRows) {
+      var field, i, index, _i, _ref3;
+      if (!Array.isArray(fieldsRows)) {
+        throw new Error("Expected an array of objects but got " + typeof fieldsRows);
+      }
+      if (this.caller === "Update") {
+        throw new Error("It\'s not possible to set rows of fields on an UPDATE SET.");
+      }
+      this.fields = [];
+      this.values = [];
+      for (i = _i = 0, _ref3 = fieldsRows.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
+        for (field in fieldsRows[i]) {
+          index = this.fields.indexOf(this._sanitizeField(field));
+          if (i > 0 && index === -1) {
+            throw new Error('All fields in a new row must match the fields in the first row.');
+          }
+          if (index === -1) {
+            this.fields.push(this._sanitizeField(field));
+          }
+          if (Array.isArray(this.values[i])) {
+            this.values[i].push(this._sanitizeValue(fieldsRows[i][field]));
+          } else {
+            this.values.push([this._sanitizeValue(fieldsRows[i][field])]);
+          }
+        }
+      }
       return this;
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
-      var field, fieldNames, fields, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (field in _ref3) {
-          if (!__hasProp.call(_ref3, field)) continue;
-          _results.push(field);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var fields, i, _i, _ref3;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
       fields = "";
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
+      for (i = _i = 0, _ref3 = this.fields.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += "" + field + " = " + (this._formatValue(this.fields[field]));
+        fields += "" + this.fields[i] + " = " + (this._formatValue(this.values[0][i]));
       }
       return "SET " + fields;
     };
 
     SetFieldBlock.prototype.buildParam = function(queryBuilder) {
-      var field, fieldNames, fields, values, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (field in _ref3) {
-          if (!__hasProp.call(_ref3, field)) continue;
-          _results.push(field);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var fields, i, values, _i, _ref3;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
       fields = "";
       values = [];
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
+      for (i = _i = 0, _ref3 = this.fields.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += "" + field + " = ?";
-        values.push(this._formatValue(this.fields[field]));
+        fields += "" + this.fields[i] + " = ?";
+        values.push(this._formatValue(this.values[0][i]));
       }
       return {
         text: "SET " + fields,
@@ -711,69 +743,52 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function InsertFieldValueBlock(options) {
       InsertFieldValueBlock.__super__.constructor.call(this, options);
-      this.fields = {};
+      this.fields = [];
+      this.values = [];
     }
 
     InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
-      var field, fieldNames, fields, name, values, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (name in _ref3) {
-          if (!__hasProp.call(_ref3, name)) continue;
-          _results.push(name);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var i, j, values, _i, _j, _ref3, _ref4;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
-      fields = "";
-      values = "";
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
-        if ("" !== fields) {
-          fields += ", ";
+      values = [];
+      for (i = _i = 0, _ref3 = this.values.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
+        for (j = _j = 0, _ref4 = this.values[i].length; 0 <= _ref4 ? _j < _ref4 : _j > _ref4; j = 0 <= _ref4 ? ++_j : --_j) {
+          if (!Array.isArray(values[i])) {
+            values[i] = [];
+          }
+          values[i][j] = this._formatValue(this.values[i][j]);
         }
-        fields += field;
-        if ("" !== values) {
-          values += ", ";
-        }
-        values += this._formatValue(this.fields[field]);
       }
-      return "(" + fields + ") VALUES (" + values + ")";
+      return "(" + this.fields + ") VALUES (" + (values.join('), (')) + ")";
     };
 
     InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
-      var field, fieldNames, fields, name, values, valuesArr, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (name in _ref3) {
-          if (!__hasProp.call(_ref3, name)) continue;
-          _results.push(name);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var fields, i, j, values, valuesArr, _i, _j, _k, _ref3, _ref4, _ref5;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
       fields = "";
       values = "";
       valuesArr = [];
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
+      for (i = _i = 0, _ref3 = this.fields.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += field;
+        fields += this.fields[i];
         if ("" !== values) {
           values += ", ";
         }
         values += "?";
-        valuesArr.push(this._formatValue(this.fields[field]));
+      }
+      for (i = _j = 0, _ref4 = this.values.length; 0 <= _ref4 ? _j < _ref4 : _j > _ref4; i = 0 <= _ref4 ? ++_j : --_j) {
+        for (j = _k = 0, _ref5 = this.values[i].length; 0 <= _ref5 ? _k < _ref5 : _k > _ref5; j = 0 <= _ref5 ? ++_k : --_k) {
+          if (!Array.isArray(valuesArr[i])) {
+            valuesArr[i] = [];
+          }
+          valuesArr[i].push(this._formatValue(this.values[i][j]));
+        }
       }
       return {
         text: "(" + fields + ") VALUES (" + values + ")",

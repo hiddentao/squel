@@ -99,6 +99,16 @@ test['UPDATE builder'] =
               values: [1, '\'str\'']
             }
 
+      '>> setFields({field2: \'value2\', field3: true })':
+        beforeEach: -> @inst.setFields({field2: 'value2', field3: true })
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = \'value2\', field3 = TRUE'
+
+      '>> setFields({field2: \'value2\', field: true })':
+        beforeEach: -> @inst.setFields({field2: 'value2', field: true })
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = TRUE, field2 = \'value2\''
+
       '>> set(field2, null)':
         beforeEach: -> @inst.set('field2', null)
         toString: ->
@@ -124,6 +134,33 @@ test['UPDATE builder'] =
                 toString: ->
                   assert.same @inst.toString(), 'UPDATE table `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
+    '>> table(table, t1).setFields({field1: 1, field2: \'value2\'})':
+      beforeEach: -> @inst.table('table', 't1').setFields({field1: 1, field2: 'value2' })
+      toString: ->
+        assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = 1, field2 = \'value2\''
+
+      '>> set(field3, 1.2)':
+        beforeEach: -> @inst.set('field3', 1.2)
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = 1, field2 = \'value2\', field3 = 1.2'
+
+      '>> set(field1, 1.2)':
+        beforeEach: -> @inst.set('field1', 1.2)
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = 1.2, field2 = \'value2\''
+
+      '>> setFields({field3: true, field4: \'value4\'})':
+        beforeEach: -> @inst.setFields({field3: true, field4: 'value4'})
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = 1, field2 = \'value2\', field3 = TRUE, field4 = \'value4\''
+
+      '>> setFields({field1: true, field3: \'value3\'})':
+        beforeEach: -> @inst.setFields({field1: true, field3: 'value3'})
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = TRUE, field2 = \'value2\', field3 = \'value3\''
+
+    '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])': ->
+          assert.throws (=> @inst.table('table', 't1').setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }]).toString()), 'It\'s not possible to set rows of fields on an UPDATE SET.'
 
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
