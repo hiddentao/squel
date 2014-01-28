@@ -53,19 +53,19 @@
             
             <div class="content"><div class='highlight'><pre>Copyright (c) Ramesh Nair (hiddentao.com)
 
-Permission <span class="keyword">is</span> hereby granted, free <span class="keyword">of</span> charge, to any person
-obtaining a copy <span class="keyword">of</span> <span class="keyword">this</span> software <span class="keyword">and</span> associated documentation
-files (the <span class="string">"Software"</span>), to deal <span class="keyword">in</span> the Software without
+Permission <span class="hljs-keyword">is</span> hereby granted, free <span class="hljs-keyword">of</span> charge, to any person
+obtaining a copy <span class="hljs-keyword">of</span> <span class="hljs-keyword">this</span> software <span class="hljs-keyword">and</span> associated documentation
+files (the <span class="hljs-string">"Software"</span>), to deal <span class="hljs-keyword">in</span> the Software without
 restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
-copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
-Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
-<span class="attribute">conditions</span>:
+copy, modify, merge, publish, distribute, sublicense, <span class="hljs-keyword">and</span>/<span class="hljs-keyword">or</span> sell
+copies <span class="hljs-keyword">of</span> the Software, <span class="hljs-keyword">and</span> to permit persons to whom the
+Software <span class="hljs-keyword">is</span> furnished to <span class="hljs-keyword">do</span> so, subject to the following
+<span class="hljs-attribute">conditions</span>:
 
-The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
-included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
+The above copyright notice <span class="hljs-keyword">and</span> <span class="hljs-keyword">this</span> permission notice shall be
+included <span class="hljs-keyword">in</span> all copies <span class="hljs-keyword">or</span> substantial portions <span class="hljs-keyword">of</span> the Software.
 
-THE SOFTWARE IS PROVIDED <span class="string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
+THE SOFTWARE IS PROVIDED <span class="hljs-string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -88,7 +88,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'mysql'</span>] =<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="hljs-string">'mysql'</span>] =<span class="hljs-function"> -&gt;</span>
   cls = squel.cls</pre></div></div>
             
         </li>
@@ -104,11 +104,11 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">InsertFieldValueBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span></span>
-    <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
-      <span class="keyword">super</span> options
-      <span class="property">@fields</span> = {}
-      <span class="property">@_duplicateKeyUpdates</span> = {}</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">InsertFieldValueBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">SetFieldBlock</span></span>
+    <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
+      <span class="hljs-keyword">super</span> options
+      <span class="hljs-property">@fields</span> = {}
+      <span class="hljs-property">@_duplicateKeyUpdates</span> = {}</pre></div></div>
             
         </li>
         
@@ -125,16 +125,16 @@ the option is the value used to update the key with</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">set</span>: <span class="function"><span class="params">(field, value, options)</span> -&gt;</span>
-      field = <span class="property">@_sanitizeField</span>(field)
-      value = <span class="property">@_sanitizeValue</span>(value)
-      <span class="property">@fields</span>[field] = value
-      <span class="property">@_duplicateKeyUpdates</span>[field] = <span class="property">@_sanitizeValue</span>(options.duplicateKeyUpdate) <span class="keyword">if</span> options?.duplicateKeyUpdate <span class="keyword">isnt</span> <span class="literal">undefined</span>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">set</span>: <span class="hljs-function"><span class="hljs-params">(field, value, options)</span> -&gt;</span>
+      field = <span class="hljs-property">@_sanitizeField</span>(field)
+      value = <span class="hljs-property">@_sanitizeValue</span>(value)
+      <span class="hljs-property">@fields</span>[field] = value
+      <span class="hljs-property">@_duplicateKeyUpdates</span>[field] = <span class="hljs-property">@_sanitizeValue</span>(options.duplicateKeyUpdate) <span class="hljs-keyword">if</span> options?.duplicateKeyUpdate <span class="hljs-keyword">isnt</span> <span class="hljs-literal">undefined</span>
       @
 
-    <span class="attribute">buildStr</span>:<span class="function"> -&gt;</span>
-      fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
-      <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
+    <span class="hljs-attribute">buildStr</span>:<span class="hljs-function"> -&gt;</span>
+      fieldNames = (name <span class="hljs-keyword">for</span> own name <span class="hljs-keyword">of</span> <span class="hljs-property">@fields</span>)
+      <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= fieldNames.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"set() needs to be called"</span></pre></div></div>
             
         </li>
         
@@ -149,15 +149,15 @@ the option is the value used to update the key with</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      fields = <span class="string">""</span>
-      values = <span class="string">""</span>
-      <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
-        fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
+            <div class="content"><div class='highlight'><pre>      fields = <span class="hljs-string">""</span>
+      values = <span class="hljs-string">""</span>
+      <span class="hljs-keyword">for</span> field <span class="hljs-keyword">in</span> fieldNames
+        fields += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> fields
         fields += field
-        values += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> values
-        values += <span class="property">@_formatValue</span>(<span class="property">@fields</span>[field])
+        values += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> values
+        values += <span class="hljs-property">@_formatValue</span>(<span class="hljs-property">@fields</span>[field])
 
-      str = <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span></pre></div></div>
+      str = <span class="hljs-string">"(<span class="hljs-subst">#{fields}</span>) VALUES (<span class="hljs-subst">#{values}</span>)"</span></pre></div></div>
             
         </li>
         
@@ -172,13 +172,13 @@ the option is the value used to update the key with</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      fields = <span class="string">""</span>
-      <span class="keyword">for</span> field, value <span class="keyword">of</span> <span class="property">@_duplicateKeyUpdates</span>
-        fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
-        fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{<span class="property">@_formatValue</span>(value)}</span>"</span>
+            <div class="content"><div class='highlight'><pre>      fields = <span class="hljs-string">""</span>
+      <span class="hljs-keyword">for</span> field, value <span class="hljs-keyword">of</span> <span class="hljs-property">@_duplicateKeyUpdates</span>
+        fields += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> fields
+        fields += <span class="hljs-string">"<span class="hljs-subst">#{field}</span> = <span class="hljs-subst">#{<span class="hljs-property">@_formatValue</span>(value)}</span>"</span>
 
-      <span class="keyword">if</span> fields <span class="keyword">isnt</span> <span class="string">""</span>
-        str = <span class="string">"<span class="subst">#{str}</span> ON DUPLICATE KEY UPDATE <span class="subst">#{fields}</span>"</span>
+      <span class="hljs-keyword">if</span> fields <span class="hljs-keyword">isnt</span> <span class="hljs-string">""</span>
+        str = <span class="hljs-string">"<span class="hljs-subst">#{str}</span> ON DUPLICATE KEY UPDATE <span class="hljs-subst">#{fields}</span>"</span>
 
       str</pre></div></div>
             

@@ -73,42 +73,111 @@ test['INSERT builder'] =
       '>> set(field2, 1.2)':
         beforeEach: -> @inst.set('field2', 1.2)
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 1.2)'
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (1,1.2)'
 
       '>> set(field2, "str")':
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, \'str\')'
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (1,\'str\')'
 
         'and when using value placeholders': ->
           @inst.updateOptions
             usingValuePlaceholders: true
           @inst.set('field2', 'str')
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (1,str)'
 
         'and when parameterized': ->
           beforeEach: -> @inst.set('field2', 'str')
           assert.same @inst.toParam(), {
             text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
-            values: [1, '\'str\'']
+            values: [ [1, '\'str\''] ]
           }
 
       '>> set(field2, true)':
         beforeEach: -> @inst.set('field2', true)
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, TRUE)'
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (1,TRUE)'
 
       '>> set(field2, null)':
         beforeEach: -> @inst.set('field2', null)
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, NULL)'
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (1,NULL)'
+
+      '>> setFields({field2: \'value2\', field3: true })':
+        beforeEach: -> @inst.setFields({field2: 'value2', field3: true })
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2,field3) VALUES (1,\'value2\',TRUE)'
+
+      '>> setFields({field2: \'value2\', field: true })':
+        beforeEach: -> @inst.setFields({field2: 'value2', field: true })
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (TRUE,\'value2\')'
+
+      '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])':
+        beforeEach: -> @inst.setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }])
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field,field2) VALUES (\'value2\',TRUE), (\'value3\',13)'
+
+    '>> into(table).setFields({field1: 1, field2: \'value2\'})':
+      beforeEach: -> @inst.into('table').setFields({field1: 1, field2: 'value2' })
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1,field2) VALUES (1,\'value2\')'
+
+      '>> set(field3, 1.2)':
+        beforeEach: -> @inst.set('field3', 1.2)
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1,field2,field3) VALUES (1,\'value2\',1.2)'
+
+      '>> set(field1, 1.2)':
+        beforeEach: -> @inst.set('field1', 1.2)
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1,field2) VALUES (1.2,\'value2\')'
+
+      '>> setFields({field3: true, field4: \'value4\'})':
+        beforeEach: -> @inst.setFields({field3: true, field4: 'value4'})
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1,field2,field3,field4) VALUES (1,\'value2\',TRUE,\'value4\')'
+
+      '>> setFields({field1: true, field3: \'value3\'})':
+        beforeEach: -> @inst.setFields({field1: true, field3: 'value3'})
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1,field2,field3) VALUES (TRUE,\'value2\',\'value3\')'
+
+      '>> setFieldsRows([{field3: true, field4: \'value4\'},{field3: false, field4: \'value6\'}])':
+        beforeEach: -> @inst.setFieldsRows([{field3: true, field4: 'value4'},{field3: false, field4: 'value6'}])
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field3,field4) VALUES (TRUE,\'value4\'), (FALSE,\'value6\')'
+
+    '>> into(table).setFieldsRows([{field1: 1, field2: \'value2\'},{field1: true, field2: \'value4\'})':
+      beforeEach: -> @inst.into('table').setFieldsRows([{field1: 1, field2: 'value2'},{field1: true, field2: 'value4'}])
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1,field2) VALUES (1,\'value2\'), (TRUE,\'value4\')'
+
+      '>> setFieldsRows([{field1: 2, field2: \'value6\'},{field3: false, field5: \'value8\'}])':
+        beforeEach: -> @inst.setFieldsRows([{field1: 2, field2: 'value6'},{field1: false, field2: 'value8'}])
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1,field2) VALUES (2,\'value6\'), (FALSE,\'value8\')'
+
+      '>> setFieldsRows([{field1: 2, field3: \'value6\'},{field1: false, field3: \'value8\'}])':
+        beforeEach: -> @inst.setFieldsRows([{field1: 2, field3: 'value6'},{field1: false, field3: 'value8'}])
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1,field3) VALUES (2,\'value6\'), (FALSE,\'value8\')'
+
+      '>> set(field1, 2)': ->
+        assert.throws (=> @inst.set('field1', 2).toString()), 'Cannot call set or setFields on multiple rows of fields.'
+
+      '>> setFields({field1: 1, field2: \'value2\' })': ->
+        assert.throws (=> @inst.setFields({field1: 1, field2: 'value2' }).toString()), 'Cannot call set or setFields on multiple rows of fields.'
+
+    '>> into(table).setFieldsRows([{field1: 13, field2: \'value2\'},{field1: true, field3: \'value4\'}])': ->
+      assert.throws (=> @inst.into('table').setFieldsRows([{field1: 13, field2: 'value2'},{field1: true, field3: 'value4'}]).toString()), 'All fields in a new row must match the fields in the first row.'
 
   'cloning': ->
     newinst = @inst.into('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)
 
     assert.same 'INSERT INTO students (field) VALUES (1)', @inst.toString()
-    assert.same 'INSERT INTO students (field, field2) VALUES (2, TRUE)', newinst.toString()
+    assert.same 'INSERT INTO students (field,field2) VALUES (2,TRUE)', newinst.toString()
 
   'is nestable': ->
     assert.same false, @inst.isNestable()
