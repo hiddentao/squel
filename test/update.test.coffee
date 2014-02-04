@@ -124,6 +124,11 @@ test['UPDATE builder'] =
                 toString: ->
                   assert.same @inst.toString(), 'UPDATE table `t1`, table2 SET field = 1, field2 = NULL WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
+    '>> table(table, t1).set("count = count + 1")':
+      beforeEach: -> @inst.table('table', 't1').set('count = count + 1')
+      toString: ->
+        assert.same @inst.toString(), 'UPDATE table `t1` SET count = count + 1'
+
 
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
