@@ -646,6 +646,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.fields[field] = value;
       return this;
     };
+    
+    SetFieldBlock.prototype.setMap = function(map) {
+      for (var f in map) {
+        this.set(f, map[f])
+      }
+      return this;
+    }
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
       var field, fieldNames, fields, value, _i, _len;
