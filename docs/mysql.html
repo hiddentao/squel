@@ -44,10 +44,10 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
@@ -60,7 +60,7 @@ restriction, including without limitation the rights to use,
 copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
 copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
 Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
-<span class="attribute">conditions</span>:
+conditions:
 
 The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
 included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
@@ -80,15 +80,15 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 <p>This file contains additional Squel commands for use with the Postgres DB engine</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'mysql'</span>] =<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'mysql'</span>] = -&gt;
   cls = squel.cls</pre></div></div>
             
         </li>
@@ -105,7 +105,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
             </div>
             
             <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">InsertFieldValueBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span></span>
-    <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+    constructor: (options) -&gt;
       <span class="keyword">super</span> options
       <span class="property">@fields</span> = {}
       <span class="property">@_duplicateKeyUpdates</span> = {}</pre></div></div>
@@ -125,14 +125,14 @@ the option is the value used to update the key with</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">set</span>: <span class="function"><span class="params">(field, value, options)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    set: (field, value, options) -&gt;
       field = <span class="property">@_sanitizeField</span>(field)
       value = <span class="property">@_sanitizeValue</span>(value)
       <span class="property">@fields</span>[field] = value
       <span class="property">@_duplicateKeyUpdates</span>[field] = <span class="property">@_sanitizeValue</span>(options.duplicateKeyUpdate) <span class="keyword">if</span> options?.duplicateKeyUpdate <span class="keyword">isnt</span> <span class="literal">undefined</span>
       @
 
-    <span class="attribute">buildStr</span>:<span class="function"> -&gt;</span>
+    buildStr: -&gt;
       fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
       <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
             
@@ -175,7 +175,7 @@ the option is the value used to update the key with</p>
             <div class="content"><div class='highlight'><pre>      fields = <span class="string">""</span>
       <span class="keyword">for</span> field, value <span class="keyword">of</span> <span class="property">@_duplicateKeyUpdates</span>
         fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
-        fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{<span class="property">@_formatValue</span>(value)}</span>"</span>
+        fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{@_formatValue(value)}</span>"</span>
 
       <span class="keyword">if</span> fields <span class="keyword">isnt</span> <span class="string">""</span>
         str = <span class="string">"<span class="subst">#{str}</span> ON DUPLICATE KEY UPDATE <span class="subst">#{fields}</span>"</span>

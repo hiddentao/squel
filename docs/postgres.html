@@ -44,10 +44,10 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
@@ -60,7 +60,7 @@ restriction, including without limitation the rights to use,
 copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
 copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
 Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
-<span class="attribute">conditions</span>:
+conditions:
 
 The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
 included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
@@ -80,15 +80,15 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 <p>This file contains additional Squel commands for use with the Postgres DB engine</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'postgres'</span>] =<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'postgres'</span>] = -&gt;
   cls = squel.cls</pre></div></div>
             
         </li>
@@ -149,7 +149,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  cls.BaseBuilder.prototype.<span class="function"><span class="title">_escapeValue</span> = <span class="params">(value)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  cls.BaseBuilder.prototype.<span class="function"><span class="title">_escapeValue</span></span> = (value) -&gt;
     <span class="keyword">return</span> value <span class="keyword">unless</span> <span class="literal">true</span> <span class="keyword">is</span> <span class="property">@options</span>.replaceSingleQuotes
     value.replace <span class="regexp">/\'/g</span>, <span class="property">@options</span>.singleQuoteReplacement</pre></div></div>
             
@@ -167,15 +167,15 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
             </div>
             
             <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">ReturningBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-    <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+    constructor: (options) -&gt;
       <span class="keyword">super</span> options
       <span class="property">@_str</span> = <span class="literal">null</span>
 
-    <span class="attribute">returning</span>: <span class="function"><span class="params">(ret)</span> -&gt;</span>
+    returning: (ret) -&gt;
       <span class="property">@_str</span> = <span class="property">@_sanitizeField</span>(ret)
 
-    <span class="attribute">buildStr</span>:<span class="function"> -&gt;</span>
-      <span class="keyword">if</span> <span class="property">@_str</span> <span class="keyword">then</span> <span class="string">"RETURNING <span class="subst">#{<span class="property">@_str</span>}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+    buildStr: -&gt;
+      <span class="keyword">if</span> <span class="property">@_str</span> <span class="keyword">then</span> <span class="string">"RETURNING <span class="subst">#{@_str}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -191,7 +191,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
             </div>
             
             <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Insert</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
-    <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks = <span class="literal">null</span>)</span> -&gt;</span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
       blocks <span class="keyword">or</span>= [
         <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'INSERT'</span>),
         <span class="keyword">new</span> cls.IntoTableBlock(options),
@@ -201,7 +201,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
       <span class="keyword">super</span> options, blocks
       
   <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Update</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
-    <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks = <span class="literal">null</span>)</span> -&gt;</span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
       blocks <span class="keyword">or</span>= [
         <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'UPDATE'</span>),
         <span class="keyword">new</span> cls.UpdateTableBlock(options),

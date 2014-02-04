@@ -44,10 +44,10 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
@@ -60,7 +60,7 @@ restriction, including without limitation the rights to use,
 copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
 copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
 Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
-<span class="attribute">conditions</span>:
+conditions:
 
 The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
 included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
@@ -80,10 +80,10 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 <p>Holds classes</p>
 
             </div>
@@ -103,7 +103,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">_extend</span> = <span class="params">(dst, sources...)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">_extend</span></span> = (dst, sources...) -&gt;
     <span class="keyword">if</span> sources
         <span class="keyword">for</span> src <span class="keyword">in</span> sources
             <span class="keyword">if</span> src
@@ -140,7 +140,7 @@ nameQuoteCharacter option.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">autoQuoteTableNames</span>: <span class="literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  autoQuoteTableNames: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -156,7 +156,7 @@ nameQuoteCharacter option.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">autoQuoteFieldNames</span>: <span class="literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  autoQuoteFieldNames: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -172,7 +172,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">autoQuoteAliasNames</span>: <span class="literal">true</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  autoQuoteAliasNames: <span class="literal">true</span></pre></div></div>
             
         </li>
         
@@ -187,7 +187,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">nameQuoteCharacter</span>: <span class="string">'`'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  nameQuoteCharacter: <span class="string">'`'</span></pre></div></div>
             
         </li>
         
@@ -202,7 +202,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">tableAliasQuoteCharacter</span>: <span class="string">'`'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  tableAliasQuoteCharacter: <span class="string">'`'</span></pre></div></div>
             
         </li>
         
@@ -217,7 +217,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">fieldAliasQuoteCharacter</span>: <span class="string">'"'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  fieldAliasQuoteCharacter: <span class="string">'"'</span></pre></div></div>
             
         </li>
         
@@ -233,7 +233,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">usingValuePlaceholders</span>: <span class="literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  usingValuePlaceholders: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -248,7 +248,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">valueHandlers</span>: []</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  valueHandlers: []</pre></div></div>
             
         </li>
         
@@ -263,7 +263,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">numberedParameters</span>: <span class="literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  numberedParameters: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -294,7 +294,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">registerValueHandler</span> = <span class="params">(handlers, type, handler)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">registerValueHandler</span></span> = (handlers, type, handler) -&gt;
   <span class="keyword">unless</span> <span class="string">'function'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> type
    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"type must be a class constructor"</span>
 
@@ -307,8 +307,8 @@ parameterized querying).</p>
       <span class="keyword">return</span>
 
   handlers.push
-    <span class="attribute">type</span>: type
-    <span class="attribute">handler</span>: handler</pre></div></div>
+    type: type
+    handler: handler</pre></div></div>
             
         </li>
         
@@ -323,7 +323,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">getValueHandler</span> = <span class="params">(value, handlerLists...)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">getValueHandler</span></span> = (value, handlerLists...) -&gt;
   <span class="keyword">for</span> handlers <span class="keyword">in</span> handlerLists
     <span class="keyword">for</span> typeHandler <span class="keyword">in</span> handlers
       <span class="keyword">if</span> value <span class="keyword">instanceof</span> typeHandler.type
@@ -343,7 +343,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>cls.<span class="function"><span class="title">registerValueHandler</span> = <span class="params">(type, handler)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>cls.<span class="function"><span class="title">registerValueHandler</span></span> = (type, handler) -&gt;
   registerValueHandler cls.globalValueHandlers, type, handler</pre></div></div>
             
         </li>
@@ -374,7 +374,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">clone</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  clone: -&gt;
     newInstance = <span class="keyword">new</span> <span class="property">@constructor</span>;</pre></div></div>
             
         </li>
@@ -421,7 +421,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  constructor: (options) -&gt;
     defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
     <span class="property">@options</span> = _extend {}, defaults, options</pre></div></div>
             
@@ -439,7 +439,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">registerValueHandler</span>: <span class="function"><span class="params">(type, handler)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  registerValueHandler: (type, handler) -&gt;
     registerValueHandler <span class="property">@options</span>.valueHandlers, type, handler
     @</pre></div></div>
             
@@ -456,7 +456,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_getObjectClassName</span>: <span class="function"><span class="params">(obj)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  _getObjectClassName: (obj) -&gt;
     <span class="keyword">if</span> obj &amp;&amp; obj.constructor &amp;&amp; obj.constructor.toString
       arr = obj.constructor.toString().match <span class="regexp">/function\s*(\w+)/</span>;
       <span class="keyword">if</span> arr &amp;&amp; arr.length <span class="keyword">is</span> <span class="number">2</span>
@@ -476,7 +476,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_sanitizeCondition</span>: <span class="function"><span class="params">(condition)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _sanitizeCondition: (condition) -&gt;</pre></div></div>
             
         </li>
         
@@ -513,20 +513,20 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_sanitizeName</span>: <span class="function"><span class="params">(value, type)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  _sanitizeName: (value, type) -&gt;
     <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> value
       <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{type}</span> must be a string"</span>
     value
 
-  <span class="attribute">_sanitizeField</span>: <span class="function"><span class="params">(item)</span> -&gt;</span>
+  _sanitizeField: (item) -&gt;
     sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"field name"</span>
 
     <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteFieldNames
-      <span class="string">"<span class="subst">#{<span class="property">@options</span>.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{<span class="property">@options</span>.nameQuoteCharacter}</span>"</span>
+      <span class="string">"<span class="subst">#{@options.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.nameQuoteCharacter}</span>"</span>
     <span class="keyword">else</span>
       sanitized
 
-  <span class="attribute">_sanitizeTable</span>: <span class="function"><span class="params">(item, allowNested = <span class="literal">false</span>)</span> -&gt;</span>
+  _sanitizeTable: (item, allowNested = <span class="literal">false</span>) -&gt;
     <span class="keyword">if</span> allowNested
       <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> item
         sanitized = item
@@ -553,23 +553,23 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
 
     <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteTableNames
-      <span class="string">"<span class="subst">#{<span class="property">@options</span>.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{<span class="property">@options</span>.nameQuoteCharacter}</span>"</span>
+      <span class="string">"<span class="subst">#{@options.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.nameQuoteCharacter}</span>"</span>
     <span class="keyword">else</span>
       sanitized
 
-  <span class="attribute">_sanitizeTableAlias</span>: <span class="function"><span class="params">(item)</span> -&gt;</span>
+  _sanitizeTableAlias: (item) -&gt;
     sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"table alias"</span>
 
     <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteAliasNames
-      <span class="string">"<span class="subst">#{<span class="property">@options</span>.tableAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{<span class="property">@options</span>.tableAliasQuoteCharacter}</span>"</span>
+      <span class="string">"<span class="subst">#{@options.tableAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.tableAliasQuoteCharacter}</span>"</span>
     <span class="keyword">else</span>
       sanitized
 
-  <span class="attribute">_sanitizeFieldAlias</span>: <span class="function"><span class="params">(item)</span> -&gt;</span>
+  _sanitizeFieldAlias: (item) -&gt;
     sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"field alias"</span>
 
     <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteAliasNames
-      <span class="string">"<span class="subst">#{<span class="property">@options</span>.fieldAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{<span class="property">@options</span>.fieldAliasQuoteCharacter}</span>"</span>
+      <span class="string">"<span class="subst">#{@options.fieldAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.fieldAliasQuoteCharacter}</span>"</span>
     <span class="keyword">else</span>
       sanitized</pre></div></div>
             
@@ -586,7 +586,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_sanitizeLimitOffset</span>: <span class="function"><span class="params">(value)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  _sanitizeLimitOffset: (value) -&gt;
     value = parseInt(value)
     <span class="keyword">if</span> <span class="number">0</span> &gt; value <span class="keyword">or</span> isNaN(value)
       <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"limit/offset must be &gt;= 0"</span>
@@ -605,7 +605,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_sanitizeValue</span>: <span class="function"><span class="params">(item)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  _sanitizeValue: (item) -&gt;
     itemType = <span class="keyword">typeof</span> item
     <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">is</span> item</pre></div></div>
             
@@ -670,7 +670,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_escapeValue</span>: <span class="function"><span class="params">(str)</span> -&gt;</span> str</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _escapeValue: (str) -&gt; str</pre></div></div>
             
         </li>
         
@@ -685,7 +685,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_formatValue</span>: <span class="function"><span class="params">(value)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _formatValue: (value) -&gt;</pre></div></div>
             
         </li>
         
@@ -760,10 +760,10 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
         <li id="section-40">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
-              <h2 id="cls-expressions">cls.Expressions</h2>
+              <h2>cls.Expressions</h2>
 
             </div>
             
@@ -814,7 +814,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">tree</span>: <span class="literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    tree: <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -829,7 +829,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">current</span>: <span class="literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    current: <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -844,10 +844,10 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">constructor</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    constructor: -&gt;
         <span class="property">@tree</span> =
-            <span class="attribute">parent</span>: <span class="literal">null</span>
-            <span class="attribute">nodes</span>: []
+            parent: <span class="literal">null</span>
+            nodes: []
         <span class="property">@current</span> = <span class="property">@tree</span></pre></div></div>
             
         </li>
@@ -863,11 +863,11 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="property">@_begin</span> = <span class="function"><span class="params">(op)</span> =&gt;</span>
+            <div class="content"><div class='highlight'><pre>        <span class="property">@_begin</span> = (op) =&gt;
             new_tree =
-                <span class="attribute">type</span>: op
-                <span class="attribute">parent</span>: <span class="property">@current</span>
-                <span class="attribute">nodes</span>: []
+                type: op
+                parent: <span class="property">@current</span>
+                nodes: []
             <span class="property">@current</span>.nodes.push new_tree
             <span class="property">@current</span> = <span class="property">@current</span>.nodes[<span class="property">@current</span>.nodes.length-<span class="number">1</span>]
             @</pre></div></div>
@@ -885,7 +885,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">and_begin</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    and_begin: -&gt;
         <span class="property">@_begin</span> <span class="string">'AND'</span></pre></div></div>
             
         </li>
@@ -901,7 +901,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">or_begin</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    or_begin: -&gt;
         <span class="property">@_begin</span> <span class="string">'OR'</span></pre></div></div>
             
         </li>
@@ -918,7 +918,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">end</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    end: -&gt;
         <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@current</span>.parent
             <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"begin() needs to be called"</span>
         <span class="property">@current</span> = <span class="property">@current</span>.parent
@@ -937,12 +937,12 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">and</span>: <span class="function"><span class="params">(expr)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">and</span>: (expr) -&gt;
         <span class="keyword">if</span> <span class="keyword">not</span> expr <span class="keyword">or</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> expr
             <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"expr must be a string"</span>
         <span class="property">@current</span>.nodes.push
-            <span class="attribute">type</span>: <span class="string">'AND'</span>
-            <span class="attribute">expr</span>: expr
+            type: <span class="string">'AND'</span>
+            expr: expr
         @</pre></div></div>
             
         </li>
@@ -958,12 +958,12 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">or</span>: <span class="function"><span class="params">(expr)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">or</span>: (expr) -&gt;
         <span class="keyword">if</span> <span class="keyword">not</span> expr <span class="keyword">or</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> expr
             <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"expr must be a string"</span>
         <span class="property">@current</span>.nodes.push
-            <span class="attribute">type</span>: <span class="string">'OR'</span>
-            <span class="attribute">expr</span>: expr
+            type: <span class="string">'OR'</span>
+            expr: expr
         @</pre></div></div>
             
         </li>
@@ -979,7 +979,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">toString</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    toString: -&gt;
         <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">isnt</span> <span class="property">@current</span>.parent
             <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"end() needs to be called"</span>
         _toString <span class="property">@tree</span></pre></div></div>
@@ -997,7 +997,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="function"><span class="title">_toString</span> = <span class="params">(node)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    <span class="function"><span class="title">_toString</span></span> = (node) -&gt;
         str = <span class="string">""</span>
         <span class="keyword">for</span> child <span class="keyword">in</span> node.nodes
             <span class="keyword">if</span> child.expr?
@@ -1045,10 +1045,10 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <li id="section-56">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-56">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
@@ -1063,17 +1063,17 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <li id="section-57">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="attribute">clone</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>    clone: -&gt;
       newInstance = <span class="keyword">new</span> <span class="property">@constructor</span>;
 
-      <span class="function"><span class="params">(_cloneTree = (node) -&gt;
+      (<span class="function"><span class="title">_cloneTree</span></span> = (node) -&gt;
         <span class="keyword">for</span> child <span class="keyword">in</span> node.nodes
           <span class="keyword">if</span> child.expr?
             newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
@@ -1082,15 +1082,9 @@ When rendered a nested expression will be fully contained within brackets.</p>
             _cloneTree child
             <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@current</span> <span class="keyword">is</span> child
               newInstance.end()
-      )(<span class="property">@tree</span>)</span>
+      )(<span class="property">@tree</span>)
 
-      <span class="title">newInstance</span>
-
-
-
-
-
-</span></pre></div></div>
+      newInstance</pre></div></div>
             
         </li>
         
@@ -1124,10 +1118,10 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <li id="section-60">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
-              <h2 id="building-blocks">Building blocks</h2>
+              <h2>Building blocks</h2>
 
             </div>
             
@@ -1182,7 +1176,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">exposedMethods</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  exposedMethods: -&gt;
     ret = {}
 
     <span class="keyword">for</span> attr, value <span class="keyword">of</span> @</pre></div></div>
@@ -1200,7 +1194,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">is</span> <span class="string">"function"</span> <span class="keyword">and</span> attr.charAt(<span class="number">0</span>) <span class="keyword">isnt</span> <span class="string">'_'</span> <span class="keyword">and</span> !cls.<span class="attribute">Block</span>::[attr]
+            <div class="content"><div class='highlight'><pre>      <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">is</span> <span class="string">"function"</span> <span class="keyword">and</span> attr.charAt(<span class="number">0</span>) <span class="keyword">isnt</span> <span class="string">'_'</span> <span class="keyword">and</span> !cls.Block::[attr]
         ret[attr] = value
 
     ret</pre></div></div>
@@ -1221,11 +1215,11 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  buildStr: (queryBuilder) -&gt;
     <span class="string">''</span>
 
-  <span class="attribute">buildParam</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
-    { <span class="attribute">text</span>: <span class="property">@buildStr</span>(queryBuilder), <span class="attribute">values</span>: [] }</pre></div></div>
+  buildParam: (queryBuilder) -&gt;
+    { text: <span class="property">@buildStr</span>(queryBuilder), values: [] }</pre></div></div>
             
         </li>
         
@@ -1241,11 +1235,11 @@ that you do so using one or more custom building blocks.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">StringBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, str)</span> -&gt;</span>
+  constructor: (options, str) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@str</span> = str
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="property">@str</span></pre></div></div>
             
         </li>
@@ -1258,16 +1252,14 @@ that you do so using one or more custom building blocks.</p>
                 <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               <p>Table specifier base class</p>
-<p>Additional options</p>
-<ul>
-<li>singleTable - only allow one table to be specified  (default: false)</li>
-<li>allowNested - allow nested query to be specified as a table    (default: false)</li>
-</ul>
+<p>Additional options
+ - singleTable - only allow one table to be specified  (default: false)
+ - allowNested - allow nested query to be specified as a table    (default: false)</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@tables</span> = []</pre></div></div>
             
@@ -1286,7 +1278,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">_table</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  _table: (table, alias = <span class="literal">null</span>) -&gt;
     alias = <span class="property">@_sanitizeTableAlias</span>(alias) <span class="keyword">if</span> alias
     table = <span class="property">@_sanitizeTable</span>(table, <span class="property">@options</span>.allowNested <span class="keyword">or</span> <span class="literal">false</span>)
 
@@ -1294,10 +1286,10 @@ that you do so using one or more custom building blocks.</p>
       <span class="property">@tables</span> = []
 
     <span class="property">@tables</span>.push
-      <span class="attribute">table</span>: table
-      <span class="attribute">alias</span>: alias
+      table: table
+      alias: alias
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@tables</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"_table() needs to be called"</span>
 
     tables = <span class="string">""</span>
@@ -1355,7 +1347,7 @@ that you do so using one or more custom building blocks.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">UpdateTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span></span>
-  <span class="attribute">table</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>)</span> -&gt;</span>
+  table: (table, alias = <span class="literal">null</span>) -&gt;
     <span class="property">@_table</span>(table, alias)</pre></div></div>
             
         </li>
@@ -1372,10 +1364,10 @@ that you do so using one or more custom building blocks.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">FromTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span></span>
-  <span class="attribute">from</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>)</span> -&gt;</span>
+  from: (table, alias = <span class="literal">null</span>) -&gt;
     <span class="property">@_table</span>(table, alias)
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@tables</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"from() needs to be called"</span>
 
     tables = <span class="keyword">super</span> queryBuilder
@@ -1396,7 +1388,7 @@ that you do so using one or more custom building blocks.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">IntoTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@table</span> = <span class="literal">null</span></pre></div></div>
             
@@ -1413,7 +1405,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">into</span>: <span class="function"><span class="params">(table)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  into: (table) -&gt;</pre></div></div>
             
         </li>
         
@@ -1430,9 +1422,9 @@ that you do so using one or more custom building blocks.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="property">@table</span> = <span class="property">@_sanitizeTable</span>(table, <span class="literal">false</span>)
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@table</span> <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"into() needs to be called"</span>
-    <span class="string">"INTO <span class="subst">#{<span class="property">@table</span>}</span>"</span></pre></div></div>
+    <span class="string">"INTO <span class="subst">#{@table}</span>"</span></pre></div></div>
             
         </li>
         
@@ -1448,7 +1440,7 @@ that you do so using one or more custom building blocks.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">GetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@_fields</span> = []</pre></div></div>
             
@@ -1468,7 +1460,7 @@ as the values. If the value for a key is null then no alias is set for that fiel
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">fields</span>: <span class="function"><span class="params">(_fields)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  fields: (_fields) -&gt;
     <span class="keyword">for</span> field, alias <span class="keyword">of</span> _fields
       <span class="property">@field</span>(field, alias)</pre></div></div>
             
@@ -1488,15 +1480,15 @@ e.g. DATE_FORMAT(a.started, &quot;%H&quot;)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">field</span>: <span class="function"><span class="params">(field, alias = <span class="literal">null</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  field: (field, alias = <span class="literal">null</span>) -&gt;
     field = <span class="property">@_sanitizeField</span>(field)
     alias = <span class="property">@_sanitizeFieldAlias</span>(alias) <span class="keyword">if</span> alias
 
     <span class="property">@_fields</span>.push
-      <span class="attribute">name</span>: field
-      <span class="attribute">alias</span>: alias
+      name: field
+      alias: alias
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     fields = <span class="string">""</span>
     <span class="keyword">for</span> field <span class="keyword">in</span> <span class="property">@_fields</span>
       fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
@@ -1519,7 +1511,7 @@ e.g. DATE_FORMAT(a.started, &quot;%H&quot;)</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@fields</span> = {}</pre></div></div>
             
@@ -1537,24 +1529,29 @@ This will override any previously set value for the given field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">set</span>: <span class="function"><span class="params">(field, value)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  set: (field, value) -&gt;
     field = <span class="property">@_sanitizeField</span>(field)
-    value = <span class="property">@_sanitizeValue</span>(value)
+    value = <span class="property">@_sanitizeValue</span>(value) <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">isnt</span> <span class="string">'undefined'</span>
     <span class="property">@fields</span>[field] = value
     @
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     fieldNames = (field <span class="keyword">for</span> own field <span class="keyword">of</span> <span class="property">@fields</span>)
     <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
 
     fields = <span class="string">""</span>
     <span class="keyword">for</span> field <span class="keyword">in</span> fieldNames
       fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
-      fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{<span class="property">@_formatValue</span>(<span class="property">@fields</span>[field])}</span>"</span>
+
+      value = <span class="property">@fields</span>[field]
+      <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">is</span> <span class="string">'undefined'</span>
+        fields += field
+      <span class="keyword">else</span>
+        fields += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{@_formatValue(value)}</span>"</span>
 
     <span class="string">"SET <span class="subst">#{fields}</span>"</span>
 
-  <span class="attribute">buildParam</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildParam: (queryBuilder) -&gt;
     fieldNames = (field <span class="keyword">for</span> own field <span class="keyword">of</span> <span class="property">@fields</span>)
     <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
 
@@ -1565,7 +1562,7 @@ This will override any previously set value for the given field.</p>
       fields += <span class="string">"<span class="subst">#{field}</span> = ?"</span>
       values.push <span class="property">@_formatValue</span> <span class="property">@fields</span>[field]
 
-    { <span class="attribute">text</span>: <span class="string">"SET <span class="subst">#{fields}</span>"</span>, <span class="attribute">values</span>: values }</pre></div></div>
+    { text: <span class="string">"SET <span class="subst">#{fields}</span>"</span>, values: values }</pre></div></div>
             
         </li>
         
@@ -1581,11 +1578,11 @@ This will override any previously set value for the given field.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">InsertFieldValueBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@fields</span> = {}
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
     <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
             
@@ -1612,7 +1609,7 @@ This will override any previously set value for the given field.</p>
 
     <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span>
 
-  <span class="attribute">buildParam</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildParam: (queryBuilder) -&gt;
     fieldNames = (name <span class="keyword">for</span> own name <span class="keyword">of</span> <span class="property">@fields</span>)
     <span class="keyword">if</span> <span class="number">0</span> &gt;= fieldNames.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
             
@@ -1639,7 +1636,7 @@ This will override any previously set value for the given field.</p>
       values += <span class="string">"?"</span>
       valuesArr.push <span class="property">@_formatValue</span> <span class="property">@fields</span>[field]
 
-    { <span class="attribute">text</span>: <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span>, <span class="attribute">values</span>: valuesArr }</pre></div></div>
+    { text: <span class="string">"(<span class="subst">#{fields}</span>) VALUES (<span class="subst">#{values}</span>)"</span>, values: valuesArr }</pre></div></div>
             
         </li>
         
@@ -1655,7 +1652,7 @@ This will override any previously set value for the given field.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">DistinctBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@useDistinct</span> = <span class="literal">false</span></pre></div></div>
             
@@ -1672,10 +1669,10 @@ This will override any previously set value for the given field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">distinct</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  distinct: -&gt;
     <span class="property">@useDistinct</span> = <span class="literal">true</span>
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="keyword">if</span> <span class="property">@useDistinct</span> <span class="keyword">then</span> <span class="string">"DISTINCT"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
@@ -1692,7 +1689,7 @@ This will override any previously set value for the given field.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">GroupByBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@groups</span> = []</pre></div></div>
             
@@ -1709,11 +1706,11 @@ This will override any previously set value for the given field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">group</span>: <span class="function"><span class="params">(field)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  group: (field) -&gt;
     field = <span class="property">@_sanitizeField</span>(field)
     <span class="property">@groups</span>.push field
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     groups = <span class="string">""</span>
 
     <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@groups</span>.length
@@ -1738,7 +1735,7 @@ This will override any previously set value for the given field.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">OffsetBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@offsets</span> = <span class="literal">null</span></pre></div></div>
             
@@ -1757,12 +1754,12 @@ the offset.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">offset</span>: <span class="function"><span class="params">(start)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  offset: (start) -&gt;
     start = <span class="property">@_sanitizeLimitOffset</span>(start)
     <span class="property">@offsets</span> = start
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
-    <span class="keyword">if</span> <span class="property">@offsets</span> <span class="keyword">then</span> <span class="string">"OFFSET <span class="subst">#{<span class="property">@offsets</span>}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@offsets</span> <span class="keyword">then</span> <span class="string">"OFFSET <span class="subst">#{@offsets}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -1778,7 +1775,7 @@ the offset.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">WhereBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@wheres</span> = []
     <span class="property">@wheresParam</span> = []</pre></div></div>
@@ -1797,9 +1794,9 @@ the offset.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">where</span>: <span class="function"><span class="params">(condition, values...)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  where: (condition, values...) -&gt;
     condition = <span class="property">@_sanitizeCondition</span>(condition)
-    whereParam = { <span class="attribute">text</span>: condition, <span class="attribute">values</span>: [] }</pre></div></div>
+    whereParam = { text: condition, values: [] }</pre></div></div>
             
         </li>
         
@@ -1819,8 +1816,8 @@ the offset.</p>
         inValues = []
         <span class="keyword">for</span> item <span class="keyword">in</span> value
           inValues.push <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> item
-        value = <span class="string">"(<span class="subst">#{inValues.join <span class="string">', '</span>}</span>)"</span>
-        whereParam.text = condition.replace <span class="string">'?'</span>, <span class="string">"(<span class="subst">#{(<span class="string">'?'</span> <span class="keyword">for</span> item <span class="keyword">in</span> inValues).join <span class="string">', '</span>}</span>)"</span>
+        value = <span class="string">"(<span class="subst">#{inValues.join ', '}</span>)"</span>
+        whereParam.text = condition.replace <span class="string">'?'</span>, <span class="string">"(<span class="subst">#{('?' <span class="keyword">for</span> item <span class="keyword">in</span> inValues).join ', '}</span>)"</span>
         whereParam.values = inValues
       <span class="keyword">else</span>
         value = <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> value
@@ -1833,12 +1830,12 @@ the offset.</p>
     <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> whereParam.text
       <span class="property">@wheresParam</span>.push whereParam
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheres</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + <span class="property">@wheres</span>.join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
 
-  <span class="attribute">buildParam</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
-    <span class="attribute">text</span>: <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheresParam</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + ( where.text <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> ).join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
-    <span class="attribute">values</span>: [].concat ( where.values <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> )...</pre></div></div>
+  buildParam: (queryBuilder) -&gt;
+    text: <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheresParam</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + ( where.text <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> ).join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
+    values: [].concat ( where.values <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> )...</pre></div></div>
             
         </li>
         
@@ -1854,7 +1851,7 @@ the offset.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">OrderByBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@orders</span> = []</pre></div></div>
             
@@ -1872,18 +1869,18 @@ the offset.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">order</span>: <span class="function"><span class="params">(field, asc = <span class="literal">true</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  order: (field, asc = <span class="literal">true</span>) -&gt;
     field = <span class="property">@_sanitizeField</span>(field)
     <span class="property">@orders</span>.push
-      <span class="attribute">field</span>: field
-      <span class="attribute">dir</span>: <span class="keyword">if</span> asc <span class="keyword">then</span> <span class="literal">true</span> <span class="keyword">else</span> <span class="literal">false</span>
+      field: field
+      dir: <span class="keyword">if</span> asc <span class="keyword">then</span> <span class="literal">true</span> <span class="keyword">else</span> <span class="literal">false</span>
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@orders</span>.length
       orders = <span class="string">""</span>
       <span class="keyword">for</span> o <span class="keyword">in</span> <span class="property">@orders</span>
         orders += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> orders
-        orders += <span class="string">"<span class="subst">#{o.field}</span> <span class="subst">#{<span class="keyword">if</span> o.dir <span class="keyword">then</span> <span class="string">'ASC'</span> <span class="keyword">else</span> <span class="string">'DESC'</span>}</span>"</span>
+        orders += <span class="string">"<span class="subst">#{o.field}</span> <span class="subst">#{<span class="keyword">if</span> o.dir <span class="keyword">then</span> 'ASC' <span class="keyword">else</span> 'DESC'}</span>"</span>
       <span class="string">"ORDER BY <span class="subst">#{orders}</span>"</span>
     <span class="keyword">else</span>
       <span class="string">""</span></pre></div></div>
@@ -1902,7 +1899,7 @@ the offset.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">LimitBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@limits</span> = <span class="literal">null</span></pre></div></div>
             
@@ -1921,13 +1918,13 @@ the limit.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">limit</span>: <span class="function"><span class="params">(max)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  limit: (max) -&gt;
     max = <span class="property">@_sanitizeLimitOffset</span>(max)
     <span class="property">@limits</span> = max
 
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
-    <span class="keyword">if</span> <span class="property">@limits</span> <span class="keyword">then</span> <span class="string">"LIMIT <span class="subst">#{<span class="property">@limits</span>}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@limits</span> <span class="keyword">then</span> <span class="string">"LIMIT <span class="subst">#{@limits}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -1943,7 +1940,7 @@ the limit.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">JoinBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+  constructor: (options) -&gt;
     <span class="keyword">super</span> options
     <span class="property">@joins</span> = []</pre></div></div>
             
@@ -1965,16 +1962,16 @@ an expression builder then it gets evaluated straight away.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">join</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>, type = <span class="string">'INNER'</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>, type = <span class="string">'INNER'</span>) -&gt;
     table = <span class="property">@_sanitizeTable</span>(table, <span class="literal">true</span>)
     alias = <span class="property">@_sanitizeTableAlias</span>(alias) <span class="keyword">if</span> alias
     condition = <span class="property">@_sanitizeCondition</span>(condition) <span class="keyword">if</span> condition
 
     <span class="property">@joins</span>.push
-      <span class="attribute">type</span>: type
-      <span class="attribute">table</span>: table
-      <span class="attribute">alias</span>: alias
-      <span class="attribute">condition</span>: condition
+      type: type
+      table: table
+      alias: alias
+      condition: condition
     @</pre></div></div>
             
         </li>
@@ -1990,7 +1987,7 @@ an expression builder then it gets evaluated straight away.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">left_join</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  left_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
     <span class="property">@join</span> table, alias, condition, <span class="string">'LEFT'</span></pre></div></div>
             
         </li>
@@ -2006,7 +2003,7 @@ an expression builder then it gets evaluated straight away.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">right_join</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  right_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
     <span class="property">@join</span> table, alias, condition, <span class="string">'RIGHT'</span></pre></div></div>
             
         </li>
@@ -2022,11 +2019,11 @@ an expression builder then it gets evaluated straight away.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">outer_join</span>: <span class="function"><span class="params">(table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  outer_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
     <span class="property">@join</span> table, alias, condition, <span class="string">'OUTER'</span>
 
 
-  <span class="attribute">buildStr</span>: <span class="function"><span class="params">(queryBuilder)</span> -&gt;</span>
+  buildStr: (queryBuilder) -&gt;
     joins = <span class="string">""</span>
 
     <span class="keyword">for</span> j <span class="keyword">in</span> (<span class="property">@joins</span> <span class="keyword">or</span> [])
@@ -2073,10 +2070,10 @@ an expression builder then it gets evaluated straight away.</p>
         <li id="section-104">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-104">&#182;</a>
               </div>
-              <h2 id="query-builders">Query builders</h2>
+              <h2>Query builders</h2>
 
             </div>
             
@@ -2124,7 +2121,7 @@ an expression builder then it gets evaluated straight away.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  constructor: (options, blocks) -&gt;
     <span class="keyword">super</span> options
 
     <span class="property">@blocks</span> = blocks <span class="keyword">or</span> []</pre></div></div>
@@ -2145,16 +2142,13 @@ an expression builder then it gets evaluated straight away.</p>
             <div class="content"><div class='highlight'><pre>    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
       <span class="keyword">for</span> methodName, methodBody <span class="keyword">of</span> block.exposedMethods()
         <span class="keyword">if</span> @[methodName]?
-          <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{<span class="property">@_getObjectClassName</span>(@)}</span> already has a builder method called: <span class="subst">#{methodName}</span>"</span>
+          <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{@_getObjectClassName(@)}</span> already has a builder method called: <span class="subst">#{methodName}</span>"</span>
 
-        <span class="function"><span class="params">( (block, name, body) =&gt;
+        ( (block, name, body) =&gt;
           @[name] = =&gt;
             body.apply(block, arguments)
             @
-        )(block, methodName, methodBody)</span>
-
-
-</span></pre></div></div>
+        )(block, methodName, methodBody)</pre></div></div>
             
         </li>
         
@@ -2170,7 +2164,7 @@ an expression builder then it gets evaluated straight away.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">registerValueHandler</span>: <span class="function"><span class="params">(type, handler)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  registerValueHandler: (type, handler) -&gt;
     <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
       block.registerValueHandler type, handler
     <span class="keyword">super</span> type, handler
@@ -2191,7 +2185,7 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">updateOptions</span>: <span class="function"><span class="params">(options)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  updateOptions: (options) -&gt;
     <span class="property">@options</span> = _extend({}, <span class="property">@options</span>, options)
     <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
       block.options = _extend({}, block.options, options)</pre></div></div>
@@ -2209,10 +2203,8 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">toString</span>:<span class="function"> -&gt;</span>
-    <span class="function"><span class="params">(block.buildStr(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)</span>.<span class="title">filter</span><span class="params">( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length))</span>.<span class="title">join</span><span class="params">(<span class="string">' '</span>)</span>
-
-</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  toString: -&gt;
+    (block.buildStr(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>).filter( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length)).join(<span class="string">' '</span>)</pre></div></div>
             
         </li>
         
@@ -2227,14 +2219,14 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">toParam</span>:<span class="function"> -&gt;</span>
-    result = { <span class="attribute">text</span>: <span class="string">''</span>, <span class="attribute">values</span>: [] }
+            <div class="content"><div class='highlight'><pre>  toParam: -&gt;
+    result = { text: <span class="string">''</span>, values: [] }
     blocks = (block.buildParam(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)
-    result.<span class="function"><span class="title">text</span> = <span class="params">(block.text <span class="keyword">for</span> block <span class="keyword">in</span> blocks)</span>.<span class="title">filter</span><span class="params">( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length))</span>.<span class="title">join</span><span class="params">(<span class="string">' '</span>)</span>
-    <span class="title">result</span>.<span class="title">values</span> = [].<span class="title">concat</span> <span class="params">(block.values <span class="keyword">for</span> block <span class="keyword">in</span> blocks)</span>...
-    <span class="title">if</span> @<span class="title">options</span>.<span class="title">numberedParameters</span>
-      <span class="title">i</span> = 0
-      <span class="title">result</span>.<span class="title">text</span> = <span class="title">result</span>.<span class="title">text</span>.<span class="title">replace</span> /\?/<span class="title">g</span>, <span class="params">()</span> -&gt;</span> <span class="keyword">return</span> <span class="string">"$<span class="subst">#{++i}</span>"</span>
+    result.<span class="function"><span class="title">text</span></span> = (block.text <span class="keyword">for</span> block <span class="keyword">in</span> blocks).filter( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length)).join(<span class="string">' '</span>)
+    result.values = [].concat (block.values <span class="keyword">for</span> block <span class="keyword">in</span> blocks)...
+    <span class="keyword">if</span> <span class="property">@options</span>.numberedParameters
+      i = <span class="number">0</span>
+      result.text = result.text.replace <span class="regexp">/\?/g</span>, () -&gt; <span class="keyword">return</span> <span class="string">"$<span class="subst">#{++i}</span>"</span>
     result</pre></div></div>
             
         </li>
@@ -2250,7 +2242,7 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">clone</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  clone: -&gt;
     <span class="keyword">new</span> <span class="property">@constructor</span> <span class="property">@options</span>, (block.clone() <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)</pre></div></div>
             
         </li>
@@ -2266,7 +2258,7 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">isNestable</span>:<span class="function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  isNestable: -&gt;
     <span class="literal">false</span></pre></div></div>
             
         </li>
@@ -2283,13 +2275,13 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Select</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
-    <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks = <span class="literal">null</span>)</span> -&gt;</span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
       blocks <span class="keyword">or</span>= [
         <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'SELECT'</span>),
         <span class="keyword">new</span> cls.DistinctBlock(options),
         <span class="keyword">new</span> cls.GetFieldBlock(options),
-        <span class="keyword">new</span> cls.FromTableBlock(_extend({}, options, { <span class="attribute">allowNested</span>: <span class="literal">true</span> })),
-        <span class="keyword">new</span> cls.JoinBlock(_extend({}, options, { <span class="attribute">allowNested</span>: <span class="literal">true</span> })),
+        <span class="keyword">new</span> cls.FromTableBlock(_extend({}, options, { allowNested: <span class="literal">true</span> })),
+        <span class="keyword">new</span> cls.JoinBlock(_extend({}, options, { allowNested: <span class="literal">true</span> })),
         <span class="keyword">new</span> cls.WhereBlock(options),
         <span class="keyword">new</span> cls.GroupByBlock(options),
         <span class="keyword">new</span> cls.OrderByBlock(options),
@@ -2299,7 +2291,7 @@ behaviour of your query builder mid-build.</p>
 
       <span class="keyword">super</span> options, blocks
 
-    <span class="attribute">isNestable</span>:<span class="function"> -&gt;</span>
+    isNestable: -&gt;
       <span class="literal">true</span></pre></div></div>
             
         </li>
@@ -2316,7 +2308,7 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Update</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks = <span class="literal">null</span>)</span> -&gt;</span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
     blocks <span class="keyword">or</span>= [
       <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'UPDATE'</span>),
       <span class="keyword">new</span> cls.UpdateTableBlock(options),
@@ -2342,10 +2334,10 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Delete</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks = <span class="literal">null</span>)</span> -&gt;</span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
     blocks <span class="keyword">or</span>= [
       <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'DELETE'</span>),
-      <span class="keyword">new</span> cls.FromTableBlock( _extend({}, options, { <span class="attribute">singleTable</span>: <span class="literal">true</span> }) ),
+      <span class="keyword">new</span> cls.FromTableBlock( _extend({}, options, { singleTable: <span class="literal">true</span> }) ),
       <span class="keyword">new</span> cls.JoinBlock(options),
       <span class="keyword">new</span> cls.WhereBlock(options),
       <span class="keyword">new</span> cls.OrderByBlock(options),
@@ -2368,7 +2360,7 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Insert</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(options, blocks = <span class="literal">null</span>)</span> -&gt;</span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
     blocks <span class="keyword">or</span>= [
       <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'INSERT'</span>),
       <span class="keyword">new</span> cls.IntoTableBlock(options),
@@ -2409,10 +2401,10 @@ behaviour of your query builder mid-build.</p>
         <li id="section-121">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
-              <h2 id="exported-api">Exported API</h2>
+              <h2>Exported API</h2>
 
             </div>
             
@@ -2442,8 +2434,8 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>squel =
-  <span class="attribute">VERSION</span>: <span class="string">'2.0.0'</span>
-  <span class="attribute">expr</span>:<span class="function"> -&gt;</span> <span class="keyword">new</span> cls.Expression</pre></div></div>
+  VERSION: <span class="string">'2.0.0'</span>
+  expr: -&gt; <span class="keyword">new</span> cls.Expression</pre></div></div>
             
         </li>
         
@@ -2458,11 +2450,11 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="attribute">select</span>: <span class="function"><span class="params">(options, blocks)</span> -&gt;</span> <span class="keyword">new</span> cls.Select(options, blocks)
-  <span class="attribute">update</span>: <span class="function"><span class="params">(options, blocks)</span> -&gt;</span> <span class="keyword">new</span> cls.Update(options, blocks)
-  <span class="attribute">insert</span>: <span class="function"><span class="params">(options, blocks)</span> -&gt;</span> <span class="keyword">new</span> cls.Insert(options, blocks)
-  <span class="attribute">delete</span>: <span class="function"><span class="params">(options, blocks)</span> -&gt;</span> <span class="keyword">new</span> cls.Delete(options, blocks)
-  <span class="attribute">registerValueHandler</span>: cls.registerValueHandler</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  select: (options, blocks) -&gt; <span class="keyword">new</span> cls.Select(options, blocks)
+  update: (options, blocks) -&gt; <span class="keyword">new</span> cls.Update(options, blocks)
+  insert: (options, blocks) -&gt; <span class="keyword">new</span> cls.Insert(options, blocks)
+  <span class="keyword">delete</span>: (options, blocks) -&gt; <span class="keyword">new</span> cls.Delete(options, blocks)
+  registerValueHandler: cls.registerValueHandler</pre></div></div>
             
         </li>
         
@@ -2508,7 +2500,7 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="keyword">if</span> define?.amd
-  define<span class="function"> -&gt;</span>
+  define -&gt;
     <span class="keyword">return</span> squel</pre></div></div>
             
         </li>
@@ -2524,8 +2516,8 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="keyword">else</span> <span class="keyword">if</span> <span class="built_in">module</span>?.<span class="built_in">exports</span>
-  module.<span class="built_in">exports</span> = squel</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="keyword">else</span> <span class="keyword">if</span> module?.exports
+  module.exports = squel</pre></div></div>
             
         </li>
         
@@ -2541,7 +2533,7 @@ behaviour of your query builder mid-build.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="keyword">else</span>
-  <span class="built_in">window</span>?.squel = squel</pre></div></div>
+  window?.squel = squel</pre></div></div>
             
         </li>
         
@@ -2575,10 +2567,10 @@ behaviour of your query builder mid-build.</p>
         <li id="section-132">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
-              <h2 id="squel-sql-flavours">Squel SQL flavours</h2>
+              <h2>Squel SQL flavours</h2>
 
             </div>
             
@@ -2623,7 +2615,7 @@ behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.<span class="function"><span class="title">useFlavour</span> = <span class="params">(flavour)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>squel.<span class="function"><span class="title">useFlavour</span></span> = (flavour) -&gt;
   <span class="keyword">if</span> squel.flavours[flavour] <span class="keyword">instanceof</span> Function
     squel.flavours[flavour].call <span class="literal">null</span>, squel
   <span class="keyword">else</span>

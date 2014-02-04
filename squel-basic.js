@@ -640,13 +640,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     SetFieldBlock.prototype.set = function(field, value) {
       field = this._sanitizeField(field);
-      value = this._sanitizeValue(value);
+      if (typeof value !== 'undefined') {
+        value = this._sanitizeValue(value);
+      }
       this.fields[field] = value;
       return this;
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
-      var field, fieldNames, fields, _i, _len;
+      var field, fieldNames, fields, value, _i, _len;
       fieldNames = (function() {
         var _ref3, _results;
         _ref3 = this.fields;
@@ -666,7 +668,12 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== fields) {
           fields += ", ";
         }
-        fields += "" + field + " = " + (this._formatValue(this.fields[field]));
+        value = this.fields[field];
+        if (typeof value === 'undefined') {
+          fields += field;
+        } else {
+          fields += "" + field + " = " + (this._formatValue(value));
+        }
       }
       return "SET " + fields;
     };
