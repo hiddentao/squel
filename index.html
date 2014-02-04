@@ -582,6 +582,17 @@
 
       <p><em>Hint: Squel can also be configured to handle <code>Object</code> instances by <a href="#custom_types">registering custom value types</a></em>.</p>
 
+      <p>If the second parameter to <code>set()</code> is not provided then the field name is assumed to an operation:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("age = age + 1")
+            );
+            /*  UPDATE students SET age = age + 1 */
+        </pre>
+
       <p>Parameter substitution for parameterized queries is also supported, see the section on <a href="#parameters">Parameters</a>.</p>
 
       <h3>Filtering, sorting and limits</h3>
