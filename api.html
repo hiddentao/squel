@@ -294,12 +294,13 @@
             desc: 'Set a field to a value.',
             params: {
               name: {
-                desc: 'Name of field.',
+                desc: 'Name of field or an operation.',
                 type: 'String'
               },
               value: {
                 type: 'Any',
-                desc: 'Value to set to field.'
+                desc: 'Value to set to field.',
+                defaultValue: 'undefined'
               }
             },
             returns: 'this'
