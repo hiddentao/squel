@@ -609,7 +609,7 @@ class cls.SetFieldBlock extends cls.Block
     @fields = []
     @values = []
     for i in [0...fieldsRows.length]
-      for field of fieldsRows[i]
+      for own field of fieldsRows[i]
 
         index = @fields.indexOf(@_sanitizeField(field))
         throw new Error 'All fields in a new row must match the fields in the first row.' if i > 0 and index is -1
@@ -876,6 +876,10 @@ class cls.JoinBlock extends cls.Block
   # Add an OUTER JOIN with the given table.
   outer_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'OUTER'
+
+  # Add a LEFT JOIN with the given table.
+  left_outer_join: (table, alias = null, condition = null) ->
+    @join table, alias, condition, 'LEFT OUTER'
 
 
   buildStr: (queryBuilder) ->

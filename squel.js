@@ -671,7 +671,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     SetFieldBlock.prototype.setFieldsRows = function(fieldsRows) {
-      var field, i, index, _i, _ref3;
+      var field, i, index, _i, _ref3, _ref4;
       if (!Array.isArray(fieldsRows)) {
         throw new Error("Expected an array of objects but got " + typeof fieldsRows);
       }
@@ -681,7 +681,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.fields = [];
       this.values = [];
       for (i = _i = 0, _ref3 = fieldsRows.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
-        for (field in fieldsRows[i]) {
+        _ref4 = fieldsRows[i];
+        for (field in _ref4) {
+          if (!__hasProp.call(_ref4, field)) continue;
           index = this.fields.indexOf(this._sanitizeField(field));
           if (i > 0 && index === -1) {
             throw new Error('All fields in a new row must match the fields in the first row.');
@@ -1099,6 +1101,16 @@ OTHER DEALINGS IN THE SOFTWARE.
         condition = null;
       }
       return this.join(table, alias, condition, 'OUTER');
+    };
+
+    JoinBlock.prototype.left_outer_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this.join(table, alias, condition, 'LEFT OUTER');
     };
 
     JoinBlock.prototype.buildStr = function(queryBuilder) {

@@ -1634,7 +1634,7 @@ objects. # This will override all previously set values for every field.</p>
             <div class="content"><div class='highlight'><pre>    <span class="hljs-property">@fields</span> = []
     <span class="hljs-property">@values</span> = []
     <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..fieldsRows.length]
-      <span class="hljs-keyword">for</span> field <span class="hljs-keyword">of</span> fieldsRows[i]
+      <span class="hljs-keyword">for</span> own field <span class="hljs-keyword">of</span> fieldsRows[i]
 
         index = <span class="hljs-property">@fields</span>.indexOf(<span class="hljs-property">@_sanitizeField</span>(field))
         <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">'All fields in a new row must match the fields in the first row.'</span> <span class="hljs-keyword">if</span> i &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> index <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span></pre></div></div>
@@ -2139,7 +2139,23 @@ an expression builder then it gets evaluated straight away.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">outer_join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'OUTER'</span>
+    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'OUTER'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-108">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-108">&#182;</a>
+              </div>
+              <p>Add a LEFT JOIN with the given table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">left_outer_join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>)</span> -&gt;</span>
+    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'LEFT OUTER'</span>
 
 
   <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
@@ -2156,19 +2172,6 @@ an expression builder then it gets evaluated straight away.</p>
       joins += <span class="hljs-string">" ON (<span class="hljs-subst">#{j.condition}</span>)"</span> <span class="hljs-keyword">if</span> j.condition
 
     joins</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-108">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-108">&#182;</a>
-              </div>
-              <hr>
-
-            </div>
             
         </li>
         
@@ -2192,7 +2195,7 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-110">&#182;</a>
               </div>
-              <h2 id="query-builders">Query builders</h2>
+              <hr>
 
             </div>
             
@@ -2205,7 +2208,7 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-111">&#182;</a>
               </div>
-              <hr>
+              <h2 id="query-builders">Query builders</h2>
 
             </div>
             
@@ -2218,6 +2221,19 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-112">&#182;</a>
               </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-113">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-113">&#182;</a>
+              </div>
               <p>Query builder base class</p>
 <p>Note that the query builder does not check the final query string for correctness.</p>
 <p>All the build methods in this object return the object instance for chained method calling purposes.</p>
@@ -2229,11 +2245,11 @@ an expression builder then it gets evaluated straight away.</p>
         </li>
         
         
-        <li id="section-113">
+        <li id="section-114">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-113">&#182;</a>
+                <a class="pilcrow" href="#section-114">&#182;</a>
               </div>
               <p>Constructor</p>
 <p>blocks - array of cls.BaseBuilderBlock instances to build the query with.</p>
@@ -2248,11 +2264,11 @@ an expression builder then it gets evaluated straight away.</p>
         </li>
         
         
-        <li id="section-114">
+        <li id="section-115">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-114">&#182;</a>
+                <a class="pilcrow" href="#section-115">&#182;</a>
               </div>
               <p>Copy exposed methods into myself</p>
 
@@ -2275,11 +2291,11 @@ an expression builder then it gets evaluated straight away.</p>
         </li>
         
         
-        <li id="section-115">
+        <li id="section-116">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-115">&#182;</a>
+                <a class="pilcrow" href="#section-116">&#182;</a>
               </div>
               <p>Register a custom value handler for this query builder and all its contained blocks.</p>
 <p>Note: This will override any globally registered handler for this value type.</p>
@@ -2295,11 +2311,11 @@ an expression builder then it gets evaluated straight away.</p>
         </li>
         
         
-        <li id="section-116">
+        <li id="section-117">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-116">&#182;</a>
+                <a class="pilcrow" href="#section-117">&#182;</a>
               </div>
               <p>Update query builder options</p>
 <p>This will update the options for all blocks too. Use this method with caution as it allows you to change the
@@ -2315,11 +2331,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-117">
+        <li id="section-118">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-117">&#182;</a>
+                <a class="pilcrow" href="#section-118">&#182;</a>
               </div>
               <p>Get the final fully constructed query string.</p>
 
@@ -2333,11 +2349,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-118">
+        <li id="section-119">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-118">&#182;</a>
+                <a class="pilcrow" href="#section-119">&#182;</a>
               </div>
               <p>Get the final fully constructed query param obj.</p>
 
@@ -2356,11 +2372,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-119">
+        <li id="section-120">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-119">&#182;</a>
+                <a class="pilcrow" href="#section-120">&#182;</a>
               </div>
               <p>Deep clone</p>
 
@@ -2372,11 +2388,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-120">
+        <li id="section-121">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-120">&#182;</a>
+                <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
               <p>Get whether queries built with this builder can be nested within other queries</p>
 
@@ -2388,11 +2404,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-121">
+        <li id="section-122">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-121">&#182;</a>
+                <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
               <p>SELECT query builder.</p>
 
@@ -2421,11 +2437,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-122">
+        <li id="section-123">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-122">&#182;</a>
+                <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
               <p>UPDATE query builder.</p>
 
@@ -2447,11 +2463,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-123">
+        <li id="section-124">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-123">&#182;</a>
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <p>DELETE query builder.</p>
 
@@ -2473,11 +2489,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-124">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-124">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>An INSERT query builder.</p>
 
@@ -2492,19 +2508,6 @@ behaviour of your query builder mid-build.</p>
     ]
 
     <span class="hljs-keyword">super</span> options, blocks</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-125">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-125">&#182;</a>
-              </div>
-              <hr>
-
-            </div>
             
         </li>
         
@@ -2528,7 +2531,7 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
-              <h2 id="exported-api">Exported API</h2>
+              <hr>
 
             </div>
             
@@ -2541,7 +2544,7 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
-              <hr>
+              <h2 id="exported-api">Exported API</h2>
 
             </div>
             
@@ -2554,6 +2557,19 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-130">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-130">&#182;</a>
+              </div>
               
             </div>
             
@@ -2564,11 +2580,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-130">
+        <li id="section-131">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-130">&#182;</a>
+                <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
               <p>Don&#39;t have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args</p>
 
@@ -2583,11 +2599,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-131">
+        <li id="section-132">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-131">&#182;</a>
+                <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
               <p>aliases</p>
 
@@ -2598,11 +2614,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-132">
+        <li id="section-133">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-132">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p>classes</p>
 
@@ -2613,11 +2629,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-133">
+        <li id="section-134">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-133">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <p>AMD</p>
 
@@ -2630,11 +2646,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-134">
+        <li id="section-135">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <p>CommonJS</p>
 
@@ -2646,11 +2662,11 @@ behaviour of your query builder mid-build.</p>
         </li>
         
         
-        <li id="section-135">
+        <li id="section-136">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p>Browser</p>
 
@@ -2658,19 +2674,6 @@ behaviour of your query builder mid-build.</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">else</span>
   <span class="hljs-built_in">window</span>?.squel = squel</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-136">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-136">&#182;</a>
-              </div>
-              <hr>
-
-            </div>
             
         </li>
         
@@ -2694,7 +2697,7 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
-              <h2 id="squel-sql-flavours">Squel SQL flavours</h2>
+              <hr>
 
             </div>
             
@@ -2707,7 +2710,7 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
-              <hr>
+              <h2 id="squel-sql-flavours">Squel SQL flavours</h2>
 
             </div>
             
@@ -2720,11 +2723,9 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-140">&#182;</a>
               </div>
-              <p>Available flavours</p>
+              <hr>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>squel.flavours = {}</pre></div></div>
             
         </li>
         
@@ -2734,6 +2735,21 @@ behaviour of your query builder mid-build.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-141">&#182;</a>
+              </div>
+              <p>Available flavours</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>squel.flavours = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-142">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-142">&#182;</a>
               </div>
               <p>Setup Squel for a particular SQL flavour</p>
 
