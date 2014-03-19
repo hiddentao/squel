@@ -95,7 +95,7 @@ You can use nested queries too:
         .set("f1", 1)
         .toString()
 
-    // UPDATE test, test2, test3 AS `a` SET test.id = 1, test2.val = 1.2, a.name = "Ram", a.email = NULL
+    // UPDATE test, test2, test3 AS `a` SET test.id = 1, test2.val = 1.2, a.name = "Ram", a.email = NULL, a.count = a.count + 1
     squel.update()
         .table("test")
         .set("test.id", 1)
@@ -104,6 +104,7 @@ You can use nested queries too:
         .table("test3","a")
         .set("a.name", "Ram")
         .set("a.email", null)
+        .set("a.count = a.count + 1")
         .toString()
 
 **INSERT**

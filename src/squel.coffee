@@ -564,46 +564,49 @@ class cls.GetFieldBlock extends cls.Block
 
 
 
-# (UPDATE) SET field=value
-class cls.SetFieldBlock extends cls.Block
+# Base class for setting fields to values (used for INSERT and UPDATE queries)
+class cls.AbstractSetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
     @fields = []
     @values = []
-    @caller = this.constructor.caller.name
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
   set: (field, value) ->
     throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
 
+    value = @_sanitizeValue(value) if undefined isnt value
+
     # Explicity overwrite existing fields
     index = @fields.indexOf(@_sanitizeField(field))
     if index isnt -1
-      @values[0][index] = @_sanitizeValue(value)
+      @values[0][index] = value
     else
       @fields.push @_sanitizeField(field)
+      index = @fields.length - 1
 
-      # The first value added needs to add the array
+      # The first value added needs to create the array of values for the row
       if Array.isArray(@values[0])
-        @values[0].push @_sanitizeValue(value)
+        @values[0][index] = value
       else
-        @values.push [@_sanitizeValue(value)]
-    this
+        @values.push [value]
+    @
 
-  # Insert fields based on the key/value pairs in an object
+
+  # Insert fields based on the key/value pairs in the given object
   setFields: (fields) ->
     throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
 
-    for field of fields
+    for own field of fields
       @set field, fields[field]
-    this
+    @
 
-  # Insert multiple rows for the given fields. Accepts an array of
-  # objects. # This will override all previously set values for every field.
+
+  # Insert multiple rows for the given fields. Accepts an array of objects.
+  # This will override all previously set values for every field.
   setFieldsRows: (fieldsRows) ->
     throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
-    throw new Error "It\'s not possible to set rows of fields on an UPDATE SET." if this.caller is "Update"
 
     # Reset the objects stored fields and values
     @fields = []
@@ -612,78 +615,101 @@ class cls.SetFieldBlock extends cls.Block
       for own field of fieldsRows[i]
 
         index = @fields.indexOf(@_sanitizeField(field))
-        throw new Error 'All fields in a new row must match the fields in the first row.' if i > 0 and index is -1
+        throw new Error 'All fields in subsequent rows must match the fields in the first row' if 0 < i and -1 is index
 
         # Add field only if it hasn't been added before
-        @fields.push @_sanitizeField(field) if index is -1
+        if -1 is index
+          @fields.push @_sanitizeField(field) 
+          index = @fields.length - 1
+
+        value = @_sanitizeValue(fieldsRows[i][field])
 
         # The first value added needs to add the array
         if Array.isArray(@values[i])
-          @values[i].push @_sanitizeValue(fieldsRows[i][field])
+          @values[i][index] = value
         else
-          @values.push [@_sanitizeValue(fieldsRows[i][field])]
-    this
+          @values[i] = [value]
+    @
+
+  buildStr: ->
+    throw new Error('Not yet implemented')
+
+  buildParam: ->
+    throw new Error('Not yet implemented')
+
+
+
+# (UPDATE) SET field=value
+class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
+
+  setFieldsRows: ->
+    throw new Error('Cannot call setFieldRows for an UPDATE SET')
 
   buildStr: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
 
-    fields = ""
+    str = ""
     for i in [0...@fields.length]
-      fields += ", " if "" isnt fields
-      fields += "#{@fields[i]} = #{@_formatValue(@values[0][i])}"
+      field = @fields[i]
+      str += ", " if "" isnt str
+      value = @values[0][i]
+      if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
+        str += field
+      else
+        str += "#{field} = #{@_formatValue(value)}"
 
-    "SET #{fields}"
+    "SET #{str}"
 
   buildParam: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
 
-    fields = ""
-    values = []
+    str = ""
+    vals = []
     for i in [0...@fields.length]
-      fields += ", " if "" isnt fields
-      fields += "#{@fields[i]} = ?"
-      values.push @_formatValue(@values[0][i])
+      str += ", " if "" isnt str
+      str += "#{@fields[i]} = ?"
+      vals.push @_formatValue(@values[0][i])
 
-    { text: "SET #{fields}", values: values }
+    { text: "SET #{str}", values: vals }
+
 
 
 # (INSERT INTO) ... field ... value
-class cls.InsertFieldValueBlock extends cls.SetFieldBlock
-  constructor: (options) ->
-    super options
-    @fields = []
-    @values = []
-
+class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
   buildStr: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
 
-    values = []
+    vals = []
     for i in [0...@values.length]
       for j in [0...@values[i].length]
-        values[i] = [] unless Array.isArray(values[i])
-        values[i][j] = @_formatValue(@values[i][j])
+        formattedValue = @_formatValue(@values[i][j])
+        if 'string' is typeof vals[i]
+          vals[i] += ', ' + formattedValue          
+        else 
+          vals[i] = '' + formattedValue
 
-    "(#{@fields}) VALUES (#{values.join('), (')})"
+    "(#{@fields.join(', ')}) VALUES (#{vals.join('), (')})"
 
   buildParam: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
 
     # fields
-    fields = ""
-    values = ""
-    valuesArr = []
+    str = ""
+    vals = []
+    params = []
     for i in [0...@fields.length]
-      fields += ", " if "" isnt fields
-      fields += @fields[i]
-      values += ", " if "" isnt values
-      values += "?"
+      str += ", " if "" isnt str
+      str += @fields[i]
 
      for i in [0...@values.length]
       for j in [0...@values[i].length]
-        valuesArr[i] = [] unless Array.isArray(valuesArr[i])
-        valuesArr[i].push @_formatValue(@values[i][j])
+        params.push @_formatValue(@values[i][j])
+        if 'string' is typeof vals[i]
+          vals[i] += ', ?'           
+        else 
+          vals[i] = '?'
 
-    { text: "(#{fields}) VALUES (#{values})", values: valuesArr }
+    { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
 
 
 

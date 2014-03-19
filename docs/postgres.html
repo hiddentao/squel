@@ -44,28 +44,28 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>Copyright (c) Ramesh Nair (hiddentao.com)
 
-Permission <span class="hljs-keyword">is</span> hereby granted, free <span class="hljs-keyword">of</span> charge, to any person
-obtaining a copy <span class="hljs-keyword">of</span> <span class="hljs-keyword">this</span> software <span class="hljs-keyword">and</span> associated documentation
-files (the <span class="hljs-string">"Software"</span>), to deal <span class="hljs-keyword">in</span> the Software without
+Permission <span class="keyword">is</span> hereby granted, free <span class="keyword">of</span> charge, to any person
+obtaining a copy <span class="keyword">of</span> <span class="keyword">this</span> software <span class="keyword">and</span> associated documentation
+files (the <span class="string">"Software"</span>), to deal <span class="keyword">in</span> the Software without
 restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, <span class="hljs-keyword">and</span>/<span class="hljs-keyword">or</span> sell
-copies <span class="hljs-keyword">of</span> the Software, <span class="hljs-keyword">and</span> to permit persons to whom the
-Software <span class="hljs-keyword">is</span> furnished to <span class="hljs-keyword">do</span> so, subject to the following
-<span class="hljs-attribute">conditions</span>:
+copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
+copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
+Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
+conditions:
 
-The above copyright notice <span class="hljs-keyword">and</span> <span class="hljs-keyword">this</span> permission notice shall be
-included <span class="hljs-keyword">in</span> all copies <span class="hljs-keyword">or</span> substantial portions <span class="hljs-keyword">of</span> the Software.
+The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
+included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
 
-THE SOFTWARE IS PROVIDED <span class="hljs-string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
+THE SOFTWARE IS PROVIDED <span class="string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -80,15 +80,15 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 <p>This file contains additional Squel commands for use with the Postgres DB engine</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="hljs-string">'postgres'</span>] =<span class="hljs-function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>squel.flavours[<span class="string">'postgres'</span>] = -&gt;
   cls = squel.cls</pre></div></div>
             
         </li>
@@ -104,7 +104,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.replaceSingleQuotes = <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.replaceSingleQuotes = <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -119,7 +119,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.singleQuoteReplacement = <span class="hljs-string">'\'\''</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.singleQuoteReplacement = <span class="string">'\'\''</span></pre></div></div>
             
         </li>
         
@@ -134,7 +134,7 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.numberedParameters = <span class="hljs-literal">true</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  cls.DefaultQueryBuilderOptions.numberedParameters = <span class="literal">true</span></pre></div></div>
             
         </li>
         
@@ -149,9 +149,9 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  cls.BaseBuilder.prototype.<span class="hljs-function"><span class="hljs-title">_escapeValue</span> = <span class="hljs-params">(value)</span> -&gt;</span>
-    <span class="hljs-keyword">return</span> value <span class="hljs-keyword">unless</span> <span class="hljs-literal">true</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@options</span>.replaceSingleQuotes
-    value.replace <span class="hljs-regexp">/\'/g</span>, <span class="hljs-property">@options</span>.singleQuoteReplacement</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  cls.BaseBuilder.prototype.<span class="function"><span class="title">_escapeValue</span></span> = (value) -&gt;
+    <span class="keyword">return</span> value <span class="keyword">unless</span> <span class="literal">true</span> <span class="keyword">is</span> <span class="property">@options</span>.replaceSingleQuotes
+    value.replace <span class="regexp">/\'/g</span>, <span class="property">@options</span>.singleQuoteReplacement</pre></div></div>
             
         </li>
         
@@ -166,16 +166,16 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">ReturningBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-    <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-      <span class="hljs-keyword">super</span> options
-      <span class="hljs-property">@_str</span> = <span class="hljs-literal">null</span>
+            <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">ReturningBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+    constructor: (options) -&gt;
+      <span class="keyword">super</span> options
+      <span class="property">@_str</span> = <span class="literal">null</span>
 
-    <span class="hljs-attribute">returning</span>: <span class="hljs-function"><span class="hljs-params">(ret)</span> -&gt;</span>
-      <span class="hljs-property">@_str</span> = <span class="hljs-property">@_sanitizeField</span>(ret)
+    returning: (ret) -&gt;
+      <span class="property">@_str</span> = <span class="property">@_sanitizeField</span>(ret)
 
-    <span class="hljs-attribute">buildStr</span>:<span class="hljs-function"> -&gt;</span>
-      <span class="hljs-keyword">if</span> <span class="hljs-property">@_str</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"RETURNING <span class="hljs-subst">#{<span class="hljs-property">@_str</span>}</span>"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></pre></div></div>
+    buildStr: -&gt;
+      <span class="keyword">if</span> <span class="property">@_str</span> <span class="keyword">then</span> <span class="string">"RETURNING <span class="subst">#{@_str}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -190,28 +190,28 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Insert</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span></span>
-    <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-      blocks <span class="hljs-keyword">or</span>= [
-        <span class="hljs-keyword">new</span> cls.StringBlock(options, <span class="hljs-string">'INSERT'</span>),
-        <span class="hljs-keyword">new</span> cls.IntoTableBlock(options),
-        <span class="hljs-keyword">new</span> cls.InsertFieldValueBlock(options),
-        <span class="hljs-keyword">new</span> cls.ReturningBlock(options)
+            <div class="content"><div class='highlight'><pre>  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Insert</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+      blocks <span class="keyword">or</span>= [
+        <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'INSERT'</span>),
+        <span class="keyword">new</span> cls.IntoTableBlock(options),
+        <span class="keyword">new</span> cls.InsertFieldValueBlock(options),
+        <span class="keyword">new</span> cls.ReturningBlock(options)
       ]
-      <span class="hljs-keyword">super</span> options, blocks
+      <span class="keyword">super</span> options, blocks
       
-  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Update</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span></span>
-    <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-      blocks <span class="hljs-keyword">or</span>= [
-        <span class="hljs-keyword">new</span> cls.StringBlock(options, <span class="hljs-string">'UPDATE'</span>),
-        <span class="hljs-keyword">new</span> cls.UpdateTableBlock(options),
-        <span class="hljs-keyword">new</span> cls.SetFieldBlock(options),
-        <span class="hljs-keyword">new</span> cls.WhereBlock(options),
-        <span class="hljs-keyword">new</span> cls.OrderByBlock(options),
-        <span class="hljs-keyword">new</span> cls.LimitBlock(options),
-        <span class="hljs-keyword">new</span> cls.ReturningBlock(options)
+  <span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Update</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+      blocks <span class="keyword">or</span>= [
+        <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'UPDATE'</span>),
+        <span class="keyword">new</span> cls.UpdateTableBlock(options),
+        <span class="keyword">new</span> cls.SetFieldBlock(options),
+        <span class="keyword">new</span> cls.WhereBlock(options),
+        <span class="keyword">new</span> cls.OrderByBlock(options),
+        <span class="keyword">new</span> cls.LimitBlock(options),
+        <span class="keyword">new</span> cls.ReturningBlock(options)
       ]
-      <span class="hljs-keyword">super</span> options, blocks</pre></div></div>
+      <span class="keyword">super</span> options, blocks</pre></div></div>
             
         </li>
         

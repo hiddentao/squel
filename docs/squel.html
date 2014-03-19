@@ -44,28 +44,28 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>Copyright (c) Ramesh Nair (hiddentao.com)
 
-Permission <span class="hljs-keyword">is</span> hereby granted, free <span class="hljs-keyword">of</span> charge, to any person
-obtaining a copy <span class="hljs-keyword">of</span> <span class="hljs-keyword">this</span> software <span class="hljs-keyword">and</span> associated documentation
-files (the <span class="hljs-string">"Software"</span>), to deal <span class="hljs-keyword">in</span> the Software without
+Permission <span class="keyword">is</span> hereby granted, free <span class="keyword">of</span> charge, to any person
+obtaining a copy <span class="keyword">of</span> <span class="keyword">this</span> software <span class="keyword">and</span> associated documentation
+files (the <span class="string">"Software"</span>), to deal <span class="keyword">in</span> the Software without
 restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, <span class="hljs-keyword">and</span>/<span class="hljs-keyword">or</span> sell
-copies <span class="hljs-keyword">of</span> the Software, <span class="hljs-keyword">and</span> to permit persons to whom the
-Software <span class="hljs-keyword">is</span> furnished to <span class="hljs-keyword">do</span> so, subject to the following
-<span class="hljs-attribute">conditions</span>:
+copy, modify, merge, publish, distribute, sublicense, <span class="keyword">and</span>/<span class="keyword">or</span> sell
+copies <span class="keyword">of</span> the Software, <span class="keyword">and</span> to permit persons to whom the
+Software <span class="keyword">is</span> furnished to <span class="keyword">do</span> so, subject to the following
+conditions:
 
-The above copyright notice <span class="hljs-keyword">and</span> <span class="hljs-keyword">this</span> permission notice shall be
-included <span class="hljs-keyword">in</span> all copies <span class="hljs-keyword">or</span> substantial portions <span class="hljs-keyword">of</span> the Software.
+The above copyright notice <span class="keyword">and</span> <span class="keyword">this</span> permission notice shall be
+included <span class="keyword">in</span> all copies <span class="keyword">or</span> substantial portions <span class="keyword">of</span> the Software.
 
-THE SOFTWARE IS PROVIDED <span class="hljs-string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
+THE SOFTWARE IS PROVIDED <span class="string">"AS IS"</span>, WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -80,10 +80,10 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 <p>Holds classes</p>
 
             </div>
@@ -103,11 +103,11 @@ OTHER DEALINGS IN THE SOFTWARE.</pre></div></div>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">_extend</span> = <span class="hljs-params">(dst, sources...)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> sources
-        <span class="hljs-keyword">for</span> src <span class="hljs-keyword">in</span> sources
-            <span class="hljs-keyword">if</span> src
-                <span class="hljs-keyword">for</span> own k,v <span class="hljs-keyword">of</span> src
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">_extend</span></span> = (dst, sources...) -&gt;
+    <span class="keyword">if</span> sources
+        <span class="keyword">for</span> src <span class="keyword">in</span> sources
+            <span class="keyword">if</span> src
+                <span class="keyword">for</span> own k,v <span class="keyword">of</span> src
                     dst[k] = v
     dst</pre></div></div>
             
@@ -140,7 +140,7 @@ nameQuoteCharacter option.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">autoQuoteTableNames</span>: <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  autoQuoteTableNames: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -156,7 +156,7 @@ nameQuoteCharacter option.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">autoQuoteFieldNames</span>: <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  autoQuoteFieldNames: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -172,7 +172,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">autoQuoteAliasNames</span>: <span class="hljs-literal">true</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  autoQuoteAliasNames: <span class="literal">true</span></pre></div></div>
             
         </li>
         
@@ -187,7 +187,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">nameQuoteCharacter</span>: <span class="hljs-string">'`'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  nameQuoteCharacter: <span class="string">'`'</span></pre></div></div>
             
         </li>
         
@@ -202,7 +202,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">tableAliasQuoteCharacter</span>: <span class="hljs-string">'`'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  tableAliasQuoteCharacter: <span class="string">'`'</span></pre></div></div>
             
         </li>
         
@@ -217,7 +217,7 @@ tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">fieldAliasQuoteCharacter</span>: <span class="hljs-string">'"'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  fieldAliasQuoteCharacter: <span class="string">'"'</span></pre></div></div>
             
         </li>
         
@@ -233,7 +233,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">usingValuePlaceholders</span>: <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  usingValuePlaceholders: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -248,7 +248,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">valueHandlers</span>: []</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  valueHandlers: []</pre></div></div>
             
         </li>
         
@@ -263,7 +263,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">numberedParameters</span>: <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  numberedParameters: <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -294,21 +294,21 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">registerValueHandler</span> = <span class="hljs-params">(handlers, type, handler)</span> -&gt;</span>
-  <span class="hljs-keyword">unless</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> type
-   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"type must be a class constructor"</span>
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">registerValueHandler</span></span> = (handlers, type, handler) -&gt;
+  <span class="keyword">unless</span> <span class="string">'function'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> type
+   <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"type must be a class constructor"</span>
 
-  <span class="hljs-keyword">unless</span> <span class="hljs-string">'function'</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> handler
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"handler must be a function"</span>
+  <span class="keyword">unless</span> <span class="string">'function'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> handler
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"handler must be a function"</span>
 
-  <span class="hljs-keyword">for</span> typeHandler <span class="hljs-keyword">in</span> handlers
-    <span class="hljs-keyword">if</span> typeHandler.type <span class="hljs-keyword">is</span> type
+  <span class="keyword">for</span> typeHandler <span class="keyword">in</span> handlers
+    <span class="keyword">if</span> typeHandler.type <span class="keyword">is</span> type
       typeHandler.handler = handler
-      <span class="hljs-keyword">return</span>
+      <span class="keyword">return</span>
 
   handlers.push
-    <span class="hljs-attribute">type</span>: type
-    <span class="hljs-attribute">handler</span>: handler</pre></div></div>
+    type: type
+    handler: handler</pre></div></div>
             
         </li>
         
@@ -323,12 +323,12 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">getValueHandler</span> = <span class="hljs-params">(value, handlerLists...)</span> -&gt;</span>
-  <span class="hljs-keyword">for</span> handlers <span class="hljs-keyword">in</span> handlerLists
-    <span class="hljs-keyword">for</span> typeHandler <span class="hljs-keyword">in</span> handlers
-      <span class="hljs-keyword">if</span> value <span class="hljs-keyword">instanceof</span> typeHandler.type
-        <span class="hljs-keyword">return</span> typeHandler.handler
-  <span class="hljs-literal">undefined</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="title">getValueHandler</span></span> = (value, handlerLists...) -&gt;
+  <span class="keyword">for</span> handlers <span class="keyword">in</span> handlerLists
+    <span class="keyword">for</span> typeHandler <span class="keyword">in</span> handlers
+      <span class="keyword">if</span> value <span class="keyword">instanceof</span> typeHandler.type
+        <span class="keyword">return</span> typeHandler.handler
+  <span class="literal">undefined</span></pre></div></div>
             
         </li>
         
@@ -343,7 +343,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>cls.<span class="hljs-function"><span class="hljs-title">registerValueHandler</span> = <span class="hljs-params">(type, handler)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>cls.<span class="function"><span class="title">registerValueHandler</span></span> = (type, handler) -&gt;
   registerValueHandler cls.globalValueHandlers, type, handler</pre></div></div>
             
         </li>
@@ -359,7 +359,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Cloneable</span></span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Cloneable</span></span></pre></div></div>
             
         </li>
         
@@ -374,8 +374,8 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">clone</span>:<span class="hljs-function"> -&gt;</span>
-    newInstance = <span class="hljs-keyword">new</span> <span class="hljs-property">@constructor</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  clone: -&gt;
+    newInstance = <span class="keyword">new</span> <span class="property">@constructor</span>;</pre></div></div>
             
         </li>
         
@@ -405,7 +405,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">BaseBuilder</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Cloneable</span></span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">BaseBuilder</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Cloneable</span></span></pre></div></div>
             
         </li>
         
@@ -421,9 +421,9 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  constructor: (options) -&gt;
     defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
-    <span class="hljs-property">@options</span> = _extend {}, defaults, options</pre></div></div>
+    <span class="property">@options</span> = _extend {}, defaults, options</pre></div></div>
             
         </li>
         
@@ -439,8 +439,8 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">registerValueHandler</span>: <span class="hljs-function"><span class="hljs-params">(type, handler)</span> -&gt;</span>
-    registerValueHandler <span class="hljs-property">@options</span>.valueHandlers, type, handler
+            <div class="content"><div class='highlight'><pre>  registerValueHandler: (type, handler) -&gt;
+    registerValueHandler <span class="property">@options</span>.valueHandlers, type, handler
     @</pre></div></div>
             
         </li>
@@ -456,12 +456,12 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_getObjectClassName</span>: <span class="hljs-function"><span class="hljs-params">(obj)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> obj &amp;&amp; obj.constructor &amp;&amp; obj.constructor.toString
-      arr = obj.constructor.toString().match <span class="hljs-regexp">/function\s*(\w+)/</span>;
-      <span class="hljs-keyword">if</span> arr &amp;&amp; arr.length <span class="hljs-keyword">is</span> <span class="hljs-number">2</span>
-        <span class="hljs-keyword">return</span> arr[<span class="hljs-number">1</span>]
-    <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _getObjectClassName: (obj) -&gt;
+    <span class="keyword">if</span> obj &amp;&amp; obj.constructor &amp;&amp; obj.constructor.toString
+      arr = obj.constructor.toString().match <span class="regexp">/function\s*(\w+)/</span>;
+      <span class="keyword">if</span> arr &amp;&amp; arr.length <span class="keyword">is</span> <span class="number">2</span>
+        <span class="keyword">return</span> arr[<span class="number">1</span>]
+    <span class="keyword">return</span> <span class="literal">undefined</span></pre></div></div>
             
         </li>
         
@@ -476,7 +476,7 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_sanitizeCondition</span>: <span class="hljs-function"><span class="hljs-params">(condition)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _sanitizeCondition: (condition) -&gt;</pre></div></div>
             
         </li>
         
@@ -491,11 +491,11 @@ parameterized querying).</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> condition <span class="hljs-keyword">instanceof</span> cls.Expression
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">if</span> condition <span class="keyword">instanceof</span> cls.Expression
       condition = condition.toString()
 
-    <span class="hljs-keyword">if</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">isnt</span> <span class="hljs-keyword">typeof</span> condition
-      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"condition must be a string or Expression instance"</span>
+    <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> condition
+      <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"condition must be a string or Expression instance"</span>
 
     condition</pre></div></div>
             
@@ -513,24 +513,24 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_sanitizeName</span>: <span class="hljs-function"><span class="hljs-params">(value, type)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">isnt</span> <span class="hljs-keyword">typeof</span> value
-      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"<span class="hljs-subst">#{type}</span> must be a string"</span>
+            <div class="content"><div class='highlight'><pre>  _sanitizeName: (value, type) -&gt;
+    <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> value
+      <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{type}</span> must be a string"</span>
     value
 
-  <span class="hljs-attribute">_sanitizeField</span>: <span class="hljs-function"><span class="hljs-params">(item)</span> -&gt;</span>
-    sanitized = <span class="hljs-property">@_sanitizeName</span> item, <span class="hljs-string">"field name"</span>
+  _sanitizeField: (item) -&gt;
+    sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"field name"</span>
 
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@options</span>.autoQuoteFieldNames
-      <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@options</span>.nameQuoteCharacter}</span><span class="hljs-subst">#{sanitized}</span><span class="hljs-subst">#{<span class="hljs-property">@options</span>.nameQuoteCharacter}</span>"</span>
-    <span class="hljs-keyword">else</span>
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteFieldNames
+      <span class="string">"<span class="subst">#{@options.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.nameQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
       sanitized
 
-  <span class="hljs-attribute">_sanitizeTable</span>: <span class="hljs-function"><span class="hljs-params">(item, allowNested = <span class="hljs-literal">false</span>)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> allowNested
-      <span class="hljs-keyword">if</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> item
+  _sanitizeTable: (item, allowNested = <span class="literal">false</span>) -&gt;
+    <span class="keyword">if</span> allowNested
+      <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> item
         sanitized = item
-      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> item <span class="hljs-keyword">instanceof</span> cls.QueryBuilder <span class="hljs-keyword">and</span> item.isNestable()</pre></div></div>
+      <span class="keyword">else</span> <span class="keyword">if</span> item <span class="keyword">instanceof</span> cls.QueryBuilder <span class="keyword">and</span> item.isNestable()</pre></div></div>
             
         </li>
         
@@ -545,32 +545,32 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> item
-      <span class="hljs-keyword">else</span>
-        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"table name must be a string or a nestable query instance"</span>
-    <span class="hljs-keyword">else</span>
-      sanitized = <span class="hljs-property">@_sanitizeName</span> item, <span class="hljs-string">'table name'</span>
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">return</span> item
+      <span class="keyword">else</span>
+        <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"table name must be a string or a nestable query instance"</span>
+    <span class="keyword">else</span>
+      sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">'table name'</span>
 
 
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@options</span>.autoQuoteTableNames
-      <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@options</span>.nameQuoteCharacter}</span><span class="hljs-subst">#{sanitized}</span><span class="hljs-subst">#{<span class="hljs-property">@options</span>.nameQuoteCharacter}</span>"</span>
-    <span class="hljs-keyword">else</span>
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteTableNames
+      <span class="string">"<span class="subst">#{@options.nameQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.nameQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
       sanitized
 
-  <span class="hljs-attribute">_sanitizeTableAlias</span>: <span class="hljs-function"><span class="hljs-params">(item)</span> -&gt;</span>
-    sanitized = <span class="hljs-property">@_sanitizeName</span> item, <span class="hljs-string">"table alias"</span>
+  _sanitizeTableAlias: (item) -&gt;
+    sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"table alias"</span>
 
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@options</span>.autoQuoteAliasNames
-      <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@options</span>.tableAliasQuoteCharacter}</span><span class="hljs-subst">#{sanitized}</span><span class="hljs-subst">#{<span class="hljs-property">@options</span>.tableAliasQuoteCharacter}</span>"</span>
-    <span class="hljs-keyword">else</span>
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteAliasNames
+      <span class="string">"<span class="subst">#{@options.tableAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.tableAliasQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
       sanitized
 
-  <span class="hljs-attribute">_sanitizeFieldAlias</span>: <span class="hljs-function"><span class="hljs-params">(item)</span> -&gt;</span>
-    sanitized = <span class="hljs-property">@_sanitizeName</span> item, <span class="hljs-string">"field alias"</span>
+  _sanitizeFieldAlias: (item) -&gt;
+    sanitized = <span class="property">@_sanitizeName</span> item, <span class="string">"field alias"</span>
 
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@options</span>.autoQuoteAliasNames
-      <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@options</span>.fieldAliasQuoteCharacter}</span><span class="hljs-subst">#{sanitized}</span><span class="hljs-subst">#{<span class="hljs-property">@options</span>.fieldAliasQuoteCharacter}</span>"</span>
-    <span class="hljs-keyword">else</span>
+    <span class="keyword">if</span> <span class="property">@options</span>.autoQuoteAliasNames
+      <span class="string">"<span class="subst">#{@options.fieldAliasQuoteCharacter}</span><span class="subst">#{sanitized}</span><span class="subst">#{@options.fieldAliasQuoteCharacter}</span>"</span>
+    <span class="keyword">else</span>
       sanitized</pre></div></div>
             
         </li>
@@ -586,10 +586,10 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_sanitizeLimitOffset</span>: <span class="hljs-function"><span class="hljs-params">(value)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  _sanitizeLimitOffset: (value) -&gt;
     value = parseInt(value)
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt; value <span class="hljs-keyword">or</span> isNaN(value)
-      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"limit/offset must be &gt;= 0"</span>
+    <span class="keyword">if</span> <span class="number">0</span> &gt; value <span class="keyword">or</span> isNaN(value)
+      <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"limit/offset must be &gt;= 0"</span>
     value</pre></div></div>
             
         </li>
@@ -605,9 +605,9 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_sanitizeValue</span>: <span class="hljs-function"><span class="hljs-params">(item)</span> -&gt;</span>
-    itemType = <span class="hljs-keyword">typeof</span> item
-    <span class="hljs-keyword">if</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">is</span> item</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _sanitizeValue: (item) -&gt;
+    itemType = <span class="keyword">typeof</span> item
+    <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">is</span> item</pre></div></div>
             
         </li>
         
@@ -622,7 +622,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">is</span> itemType <span class="hljs-keyword">or</span> <span class="hljs-string">"number"</span> <span class="hljs-keyword">is</span> itemType <span class="hljs-keyword">or</span> <span class="hljs-string">"boolean"</span> <span class="hljs-keyword">is</span> itemType</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> itemType <span class="keyword">or</span> <span class="string">"number"</span> <span class="keyword">is</span> itemType <span class="keyword">or</span> <span class="string">"boolean"</span> <span class="keyword">is</span> itemType</pre></div></div>
             
         </li>
         
@@ -637,9 +637,9 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">else</span>
-      typeIsValid = <span class="hljs-literal">undefined</span> <span class="hljs-keyword">isnt</span> getValueHandler(item, <span class="hljs-property">@options</span>.valueHandlers, cls.globalValueHandlers)
-      <span class="hljs-keyword">unless</span> typeIsValid</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">else</span>
+      typeIsValid = <span class="literal">undefined</span> <span class="keyword">isnt</span> getValueHandler(item, <span class="property">@options</span>.valueHandlers, cls.globalValueHandlers)
+      <span class="keyword">unless</span> typeIsValid</pre></div></div>
             
         </li>
         
@@ -654,7 +654,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"field value must be a string, number, boolean, null or one of the registered custom value types"</span>
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"field value must be a string, number, boolean, null or one of the registered custom value types"</span>
     item</pre></div></div>
             
         </li>
@@ -670,7 +670,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_escapeValue</span>: <span class="hljs-function"><span class="hljs-params">(str)</span> -&gt;</span> str</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _escapeValue: (str) -&gt; str</pre></div></div>
             
         </li>
         
@@ -685,7 +685,7 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_formatValue</span>: <span class="hljs-function"><span class="hljs-params">(value)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _formatValue: (value) -&gt;</pre></div></div>
             
         </li>
         
@@ -700,8 +700,8 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    customHandler = getValueHandler(value, <span class="hljs-property">@options</span>.valueHandlers, cls.globalValueHandlers)
-    <span class="hljs-keyword">if</span> customHandler</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    customHandler = getValueHandler(value, <span class="property">@options</span>.valueHandlers, cls.globalValueHandlers)
+    <span class="keyword">if</span> customHandler</pre></div></div>
             
         </li>
         
@@ -718,14 +718,14 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
             
             <div class="content"><div class='highlight'><pre>      value = customHandler(value)
 
-    <span class="hljs-keyword">if</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">is</span> value
-      value = <span class="hljs-string">"NULL"</span>
-    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-string">"boolean"</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> value
-      value = <span class="hljs-keyword">if</span> value <span class="hljs-keyword">then</span> <span class="hljs-string">"TRUE"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">"FALSE"</span>
-    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-string">"number"</span> <span class="hljs-keyword">isnt</span> <span class="hljs-keyword">typeof</span> value
-      <span class="hljs-keyword">if</span> <span class="hljs-literal">false</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@options</span>.usingValuePlaceholders
-        value = <span class="hljs-property">@_escapeValue</span>(value)
-        value = <span class="hljs-string">"'<span class="hljs-subst">#{value}</span>'"</span>
+    <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">is</span> value
+      value = <span class="string">"NULL"</span>
+    <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">"boolean"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> value
+      value = <span class="keyword">if</span> value <span class="keyword">then</span> <span class="string">"TRUE"</span> <span class="keyword">else</span> <span class="string">"FALSE"</span>
+    <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">"number"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> value
+      <span class="keyword">if</span> <span class="literal">false</span> <span class="keyword">is</span> <span class="property">@options</span>.usingValuePlaceholders
+        value = <span class="property">@_escapeValue</span>(value)
+        value = <span class="string">"'<span class="subst">#{value}</span>'"</span>
     value</pre></div></div>
             
         </li>
@@ -760,10 +760,10 @@ The &#39;type&#39; parameter is used to construct a meaningful error message in 
         <li id="section-40">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
-              <h2 id="cls-expressions">cls.Expressions</h2>
+              <h2>cls.Expressions</h2>
 
             </div>
             
@@ -799,7 +799,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Expression</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Cloneable</span></span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Expression</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Cloneable</span></span></pre></div></div>
             
         </li>
         
@@ -814,7 +814,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">tree</span>: <span class="hljs-literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    tree: <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -829,7 +829,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">current</span>: <span class="hljs-literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    current: <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -844,11 +844,11 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
-        <span class="hljs-property">@tree</span> =
-            <span class="hljs-attribute">parent</span>: <span class="hljs-literal">null</span>
-            <span class="hljs-attribute">nodes</span>: []
-        <span class="hljs-property">@current</span> = <span class="hljs-property">@tree</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    constructor: -&gt;
+        <span class="property">@tree</span> =
+            parent: <span class="literal">null</span>
+            nodes: []
+        <span class="property">@current</span> = <span class="property">@tree</span></pre></div></div>
             
         </li>
         
@@ -863,13 +863,13 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-property">@_begin</span> = <span class="hljs-function"><span class="hljs-params">(op)</span> =&gt;</span>
+            <div class="content"><div class='highlight'><pre>        <span class="property">@_begin</span> = (op) =&gt;
             new_tree =
-                <span class="hljs-attribute">type</span>: op
-                <span class="hljs-attribute">parent</span>: <span class="hljs-property">@current</span>
-                <span class="hljs-attribute">nodes</span>: []
-            <span class="hljs-property">@current</span>.nodes.push new_tree
-            <span class="hljs-property">@current</span> = <span class="hljs-property">@current</span>.nodes[<span class="hljs-property">@current</span>.nodes.length-<span class="hljs-number">1</span>]
+                type: op
+                parent: <span class="property">@current</span>
+                nodes: []
+            <span class="property">@current</span>.nodes.push new_tree
+            <span class="property">@current</span> = <span class="property">@current</span>.nodes[<span class="property">@current</span>.nodes.length-<span class="number">1</span>]
             @</pre></div></div>
             
         </li>
@@ -885,8 +885,8 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">and_begin</span>:<span class="hljs-function"> -&gt;</span>
-        <span class="hljs-property">@_begin</span> <span class="hljs-string">'AND'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    and_begin: -&gt;
+        <span class="property">@_begin</span> <span class="string">'AND'</span></pre></div></div>
             
         </li>
         
@@ -901,8 +901,8 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">or_begin</span>:<span class="hljs-function"> -&gt;</span>
-        <span class="hljs-property">@_begin</span> <span class="hljs-string">'OR'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    or_begin: -&gt;
+        <span class="property">@_begin</span> <span class="string">'OR'</span></pre></div></div>
             
         </li>
         
@@ -918,10 +918,10 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">end</span>:<span class="hljs-function"> -&gt;</span>
-        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@current</span>.parent
-            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"begin() needs to be called"</span>
-        <span class="hljs-property">@current</span> = <span class="hljs-property">@current</span>.parent
+            <div class="content"><div class='highlight'><pre>    end: -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@current</span>.parent
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"begin() needs to be called"</span>
+        <span class="property">@current</span> = <span class="property">@current</span>.parent
         @</pre></div></div>
             
         </li>
@@ -937,12 +937,12 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">and</span>: <span class="hljs-function"><span class="hljs-params">(expr)</span> -&gt;</span>
-        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> expr <span class="hljs-keyword">or</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">isnt</span> <span class="hljs-keyword">typeof</span> expr
-            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"expr must be a string"</span>
-        <span class="hljs-property">@current</span>.nodes.push
-            <span class="hljs-attribute">type</span>: <span class="hljs-string">'AND'</span>
-            <span class="hljs-attribute">expr</span>: expr
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">and</span>: (expr) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> expr <span class="keyword">or</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> expr
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"expr must be a string"</span>
+        <span class="property">@current</span>.nodes.push
+            type: <span class="string">'AND'</span>
+            expr: expr
         @</pre></div></div>
             
         </li>
@@ -958,12 +958,12 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">or</span>: <span class="hljs-function"><span class="hljs-params">(expr)</span> -&gt;</span>
-        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> expr <span class="hljs-keyword">or</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">isnt</span> <span class="hljs-keyword">typeof</span> expr
-            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"expr must be a string"</span>
-        <span class="hljs-property">@current</span>.nodes.push
-            <span class="hljs-attribute">type</span>: <span class="hljs-string">'OR'</span>
-            <span class="hljs-attribute">expr</span>: expr
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">or</span>: (expr) -&gt;
+        <span class="keyword">if</span> <span class="keyword">not</span> expr <span class="keyword">or</span> <span class="string">"string"</span> <span class="keyword">isnt</span> <span class="keyword">typeof</span> expr
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"expr must be a string"</span>
+        <span class="property">@current</span>.nodes.push
+            type: <span class="string">'OR'</span>
+            expr: expr
         @</pre></div></div>
             
         </li>
@@ -979,10 +979,10 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">toString</span>:<span class="hljs-function"> -&gt;</span>
-        <span class="hljs-keyword">if</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">isnt</span> <span class="hljs-property">@current</span>.parent
-            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"end() needs to be called"</span>
-        _toString <span class="hljs-property">@tree</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    toString: -&gt;
+        <span class="keyword">if</span> <span class="literal">null</span> <span class="keyword">isnt</span> <span class="property">@current</span>.parent
+            <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"end() needs to be called"</span>
+        _toString <span class="property">@tree</span></pre></div></div>
             
         </li>
         
@@ -997,12 +997,12 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-function"><span class="hljs-title">_toString</span> = <span class="hljs-params">(node)</span> -&gt;</span>
-        str = <span class="hljs-string">""</span>
-        <span class="hljs-keyword">for</span> child <span class="hljs-keyword">in</span> node.nodes
-            <span class="hljs-keyword">if</span> child.expr?
+            <div class="content"><div class='highlight'><pre>    <span class="function"><span class="title">_toString</span></span> = (node) -&gt;
+        str = <span class="string">""</span>
+        <span class="keyword">for</span> child <span class="keyword">in</span> node.nodes
+            <span class="keyword">if</span> child.expr?
                 nodeStr = child.expr
-            <span class="hljs-keyword">else</span>
+            <span class="keyword">else</span>
                 nodeStr = _toString(child)</pre></div></div>
             
         </li>
@@ -1018,9 +1018,9 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> nodeStr
-                    nodeStr = <span class="hljs-string">"("</span> + nodeStr + <span class="hljs-string">")"</span>
-            <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> nodeStr</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> nodeStr
+                    nodeStr = <span class="string">"("</span> + nodeStr + <span class="string">")"</span>
+            <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> nodeStr</pre></div></div>
             
         </li>
         
@@ -1035,7 +1035,7 @@ When rendered a nested expression will be fully contained within brackets.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> str <span class="hljs-keyword">then</span> str += <span class="hljs-string">" "</span> + child.type + <span class="hljs-string">" "</span>
+            <div class="content"><div class='highlight'><pre>                <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> str <span class="keyword">then</span> str += <span class="string">" "</span> + child.type + <span class="string">" "</span>
                 str += nodeStr
         str</pre></div></div>
             
@@ -1045,16 +1045,16 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <li id="section-56">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-56">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    Clone <span class="hljs-keyword">this</span> expression.
+            <div class="content"><div class='highlight'><pre>    Clone <span class="keyword">this</span> expression.
 
-    Note that the algorithm contained within <span class="hljs-keyword">this</span> method <span class="hljs-keyword">is</span> probably non-optimal, so please avoid cloning large
+    Note that the algorithm contained within <span class="keyword">this</span> method <span class="keyword">is</span> probably non-optimal, so please avoid cloning large
     expression trees.</pre></div></div>
             
         </li>
@@ -1063,34 +1063,28 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <li id="section-57">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h1">
                 <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
-              <h1 id="-">#</h1>
+              <h1>#</h1>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-attribute">clone</span>:<span class="hljs-function"> -&gt;</span>
-      newInstance = <span class="hljs-keyword">new</span> <span class="hljs-property">@constructor</span>;
+            <div class="content"><div class='highlight'><pre>    clone: -&gt;
+      newInstance = <span class="keyword">new</span> <span class="property">@constructor</span>;
 
-      <span class="hljs-function"><span class="hljs-params">(_cloneTree = (node) -&gt;
-        <span class="hljs-keyword">for</span> child <span class="hljs-keyword">in</span> node.nodes
-          <span class="hljs-keyword">if</span> child.expr?
+      (<span class="function"><span class="title">_cloneTree</span></span> = (node) -&gt;
+        <span class="keyword">for</span> child <span class="keyword">in</span> node.nodes
+          <span class="keyword">if</span> child.expr?
             newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
-          <span class="hljs-keyword">else</span>
+          <span class="keyword">else</span>
             newInstance._begin child.type
             _cloneTree child
-            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@current</span> <span class="hljs-keyword">is</span> child
+            <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@current</span> <span class="keyword">is</span> child
               newInstance.end()
-      )(<span class="hljs-property">@tree</span>)</span>
+      )(<span class="property">@tree</span>)
 
-      <span class="hljs-title">newInstance</span>
-
-
-
-
-
-</span></pre></div></div>
+      newInstance</pre></div></div>
             
         </li>
         
@@ -1124,10 +1118,10 @@ When rendered a nested expression will be fully contained within brackets.</p>
         <li id="section-60">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
-              <h2 id="building-blocks">Building blocks</h2>
+              <h2>Building blocks</h2>
 
             </div>
             
@@ -1163,7 +1157,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">BaseBuilder</span></span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Block</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">BaseBuilder</span></span></pre></div></div>
             
         </li>
         
@@ -1182,10 +1176,10 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">exposedMethods</span>:<span class="hljs-function"> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  exposedMethods: -&gt;
     ret = {}
 
-    <span class="hljs-keyword">for</span> attr, value <span class="hljs-keyword">of</span> @</pre></div></div>
+    <span class="keyword">for</span> attr, value <span class="keyword">of</span> @</pre></div></div>
             
         </li>
         
@@ -1200,7 +1194,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> value <span class="hljs-keyword">is</span> <span class="hljs-string">"function"</span> <span class="hljs-keyword">and</span> attr.charAt(<span class="hljs-number">0</span>) <span class="hljs-keyword">isnt</span> <span class="hljs-string">'_'</span> <span class="hljs-keyword">and</span> !cls.<span class="hljs-attribute">Block</span>::[attr]
+            <div class="content"><div class='highlight'><pre>      <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">is</span> <span class="string">"function"</span> <span class="keyword">and</span> attr.charAt(<span class="number">0</span>) <span class="keyword">isnt</span> <span class="string">'_'</span> <span class="keyword">and</span> !cls.Block::[attr]
         ret[attr] = value
 
     ret</pre></div></div>
@@ -1221,11 +1215,11 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-string">''</span>
+            <div class="content"><div class='highlight'><pre>  buildStr: (queryBuilder) -&gt;
+    <span class="string">''</span>
 
-  <span class="hljs-attribute">buildParam</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    { <span class="hljs-attribute">text</span>: <span class="hljs-property">@buildStr</span>(queryBuilder), <span class="hljs-attribute">values</span>: [] }</pre></div></div>
+  buildParam: (queryBuilder) -&gt;
+    { text: <span class="property">@buildStr</span>(queryBuilder), values: [] }</pre></div></div>
             
         </li>
         
@@ -1240,13 +1234,13 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">StringBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, str)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@str</span> = str
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">StringBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options, str) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@str</span> = str
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-property">@str</span></pre></div></div>
+  buildStr: (queryBuilder) -&gt;
+    <span class="property">@str</span></pre></div></div>
             
         </li>
         
@@ -1258,18 +1252,16 @@ that you do so using one or more custom building blocks.</p>
                 <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               <p>Table specifier base class</p>
-<p>Additional options</p>
-<ul>
-<li>singleTable - only allow one table to be specified  (default: false)</li>
-<li>allowNested - allow nested query to be specified as a table    (default: false)</li>
-</ul>
+<p>Additional options
+ - singleTable - only allow one table to be specified  (default: false)
+ - allowNested - allow nested query to be specified as a table    (default: false)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">AbstractTableBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@tables</span> = []</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@tables</span> = []</pre></div></div>
             
         </li>
         
@@ -1286,26 +1278,26 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">_table</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    alias = <span class="hljs-property">@_sanitizeTableAlias</span>(alias) <span class="hljs-keyword">if</span> alias
-    table = <span class="hljs-property">@_sanitizeTable</span>(table, <span class="hljs-property">@options</span>.allowNested <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>)
+            <div class="content"><div class='highlight'><pre>  _table: (table, alias = <span class="literal">null</span>) -&gt;
+    alias = <span class="property">@_sanitizeTableAlias</span>(alias) <span class="keyword">if</span> alias
+    table = <span class="property">@_sanitizeTable</span>(table, <span class="property">@options</span>.allowNested <span class="keyword">or</span> <span class="literal">false</span>)
 
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@options</span>.singleTable
-      <span class="hljs-property">@tables</span> = []
+    <span class="keyword">if</span> <span class="property">@options</span>.singleTable
+      <span class="property">@tables</span> = []
 
-    <span class="hljs-property">@tables</span>.push
-      <span class="hljs-attribute">table</span>: table
-      <span class="hljs-attribute">alias</span>: alias
+    <span class="property">@tables</span>.push
+      table: table
+      alias: alias
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= <span class="hljs-property">@tables</span>.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"_table() needs to be called"</span>
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@tables</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"_table() needs to be called"</span>
 
-    tables = <span class="hljs-string">""</span>
-    <span class="hljs-keyword">for</span> table <span class="hljs-keyword">in</span> <span class="hljs-property">@tables</span>
-      tables += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> tables
-      <span class="hljs-keyword">if</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> table.table
+    tables = <span class="string">""</span>
+    <span class="keyword">for</span> table <span class="keyword">in</span> <span class="property">@tables</span>
+      tables += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> tables
+      <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> table.table
         tables += table.table
-      <span class="hljs-keyword">else</span></pre></div></div>
+      <span class="keyword">else</span></pre></div></div>
             
         </li>
         
@@ -1320,9 +1312,9 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        tables += <span class="hljs-string">"(<span class="hljs-subst">#{table.table}</span>)"</span>
+            <div class="content"><div class='highlight'><pre>        tables += <span class="string">"(<span class="subst">#{table.table}</span>)"</span>
 
-      <span class="hljs-keyword">if</span> table.alias</pre></div></div>
+      <span class="keyword">if</span> table.alias</pre></div></div>
             
         </li>
         
@@ -1337,7 +1329,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        tables += <span class="hljs-string">" <span class="hljs-subst">#{table.alias}</span>"</span>
+            <div class="content"><div class='highlight'><pre>        tables += <span class="string">" <span class="subst">#{table.alias}</span>"</span>
 
     tables</pre></div></div>
             
@@ -1354,9 +1346,9 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">UpdateTableBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">AbstractTableBlock</span></span>
-  <span class="hljs-attribute">table</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@_table</span>(table, alias)</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">UpdateTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span></span>
+  table: (table, alias = <span class="literal">null</span>) -&gt;
+    <span class="property">@_table</span>(table, alias)</pre></div></div>
             
         </li>
         
@@ -1371,16 +1363,16 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">FromTableBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">AbstractTableBlock</span></span>
-  <span class="hljs-attribute">from</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@_table</span>(table, alias)
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">FromTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractTableBlock</span></span>
+  from: (table, alias = <span class="literal">null</span>) -&gt;
+    <span class="property">@_table</span>(table, alias)
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= <span class="hljs-property">@tables</span>.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"from() needs to be called"</span>
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@tables</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"from() needs to be called"</span>
 
-    tables = <span class="hljs-keyword">super</span> queryBuilder
+    tables = <span class="keyword">super</span> queryBuilder
 
-    <span class="hljs-string">"FROM <span class="hljs-subst">#{tables}</span>"</span></pre></div></div>
+    <span class="string">"FROM <span class="subst">#{tables}</span>"</span></pre></div></div>
             
         </li>
         
@@ -1395,10 +1387,10 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">IntoTableBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@table</span> = <span class="hljs-literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">IntoTableBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@table</span> = <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -1413,7 +1405,7 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">into</span>: <span class="hljs-function"><span class="hljs-params">(table)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  into: (table) -&gt;</pre></div></div>
             
         </li>
         
@@ -1428,11 +1420,11 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-property">@table</span> = <span class="hljs-property">@_sanitizeTable</span>(table, <span class="hljs-literal">false</span>)
+            <div class="content"><div class='highlight'><pre>    <span class="property">@table</span> = <span class="property">@_sanitizeTable</span>(table, <span class="literal">false</span>)
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-property">@table</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"into() needs to be called"</span>
-    <span class="hljs-string">"INTO <span class="hljs-subst">#{<span class="hljs-property">@table</span>}</span>"</span></pre></div></div>
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="keyword">not</span> <span class="property">@table</span> <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"into() needs to be called"</span>
+    <span class="string">"INTO <span class="subst">#{@table}</span>"</span></pre></div></div>
             
         </li>
         
@@ -1447,10 +1439,10 @@ that you do so using one or more custom building blocks.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">GetFieldBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@_fields</span> = []</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">GetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@_fields</span> = []</pre></div></div>
             
         </li>
         
@@ -1468,9 +1460,9 @@ as the values. If the value for a key is null then no alias is set for that fiel
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">fields</span>: <span class="hljs-function"><span class="hljs-params">(_fields)</span> -&gt;</span>
-    <span class="hljs-keyword">for</span> field, alias <span class="hljs-keyword">of</span> _fields
-      <span class="hljs-property">@field</span>(field, alias)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  fields: (_fields) -&gt;
+    <span class="keyword">for</span> field, alias <span class="keyword">of</span> _fields
+      <span class="property">@field</span>(field, alias)</pre></div></div>
             
         </li>
         
@@ -1488,22 +1480,22 @@ e.g. DATE_FORMAT(a.started, &quot;%H&quot;)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">field</span>: <span class="hljs-function"><span class="hljs-params">(field, alias = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    field = <span class="hljs-property">@_sanitizeField</span>(field)
-    alias = <span class="hljs-property">@_sanitizeFieldAlias</span>(alias) <span class="hljs-keyword">if</span> alias
+            <div class="content"><div class='highlight'><pre>  field: (field, alias = <span class="literal">null</span>) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    alias = <span class="property">@_sanitizeFieldAlias</span>(alias) <span class="keyword">if</span> alias
 
-    <span class="hljs-property">@_fields</span>.push
-      <span class="hljs-attribute">name</span>: field
-      <span class="hljs-attribute">alias</span>: alias
+    <span class="property">@_fields</span>.push
+      name: field
+      alias: alias
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    fields = <span class="hljs-string">""</span>
-    <span class="hljs-keyword">for</span> field <span class="hljs-keyword">in</span> <span class="hljs-property">@_fields</span>
-      fields += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> fields
+  buildStr: (queryBuilder) -&gt;
+    fields = <span class="string">""</span>
+    <span class="keyword">for</span> field <span class="keyword">in</span> <span class="property">@_fields</span>
+      fields += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> fields
       fields += field.name
-      fields += <span class="hljs-string">" AS <span class="hljs-subst">#{field.alias}</span>"</span> <span class="hljs-keyword">if</span> field.alias
+      fields += <span class="string">" AS <span class="subst">#{field.alias}</span>"</span> <span class="keyword">if</span> field.alias
 
-    <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">is</span> fields <span class="hljs-keyword">then</span> <span class="hljs-string">"*"</span> <span class="hljs-keyword">else</span> fields</pre></div></div>
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">is</span> fields <span class="keyword">then</span> <span class="string">"*"</span> <span class="keyword">else</span> fields</pre></div></div>
             
         </li>
         
@@ -1514,16 +1506,15 @@ e.g. DATE_FORMAT(a.started, &quot;%H&quot;)</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-79">&#182;</a>
               </div>
-              <p>(UPDATE) SET field=value</p>
+              <p>Base class for setting fields to values (used for INSERT and UPDATE queries)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">SetFieldBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@fields</span> = []
-    <span class="hljs-property">@values</span> = []
-    <span class="hljs-property">@caller</span> = <span class="hljs-keyword">this</span>.constructor.caller.name</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">AbstractSetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@fields</span> = []
+    <span class="property">@values</span> = []</pre></div></div>
             
         </li>
         
@@ -1539,8 +1530,10 @@ This will override any previously set value for the given field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">set</span>: <span class="hljs-function"><span class="hljs-params">(field, value)</span> -&gt;</span>
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"Cannot call set or setFields on multiple rows of fields."</span>  <span class="hljs-keyword">if</span> <span class="hljs-property">@values</span>.length &gt; <span class="hljs-number">1</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  set: (field, value) -&gt;
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"Cannot call set or setFields on multiple rows of fields."</span>  <span class="keyword">if</span> <span class="property">@values</span>.length &gt; <span class="number">1</span>
+
+    value = <span class="property">@_sanitizeValue</span>(value) <span class="keyword">if</span> <span class="literal">undefined</span> <span class="keyword">isnt</span> value</pre></div></div>
             
         </li>
         
@@ -1555,11 +1548,12 @@ This will override any previously set value for the given field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    index = <span class="hljs-property">@fields</span>.indexOf(<span class="hljs-property">@_sanitizeField</span>(field))
-    <span class="hljs-keyword">if</span> index <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
-      <span class="hljs-property">@values</span>[<span class="hljs-number">0</span>][index] = <span class="hljs-property">@_sanitizeValue</span>(value)
-    <span class="hljs-keyword">else</span>
-      <span class="hljs-property">@fields</span>.push <span class="hljs-property">@_sanitizeField</span>(field)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    index = <span class="property">@fields</span>.indexOf(<span class="property">@_sanitizeField</span>(field))
+    <span class="keyword">if</span> index <span class="keyword">isnt</span> -<span class="number">1</span>
+      <span class="property">@values</span>[<span class="number">0</span>][index] = value
+    <span class="keyword">else</span>
+      <span class="property">@fields</span>.push <span class="property">@_sanitizeField</span>(field)
+      index = <span class="property">@fields</span>.length - <span class="number">1</span></pre></div></div>
             
         </li>
         
@@ -1570,15 +1564,15 @@ This will override any previously set value for the given field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-82">&#182;</a>
               </div>
-              <p>The first value added needs to add the array</p>
+              <p>The first value added needs to create the array of values for the row</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> Array.isArray(<span class="hljs-property">@values</span>[<span class="hljs-number">0</span>])
-        <span class="hljs-property">@values</span>[<span class="hljs-number">0</span>].push <span class="hljs-property">@_sanitizeValue</span>(value)
-      <span class="hljs-keyword">else</span>
-        <span class="hljs-property">@values</span>.push [<span class="hljs-property">@_sanitizeValue</span>(value)]
-    <span class="hljs-keyword">this</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>      <span class="keyword">if</span> Array.isArray(<span class="property">@values</span>[<span class="number">0</span>])
+        <span class="property">@values</span>[<span class="number">0</span>][index] = value
+      <span class="keyword">else</span>
+        <span class="property">@values</span>.push [value]
+    @</pre></div></div>
             
         </li>
         
@@ -1589,16 +1583,16 @@ This will override any previously set value for the given field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-83">&#182;</a>
               </div>
-              <p>Insert fields based on the key/value pairs in an object</p>
+              <p>Insert fields based on the key/value pairs in the given object</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">setFields</span>: <span class="hljs-function"><span class="hljs-params">(fields)</span> -&gt;</span>
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"Expected an object but got "</span> + <span class="hljs-keyword">typeof</span> fields <span class="hljs-keyword">unless</span> <span class="hljs-keyword">typeof</span> fields <span class="hljs-keyword">is</span> <span class="hljs-string">'object'</span>
+            <div class="content"><div class='highlight'><pre>  setFields: (fields) -&gt;
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"Expected an object but got "</span> + <span class="keyword">typeof</span> fields <span class="keyword">unless</span> <span class="keyword">typeof</span> fields <span class="keyword">is</span> <span class="string">'object'</span>
 
-    <span class="hljs-keyword">for</span> field <span class="hljs-keyword">of</span> fields
-      <span class="hljs-property">@set</span> field, fields[field]
-    <span class="hljs-keyword">this</span></pre></div></div>
+    <span class="keyword">for</span> own field <span class="keyword">of</span> fields
+      <span class="property">@set</span> field, fields[field]
+    @</pre></div></div>
             
         </li>
         
@@ -1609,14 +1603,13 @@ This will override any previously set value for the given field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-84">&#182;</a>
               </div>
-              <p>Insert multiple rows for the given fields. Accepts an array of
-objects. # This will override all previously set values for every field.</p>
+              <p>Insert multiple rows for the given fields. Accepts an array of objects.
+This will override all previously set values for every field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">setFieldsRows</span>: <span class="hljs-function"><span class="hljs-params">(fieldsRows)</span> -&gt;</span>
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"Expected an array of objects but got "</span> + <span class="hljs-keyword">typeof</span> fieldsRows <span class="hljs-keyword">unless</span> Array.isArray(fieldsRows)
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"It\'s not possible to set rows of fields on an UPDATE SET."</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>.caller <span class="hljs-keyword">is</span> <span class="hljs-string">"Update"</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  setFieldsRows: (fieldsRows) -&gt;
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"Expected an array of objects but got "</span> + <span class="keyword">typeof</span> fieldsRows <span class="keyword">unless</span> Array.isArray(fieldsRows)</pre></div></div>
             
         </li>
         
@@ -1631,13 +1624,13 @@ objects. # This will override all previously set values for every field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-property">@fields</span> = []
-    <span class="hljs-property">@values</span> = []
-    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..fieldsRows.length]
-      <span class="hljs-keyword">for</span> own field <span class="hljs-keyword">of</span> fieldsRows[i]
+            <div class="content"><div class='highlight'><pre>    <span class="property">@fields</span> = []
+    <span class="property">@values</span> = []
+    <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..fieldsRows.length]
+      <span class="keyword">for</span> own field <span class="keyword">of</span> fieldsRows[i]
 
-        index = <span class="hljs-property">@fields</span>.indexOf(<span class="hljs-property">@_sanitizeField</span>(field))
-        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">'All fields in a new row must match the fields in the first row.'</span> <span class="hljs-keyword">if</span> i &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> index <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span></pre></div></div>
+        index = <span class="property">@fields</span>.indexOf(<span class="property">@_sanitizeField</span>(field))
+        <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">'All fields in subsequent rows must match the fields in the first row'</span> <span class="keyword">if</span> <span class="number">0</span> &lt; i <span class="keyword">and</span> -<span class="number">1</span> <span class="keyword">is</span> index</pre></div></div>
             
         </li>
         
@@ -1652,7 +1645,11 @@ objects. # This will override all previously set values for every field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-property">@fields</span>.push <span class="hljs-property">@_sanitizeField</span>(field) <span class="hljs-keyword">if</span> index <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">if</span> -<span class="number">1</span> <span class="keyword">is</span> index
+          <span class="property">@fields</span>.push <span class="property">@_sanitizeField</span>(field) 
+          index = <span class="property">@fields</span>.length - <span class="number">1</span>
+
+        value = <span class="property">@_sanitizeValue</span>(fieldsRows[i][field])</pre></div></div>
             
         </li>
         
@@ -1667,33 +1664,17 @@ objects. # This will override all previously set values for every field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> Array.isArray(<span class="hljs-property">@values</span>[i])
-          <span class="hljs-property">@values</span>[i].push <span class="hljs-property">@_sanitizeValue</span>(fieldsRows[i][field])
-        <span class="hljs-keyword">else</span>
-          <span class="hljs-property">@values</span>.push [<span class="hljs-property">@_sanitizeValue</span>(fieldsRows[i][field])]
-    <span class="hljs-keyword">this</span>
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">if</span> Array.isArray(<span class="property">@values</span>[i])
+          <span class="property">@values</span>[i][index] = value
+        <span class="keyword">else</span>
+          <span class="property">@values</span>[i] = [value]
+    @
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= <span class="hljs-property">@fields</span>.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"set() needs to be called"</span>
+  buildStr: -&gt;
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">'Not yet implemented'</span>)
 
-    fields = <span class="hljs-string">""</span>
-    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@fields</span>.length]
-      fields += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> fields
-      fields += <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@fields</span>[i]}</span> = <span class="hljs-subst">#{<span class="hljs-property">@_formatValue</span>(<span class="hljs-property">@values</span>[<span class="hljs-number">0</span>][i])}</span>"</span>
-
-    <span class="hljs-string">"SET <span class="hljs-subst">#{fields}</span>"</span>
-
-  <span class="hljs-attribute">buildParam</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= <span class="hljs-property">@fields</span>.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"set() needs to be called"</span>
-
-    fields = <span class="hljs-string">""</span>
-    values = []
-    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@fields</span>.length]
-      fields += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> fields
-      fields += <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@fields</span>[i]}</span> = ?"</span>
-      values.push <span class="hljs-property">@_formatValue</span>(<span class="hljs-property">@values</span>[<span class="hljs-number">0</span>][i])
-
-    { <span class="hljs-attribute">text</span>: <span class="hljs-string">"SET <span class="hljs-subst">#{fields}</span>"</span>, <span class="hljs-attribute">values</span>: values }</pre></div></div>
+  buildParam: -&gt;
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">'Not yet implemented'</span>)</pre></div></div>
             
         </li>
         
@@ -1704,29 +1685,41 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-88">&#182;</a>
               </div>
-              <p>(INSERT INTO) ... field ... value</p>
+              <p>(UPDATE) SET field=value</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">InsertFieldValueBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">SetFieldBlock</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@fields</span> = []
-    <span class="hljs-property">@values</span> = []
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">SetFieldBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractSetFieldBlock</span></span>
 
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= <span class="hljs-property">@fields</span>.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"set() needs to be called"</span>
+  setFieldsRows: -&gt;
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">'Cannot call setFieldRows for an UPDATE SET'</span>)
 
-    values = []
-    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@values</span>.length]
-      <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@values</span>[i].length]
-        values[i] = [] <span class="hljs-keyword">unless</span> Array.isArray(values[i])
-        values[i][j] = <span class="hljs-property">@_formatValue</span>(<span class="hljs-property">@values</span>[i][j])
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@fields</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
 
-    <span class="hljs-string">"(<span class="hljs-subst">#{<span class="hljs-property">@fields</span>}</span>) VALUES (<span class="hljs-subst">#{values.join(<span class="hljs-string">'), ('</span>)}</span>)"</span>
+    str = <span class="string">""</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@fields</span>.length]
+      field = <span class="property">@fields</span>[i]
+      str += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> str
+      value = <span class="property">@values</span>[<span class="number">0</span>][i]
+      <span class="keyword">if</span> <span class="keyword">typeof</span> value <span class="keyword">is</span> <span class="string">'undefined'</span>  <span class="comment"># e.g. if field is an expression such as: count = count + 1</span>
+        str += field
+      <span class="keyword">else</span>
+        str += <span class="string">"<span class="subst">#{field}</span> = <span class="subst">#{@_formatValue(value)}</span>"</span>
 
-  <span class="hljs-attribute">buildParam</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &gt;= <span class="hljs-property">@fields</span>.length <span class="hljs-keyword">then</span> <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"set() needs to be called"</span></pre></div></div>
+    <span class="string">"SET <span class="subst">#{str}</span>"</span>
+
+  buildParam: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@fields</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
+
+    str = <span class="string">""</span>
+    vals = []
+    <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@fields</span>.length]
+      str += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> str
+      str += <span class="string">"<span class="subst">#{@fields[i]}</span> = ?"</span>
+      vals.push <span class="property">@_formatValue</span>(<span class="property">@values</span>[<span class="number">0</span>][i])
+
+    { text: <span class="string">"SET <span class="subst">#{str}</span>"</span>, values: vals }</pre></div></div>
             
         </li>
         
@@ -1737,25 +1730,27 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-89">&#182;</a>
               </div>
-              <p>fields</p>
+              <p>(INSERT INTO) ... field ... value</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    fields = <span class="hljs-string">""</span>
-    values = <span class="hljs-string">""</span>
-    valuesArr = []
-    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@fields</span>.length]
-      fields += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> fields
-      fields += <span class="hljs-property">@fields</span>[i]
-      values += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> values
-      values += <span class="hljs-string">"?"</span>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">InsertFieldValueBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">AbstractSetFieldBlock</span></span>
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@fields</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span>
 
-     <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@values</span>.length]
-      <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@values</span>[i].length]
-        valuesArr[i] = [] <span class="hljs-keyword">unless</span> Array.isArray(valuesArr[i])
-        valuesArr[i].push <span class="hljs-property">@_formatValue</span>(<span class="hljs-property">@values</span>[i][j])
+    vals = []
+    <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@values</span>.length]
+      <span class="keyword">for</span> j <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@values</span>[i].length]
+        formattedValue = <span class="property">@_formatValue</span>(<span class="property">@values</span>[i][j])
+        <span class="keyword">if</span> <span class="string">'string'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> vals[i]
+          vals[i] += <span class="string">', '</span> + formattedValue          
+        <span class="keyword">else</span> 
+          vals[i] = <span class="string">''</span> + formattedValue
 
-    { <span class="hljs-attribute">text</span>: <span class="hljs-string">"(<span class="hljs-subst">#{fields}</span>) VALUES (<span class="hljs-subst">#{values}</span>)"</span>, <span class="hljs-attribute">values</span>: valuesArr }</pre></div></div>
+    <span class="string">"(<span class="subst">#{@fields.join(', ')}</span>) VALUES (<span class="subst">#{vals.join('), (')}</span>)"</span>
+
+  buildParam: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@fields</span>.length <span class="keyword">then</span> <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"set() needs to be called"</span></pre></div></div>
             
         </li>
         
@@ -1766,14 +1761,26 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-90">&#182;</a>
               </div>
-              <p>DISTINCT</p>
+              <p>fields</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">DistinctBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@useDistinct</span> = <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>    str = <span class="string">""</span>
+    vals = []
+    params = []
+    <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@fields</span>.length]
+      str += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> str
+      str += <span class="property">@fields</span>[i]
+
+     <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@values</span>.length]
+      <span class="keyword">for</span> j <span class="keyword">in</span> [<span class="number">0.</span>..<span class="property">@values</span>[i].length]
+        params.push <span class="property">@_formatValue</span>(<span class="property">@values</span>[i][j])
+        <span class="keyword">if</span> <span class="string">'string'</span> <span class="keyword">is</span> <span class="keyword">typeof</span> vals[i]
+          vals[i] += <span class="string">', ?'</span>           
+        <span class="keyword">else</span> 
+          vals[i] = <span class="string">'?'</span>
+
+    { text: <span class="string">"(<span class="subst">#{str}</span>) VALUES (<span class="subst">#{vals.join('), (')}</span>)"</span>, values: params }</pre></div></div>
             
         </li>
         
@@ -1784,15 +1791,14 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-91">&#182;</a>
               </div>
-              <p>Add the DISTINCT keyword to the query.</p>
+              <p>DISTINCT</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">distinct</span>:<span class="hljs-function"> -&gt;</span>
-    <span class="hljs-property">@useDistinct</span> = <span class="hljs-literal">true</span>
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@useDistinct</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"DISTINCT"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">DistinctBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@useDistinct</span> = <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -1803,14 +1809,15 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-92">&#182;</a>
               </div>
-              <p>GROUP BY</p>
+              <p>Add the DISTINCT keyword to the query.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">GroupByBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@groups</span> = []</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  distinct: -&gt;
+    <span class="property">@useDistinct</span> = <span class="literal">true</span>
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@useDistinct</span> <span class="keyword">then</span> <span class="string">"DISTINCT"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -1821,24 +1828,14 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-93">&#182;</a>
               </div>
-              <p>Add a GROUP BY transformation for the given field.</p>
+              <p>GROUP BY</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">group</span>: <span class="hljs-function"><span class="hljs-params">(field)</span> -&gt;</span>
-    field = <span class="hljs-property">@_sanitizeField</span>(field)
-    <span class="hljs-property">@groups</span>.push field
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    groups = <span class="hljs-string">""</span>
-
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt; <span class="hljs-property">@groups</span>.length
-      <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> <span class="hljs-property">@groups</span>
-        groups += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> groups
-        groups += f
-      groups = <span class="hljs-string">"GROUP BY <span class="hljs-subst">#{groups}</span>"</span>
-
-    groups</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">GroupByBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@groups</span> = []</pre></div></div>
             
         </li>
         
@@ -1849,14 +1846,24 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-94">&#182;</a>
               </div>
-              <p>OFFSET x</p>
+              <p>Add a GROUP BY transformation for the given field.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">OffsetBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@offsets</span> = <span class="hljs-literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  group: (field) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    <span class="property">@groups</span>.push field
+
+  buildStr: (queryBuilder) -&gt;
+    groups = <span class="string">""</span>
+
+    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@groups</span>.length
+      <span class="keyword">for</span> f <span class="keyword">in</span> <span class="property">@groups</span>
+        groups += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> groups
+        groups += f
+      groups = <span class="string">"GROUP BY <span class="subst">#{groups}</span>"</span>
+
+    groups</pre></div></div>
             
         </li>
         
@@ -1867,18 +1874,14 @@ objects. # This will override all previously set values for every field.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-95">&#182;</a>
               </div>
-              <p>Set the OFFSET transformation.</p>
-<p>Call this will override the previously set offset for this query. Also note that Passing 0 for &#39;max&#39; will remove
-the offset.</p>
+              <p>OFFSET x</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">offset</span>: <span class="hljs-function"><span class="hljs-params">(start)</span> -&gt;</span>
-    start = <span class="hljs-property">@_sanitizeLimitOffset</span>(start)
-    <span class="hljs-property">@offsets</span> = start
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@offsets</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"OFFSET <span class="hljs-subst">#{<span class="hljs-property">@offsets</span>}</span>"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">OffsetBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@offsets</span> = <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -1889,15 +1892,18 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-96">&#182;</a>
               </div>
-              <p>WHERE</p>
+              <p>Set the OFFSET transformation.</p>
+<p>Call this will override the previously set offset for this query. Also note that Passing 0 for &#39;max&#39; will remove
+the offset.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">WhereBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@wheres</span> = []
-    <span class="hljs-property">@wheresParam</span> = []</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  offset: (start) -&gt;
+    start = <span class="property">@_sanitizeLimitOffset</span>(start)
+    <span class="property">@offsets</span> = start
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@offsets</span> <span class="keyword">then</span> <span class="string">"OFFSET <span class="subst">#{@offsets}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -1908,14 +1914,15 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-97">&#182;</a>
               </div>
-              <p>Add a WHERE condition.</p>
-<p>When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.</p>
+              <p>WHERE</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">where</span>: <span class="hljs-function"><span class="hljs-params">(condition, values...)</span> -&gt;</span>
-    condition = <span class="hljs-property">@_sanitizeCondition</span>(condition)
-    whereParam = { <span class="hljs-attribute">text</span>: condition, <span class="hljs-attribute">values</span>: [] }</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">WhereBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@wheres</span> = []
+    <span class="property">@wheresParam</span> = []</pre></div></div>
             
         </li>
         
@@ -1926,35 +1933,14 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-98">&#182;</a>
               </div>
-              <p>substitute values into the condition</p>
+              <p>Add a WHERE condition.</p>
+<p>When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> value <span class="hljs-keyword">in</span> values
-      <span class="hljs-keyword">if</span> Array.isArray value
-        inValues = []
-        <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> value
-          inValues.push <span class="hljs-property">@_formatValue</span> <span class="hljs-property">@_sanitizeValue</span> item
-        value = <span class="hljs-string">"(<span class="hljs-subst">#{inValues.join <span class="hljs-string">', '</span>}</span>)"</span>
-        whereParam.text = condition.replace <span class="hljs-string">'?'</span>, <span class="hljs-string">"(<span class="hljs-subst">#{(<span class="hljs-string">'?'</span> <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> inValues).join <span class="hljs-string">', '</span>}</span>)"</span>
-        whereParam.values = inValues
-      <span class="hljs-keyword">else</span>
-        value = <span class="hljs-property">@_formatValue</span> <span class="hljs-property">@_sanitizeValue</span> value
-        whereParam.values.push value
-      condition = condition.replace <span class="hljs-string">'?'</span>, value
-
-    <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> condition
-      <span class="hljs-property">@wheres</span>.push condition
-
-    <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> whereParam.text
-      <span class="hljs-property">@wheresParam</span>.push whereParam
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt; <span class="hljs-property">@wheres</span>.length <span class="hljs-keyword">then</span> <span class="hljs-string">"WHERE ("</span> + <span class="hljs-property">@wheres</span>.join(<span class="hljs-string">") AND ("</span>) + <span class="hljs-string">")"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
-
-  <span class="hljs-attribute">buildParam</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-attribute">text</span>: <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt; <span class="hljs-property">@wheresParam</span>.length <span class="hljs-keyword">then</span> <span class="hljs-string">"WHERE ("</span> + ( where.text <span class="hljs-keyword">for</span> where <span class="hljs-keyword">in</span> <span class="hljs-property">@wheresParam</span> ).join(<span class="hljs-string">") AND ("</span>) + <span class="hljs-string">")"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>
-    <span class="hljs-attribute">values</span>: [].concat ( where.values <span class="hljs-keyword">for</span> where <span class="hljs-keyword">in</span> <span class="hljs-property">@wheresParam</span> )...</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  where: (condition, values...) -&gt;
+    condition = <span class="property">@_sanitizeCondition</span>(condition)
+    whereParam = { text: condition, values: [] }</pre></div></div>
             
         </li>
         
@@ -1965,14 +1951,35 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-99">&#182;</a>
               </div>
-              <p>ORDER BY</p>
+              <p>substitute values into the condition</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">OrderByBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@orders</span> = []</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">for</span> value <span class="keyword">in</span> values
+      <span class="keyword">if</span> Array.isArray value
+        inValues = []
+        <span class="keyword">for</span> item <span class="keyword">in</span> value
+          inValues.push <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> item
+        value = <span class="string">"(<span class="subst">#{inValues.join ', '}</span>)"</span>
+        whereParam.text = condition.replace <span class="string">'?'</span>, <span class="string">"(<span class="subst">#{('?' <span class="keyword">for</span> item <span class="keyword">in</span> inValues).join ', '}</span>)"</span>
+        whereParam.values = inValues
+      <span class="keyword">else</span>
+        value = <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> value
+        whereParam.values.push value
+      condition = condition.replace <span class="string">'?'</span>, value
+
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> condition
+      <span class="property">@wheres</span>.push condition
+
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> whereParam.text
+      <span class="property">@wheresParam</span>.push whereParam
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheres</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + <span class="property">@wheres</span>.join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
+
+  buildParam: (queryBuilder) -&gt;
+    text: <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheresParam</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + ( where.text <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> ).join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
+    values: [].concat ( where.values <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> )...</pre></div></div>
             
         </li>
         
@@ -1983,26 +1990,14 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-100">&#182;</a>
               </div>
-              <p>Add an ORDER BY transformation for the given field in the given order.</p>
-<p>To specify descending order pass false for the &#39;asc&#39; parameter.</p>
+              <p>ORDER BY</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">order</span>: <span class="hljs-function"><span class="hljs-params">(field, asc = <span class="hljs-literal">true</span>)</span> -&gt;</span>
-    field = <span class="hljs-property">@_sanitizeField</span>(field)
-    <span class="hljs-property">@orders</span>.push
-      <span class="hljs-attribute">field</span>: field
-      <span class="hljs-attribute">dir</span>: <span class="hljs-keyword">if</span> asc <span class="hljs-keyword">then</span> <span class="hljs-literal">true</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">false</span>
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt; <span class="hljs-property">@orders</span>.length
-      orders = <span class="hljs-string">""</span>
-      <span class="hljs-keyword">for</span> o <span class="hljs-keyword">in</span> <span class="hljs-property">@orders</span>
-        orders += <span class="hljs-string">", "</span> <span class="hljs-keyword">if</span> <span class="hljs-string">""</span> <span class="hljs-keyword">isnt</span> orders
-        orders += <span class="hljs-string">"<span class="hljs-subst">#{o.field}</span> <span class="hljs-subst">#{<span class="hljs-keyword">if</span> o.dir <span class="hljs-keyword">then</span> <span class="hljs-string">'ASC'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'DESC'</span>}</span>"</span>
-      <span class="hljs-string">"ORDER BY <span class="hljs-subst">#{orders}</span>"</span>
-    <span class="hljs-keyword">else</span>
-      <span class="hljs-string">""</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">OrderByBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@orders</span> = []</pre></div></div>
             
         </li>
         
@@ -2013,14 +2008,26 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-101">&#182;</a>
               </div>
-              <p>LIMIT</p>
+              <p>Add an ORDER BY transformation for the given field in the given order.</p>
+<p>To specify descending order pass false for the &#39;asc&#39; parameter.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">LimitBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@limits</span> = <span class="hljs-literal">null</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  order: (field, asc = <span class="literal">true</span>) -&gt;
+    field = <span class="property">@_sanitizeField</span>(field)
+    <span class="property">@orders</span>.push
+      field: field
+      dir: <span class="keyword">if</span> asc <span class="keyword">then</span> <span class="literal">true</span> <span class="keyword">else</span> <span class="literal">false</span>
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@orders</span>.length
+      orders = <span class="string">""</span>
+      <span class="keyword">for</span> o <span class="keyword">in</span> <span class="property">@orders</span>
+        orders += <span class="string">", "</span> <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> orders
+        orders += <span class="string">"<span class="subst">#{o.field}</span> <span class="subst">#{<span class="keyword">if</span> o.dir <span class="keyword">then</span> 'ASC' <span class="keyword">else</span> 'DESC'}</span>"</span>
+      <span class="string">"ORDER BY <span class="subst">#{orders}</span>"</span>
+    <span class="keyword">else</span>
+      <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -2031,19 +2038,14 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-102">&#182;</a>
               </div>
-              <p>Set the LIMIT transformation.</p>
-<p>Call this will override the previously set limit for this query. Also note that Passing 0 for &#39;max&#39; will remove
-the limit.</p>
+              <p>LIMIT</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">limit</span>: <span class="hljs-function"><span class="hljs-params">(max)</span> -&gt;</span>
-    max = <span class="hljs-property">@_sanitizeLimitOffset</span>(max)
-    <span class="hljs-property">@limits</span> = max
-
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-property">@limits</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"LIMIT <span class="hljs-subst">#{<span class="hljs-property">@limits</span>}</span>"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">LimitBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@limits</span> = <span class="literal">null</span></pre></div></div>
             
         </li>
         
@@ -2054,14 +2056,19 @@ the limit.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-103">&#182;</a>
               </div>
-              <p>JOIN</p>
+              <p>Set the LIMIT transformation.</p>
+<p>Call this will override the previously set limit for this query. Also note that Passing 0 for &#39;max&#39; will remove
+the limit.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">JoinBlock</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Block</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-    <span class="hljs-property">@joins</span> = []</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  limit: (max) -&gt;
+    max = <span class="property">@_sanitizeLimitOffset</span>(max)
+    <span class="property">@limits</span> = max
+
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="property">@limits</span> <span class="keyword">then</span> <span class="string">"LIMIT <span class="subst">#{@limits}</span>"</span> <span class="keyword">else</span> <span class="string">""</span></pre></div></div>
             
         </li>
         
@@ -2072,26 +2079,14 @@ the limit.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-104">&#182;</a>
               </div>
-              <p>Add a JOIN with the given table.</p>
-<p>&#39;table&#39; is the name of the table to join with.</p>
-<p>&#39;alias&#39; is an optional alias for the table name.</p>
-<p>&#39;condition&#39; is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
-an expression builder then it gets evaluated straight away.</p>
-<p>&#39;type&#39; must be either one of INNER, OUTER, LEFT or RIGHT. Default is &#39;INNER&#39;.</p>
+              <p>JOIN</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>, type = <span class="hljs-string">'INNER'</span>)</span> -&gt;</span>
-    table = <span class="hljs-property">@_sanitizeTable</span>(table, <span class="hljs-literal">true</span>)
-    alias = <span class="hljs-property">@_sanitizeTableAlias</span>(alias) <span class="hljs-keyword">if</span> alias
-    condition = <span class="hljs-property">@_sanitizeCondition</span>(condition) <span class="hljs-keyword">if</span> condition
-
-    <span class="hljs-property">@joins</span>.push
-      <span class="hljs-attribute">type</span>: type
-      <span class="hljs-attribute">table</span>: table
-      <span class="hljs-attribute">alias</span>: alias
-      <span class="hljs-attribute">condition</span>: condition
-    @</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">JoinBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
+  constructor: (options) -&gt;
+    <span class="keyword">super</span> options
+    <span class="property">@joins</span> = []</pre></div></div>
             
         </li>
         
@@ -2102,12 +2097,26 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-105">&#182;</a>
               </div>
-              <p>Add a LEFT JOIN with the given table.</p>
+              <p>Add a JOIN with the given table.</p>
+<p>&#39;table&#39; is the name of the table to join with.</p>
+<p>&#39;alias&#39; is an optional alias for the table name.</p>
+<p>&#39;condition&#39; is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
+an expression builder then it gets evaluated straight away.</p>
+<p>&#39;type&#39; must be either one of INNER, OUTER, LEFT or RIGHT. Default is &#39;INNER&#39;.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">left_join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'LEFT'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>, type = <span class="string">'INNER'</span>) -&gt;
+    table = <span class="property">@_sanitizeTable</span>(table, <span class="literal">true</span>)
+    alias = <span class="property">@_sanitizeTableAlias</span>(alias) <span class="keyword">if</span> alias
+    condition = <span class="property">@_sanitizeCondition</span>(condition) <span class="keyword">if</span> condition
+
+    <span class="property">@joins</span>.push
+      type: type
+      table: table
+      alias: alias
+      condition: condition
+    @</pre></div></div>
             
         </li>
         
@@ -2118,12 +2127,12 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-106">&#182;</a>
               </div>
-              <p>Add a RIGHT JOIN with the given table.</p>
+              <p>Add a LEFT JOIN with the given table.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">right_join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'RIGHT'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  left_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'LEFT'</span></pre></div></div>
             
         </li>
         
@@ -2134,12 +2143,12 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-107">&#182;</a>
               </div>
-              <p>Add an OUTER JOIN with the given table.</p>
+              <p>Add a RIGHT JOIN with the given table.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">outer_join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'OUTER'</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  right_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'RIGHT'</span></pre></div></div>
             
         </li>
         
@@ -2150,28 +2159,12 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-108">&#182;</a>
               </div>
-              <p>Add a LEFT JOIN with the given table.</p>
+              <p>Add an OUTER JOIN with the given table.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">left_outer_join</span>: <span class="hljs-function"><span class="hljs-params">(table, alias = <span class="hljs-literal">null</span>, condition = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    <span class="hljs-property">@join</span> table, alias, condition, <span class="hljs-string">'LEFT OUTER'</span>
-
-
-  <span class="hljs-attribute">buildStr</span>: <span class="hljs-function"><span class="hljs-params">(queryBuilder)</span> -&gt;</span>
-    joins = <span class="hljs-string">""</span>
-
-    <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> (<span class="hljs-property">@joins</span> <span class="hljs-keyword">or</span> [])
-      <span class="hljs-keyword">if</span> joins <span class="hljs-keyword">isnt</span> <span class="hljs-string">""</span> <span class="hljs-keyword">then</span> joins += <span class="hljs-string">" "</span>
-      joins += <span class="hljs-string">"<span class="hljs-subst">#{j.type}</span> JOIN "</span>
-      <span class="hljs-keyword">if</span> <span class="hljs-string">"string"</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> j.table
-        joins += j.table
-      <span class="hljs-keyword">else</span>
-        joins += <span class="hljs-string">"(<span class="hljs-subst">#{j.table}</span>)"</span>
-      joins += <span class="hljs-string">" <span class="hljs-subst">#{j.alias}</span>"</span> <span class="hljs-keyword">if</span> j.alias
-      joins += <span class="hljs-string">" ON (<span class="hljs-subst">#{j.condition}</span>)"</span> <span class="hljs-keyword">if</span> j.condition
-
-    joins</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  outer_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'OUTER'</span></pre></div></div>
             
         </li>
         
@@ -2182,9 +2175,28 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-109">&#182;</a>
               </div>
-              <hr>
+              <p>Add a LEFT JOIN with the given table.</p>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre>  left_outer_join: (table, alias = <span class="literal">null</span>, condition = <span class="literal">null</span>) -&gt;
+    <span class="property">@join</span> table, alias, condition, <span class="string">'LEFT OUTER'</span>
+
+
+  buildStr: (queryBuilder) -&gt;
+    joins = <span class="string">""</span>
+
+    <span class="keyword">for</span> j <span class="keyword">in</span> (<span class="property">@joins</span> <span class="keyword">or</span> [])
+      <span class="keyword">if</span> joins <span class="keyword">isnt</span> <span class="string">""</span> <span class="keyword">then</span> joins += <span class="string">" "</span>
+      joins += <span class="string">"<span class="subst">#{j.type}</span> JOIN "</span>
+      <span class="keyword">if</span> <span class="string">"string"</span> <span class="keyword">is</span> <span class="keyword">typeof</span> j.table
+        joins += j.table
+      <span class="keyword">else</span>
+        joins += <span class="string">"(<span class="subst">#{j.table}</span>)"</span>
+      joins += <span class="string">" <span class="subst">#{j.alias}</span>"</span> <span class="keyword">if</span> j.alias
+      joins += <span class="string">" ON (<span class="subst">#{j.condition}</span>)"</span> <span class="keyword">if</span> j.condition
+
+    joins</pre></div></div>
             
         </li>
         
@@ -2208,7 +2220,7 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-111">&#182;</a>
               </div>
-              <h2 id="query-builders">Query builders</h2>
+              <hr>
 
             </div>
             
@@ -2218,10 +2230,10 @@ an expression builder then it gets evaluated straight away.</p>
         <li id="section-112">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-112">&#182;</a>
               </div>
-              <hr>
+              <h2>Query builders</h2>
 
             </div>
             
@@ -2234,13 +2246,9 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-113">&#182;</a>
               </div>
-              <p>Query builder base class</p>
-<p>Note that the query builder does not check the final query string for correctness.</p>
-<p>All the build methods in this object return the object instance for chained method calling purposes.</p>
+              <hr>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">BaseBuilder</span></span></pre></div></div>
             
         </li>
         
@@ -2251,15 +2259,13 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-114">&#182;</a>
               </div>
-              <p>Constructor</p>
-<p>blocks - array of cls.BaseBuilderBlock instances to build the query with.</p>
+              <p>Query builder base class</p>
+<p>Note that the query builder does not check the final query string for correctness.</p>
+<p>All the build methods in this object return the object instance for chained method calling purposes.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks)</span> -&gt;</span>
-    <span class="hljs-keyword">super</span> options
-
-    <span class="hljs-property">@blocks</span> = blocks <span class="hljs-keyword">or</span> []</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">BaseBuilder</span></span></pre></div></div>
             
         </li>
         
@@ -2270,23 +2276,15 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-115">&#182;</a>
               </div>
-              <p>Copy exposed methods into myself</p>
+              <p>Constructor</p>
+<p>blocks - array of cls.BaseBuilderBlock instances to build the query with.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> <span class="hljs-property">@blocks</span>
-      <span class="hljs-keyword">for</span> methodName, methodBody <span class="hljs-keyword">of</span> block.exposedMethods()
-        <span class="hljs-keyword">if</span> @[methodName]?
-          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@_getObjectClassName</span>(@)}</span> already has a builder method called: <span class="hljs-subst">#{methodName}</span>"</span>
+            <div class="content"><div class='highlight'><pre>  constructor: (options, blocks) -&gt;
+    <span class="keyword">super</span> options
 
-        <span class="hljs-function"><span class="hljs-params">( (block, name, body) =&gt;
-          @[name] = =&gt;
-            body.apply(block, arguments)
-            @
-        )(block, methodName, methodBody)</span>
-
-
-</span></pre></div></div>
+    <span class="property">@blocks</span> = blocks <span class="keyword">or</span> []</pre></div></div>
             
         </li>
         
@@ -2297,16 +2295,20 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-116">&#182;</a>
               </div>
-              <p>Register a custom value handler for this query builder and all its contained blocks.</p>
-<p>Note: This will override any globally registered handler for this value type.</p>
+              <p>Copy exposed methods into myself</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">registerValueHandler</span>: <span class="hljs-function"><span class="hljs-params">(type, handler)</span> -&gt;</span>
-    <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> <span class="hljs-property">@blocks</span>
-      block.registerValueHandler type, handler
-    <span class="hljs-keyword">super</span> type, handler
-    @</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
+      <span class="keyword">for</span> methodName, methodBody <span class="keyword">of</span> block.exposedMethods()
+        <span class="keyword">if</span> @[methodName]?
+          <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"<span class="subst">#{@_getObjectClassName(@)}</span> already has a builder method called: <span class="subst">#{methodName}</span>"</span>
+
+        ( (block, name, body) =&gt;
+          @[name] = =&gt;
+            body.apply(block, arguments)
+            @
+        )(block, methodName, methodBody)</pre></div></div>
             
         </li>
         
@@ -2317,16 +2319,16 @@ an expression builder then it gets evaluated straight away.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-117">&#182;</a>
               </div>
-              <p>Update query builder options</p>
-<p>This will update the options for all blocks too. Use this method with caution as it allows you to change the
-behaviour of your query builder mid-build.</p>
+              <p>Register a custom value handler for this query builder and all its contained blocks.</p>
+<p>Note: This will override any globally registered handler for this value type.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">updateOptions</span>: <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
-    <span class="hljs-property">@options</span> = _extend({}, <span class="hljs-property">@options</span>, options)
-    <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> <span class="hljs-property">@blocks</span>
-      block.options = _extend({}, block.options, options)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  registerValueHandler: (type, handler) -&gt;
+    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
+      block.registerValueHandler type, handler
+    <span class="keyword">super</span> type, handler
+    @</pre></div></div>
             
         </li>
         
@@ -2337,14 +2339,16 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-118">&#182;</a>
               </div>
-              <p>Get the final fully constructed query string.</p>
+              <p>Update query builder options</p>
+<p>This will update the options for all blocks too. Use this method with caution as it allows you to change the
+behaviour of your query builder mid-build.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">toString</span>:<span class="hljs-function"> -&gt;</span>
-    <span class="hljs-function"><span class="hljs-params">(block.buildStr(@) <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> <span class="hljs-property">@blocks</span>)</span>.<span class="hljs-title">filter</span><span class="hljs-params">( (v) -&gt; <span class="hljs-keyword">return</span> (<span class="hljs-number">0</span> &lt; v.length))</span>.<span class="hljs-title">join</span><span class="hljs-params">(<span class="hljs-string">' '</span>)</span>
-
-</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  updateOptions: (options) -&gt;
+    <span class="property">@options</span> = _extend({}, <span class="property">@options</span>, options)
+    <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>
+      block.options = _extend({}, block.options, options)</pre></div></div>
             
         </li>
         
@@ -2355,19 +2359,12 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-119">&#182;</a>
               </div>
-              <p>Get the final fully constructed query param obj.</p>
+              <p>Get the final fully constructed query string.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">toParam</span>:<span class="hljs-function"> -&gt;</span>
-    result = { <span class="hljs-attribute">text</span>: <span class="hljs-string">''</span>, <span class="hljs-attribute">values</span>: [] }
-    blocks = (block.buildParam(@) <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> <span class="hljs-property">@blocks</span>)
-    result.<span class="hljs-function"><span class="hljs-title">text</span> = <span class="hljs-params">(block.text <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> blocks)</span>.<span class="hljs-title">filter</span><span class="hljs-params">( (v) -&gt; <span class="hljs-keyword">return</span> (<span class="hljs-number">0</span> &lt; v.length))</span>.<span class="hljs-title">join</span><span class="hljs-params">(<span class="hljs-string">' '</span>)</span>
-    <span class="hljs-title">result</span>.<span class="hljs-title">values</span> = [].<span class="hljs-title">concat</span> <span class="hljs-params">(block.values <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> blocks)</span>...
-    <span class="hljs-title">if</span> @<span class="hljs-title">options</span>.<span class="hljs-title">numberedParameters</span>
-      <span class="hljs-title">i</span> = 0
-      <span class="hljs-title">result</span>.<span class="hljs-title">text</span> = <span class="hljs-title">result</span>.<span class="hljs-title">text</span>.<span class="hljs-title">replace</span> /\?/<span class="hljs-title">g</span>, <span class="hljs-params">()</span> -&gt;</span> <span class="hljs-keyword">return</span> <span class="hljs-string">"$<span class="hljs-subst">#{++i}</span>"</span>
-    result</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  toString: -&gt;
+    (block.buildStr(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>).filter( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length)).join(<span class="string">' '</span>)</pre></div></div>
             
         </li>
         
@@ -2378,12 +2375,19 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-120">&#182;</a>
               </div>
-              <p>Deep clone</p>
+              <p>Get the final fully constructed query param obj.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">clone</span>:<span class="hljs-function"> -&gt;</span>
-    <span class="hljs-keyword">new</span> <span class="hljs-property">@constructor</span> <span class="hljs-property">@options</span>, (block.clone() <span class="hljs-keyword">for</span> block <span class="hljs-keyword">in</span> <span class="hljs-property">@blocks</span>)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  toParam: -&gt;
+    result = { text: <span class="string">''</span>, values: [] }
+    blocks = (block.buildParam(@) <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)
+    result.<span class="function"><span class="title">text</span></span> = (block.text <span class="keyword">for</span> block <span class="keyword">in</span> blocks).filter( (v) -&gt; <span class="keyword">return</span> (<span class="number">0</span> &lt; v.length)).join(<span class="string">' '</span>)
+    result.values = [].concat (block.values <span class="keyword">for</span> block <span class="keyword">in</span> blocks)...
+    <span class="keyword">if</span> <span class="property">@options</span>.numberedParameters
+      i = <span class="number">0</span>
+      result.text = result.text.replace <span class="regexp">/\?/g</span>, () -&gt; <span class="keyword">return</span> <span class="string">"$<span class="subst">#{++i}</span>"</span>
+    result</pre></div></div>
             
         </li>
         
@@ -2394,12 +2398,12 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
-              <p>Get whether queries built with this builder can be nested within other queries</p>
+              <p>Deep clone</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">isNestable</span>:<span class="hljs-function"> -&gt;</span>
-    <span class="hljs-literal">false</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  clone: -&gt;
+    <span class="keyword">new</span> <span class="property">@constructor</span> <span class="property">@options</span>, (block.clone() <span class="keyword">for</span> block <span class="keyword">in</span> <span class="property">@blocks</span>)</pre></div></div>
             
         </li>
         
@@ -2410,29 +2414,12 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
-              <p>SELECT query builder.</p>
+              <p>Get whether queries built with this builder can be nested within other queries</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Select</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span></span>
-    <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-      blocks <span class="hljs-keyword">or</span>= [
-        <span class="hljs-keyword">new</span> cls.StringBlock(options, <span class="hljs-string">'SELECT'</span>),
-        <span class="hljs-keyword">new</span> cls.DistinctBlock(options),
-        <span class="hljs-keyword">new</span> cls.GetFieldBlock(options),
-        <span class="hljs-keyword">new</span> cls.FromTableBlock(_extend({}, options, { <span class="hljs-attribute">allowNested</span>: <span class="hljs-literal">true</span> })),
-        <span class="hljs-keyword">new</span> cls.JoinBlock(_extend({}, options, { <span class="hljs-attribute">allowNested</span>: <span class="hljs-literal">true</span> })),
-        <span class="hljs-keyword">new</span> cls.WhereBlock(options),
-        <span class="hljs-keyword">new</span> cls.GroupByBlock(options),
-        <span class="hljs-keyword">new</span> cls.OrderByBlock(options),
-        <span class="hljs-keyword">new</span> cls.LimitBlock(options),
-        <span class="hljs-keyword">new</span> cls.OffsetBlock(options)
-      ]
-
-      <span class="hljs-keyword">super</span> options, blocks
-
-    <span class="hljs-attribute">isNestable</span>:<span class="hljs-function"> -&gt;</span>
-      <span class="hljs-literal">true</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  isNestable: -&gt;
+    <span class="literal">false</span></pre></div></div>
             
         </li>
         
@@ -2443,22 +2430,29 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
-              <p>UPDATE query builder.</p>
+              <p>SELECT query builder.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Update</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    blocks <span class="hljs-keyword">or</span>= [
-      <span class="hljs-keyword">new</span> cls.StringBlock(options, <span class="hljs-string">'UPDATE'</span>),
-      <span class="hljs-keyword">new</span> cls.UpdateTableBlock(options),
-      <span class="hljs-keyword">new</span> cls.SetFieldBlock(options),
-      <span class="hljs-keyword">new</span> cls.WhereBlock(options),
-      <span class="hljs-keyword">new</span> cls.OrderByBlock(options),
-      <span class="hljs-keyword">new</span> cls.LimitBlock(options)
-    ]
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Select</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+    constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+      blocks <span class="keyword">or</span>= [
+        <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'SELECT'</span>),
+        <span class="keyword">new</span> cls.DistinctBlock(options),
+        <span class="keyword">new</span> cls.GetFieldBlock(options),
+        <span class="keyword">new</span> cls.FromTableBlock(_extend({}, options, { allowNested: <span class="literal">true</span> })),
+        <span class="keyword">new</span> cls.JoinBlock(_extend({}, options, { allowNested: <span class="literal">true</span> })),
+        <span class="keyword">new</span> cls.WhereBlock(options),
+        <span class="keyword">new</span> cls.GroupByBlock(options),
+        <span class="keyword">new</span> cls.OrderByBlock(options),
+        <span class="keyword">new</span> cls.LimitBlock(options),
+        <span class="keyword">new</span> cls.OffsetBlock(options)
+      ]
 
-    <span class="hljs-keyword">super</span> options, blocks</pre></div></div>
+      <span class="keyword">super</span> options, blocks
+
+    isNestable: -&gt;
+      <span class="literal">true</span></pre></div></div>
             
         </li>
         
@@ -2469,22 +2463,22 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
-              <p>DELETE query builder.</p>
+              <p>UPDATE query builder.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Delete</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    blocks <span class="hljs-keyword">or</span>= [
-      <span class="hljs-keyword">new</span> cls.StringBlock(options, <span class="hljs-string">'DELETE'</span>),
-      <span class="hljs-keyword">new</span> cls.FromTableBlock( _extend({}, options, { <span class="hljs-attribute">singleTable</span>: <span class="hljs-literal">true</span> }) ),
-      <span class="hljs-keyword">new</span> cls.JoinBlock(options),
-      <span class="hljs-keyword">new</span> cls.WhereBlock(options),
-      <span class="hljs-keyword">new</span> cls.OrderByBlock(options),
-      <span class="hljs-keyword">new</span> cls.LimitBlock(options),
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Update</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+    blocks <span class="keyword">or</span>= [
+      <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'UPDATE'</span>),
+      <span class="keyword">new</span> cls.UpdateTableBlock(options),
+      <span class="keyword">new</span> cls.SetFieldBlock(options),
+      <span class="keyword">new</span> cls.WhereBlock(options),
+      <span class="keyword">new</span> cls.OrderByBlock(options),
+      <span class="keyword">new</span> cls.LimitBlock(options)
     ]
 
-    <span class="hljs-keyword">super</span> options, blocks</pre></div></div>
+    <span class="keyword">super</span> options, blocks</pre></div></div>
             
         </li>
         
@@ -2495,19 +2489,22 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
-              <p>An INSERT query builder.</p>
+              <p>DELETE query builder.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cls</span>.<span class="hljs-title">Insert</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">cls</span>.<span class="hljs-title">QueryBuilder</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks = <span class="hljs-literal">null</span>)</span> -&gt;</span>
-    blocks <span class="hljs-keyword">or</span>= [
-      <span class="hljs-keyword">new</span> cls.StringBlock(options, <span class="hljs-string">'INSERT'</span>),
-      <span class="hljs-keyword">new</span> cls.IntoTableBlock(options),
-      <span class="hljs-keyword">new</span> cls.InsertFieldValueBlock(options)
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Delete</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+    blocks <span class="keyword">or</span>= [
+      <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'DELETE'</span>),
+      <span class="keyword">new</span> cls.FromTableBlock( _extend({}, options, { singleTable: <span class="literal">true</span> }) ),
+      <span class="keyword">new</span> cls.JoinBlock(options),
+      <span class="keyword">new</span> cls.WhereBlock(options),
+      <span class="keyword">new</span> cls.OrderByBlock(options),
+      <span class="keyword">new</span> cls.LimitBlock(options),
     ]
 
-    <span class="hljs-keyword">super</span> options, blocks</pre></div></div>
+    <span class="keyword">super</span> options, blocks</pre></div></div>
             
         </li>
         
@@ -2518,9 +2515,19 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
-              <hr>
+              <p>An INSERT query builder.</p>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">Insert</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">QueryBuilder</span></span>
+  constructor: (options, blocks = <span class="literal">null</span>) -&gt;
+    blocks <span class="keyword">or</span>= [
+      <span class="keyword">new</span> cls.StringBlock(options, <span class="string">'INSERT'</span>),
+      <span class="keyword">new</span> cls.IntoTableBlock(options),
+      <span class="keyword">new</span> cls.InsertFieldValueBlock(options)
+    ]
+
+    <span class="keyword">super</span> options, blocks</pre></div></div>
             
         </li>
         
@@ -2544,7 +2551,7 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
-              <h2 id="exported-api">Exported API</h2>
+              <hr>
 
             </div>
             
@@ -2554,10 +2561,10 @@ behaviour of your query builder mid-build.</p>
         <li id="section-129">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
-              <hr>
+              <h2>Exported API</h2>
 
             </div>
             
@@ -2570,12 +2577,9 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-130">&#182;</a>
               </div>
-              
+              <hr>
+
             </div>
-            
-            <div class="content"><div class='highlight'><pre>squel =
-  <span class="hljs-attribute">VERSION</span>: <span class="hljs-string">'2.0.0'</span>
-  <span class="hljs-attribute">expr</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">new</span> cls.Expression</pre></div></div>
             
         </li>
         
@@ -2586,15 +2590,12 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
-              <p>Don&#39;t have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args</p>
-
+              
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">select</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks)</span> -&gt;</span> <span class="hljs-keyword">new</span> cls.Select(options, blocks)
-  <span class="hljs-attribute">update</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks)</span> -&gt;</span> <span class="hljs-keyword">new</span> cls.Update(options, blocks)
-  <span class="hljs-attribute">insert</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks)</span> -&gt;</span> <span class="hljs-keyword">new</span> cls.Insert(options, blocks)
-  <span class="hljs-attribute">delete</span>: <span class="hljs-function"><span class="hljs-params">(options, blocks)</span> -&gt;</span> <span class="hljs-keyword">new</span> cls.Delete(options, blocks)
-  <span class="hljs-attribute">registerValueHandler</span>: cls.registerValueHandler</pre></div></div>
+            <div class="content"><div class='highlight'><pre>squel =
+  VERSION: <span class="string">'2.0.0'</span>
+  expr: -&gt; <span class="keyword">new</span> cls.Expression</pre></div></div>
             
         </li>
         
@@ -2605,11 +2606,15 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
-              <p>aliases</p>
+              <p>Don&#39;t have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.remove = squel.<span class="hljs-keyword">delete</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>  select: (options, blocks) -&gt; <span class="keyword">new</span> cls.Select(options, blocks)
+  update: (options, blocks) -&gt; <span class="keyword">new</span> cls.Update(options, blocks)
+  insert: (options, blocks) -&gt; <span class="keyword">new</span> cls.Insert(options, blocks)
+  <span class="keyword">delete</span>: (options, blocks) -&gt; <span class="keyword">new</span> cls.Delete(options, blocks)
+  registerValueHandler: cls.registerValueHandler</pre></div></div>
             
         </li>
         
@@ -2620,11 +2625,11 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
-              <p>classes</p>
+              <p>aliases</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.cls = cls</pre></div></div>
+            <div class="content"><div class='highlight'><pre>squel.remove = squel.<span class="keyword">delete</span></pre></div></div>
             
         </li>
         
@@ -2635,13 +2640,11 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
-              <p>AMD</p>
+              <p>classes</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> define?.amd
-  define<span class="hljs-function"> -&gt;</span>
-    <span class="hljs-keyword">return</span> squel</pre></div></div>
+            <div class="content"><div class='highlight'><pre>squel.cls = cls</pre></div></div>
             
         </li>
         
@@ -2652,12 +2655,13 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
-              <p>CommonJS</p>
+              <p>AMD</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">module</span>?.<span class="hljs-built_in">exports</span>
-  <span class="hljs-built_in">module</span>.<span class="hljs-built_in">exports</span> = squel</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="keyword">if</span> define?.amd
+  define -&gt;
+    <span class="keyword">return</span> squel</pre></div></div>
             
         </li>
         
@@ -2668,12 +2672,12 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
-              <p>Browser</p>
+              <p>CommonJS</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">else</span>
-  <span class="hljs-built_in">window</span>?.squel = squel</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="keyword">else</span> <span class="keyword">if</span> module?.exports
+  module.exports = squel</pre></div></div>
             
         </li>
         
@@ -2684,9 +2688,12 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
-              <hr>
+              <p>Browser</p>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">else</span>
+  window?.squel = squel</pre></div></div>
             
         </li>
         
@@ -2710,7 +2717,7 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
-              <h2 id="squel-sql-flavours">Squel SQL flavours</h2>
+              <hr>
 
             </div>
             
@@ -2720,10 +2727,10 @@ behaviour of your query builder mid-build.</p>
         <li id="section-140">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-140">&#182;</a>
               </div>
-              <hr>
+              <h2>Squel SQL flavours</h2>
 
             </div>
             
@@ -2736,11 +2743,9 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-141">&#182;</a>
               </div>
-              <p>Available flavours</p>
+              <hr>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>squel.flavours = {}</pre></div></div>
             
         </li>
         
@@ -2751,15 +2756,30 @@ behaviour of your query builder mid-build.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-142">&#182;</a>
               </div>
+              <p>Available flavours</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>squel.flavours = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-143">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-143">&#182;</a>
+              </div>
               <p>Setup Squel for a particular SQL flavour</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>squel.<span class="hljs-function"><span class="hljs-title">useFlavour</span> = <span class="hljs-params">(flavour)</span> -&gt;</span>
-  <span class="hljs-keyword">if</span> squel.flavours[flavour] <span class="hljs-keyword">instanceof</span> Function
-    squel.flavours[flavour].call <span class="hljs-literal">null</span>, squel
-  <span class="hljs-keyword">else</span>
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"Flavour not available: <span class="hljs-subst">#{flavour}</span>"</span>
+            <div class="content"><div class='highlight'><pre>squel.<span class="function"><span class="title">useFlavour</span></span> = (flavour) -&gt;
+  <span class="keyword">if</span> squel.flavours[flavour] <span class="keyword">instanceof</span> Function
+    squel.flavours[flavour].call <span class="literal">null</span>, squel
+  <span class="keyword">else</span>
+    <span class="keyword">throw</span> <span class="keyword">new</span> Error <span class="string">"Flavour not available: <span class="subst">#{flavour}</span>"</span>
   squel</pre></div></div>
             
         </li>

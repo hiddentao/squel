@@ -139,11 +139,6 @@ test['UPDATE builder'] =
       toString: ->
         assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = 1, field2 = \'value2\''
 
-      '>> set(field3, 1.2)':
-        beforeEach: -> @inst.set('field3', 1.2)
-        toString: ->
-          assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = 1, field2 = \'value2\', field3 = 1.2'
-
       '>> set(field1, 1.2)':
         beforeEach: -> @inst.set('field1', 1.2)
         toString: ->
@@ -160,7 +155,13 @@ test['UPDATE builder'] =
           assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = TRUE, field2 = \'value2\', field3 = \'value3\''
 
     '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])': ->
-          assert.throws (=> @inst.table('table', 't1').setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }]).toString()), 'It\'s not possible to set rows of fields on an UPDATE SET.'
+        fieldsValues = [ {field: 'value2', field2: true },{field: 'value3', field2: 13 } ]
+        assert.throws (=> @inst.table('table', 't1').setFieldsRows(fieldsValues).toString()), 'Cannot call setFieldRows for an UPDATE SET'
+
+    '>> table(table, t1).set("count = count + 1")':
+      beforeEach: -> @inst.table('table', 't1').set('count = count + 1')
+      toString: ->
+        assert.same @inst.toString(), 'UPDATE table `t1` SET count = count + 1'
 
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()

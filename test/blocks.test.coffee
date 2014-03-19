@@ -468,10 +468,9 @@ test['Blocks'] =
 
 
 
-
-  'SetFieldBlock':
+  'AbstractSetFieldBlock':
     beforeEach: ->
-      @cls = squel.cls.SetFieldBlock
+      @cls = squel.cls.AbstractSetFieldBlock
       @inst = new @cls()
 
     'instanceof of Block': ->
@@ -497,14 +496,10 @@ test['Blocks'] =
         @inst.set('field1', 'value1')
         @inst.set('field2', 'value2')
         @inst.set('field3', 'value3')
+        @inst.set('field4')
 
-        expected =
-          'field1': 'value1',
-          'field2': 'value2',
-          'field3': 'value3'
-
-        expectedFields = [ 'field1', 'field2', 'field3' ]
-        expectedValues = [ [ 'value1', 'value2', 'value3' ] ]
+        expectedFields = [ 'field1', 'field2', 'field3', 'field4' ]
+        expectedValues = [ [ 'value1', 'value2', 'value3', undefined ] ]
 
         assert.same expectedFields, @inst.fields
         assert.same expectedValues, @inst.values
@@ -520,6 +515,116 @@ test['Blocks'] =
 
         assert.same [ '_f' ], @inst.fields
         assert.same [ [ '_v' ] ], @inst.values
+
+    'setFields()':
+      'saves inputs': ->
+        @inst.setFields
+          'field1': 'value1'
+          'field2': 'value2'
+          'field3': 'value3'
+
+        expectedFields = [ 'field1', 'field2', 'field3' ]
+        expectedValues = [ [ 'value1', 'value2', 'value3'] ]
+
+        assert.same expectedFields, @inst.fields
+        assert.same expectedValues, @inst.values
+
+      'sanitizes inputs': ->
+        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+        sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
+
+        @inst.setFields('field1': 'value1')
+
+        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+        assert.ok sanitizeValueSpy.calledWithExactly 'value1'
+
+        assert.same [ '_f' ], @inst.fields
+        assert.same [ [ '_v' ] ], @inst.values
+
+    'setFieldsRows()':
+      'saves inputs': ->
+        @inst.setFieldsRows [
+          {
+            'field1': 'value1'
+            'field2': 'value2'
+            'field3': 'value3'            
+          }
+          {
+            'field1': 'value21'
+            'field2': 'value22'
+            'field3': 'value23'            
+          }
+        ]
+
+        expectedFields = [ 'field1', 'field2', 'field3' ]
+        expectedValues = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
+
+        assert.same expectedFields, @inst.fields
+        assert.same expectedValues, @inst.values
+
+      'sanitizes inputs': ->
+        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+        sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
+
+        @inst.setFieldsRows [
+          {
+            'field1': 'value1'
+          },
+          {
+            'field1': 'value21'
+          }
+        ]
+
+        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+        assert.ok sanitizeValueSpy.calledWithExactly 'value1'
+        assert.ok sanitizeValueSpy.calledWithExactly 'value21'
+
+        assert.same [ '_f' ], @inst.fields
+        assert.same [ [ '_v' ], [ '_v' ] ], @inst.values
+    
+    'buildStr()': ->
+      assert.throws ( => @inst.buildStr()), 'Not yet implemented'
+
+    'buildParam()': ->
+      assert.throws ( => @inst.buildParam()), 'Not yet implemented'
+
+
+
+
+  'SetFieldBlock':
+    beforeEach: ->
+      @cls = squel.cls.SetFieldBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractSetFieldBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.AbstractSetFieldBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'initial fields': ->
+      assert.same [], @inst.fields
+
+    'initial values': ->
+      assert.same [], @inst.values
+
+    'set()':
+      'same as base class': ->
+        assert.same squel.cls.AbstractSetFieldBlock.prototype.set, @inst.set
+
+    'setFields()':
+      'same as base class': ->
+        assert.same squel.cls.AbstractSetFieldBlock.prototype.setFields, @inst.setFields
+
+    'setFieldsRows()':
+      'not allowed': ->
+        assert.throws (=> @inst.setFieldsRows([])), 'Cannot call setFieldRows for an UPDATE SET'
 
     'buildStr()':
       'needs at least one field to have been provided': ->
@@ -574,11 +679,11 @@ test['Blocks'] =
       @cls = squel.cls.InsertFieldValueBlock
       @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+    'instanceof of AbstractSetFieldBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.AbstractSetFieldBlock.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -586,35 +691,17 @@ test['Blocks'] =
       assert.ok spy.calledWithExactly
         dummy:true
 
-    'initial fields': ->
-      assert.same [], @inst.fields
-
-    'initial values': ->
-      assert.same [], @inst.values
-
     'set()':
-      'saves inputs': ->
-        @inst.set('field1', 'value1')
-        @inst.set('field2', 'value2')
-        @inst.set('field3', 'value3')
+      'same as base class': ->
+        assert.same squel.cls.AbstractSetFieldBlock.prototype.set, @inst.set
 
-        expectedFields = [ 'field1', 'field2', 'field3' ]
-        expectedValues = [ [ 'value1', 'value2', 'value3' ] ]
+    'setFields()':
+      'same as base class': ->
+        assert.same squel.cls.AbstractSetFieldBlock.prototype.setFields, @inst.setFields
 
-        assert.same expectedFields, @inst.fields
-        assert.same expectedValues, @inst.values
-
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
-        sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
-
-        @inst.set('field1', 'value1')
-
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
-        assert.ok sanitizeValueSpy.calledWithExactly 'value1'
-
-        assert.same [ '_f' ], @inst.fields
-        assert.same [ [ '_v' ] ], @inst.values
+    'setFieldsRows()':
+      'same as base class': ->
+        assert.same squel.cls.AbstractSetFieldBlock.prototype.setFieldsRows, @inst.setFieldsRows
 
     'buildStr()':
       'needs at least one field to have been provided': ->
@@ -629,11 +716,11 @@ test['Blocks'] =
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
 
-        assert.same '(field1,field2,field3) VALUES ([value1],[value2],[value3])', @inst.buildStr()
+        assert.same '(field1, field2, field3) VALUES ([value1], [value2], [value3]), ([value21], [value22], [value23])', @inst.buildStr()
 
-        assert.ok formatValueSpy.calledThrice
+        assert.same formatValueSpy.callCount, 6
         assert.ok formatValueSpy.calledWithExactly 'value1'
         assert.ok formatValueSpy.calledWithExactly 'value2'
         assert.ok formatValueSpy.calledWithExactly 'value3'
@@ -651,11 +738,14 @@ test['Blocks'] =
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
 
-        assert.same { text: '(field1, field2, field3) VALUES (?, ?, ?)', values: [ ['[value1]', '[value2]', '[value3]' ] ] }, @inst.buildParam()
+        assert.same { 
+          text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)', 
+          values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ] 
+        }, @inst.buildParam()
 
-        assert.ok formatValueSpy.calledThrice
+        assert.same formatValueSpy.callCount, 6
         assert.ok formatValueSpy.calledWithExactly 'value1'
         assert.ok formatValueSpy.calledWithExactly 'value2'
         assert.ok formatValueSpy.calledWithExactly 'value3'

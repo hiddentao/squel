@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 19 Mar 2014 (3.0.0)
+* Added `setFields` and `setFieldRows` to make setting multple fields and inserting multiple rows easier (#50)
+
 ## 16 Dec 2013 (2.0.0)
 * Added `RETURNING` clause to `UPDATE` queries for Postgres flavour (#42)
 * Added better support for parameterized queries (#34)
