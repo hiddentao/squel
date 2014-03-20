@@ -70,7 +70,6 @@ test['Postgres flavour'] =
       nameQuoteCharacter: '`'
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
-      usingValuePlaceholders: false
       valueHandlers: []
       numberedParameters: true
     }, squel.cls.DefaultQueryBuilderOptions

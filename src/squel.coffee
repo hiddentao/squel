@@ -56,9 +56,6 @@ cls.DefaultQueryBuilderOptions =
   tableAliasQuoteCharacter: '`'
   # The quote character used for when quoting table alias names
   fieldAliasQuoteCharacter: '"'
-  # If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for
-  # parameterized querying).
-  usingValuePlaceholders: false
   # Custom value handlers where key is the value type and the value is the handler function
   valueHandlers: []
   # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?'
@@ -235,9 +232,8 @@ class cls.BaseBuilder extends cls.Cloneable
     else if "boolean" is typeof value
       value = if value then "TRUE" else "FALSE"
     else if "number" isnt typeof value
-      if false is @options.usingValuePlaceholders
-        value = @_escapeValue(value)
-        value = "'#{value}'"
+      value = @_escapeValue(value)
+      value = "'#{value}'"
     value
 
 

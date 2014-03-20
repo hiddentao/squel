@@ -74,7 +74,6 @@ test['Default query builder options'] =
       nameQuoteCharacter: '`'
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
-      usingValuePlaceholders: false
       valueHandlers: []
       numberedParameters: false
     }, squel.cls.DefaultQueryBuilderOptions
@@ -491,15 +490,10 @@ test['Builder base class'] =
 
       assert.same "'test'", @inst._formatValue('test')
 
-      @inst.options.usingValuePlaceholders = false
       assert.same "'test'", @inst._formatValue('test')
       assert.ok @inst._escapeValue.calledWithExactly('test')
       escapedValue = 'blah'
       assert.same "'blah'", @inst._formatValue('test')
-
-      @inst.options.usingValuePlaceholders = true
-      assert.same "test", @inst._formatValue('test')
-      assert.ok @inst._escapeValue.calledWithExactly('test')
 
     'custom handlers':
       'global': ->

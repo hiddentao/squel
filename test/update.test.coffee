@@ -84,20 +84,11 @@ test['UPDATE builder'] =
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = \'str\''
-
-        'and when using value placeholders': ->
-          @inst.updateOptions
-            usingValuePlaceholders: true
-          @inst.set('field2', '?')
-          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = ?'
-
-        'and when parameterized':
-          beforeEach: -> @inst.set('field2', 'str')
-          toParam: ->
-            assert.same @inst.toParam(), {
-              text: 'UPDATE table `t1` SET field = ?, field2 = ?'
-              values: [1, '\'str\'']
-            }
+        toParam: ->
+          assert.same @inst.toParam(), {
+            text: 'UPDATE table `t1` SET field = ?, field2 = ?'
+            values: [1, '\'str\'']
+          }
 
       '>> setFields({field2: \'value2\', field3: true })':
         beforeEach: -> @inst.setFields({field2: 'value2', field3: true })

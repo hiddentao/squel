@@ -79,15 +79,7 @@ test['INSERT builder'] =
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->
           assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, \'str\')'
-
-        'and when using value placeholders': ->
-          @inst.updateOptions
-            usingValuePlaceholders: true
-          @inst.set('field2', 'str')
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
-
-        'and when parameterized': ->
-          beforeEach: -> @inst.set('field2', 'str')
+        toParam: ->
           assert.same @inst.toParam(), {
             text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
             values: [ 1, '\'str\'' ]

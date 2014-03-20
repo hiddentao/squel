@@ -57,7 +57,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     nameQuoteCharacter: '`',
     tableAliasQuoteCharacter: '`',
     fieldAliasQuoteCharacter: '"',
-    usingValuePlaceholders: false,
     valueHandlers: [],
     numberedParameters: false
   };
@@ -251,10 +250,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       } else if ("boolean" === typeof value) {
         value = value ? "TRUE" : "FALSE";
       } else if ("number" !== typeof value) {
-        if (false === this.options.usingValuePlaceholders) {
-          value = this._escapeValue(value);
-          value = "'" + value + "'";
-        }
+        value = this._escapeValue(value);
+        value = "'" + value + "'";
       }
       return value;
     };
