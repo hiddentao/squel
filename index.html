@@ -30,7 +30,7 @@
             <ul>
                 <li><a href="index.html" title="Guide">Guide</a></li>
                 <li><a href="api.html" title="API">API</a></li>
-                <li><a class="external" href="https://github.com/hiddentao/squel" title="Github">Source</a></li>
+                <li><a class="external" href="https://github.com/hiddentao/squel" title="Github">Github</a></li>
                 <li><a class="external" href="http://prezi.com/8fdvjo6ripkw/squeljs/" title="View the presentation">Prezi</a></li>
             </ul>
         </nav>
@@ -59,8 +59,8 @@
       <div class="left white_text">
         <p class="heading">Squel.js</p>
         <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
-        <p class="sub">- usable with node.js or in the browser.</p>
-        <p class="sub">- well tested (~ 240 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha</a> tests).</p>
+        <p class="sub">- usable with node.js and in the browser.</p>
+        <p class="sub">- well tested (~ 340 <a href="http://visionmedia.github.com/mocha/" title="Mocha">Mocha</a> tests).</p>
       </div>
 
       <div class="right">
@@ -69,11 +69,11 @@
         </p>
         <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download production version">
           <p class="label">Production version</p>
-          <p class="stats">(~4 KB minified + gzipped)</p>
+          <p class="stats">(~5 KB minified + gzipped)</p>
         </a>
         <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
           <p class="label">Development version</p>
-          <p class="stats">(~30 KB)</p>
+          <p class="stats">(~47 KB)</p>
         </a>
       </div>
 
@@ -593,6 +593,17 @@
             /*  UPDATE students SET age = age + 1 */
         </pre>
 
+        <p>You can also set multiple fields in a single call:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .setFields({ age: 23, name: 'Fred' })
+            );
+            /*  UPDATE students SET age = 23, name = 'Fred' */
+        </pre>
+
       <p>Parameter substitution for parameterized queries is also supported, see the section on <a href="#parameters">Parameters</a>.</p>
 
       <h3>Filtering, sorting and limits</h3>
@@ -694,8 +705,7 @@
             /*  INSERT INTO students (name) VALUES ("Thomas") */
         </pre>
 
-      <p>Squel out how to treat each field value based on its runtime type, same as it does for
-        <a href="#update">UPDATE</a> queries:</p>
+      <p>Squel out how to treat each field value based on its runtime type:</p>
 
         <pre class="brush: js">
             alert(
@@ -707,35 +717,53 @@
                     .set("graduate", true)
                     .set("nickname", null)
             );
-            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ("Thomas", 29, 90.2, TRUE, NULL) */
+            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ('Thomas', 29, 90.2, TRUE, NULL) */
         </pre>
 
-      <p>And same as for <a href="#update">UPDATE</a> queries, you can use the <code>usingValuePlaceholders</code> option to
-        stop Squel from automatically placing string field values within quotes:</p>
+        <h3>Multiple fields and rows</h3>
+
+        <p>You can set multiple fields in a single call:</p>
 
         <pre class="brush: js">
             alert(
-                squel.insert({ usingValuePlaceholders: true })
+                squel.insert()
                     .into("students")
-                    .set("name", "?")
-                    .set("age", 29)
-                    .set("score", 90.2)
-                    .set("graduate", true)
-                    .set("nickname", null)
+                    .setFields({ name: "Thomas", age: 29 })
             );
-            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES (?, 29, 90.2, TRUE, NULL) */
+            /*  INSERT INTO students (name, age) VALUES ('Thomas', 29) */
         </pre>
+
+        <p>You can even do a multi-row insert:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.insert()
+                    .into("students")
+                    .setFieldsRows([
+                      { name: "Thomas", age: 29 },
+                      { name: "Jane", age: 31 }
+                    ])
+            );
+            /*  INSERT INTO students (name, age) VALUES ('Thomas', 29), ('Jane', 31) */
+        </pre>
+
+      <em>Note: When doing a multi-row insertion every row specified in the parameter to <code>setFieldsRows</code> should 
+      have the same field names specified. Squel will throw an error if this is not the case.</em>
 
     </section>
 
     <section id="parameters">
       <a name="parameters" href="#parameters"><h2>Parameters</h2></a>
 
+      <em>Note: Squel previously provided the <code>usingValuePlaceholders</code> option as a way of enabling parameterized
+      queries. This has been deprecated as of version 2.0.0 and should NOT be used.</em>
+
       <p>
         Squel makes it very easy to build and use parameterized queries. Every query builder provides a
         <code>toParam()</code> method which gives you final query string separate to any parameters values previously
         passed in:
       </p>
+
 
       <pre class="brush: js">
         alert(JSON.stringify(
@@ -768,7 +796,7 @@
 
         /*
           {
-            text:  INSERT INTO students (a, b, c) VALUES ($1, $2, $3),
+            text:  INSERT INTO students (a, b, c) VALUES ($1, $2, $3)
             values:  [ "'test'", 1, "NULL" ]
           }
         */
@@ -776,25 +804,26 @@
 
       <em>Note: For the Postgres flavour numbered parameters are enabled by default.</em>
 
-      If, instead of calling <code>toParam()</code> you call <code>toString()</code> as normal, then Squel will
-      automatically interpolate the parameter values into the query string:
+      <p>The <code>values</code> array returned is always flat, even for multi-row inserts:</p>
 
-      <pre class="brush: js">
-        alert(
-          squel.update()
-            .table("students")
-            .set("a", 12)
-            .set("b", true)
-            .toString()
-        );
+        <pre class="brush: js">
+            alert(JSON.stringify(
+                squel.insert()
+                    .into("students")
+                    .setFieldsRows([
+                      { name: "Thomas", age: 29 },
+                      { name: "Jane", age: 31 }
+                    ])
+                    .toParam()
+            ));
+            /*
+              {
+                text:  INSERT INTO students (name, age) VALUES (?, ?), (?, ?)
+                values:  [ "'Thomas'", 29, "'Jane'", 31 ]
+              }
+            */
+        </pre>
 
-        /*
-          UPDATE students SET a = 12, b = TRUE
-        */
-      </pre>
-
-      <strong>Note: it is better to use <code>toParam()</code> rather than <code>toString()</code> as it gives you the
-        opportunity to use your database engine methods to safely escape and interpolate your parameters.</strong>
 
       <p>Array values can be used to create <code>IN</code> clauses:</p>
 
@@ -815,8 +844,8 @@
           */
       </pre>
 
-      <em>Squel previously provided the <code>usingValuePlaceholders</code> option as a way of enabling parameterized
-      queries. This has been deprecated as of version 2.0.0 and will be removed in future versions.</em>
+      <p>In general it is better to use <code>toParam()</code> rather than <code>toString()</code> when constructing the final query 
+      as it gives you the opportunity to use your database engine methods to safely escape and interpolate your parameters.</p>
 
     </section>
 

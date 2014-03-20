@@ -305,6 +305,16 @@
             },
             returns: 'this'
           },
+          '.setFields()': {
+            desc: 'Set fields to given values.',
+            params: {
+              fields: {
+                desc: 'Field-value pairs.',
+                type: 'Object'
+              }
+            },
+            returns: 'this'
+          },
           '.where()': {
             desc: 'Add a WHERE condition.',
             params: {
@@ -548,6 +558,26 @@
             },
             returns: 'this'
           },
+          '.setFields()': {
+            desc: 'Set fields to given values.',
+            params: {
+              fields: {
+                desc: 'Field-value pairs.',
+                type: 'Object'
+              }
+            },
+            returns: 'this'
+          },
+          '.setFieldsRows()': {
+            desc: 'Set fields to given values in the given rows (a multi-row insert).',
+            params: {
+              fields: {
+                desc: 'An array of objects, where each object is map of field-value pairs for that row',
+                type: 'Array'
+              }
+            },
+            returns: 'this'
+          },
           '.returning()': {
             desc: 'Add a RETURNING clause.',
             flavours: ['postgres'],
@@ -644,11 +674,6 @@
                 desc: 'The quote character used when quoting field alias names.',
                 type: 'String',
                 defaultValue: '"'
-              },
-              usingValuePlaceholders: {
-                desc: '<strong>DEPRECATED in 2.0.0</strong>. If true then field values will not be rendered inside quotes so as to allow for field value placeholders (for parameterized querying).',
-                type: 'Boolean',
-                defaultValue: 'false'
               },
               customValueHandlers: {
                 desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',

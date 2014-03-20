@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2,
+  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2, _ref3, _ref4,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -630,167 +630,209 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
-  cls.SetFieldBlock = (function(_super) {
-    __extends(SetFieldBlock, _super);
+  cls.AbstractSetFieldBlock = (function(_super) {
+    __extends(AbstractSetFieldBlock, _super);
 
-    function SetFieldBlock(options) {
-      SetFieldBlock.__super__.constructor.call(this, options);
-      this.fields = {};
+    function AbstractSetFieldBlock(options) {
+      AbstractSetFieldBlock.__super__.constructor.call(this, options);
+      this.fields = [];
+      this.values = [];
     }
 
-    SetFieldBlock.prototype.set = function(field, value) {
-      field = this._sanitizeField(field);
-      if (typeof value !== 'undefined') {
+    AbstractSetFieldBlock.prototype.set = function(field, value) {
+      var index;
+      if (this.values.length > 1) {
+        throw new Error("Cannot call set or setFields on multiple rows of fields.");
+      }
+      if (void 0 !== value) {
         value = this._sanitizeValue(value);
       }
-      this.fields[field] = value;
+      index = this.fields.indexOf(this._sanitizeField(field));
+      if (index !== -1) {
+        this.values[0][index] = value;
+      } else {
+        this.fields.push(this._sanitizeField(field));
+        index = this.fields.length - 1;
+        if (Array.isArray(this.values[0])) {
+          this.values[0][index] = value;
+        } else {
+          this.values.push([value]);
+        }
+      }
       return this;
     };
 
-    SetFieldBlock.prototype.buildStr = function(queryBuilder) {
-      var field, fieldNames, fields, value, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (field in _ref3) {
-          if (!__hasProp.call(_ref3, field)) continue;
-          _results.push(field);
+    AbstractSetFieldBlock.prototype.setFields = function(fields) {
+      var field;
+      if (typeof fields !== 'object') {
+        throw new Error("Expected an object but got " + typeof fields);
+      }
+      for (field in fields) {
+        if (!__hasProp.call(fields, field)) continue;
+        this.set(field, fields[field]);
+      }
+      return this;
+    };
+
+    AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows) {
+      var field, i, index, value, _i, _ref3, _ref4;
+      if (!Array.isArray(fieldsRows)) {
+        throw new Error("Expected an array of objects but got " + typeof fieldsRows);
+      }
+      this.fields = [];
+      this.values = [];
+      for (i = _i = 0, _ref3 = fieldsRows.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
+        _ref4 = fieldsRows[i];
+        for (field in _ref4) {
+          if (!__hasProp.call(_ref4, field)) continue;
+          index = this.fields.indexOf(this._sanitizeField(field));
+          if (0 < i && -1 === index) {
+            throw new Error('All fields in subsequent rows must match the fields in the first row');
+          }
+          if (-1 === index) {
+            this.fields.push(this._sanitizeField(field));
+            index = this.fields.length - 1;
+          }
+          value = this._sanitizeValue(fieldsRows[i][field]);
+          if (Array.isArray(this.values[i])) {
+            this.values[i][index] = value;
+          } else {
+            this.values[i] = [value];
+          }
         }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      }
+      return this;
+    };
+
+    AbstractSetFieldBlock.prototype.buildStr = function() {
+      throw new Error('Not yet implemented');
+    };
+
+    AbstractSetFieldBlock.prototype.buildParam = function() {
+      throw new Error('Not yet implemented');
+    };
+
+    return AbstractSetFieldBlock;
+
+  })(cls.Block);
+
+  cls.SetFieldBlock = (function(_super) {
+    __extends(SetFieldBlock, _super);
+
+    function SetFieldBlock() {
+      _ref3 = SetFieldBlock.__super__.constructor.apply(this, arguments);
+      return _ref3;
+    }
+
+    SetFieldBlock.prototype.setFieldsRows = function() {
+      throw new Error('Cannot call setFieldRows for an UPDATE SET');
+    };
+
+    SetFieldBlock.prototype.buildStr = function(queryBuilder) {
+      var field, i, str, value, _i, _ref4;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
-      fields = "";
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
-        if ("" !== fields) {
-          fields += ", ";
+      str = "";
+      for (i = _i = 0, _ref4 = this.fields.length; 0 <= _ref4 ? _i < _ref4 : _i > _ref4; i = 0 <= _ref4 ? ++_i : --_i) {
+        field = this.fields[i];
+        if ("" !== str) {
+          str += ", ";
         }
-        value = this.fields[field];
+        value = this.values[0][i];
         if (typeof value === 'undefined') {
-          fields += field;
+          str += field;
         } else {
-          fields += "" + field + " = " + (this._formatValue(value));
+          str += "" + field + " = " + (this._formatValue(value));
         }
       }
-      return "SET " + fields;
+      return "SET " + str;
     };
 
     SetFieldBlock.prototype.buildParam = function(queryBuilder) {
-      var field, fieldNames, fields, values, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (field in _ref3) {
-          if (!__hasProp.call(_ref3, field)) continue;
-          _results.push(field);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var i, str, vals, _i, _ref4;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
-      fields = "";
-      values = [];
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
-        if ("" !== fields) {
-          fields += ", ";
+      str = "";
+      vals = [];
+      for (i = _i = 0, _ref4 = this.fields.length; 0 <= _ref4 ? _i < _ref4 : _i > _ref4; i = 0 <= _ref4 ? ++_i : --_i) {
+        if ("" !== str) {
+          str += ", ";
         }
-        fields += "" + field + " = ?";
-        values.push(this._formatValue(this.fields[field]));
+        str += "" + this.fields[i] + " = ?";
+        vals.push(this._formatValue(this.values[0][i]));
       }
       return {
-        text: "SET " + fields,
-        values: values
+        text: "SET " + str,
+        values: vals
       };
     };
 
     return SetFieldBlock;
 
-  })(cls.Block);
+  })(cls.AbstractSetFieldBlock);
 
   cls.InsertFieldValueBlock = (function(_super) {
     __extends(InsertFieldValueBlock, _super);
 
-    function InsertFieldValueBlock(options) {
-      InsertFieldValueBlock.__super__.constructor.call(this, options);
-      this.fields = {};
+    function InsertFieldValueBlock() {
+      _ref4 = InsertFieldValueBlock.__super__.constructor.apply(this, arguments);
+      return _ref4;
     }
 
     InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
-      var field, fieldNames, fields, name, values, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (name in _ref3) {
-          if (!__hasProp.call(_ref3, name)) continue;
-          _results.push(name);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
-      fields = "";
-      values = "";
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
-        if ("" !== fields) {
-          fields += ", ";
+      vals = [];
+      for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
+        for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
+          formattedValue = this._formatValue(this.values[i][j]);
+          if ('string' === typeof vals[i]) {
+            vals[i] += ', ' + formattedValue;
+          } else {
+            vals[i] = '' + formattedValue;
+          }
         }
-        fields += field;
-        if ("" !== values) {
-          values += ", ";
-        }
-        values += this._formatValue(this.fields[field]);
       }
-      return "(" + fields + ") VALUES (" + values + ")";
+      return "(" + (this.fields.join(', ')) + ") VALUES (" + (vals.join('), (')) + ")";
     };
 
     InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
-      var field, fieldNames, fields, name, values, valuesArr, _i, _len;
-      fieldNames = (function() {
-        var _ref3, _results;
-        _ref3 = this.fields;
-        _results = [];
-        for (name in _ref3) {
-          if (!__hasProp.call(_ref3, name)) continue;
-          _results.push(name);
-        }
-        return _results;
-      }).call(this);
-      if (0 >= fieldNames.length) {
+      var i, j, params, str, vals, _i, _j, _k, _ref5, _ref6, _ref7;
+      if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
-      fields = "";
-      values = "";
-      valuesArr = [];
-      for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-        field = fieldNames[_i];
-        if ("" !== fields) {
-          fields += ", ";
+      str = "";
+      vals = [];
+      params = [];
+      for (i = _i = 0, _ref5 = this.fields.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
+        if ("" !== str) {
+          str += ", ";
         }
-        fields += field;
-        if ("" !== values) {
-          values += ", ";
+        str += this.fields[i];
+      }
+      for (i = _j = 0, _ref6 = this.values.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; i = 0 <= _ref6 ? ++_j : --_j) {
+        for (j = _k = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _k < _ref7 : _k > _ref7; j = 0 <= _ref7 ? ++_k : --_k) {
+          params.push(this._formatValue(this.values[i][j]));
+          if ('string' === typeof vals[i]) {
+            vals[i] += ', ?';
+          } else {
+            vals[i] = '?';
+          }
         }
-        values += "?";
-        valuesArr.push(this._formatValue(this.fields[field]));
       }
       return {
-        text: "(" + fields + ") VALUES (" + values + ")",
-        values: valuesArr
+        text: "(" + str + ") VALUES (" + (vals.join('), (')) + ")",
+        values: params
       };
     };
 
     return InsertFieldValueBlock;
 
-  })(cls.SetFieldBlock);
+  })(cls.AbstractSetFieldBlock);
 
   cls.DistinctBlock = (function(_super) {
     __extends(DistinctBlock, _super);
@@ -830,12 +872,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     GroupByBlock.prototype.buildStr = function(queryBuilder) {
-      var f, groups, _i, _len, _ref3;
+      var f, groups, _i, _len, _ref5;
       groups = "";
       if (0 < this.groups.length) {
-        _ref3 = this.groups;
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          f = _ref3[_i];
+        _ref5 = this.groups;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          f = _ref5[_i];
           if ("" !== groups) {
             groups += ", ";
           }
@@ -934,24 +976,24 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildParam = function(queryBuilder) {
-      var where, _ref3;
+      var where, _ref5;
       return {
         text: 0 < this.wheresParam.length ? "WHERE (" + ((function() {
-          var _i, _len, _ref3, _results;
-          _ref3 = this.wheresParam;
+          var _i, _len, _ref5, _results;
+          _ref5 = this.wheresParam;
           _results = [];
-          for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-            where = _ref3[_i];
+          for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+            where = _ref5[_i];
             _results.push(where.text);
           }
           return _results;
         }).call(this)).join(") AND (") + ")" : "",
-        values: (_ref3 = []).concat.apply(_ref3, (function() {
-          var _i, _len, _ref3, _results;
-          _ref3 = this.wheresParam;
+        values: (_ref5 = []).concat.apply(_ref5, (function() {
+          var _i, _len, _ref5, _results;
+          _ref5 = this.wheresParam;
           _results = [];
-          for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-            where = _ref3[_i];
+          for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+            where = _ref5[_i];
             _results.push(where.values);
           }
           return _results;
@@ -983,12 +1025,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     OrderByBlock.prototype.buildStr = function(queryBuilder) {
-      var o, orders, _i, _len, _ref3;
+      var o, orders, _i, _len, _ref5;
       if (0 < this.orders.length) {
         orders = "";
-        _ref3 = this.orders;
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          o = _ref3[_i];
+        _ref5 = this.orders;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          o = _ref5[_i];
           if ("" !== orders) {
             orders += ", ";
           }
@@ -1093,12 +1135,22 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this.join(table, alias, condition, 'OUTER');
     };
 
+    JoinBlock.prototype.left_outer_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this.join(table, alias, condition, 'LEFT OUTER');
+    };
+
     JoinBlock.prototype.buildStr = function(queryBuilder) {
-      var j, joins, _i, _len, _ref3;
+      var j, joins, _i, _len, _ref5;
       joins = "";
-      _ref3 = this.joins || [];
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        j = _ref3[_i];
+      _ref5 = this.joins || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        j = _ref5[_i];
         if (joins !== "") {
           joins += " ";
         }
@@ -1126,22 +1178,22 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(QueryBuilder, _super);
 
     function QueryBuilder(options, blocks) {
-      var block, methodBody, methodName, _fn, _i, _len, _ref3, _ref4,
+      var block, methodBody, methodName, _fn, _i, _len, _ref5, _ref6,
         _this = this;
       QueryBuilder.__super__.constructor.call(this, options);
       this.blocks = blocks || [];
-      _ref3 = this.blocks;
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        block = _ref3[_i];
-        _ref4 = block.exposedMethods();
+      _ref5 = this.blocks;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        block = _ref5[_i];
+        _ref6 = block.exposedMethods();
         _fn = function(block, name, body) {
           return _this[name] = function() {
             body.apply(block, arguments);
             return _this;
           };
         };
-        for (methodName in _ref4) {
-          methodBody = _ref4[methodName];
+        for (methodName in _ref6) {
+          methodBody = _ref6[methodName];
           if (this[methodName] != null) {
             throw new Error("" + (this._getObjectClassName(this)) + " already has a builder method called: " + methodName);
           }
@@ -1151,10 +1203,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     QueryBuilder.prototype.registerValueHandler = function(type, handler) {
-      var block, _i, _len, _ref3;
-      _ref3 = this.blocks;
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        block = _ref3[_i];
+      var block, _i, _len, _ref5;
+      _ref5 = this.blocks;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        block = _ref5[_i];
         block.registerValueHandler(type, handler);
       }
       QueryBuilder.__super__.registerValueHandler.call(this, type, handler);
@@ -1162,12 +1214,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     QueryBuilder.prototype.updateOptions = function(options) {
-      var block, _i, _len, _ref3, _results;
+      var block, _i, _len, _ref5, _results;
       this.options = _extend({}, this.options, options);
-      _ref3 = this.blocks;
+      _ref5 = this.blocks;
       _results = [];
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        block = _ref3[_i];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        block = _ref5[_i];
         _results.push(block.options = _extend({}, block.options, options));
       }
       return _results;
@@ -1176,11 +1228,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     QueryBuilder.prototype.toString = function() {
       var block;
       return ((function() {
-        var _i, _len, _ref3, _results;
-        _ref3 = this.blocks;
+        var _i, _len, _ref5, _results;
+        _ref5 = this.blocks;
         _results = [];
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          block = _ref3[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          block = _ref5[_i];
           _results.push(block.buildStr(this));
         }
         return _results;
@@ -1190,17 +1242,17 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     QueryBuilder.prototype.toParam = function() {
-      var block, blocks, i, result, _ref3;
+      var block, blocks, i, result, _ref5;
       result = {
         text: '',
         values: []
       };
       blocks = (function() {
-        var _i, _len, _ref3, _results;
-        _ref3 = this.blocks;
+        var _i, _len, _ref5, _results;
+        _ref5 = this.blocks;
         _results = [];
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          block = _ref3[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          block = _ref5[_i];
           _results.push(block.buildParam(this));
         }
         return _results;
@@ -1216,7 +1268,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       })()).filter(function(v) {
         return 0 < v.length;
       }).join(' ');
-      result.values = (_ref3 = []).concat.apply(_ref3, (function() {
+      result.values = (_ref5 = []).concat.apply(_ref5, (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = blocks.length; _i < _len; _i++) {
@@ -1237,11 +1289,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     QueryBuilder.prototype.clone = function() {
       var block;
       return new this.constructor(this.options, (function() {
-        var _i, _len, _ref3, _results;
-        _ref3 = this.blocks;
+        var _i, _len, _ref5, _results;
+        _ref5 = this.blocks;
         _results = [];
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          block = _ref3[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          block = _ref5[_i];
           _results.push(block.clone());
         }
         return _results;
@@ -1515,13 +1567,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       InsertFieldValueBlock.prototype.buildStr = function() {
-        var field, fieldNames, fields, name, str, value, values, _i, _len, _ref3;
+        var field, fieldNames, fields, name, str, value, values, _i, _len, _ref5;
         fieldNames = (function() {
-          var _ref3, _results;
-          _ref3 = this.fields;
+          var _ref5, _results;
+          _ref5 = this.fields;
           _results = [];
-          for (name in _ref3) {
-            if (!__hasProp.call(_ref3, name)) continue;
+          for (name in _ref5) {
+            if (!__hasProp.call(_ref5, name)) continue;
             _results.push(name);
           }
           return _results;
@@ -1544,9 +1596,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         str = "(" + fields + ") VALUES (" + values + ")";
         fields = "";
-        _ref3 = this._duplicateKeyUpdates;
-        for (field in _ref3) {
-          value = _ref3[field];
+        _ref5 = this._duplicateKeyUpdates;
+        for (field in _ref5) {
+          value = _ref5[field];
           if ("" !== fields) {
             fields += ", ";
           }
