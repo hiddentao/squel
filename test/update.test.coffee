@@ -87,7 +87,7 @@ test['UPDATE builder'] =
         toParam: ->
           assert.same @inst.toParam(), {
             text: 'UPDATE table `t1` SET field = ?, field2 = ?'
-            values: [1, '\'str\'']
+            values: [1, 'str']
           }
 
       '>> setFields({field2: \'value2\', field3: true })':

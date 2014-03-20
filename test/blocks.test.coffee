@@ -657,18 +657,15 @@ test['Blocks'] =
         catch err
           assert.same 'Error: set() needs to be called', err.toString()
 
-      'calls formatValue() for each field value': ->
+      'does not call formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
-        assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
+        assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['value1', 'value2', 'value3'] }, @inst.buildParam()
 
-        assert.ok formatValueSpy.calledThrice
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
+        assert.ok formatValueSpy.notCalled
 
 
 
@@ -734,7 +731,7 @@ test['Blocks'] =
         catch err
           assert.same 'Error: set() needs to be called', err.toString()
 
-      'calls formatValue() for each field value': ->
+      'does not call formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
@@ -742,13 +739,10 @@ test['Blocks'] =
 
         assert.same { 
           text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)', 
-          values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ] 
+          values: [ 'value1', 'value2', 'value3', 'value21', 'value22', 'value23' ] 
         }, @inst.buildParam()
 
-        assert.same formatValueSpy.callCount, 6
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
+        assert.ok formatValueSpy.notCalled
 
 
 

@@ -82,7 +82,7 @@ test['INSERT builder'] =
         toParam: ->
           assert.same @inst.toParam(), {
             text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
-            values: [ 1, '\'str\'' ]
+            values: [ 1, 'str' ]
           }
 
       '>> set(field2, true)':
@@ -102,7 +102,7 @@ test['INSERT builder'] =
         toParam: ->
           parameterized = @inst.toParam()
           assert.same parameterized.text, 'INSERT INTO table (field, field2, field3) VALUES (?, ?, ?)'
-          assert.same parameterized.values, [1,'\'value2\'','TRUE']
+          assert.same parameterized.values, [1,'value2',true]
 
       '>> setFields({field2: \'value2\', field: true })':
         beforeEach: -> @inst.setFields({field2: 'value2', field: true })
@@ -111,7 +111,7 @@ test['INSERT builder'] =
         toParam: ->
           parameterized = @inst.toParam()
           assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?)'
-          assert.same parameterized.values, ['TRUE', '\'value2\'']
+          assert.same parameterized.values, [true, 'value2']
 
       '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])':
         beforeEach: -> @inst.setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }])
@@ -120,7 +120,7 @@ test['INSERT builder'] =
         toParam: ->
           parameterized = @inst.toParam()
           assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?), (?, ?)'
-          assert.same parameterized.values, ['\'value2\'','TRUE', '\'value3\'',13]
+          assert.same parameterized.values, ['value2',true, 'value3',13]
 
     '>> into(table).setFieldsRows([{field1: 13, field2: \'value2\'},{field1: true, field3: \'value4\'}])': ->
       assert.throws (=> @inst.into('table').setFieldsRows([{field1: 13, field2: 'value2'},{field1: true, field3: 'value4'}]).toString()), 'All fields in subsequent rows must match the fields in the first row'
