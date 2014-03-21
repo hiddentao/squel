@@ -87,6 +87,11 @@ test['SELECT builder'] =
               beforeEach: -> @inst.where('a = ?', 1)
               toString: ->
                 assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = 1) GROUP BY field, field2'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
+                  values: [1]
+                }
 
               '>> join(other_table)':
                 beforeEach: -> @inst.join('other_table')

@@ -778,41 +778,76 @@ class cls.WhereBlock extends cls.Block
   constructor: (options) ->
     super options
     @wheres = []
-    @wheresParam = []
 
   # Add a WHERE condition.
   #
   # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
   where: (condition, values...) ->
     condition = @_sanitizeCondition(condition)
-    whereParam = { text: condition, values: [] }
 
-    # substitute values into the condition
-    for value in values
-      if Array.isArray value
-        inValues = []
-        for item in value
-          inValues.push @_formatValue @_sanitizeValue item
-        value = "(#{inValues.join ', '})"
-        whereParam.text = condition.replace '?', "(#{('?' for item in inValues).join ', '})"
-        whereParam.values = inValues
+    finalCondition = ""
+    finalValues = []
+
+    for idx in [0...condition.length]
+      c = condition.charAt(idx)
+      if '?' is c and 0 < values.length
+        nextValue = values.shift()
+        if Array.isArray(nextValue) # where b in (?, ? ?)
+          inValues = []
+          for item in nextValue
+            inValues.push @_sanitizeValue(item)
+          finalValues = finalValues.concat(inValues)
+          finalCondition += "(#{('?' for item in inValues).join ', '})"
+        else
+          finalCondition += '?'
+          finalValues.push @_sanitizeValue(nextValue)
       else
-        value = @_formatValue @_sanitizeValue value
-        whereParam.values.push value
-      condition = condition.replace '?', value
+        finalCondition += c
 
-    if "" isnt condition
-      @wheres.push condition
+    if "" isnt finalCondition
+      @wheres.push
+        text: finalCondition
+        values: finalValues
 
-    if "" isnt whereParam.text
-      @wheresParam.push whereParam
 
   buildStr: (queryBuilder) ->
-    if 0 < @wheres.length then "WHERE (" + @wheres.join(") AND (") + ")" else ""
+    if 0 >= @wheres.length then return ""
+
+    whereStr = ""
+
+    for where in @wheres
+      if "" isnt whereStr then whereStr += ") AND ("
+      if 0 < where.values.length
+        # replace placeholders with actual parameter values
+        for idx in [0...where.text.length]
+          c = where.text.charAt(idx)
+          if '?' is c
+            whereStr += @_formatValue( where.values.shift() )
+          else
+            whereStr += c
+      else
+        whereStr += where.text
+
+    "WHERE (#{whereStr})"
+
 
   buildParam: (queryBuilder) ->
-    text: if 0 < @wheresParam.length then "WHERE (" + ( where.text for where in @wheresParam ).join(") AND (") + ")" else ""
-    values: [].concat ( where.values for where in @wheresParam )...
+    ret = 
+      text: ""
+      values: []
+
+    if 0 >= @wheres.length then return ret
+
+    whereStr = ""
+
+    for where in @wheres
+      if "" isnt whereStr then whereStr += ") AND ("
+      whereStr += where.text
+      for v in where.values
+        ret.values.push( @_formatCustomValue v )
+
+    ret.text = "WHERE (#{whereStr})"
+    ret
 
 
 # ORDER BY

@@ -1923,8 +1923,7 @@ the offset.</p>
             <div class="content"><div class='highlight'><pre><span class="class"><span class="keyword">class</span> <span class="title">cls</span>.<span class="title">WhereBlock</span> <span class="keyword">extends</span> <span class="title">cls</span>.<span class="title">Block</span></span>
   constructor: (options) -&gt;
     <span class="keyword">super</span> options
-    <span class="property">@wheres</span> = []
-    <span class="property">@wheresParam</span> = []</pre></div></div>
+    <span class="property">@wheres</span> = []</pre></div></div>
             
         </li>
         
@@ -1942,7 +1941,40 @@ the offset.</p>
             
             <div class="content"><div class='highlight'><pre>  where: (condition, values...) -&gt;
     condition = <span class="property">@_sanitizeCondition</span>(condition)
-    whereParam = { text: condition, values: [] }</pre></div></div>
+
+    finalCondition = <span class="string">""</span>
+    finalValues = []
+
+    <span class="keyword">for</span> idx <span class="keyword">in</span> [<span class="number">0.</span>..condition.length]
+      c = condition.charAt(idx)
+      <span class="keyword">if</span> <span class="string">'?'</span> <span class="keyword">is</span> c <span class="keyword">and</span> <span class="number">0</span> &lt; values.length
+        nextValue = values.shift()
+        <span class="keyword">if</span> Array.isArray(nextValue) <span class="comment"># where b in (?, ? ?)</span>
+          inValues = []
+          <span class="keyword">for</span> item <span class="keyword">in</span> nextValue
+            inValues.push <span class="property">@_sanitizeValue</span>(item)
+          finalValues = finalValues.concat(inValues)
+          finalCondition += <span class="string">"(<span class="subst">#{('?' <span class="keyword">for</span> item <span class="keyword">in</span> inValues).join ', '}</span>)"</span>
+        <span class="keyword">else</span>
+          finalCondition += <span class="string">'?'</span>
+          finalValues.push <span class="property">@_sanitizeValue</span>(nextValue)
+      <span class="keyword">else</span>
+        finalCondition += c
+
+    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> finalCondition
+      <span class="property">@wheres</span>.push
+        text: finalCondition
+        values: finalValues
+
+
+  buildStr: (queryBuilder) -&gt;
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@wheres</span>.length <span class="keyword">then</span> <span class="keyword">return</span> <span class="string">""</span>
+
+    whereStr = <span class="string">""</span>
+
+    <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheres</span>
+      <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> whereStr <span class="keyword">then</span> whereStr += <span class="string">") AND ("</span>
+      <span class="keyword">if</span> <span class="number">0</span> &lt; where.values.length</pre></div></div>
             
         </li>
         
@@ -1953,35 +1985,39 @@ the offset.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-99">&#182;</a>
               </div>
-              <p>substitute values into the condition</p>
+              <p>replace placeholders with actual parameter values</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="keyword">for</span> value <span class="keyword">in</span> values
-      <span class="keyword">if</span> Array.isArray value
-        inValues = []
-        <span class="keyword">for</span> item <span class="keyword">in</span> value
-          inValues.push <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> item
-        value = <span class="string">"(<span class="subst">#{inValues.join ', '}</span>)"</span>
-        whereParam.text = condition.replace <span class="string">'?'</span>, <span class="string">"(<span class="subst">#{('?' <span class="keyword">for</span> item <span class="keyword">in</span> inValues).join ', '}</span>)"</span>
-        whereParam.values = inValues
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">for</span> idx <span class="keyword">in</span> [<span class="number">0.</span>..where.text.length]
+          c = where.text.charAt(idx)
+          <span class="keyword">if</span> <span class="string">'?'</span> <span class="keyword">is</span> c
+            whereStr += <span class="property">@_formatValue</span>( where.values.shift() )
+          <span class="keyword">else</span>
+            whereStr += c
       <span class="keyword">else</span>
-        value = <span class="property">@_formatValue</span> <span class="property">@_sanitizeValue</span> value
-        whereParam.values.push value
-      condition = condition.replace <span class="string">'?'</span>, value
+        whereStr += where.text
 
-    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> condition
-      <span class="property">@wheres</span>.push condition
+    <span class="string">"WHERE (<span class="subst">#{whereStr}</span>)"</span>
 
-    <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> whereParam.text
-      <span class="property">@wheresParam</span>.push whereParam
-
-  buildStr: (queryBuilder) -&gt;
-    <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheres</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + <span class="property">@wheres</span>.join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
 
   buildParam: (queryBuilder) -&gt;
-    text: <span class="keyword">if</span> <span class="number">0</span> &lt; <span class="property">@wheresParam</span>.length <span class="keyword">then</span> <span class="string">"WHERE ("</span> + ( where.text <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> ).join(<span class="string">") AND ("</span>) + <span class="string">")"</span> <span class="keyword">else</span> <span class="string">""</span>
-    values: [].concat ( where.values <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheresParam</span> )...</pre></div></div>
+    ret = 
+      text: <span class="string">""</span>
+      values: []
+
+    <span class="keyword">if</span> <span class="number">0</span> &gt;= <span class="property">@wheres</span>.length <span class="keyword">then</span> <span class="keyword">return</span> ret
+
+    whereStr = <span class="string">""</span>
+
+    <span class="keyword">for</span> where <span class="keyword">in</span> <span class="property">@wheres</span>
+      <span class="keyword">if</span> <span class="string">""</span> <span class="keyword">isnt</span> whereStr <span class="keyword">then</span> whereStr += <span class="string">") AND ("</span>
+      whereStr += where.text
+      <span class="keyword">for</span> v <span class="keyword">in</span> where.values
+        ret.values.push( <span class="property">@_formatCustomValue</span> v )
+
+    ret.text = <span class="string">"WHERE (<span class="subst">#{whereStr}</span>)"</span>
+    ret</pre></div></div>
             
         </li>
         

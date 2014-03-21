@@ -1,6 +1,6 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 21 Mar 2014 (3.1.0)
+## 21 Mar 2014 (3.1.1)
 * Don't format parameter values returned from the toParam() call, unless their custom value types (#54)
 
 ## 20 Mar 2014 (3.0.1)

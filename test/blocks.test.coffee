@@ -925,8 +925,14 @@ test['Blocks'] =
         @inst.where('b = 2 OR c = 3')
 
         assert.same [
-          'a = 1',
-          'b = 2 OR c = 3'
+          {
+            text: 'a = 1'
+            values: []
+          }
+          {
+            text: 'b = 2 OR c = 3'
+            values: []            
+          }
         ], @inst.wheres
 
       'sanitizes inputs': ->
@@ -936,22 +942,26 @@ test['Blocks'] =
 
         assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
 
-        assert.same ['_c'], @inst.wheres
+        assert.same [{
+          text: '_c'
+          values: []
+        }], @inst.wheres
 
-      'substitutes variadic arguments': ->
+      'handles variadic arguments': ->
         sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
-        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (val) -> return "[#{val}]"
 
         substitutes = ['hello', [1, 2, 3]]
-        @inst.where.apply @inst, [].concat ['a = ? and b in ?'], substitutes
+        @inst.where.apply @inst, ['a = ? and b in ?'].concat(substitutes)
 
         expectedValues = _.flatten substitutes
         for expectedValue, index in expectedValues
           assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
-          assert.ok formatValueStub.getCall(index).calledWithExactly expectedValue
 
         assert.same [
-          'a = [hello] and b in ([1], [2], [3])'
+          {
+            text: 'a = ? and b in (?, ?, ?)'
+            values: ['hello', 1, 2, 3]
+          }
         ], @inst.wheres
 
     'buildStr()':
@@ -962,9 +972,18 @@ test['Blocks'] =
       'output WHERE ': ->
         @inst.where('a = ?', 1)
         @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [1, 2, 3])
+        @inst.where('d in ?', [4, 5, 6])
 
-        assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (1, 2, 3))', @inst.buildStr()
+        assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'formats values ': ->
+        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
+
+        @inst.where('a = ?', 1)
+        @inst.where('b = ? OR c = ?', 2, 3)
+        @inst.where('d in ?', [4, 5, 6])
+
+        assert.same 'WHERE (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
 
     'buildParam()':
       'output nothing if no conditions set': ->
@@ -974,10 +993,24 @@ test['Blocks'] =
       'output WHERE ': ->
         @inst.where('a = ?', 1)
         @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [1, 2, 3])
+        @inst.where('d in ?', [4, 5, 6])
 
-        assert.same { text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 1, 2, 3] }, @inst.buildParam()
+        assert.same { text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
 
+      'formats custom value types': ->
+        formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
+        formatCustomValueStub = test.mocker.stub @cls.prototype, '_formatCustomValue', (a) -> '[' + a + ']'
+
+        @inst.where('a = ?', 1)
+        @inst.where('b = ? OR c = ?', 2, 3)
+        @inst.where('d in ?', [4, 5, 6])
+
+        assert.same { 
+          text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', 
+          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]'] 
+        }, @inst.buildParam()
+
+        assert.ok formatValueSpy.notCalled
 
 
   'OrderByBlock':
