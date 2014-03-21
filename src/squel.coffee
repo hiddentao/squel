@@ -664,7 +664,7 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
     for i in [0...@fields.length]
       str += ", " if "" isnt str
       str += "#{@fields[i]} = ?"
-      vals.push @_formatValue(@values[0][i])
+      vals.push @values[0][i]
 
     { text: "SET #{str}", values: vals }
 
@@ -699,7 +699,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
      for i in [0...@values.length]
       for j in [0...@values[i].length]
-        params.push @_formatValue(@values[i][j])
+        params.push @values[i][j]
         if 'string' is typeof vals[i]
           vals[i] += ', ?'           
         else 
