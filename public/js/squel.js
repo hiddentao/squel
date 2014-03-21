@@ -57,7 +57,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     nameQuoteCharacter: '`',
     tableAliasQuoteCharacter: '`',
     fieldAliasQuoteCharacter: '"',
-    usingValuePlaceholders: false,
     valueHandlers: [],
     numberedParameters: false
   };
@@ -240,21 +239,24 @@ OTHER DEALINGS IN THE SOFTWARE.
       return str;
     };
 
-    BaseBuilder.prototype._formatValue = function(value) {
+    BaseBuilder.prototype._formatCustomValue = function(value) {
       var customHandler;
       customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
       if (customHandler) {
         value = customHandler(value);
       }
+      return value;
+    };
+
+    BaseBuilder.prototype._formatValue = function(value) {
+      value = this._formatCustomValue(value);
       if (null === value) {
         value = "NULL";
       } else if ("boolean" === typeof value) {
         value = value ? "TRUE" : "FALSE";
       } else if ("number" !== typeof value) {
-        if (false === this.options.usingValuePlaceholders) {
-          value = this._escapeValue(value);
-          value = "'" + value + "'";
-        }
+        value = this._escapeValue(value);
+        value = "'" + value + "'";
       }
       return value;
     };
@@ -761,7 +763,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           str += ", ";
         }
         str += "" + this.fields[i] + " = ?";
-        vals.push(this._formatValue(this.values[0][i]));
+        vals.push(this._formatCustomValue(this.values[0][i]));
       }
       return {
         text: "SET " + str,
@@ -816,7 +818,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       for (i = _j = 0, _ref6 = this.values.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; i = 0 <= _ref6 ? ++_j : --_j) {
         for (j = _k = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _k < _ref7 : _k > _ref7; j = 0 <= _ref7 ? ++_k : --_k) {
-          params.push(this._formatValue(this.values[i][j]));
+          params.push(this._formatCustomValue(this.values[i][j]));
           if ('string' === typeof vals[i]) {
             vals[i] += ', ?';
           } else {
@@ -923,82 +925,103 @@ OTHER DEALINGS IN THE SOFTWARE.
     function WhereBlock(options) {
       WhereBlock.__super__.constructor.call(this, options);
       this.wheres = [];
-      this.wheresParam = [];
     }
 
     WhereBlock.prototype.where = function() {
-      var condition, inValues, item, value, values, whereParam, _i, _j, _len, _len1;
+      var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, values, _i, _j, _len, _ref5;
       condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       condition = this._sanitizeCondition(condition);
-      whereParam = {
-        text: condition,
-        values: []
-      };
-      for (_i = 0, _len = values.length; _i < _len; _i++) {
-        value = values[_i];
-        if (Array.isArray(value)) {
-          inValues = [];
-          for (_j = 0, _len1 = value.length; _j < _len1; _j++) {
-            item = value[_j];
-            inValues.push(this._formatValue(this._sanitizeValue(item)));
-          }
-          value = "(" + (inValues.join(', ')) + ")";
-          whereParam.text = condition.replace('?', "(" + (((function() {
-            var _k, _len2, _results;
-            _results = [];
-            for (_k = 0, _len2 = inValues.length; _k < _len2; _k++) {
-              item = inValues[_k];
-              _results.push('?');
+      finalCondition = "";
+      finalValues = [];
+      for (idx = _i = 0, _ref5 = condition.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; idx = 0 <= _ref5 ? ++_i : --_i) {
+        c = condition.charAt(idx);
+        if ('?' === c && 0 < values.length) {
+          nextValue = values.shift();
+          if (Array.isArray(nextValue)) {
+            inValues = [];
+            for (_j = 0, _len = nextValue.length; _j < _len; _j++) {
+              item = nextValue[_j];
+              inValues.push(this._sanitizeValue(item));
             }
-            return _results;
-          })()).join(', ')) + ")");
-          whereParam.values = inValues;
+            finalValues = finalValues.concat(inValues);
+            finalCondition += "(" + (((function() {
+              var _k, _len1, _results;
+              _results = [];
+              for (_k = 0, _len1 = inValues.length; _k < _len1; _k++) {
+                item = inValues[_k];
+                _results.push('?');
+              }
+              return _results;
+            })()).join(', ')) + ")";
+          } else {
+            finalCondition += '?';
+            finalValues.push(this._sanitizeValue(nextValue));
+          }
         } else {
-          value = this._formatValue(this._sanitizeValue(value));
-          whereParam.values.push(value);
+          finalCondition += c;
         }
-        condition = condition.replace('?', value);
       }
-      if ("" !== condition) {
-        this.wheres.push(condition);
-      }
-      if ("" !== whereParam.text) {
-        return this.wheresParam.push(whereParam);
+      if ("" !== finalCondition) {
+        return this.wheres.push({
+          text: finalCondition,
+          values: finalValues
+        });
       }
     };
 
     WhereBlock.prototype.buildStr = function(queryBuilder) {
-      if (0 < this.wheres.length) {
-        return "WHERE (" + this.wheres.join(") AND (") + ")";
-      } else {
+      var c, idx, where, whereStr, _i, _j, _len, _ref5, _ref6;
+      if (0 >= this.wheres.length) {
         return "";
       }
+      whereStr = "";
+      _ref5 = this.wheres;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        where = _ref5[_i];
+        if ("" !== whereStr) {
+          whereStr += ") AND (";
+        }
+        if (0 < where.values.length) {
+          for (idx = _j = 0, _ref6 = where.text.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
+            c = where.text.charAt(idx);
+            if ('?' === c) {
+              whereStr += this._formatValue(where.values.shift());
+            } else {
+              whereStr += c;
+            }
+          }
+        } else {
+          whereStr += where.text;
+        }
+      }
+      return "WHERE (" + whereStr + ")";
     };
 
     WhereBlock.prototype.buildParam = function(queryBuilder) {
-      var where, _ref5;
-      return {
-        text: 0 < this.wheresParam.length ? "WHERE (" + ((function() {
-          var _i, _len, _ref5, _results;
-          _ref5 = this.wheresParam;
-          _results = [];
-          for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-            where = _ref5[_i];
-            _results.push(where.text);
-          }
-          return _results;
-        }).call(this)).join(") AND (") + ")" : "",
-        values: (_ref5 = []).concat.apply(_ref5, (function() {
-          var _i, _len, _ref5, _results;
-          _ref5 = this.wheresParam;
-          _results = [];
-          for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-            where = _ref5[_i];
-            _results.push(where.values);
-          }
-          return _results;
-        }).call(this))
+      var ret, v, where, whereStr, _i, _j, _len, _len1, _ref5, _ref6;
+      ret = {
+        text: "",
+        values: []
       };
+      if (0 >= this.wheres.length) {
+        return ret;
+      }
+      whereStr = "";
+      _ref5 = this.wheres;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        where = _ref5[_i];
+        if ("" !== whereStr) {
+          whereStr += ") AND (";
+        }
+        whereStr += where.text;
+        _ref6 = where.values;
+        for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
+          v = _ref6[_j];
+          ret.values.push(this._formatCustomValue(v));
+        }
+      }
+      ret.text = "WHERE (" + whereStr + ")";
+      return ret;
     };
 
     return WhereBlock;
