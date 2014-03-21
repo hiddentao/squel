@@ -658,14 +658,17 @@ test['Blocks'] =
           assert.same 'Error: set() needs to be called', err.toString()
 
       'does not call formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatCustomValue', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
-        assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['value1', 'value2', 'value3'] }, @inst.buildParam()
+        assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
 
-        assert.ok formatValueSpy.notCalled
+        assert.ok formatValueSpy.calledThrice
+        assert.ok formatValueSpy.calledWithExactly 'value1'
+        assert.ok formatValueSpy.calledWithExactly 'value2'
+        assert.ok formatValueSpy.calledWithExactly 'value3'
 
 
 
@@ -732,18 +735,23 @@ test['Blocks'] =
           assert.same 'Error: set() needs to be called', err.toString()
 
       'does not call formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatCustomValue', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
 
         assert.same { 
           text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)', 
-          values: [ 'value1', 'value2', 'value3', 'value21', 'value22', 'value23' ] 
+          values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ] 
         }, @inst.buildParam()
 
-        assert.ok formatValueSpy.notCalled
-
+        assert.same formatValueSpy.callCount, 6
+        assert.ok formatValueSpy.calledWithExactly 'value1'
+        assert.ok formatValueSpy.calledWithExactly 'value2'
+        assert.ok formatValueSpy.calledWithExactly 'value3'
+        assert.ok formatValueSpy.calledWithExactly 'value21'
+        assert.ok formatValueSpy.calledWithExactly 'value22'
+        assert.ok formatValueSpy.calledWithExactly 'value23'
 
 
 

@@ -113,6 +113,18 @@ test['INSERT builder'] =
           assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?)'
           assert.same parameterized.values, [true, 'value2']
 
+      '>> setFields(custom value type)':
+        beforeEach: -> 
+          class MyClass
+          @inst.registerValueHandler MyClass, -> 'abcd'
+          @inst.setFields({ field: new MyClass() })
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (\'abcd\')'
+        toParam: ->
+          parameterized = @inst.toParam()
+          assert.same parameterized.text, 'INSERT INTO table (field) VALUES (?)'
+          assert.same parameterized.values, ['abcd']
+
       '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])':
         beforeEach: -> @inst.setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }])
         toString: ->

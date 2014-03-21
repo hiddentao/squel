@@ -239,12 +239,17 @@ OTHER DEALINGS IN THE SOFTWARE.
       return str;
     };
 
-    BaseBuilder.prototype._formatValue = function(value) {
+    BaseBuilder.prototype._formatCustomValue = function(value) {
       var customHandler;
       customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
       if (customHandler) {
         value = customHandler(value);
       }
+      return value;
+    };
+
+    BaseBuilder.prototype._formatValue = function(value) {
+      value = this._formatCustomValue(value);
       if (null === value) {
         value = "NULL";
       } else if ("boolean" === typeof value) {
@@ -758,7 +763,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           str += ", ";
         }
         str += "" + this.fields[i] + " = ?";
-        vals.push(this._formatValue(this.values[0][i]));
+        vals.push(this._formatCustomValue(this.values[0][i]));
       }
       return {
         text: "SET " + str,
@@ -813,7 +818,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       for (i = _j = 0, _ref6 = this.values.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; i = 0 <= _ref6 ? ++_j : --_j) {
         for (j = _k = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _k < _ref7 : _k > _ref7; j = 0 <= _ref7 ? ++_k : --_k) {
-          params.push(this._formatValue(this.values[i][j]));
+          params.push(this._formatCustomValue(this.values[i][j]));
           if ('string' === typeof vals[i]) {
             vals[i] += ', ?';
           } else {

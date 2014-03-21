@@ -219,13 +219,19 @@ class cls.BaseBuilder extends cls.Cloneable
   # Escape a string value, e.g. escape quotes and other characters within it.
   _escapeValue: (str) -> str
 
-  # Format the given field value for inclusion into the query string
-  _formatValue: (value) ->
+  # Format the given custom value
+  _formatCustomValue: (value) ->
     # user defined custom handlers takes precedence
     customHandler = getValueHandler(value, @options.valueHandlers, cls.globalValueHandlers)
     if customHandler
       # use the custom handler if available
       value = customHandler(value)
+
+    value
+
+  # Format the given field value for inclusion into the query string
+  _formatValue: (value) ->
+    value = @_formatCustomValue(value)
 
     if null is value
       value = "NULL"
@@ -234,6 +240,7 @@ class cls.BaseBuilder extends cls.Cloneable
     else if "number" isnt typeof value
       value = @_escapeValue(value)
       value = "'#{value}'"
+
     value
 
 
@@ -664,7 +671,7 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
     for i in [0...@fields.length]
       str += ", " if "" isnt str
       str += "#{@fields[i]} = ?"
-      vals.push @values[0][i]
+      vals.push @_formatCustomValue( @values[0][i] )
 
     { text: "SET #{str}", values: vals }
 
@@ -699,7 +706,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
      for i in [0...@values.length]
       for j in [0...@values[i].length]
-        params.push @values[i][j]
+        params.push @_formatCustomValue( @values[i][j] )
         if 'string' is typeof vals[i]
           vals[i] += ', ?'           
         else 

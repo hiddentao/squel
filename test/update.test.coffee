@@ -90,10 +90,26 @@ test['UPDATE builder'] =
             values: [1, 'str']
           }
 
+      '>> set(custom value type)':
+        beforeEach: -> 
+          class MyClass
+          @inst.registerValueHandler MyClass, (a) -> 'abcd'
+          @inst.set( 'field',  new MyClass() )
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = \'abcd\''
+        toParam: ->
+          parameterized = @inst.toParam()
+          assert.same parameterized.text, 'UPDATE table `t1` SET field = ?'
+          assert.same parameterized.values, ['abcd']
+
       '>> setFields({field2: \'value2\', field3: true })':
         beforeEach: -> @inst.setFields({field2: 'value2', field3: true })
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = \'value2\', field3 = TRUE'
+        toParam: ->
+          parameterized = @inst.toParam()
+          assert.same parameterized.text, 'UPDATE table `t1` SET field = ?, field2 = ?, field3 = ?'
+          assert.same parameterized.values, [1, 'value2', true]
 
       '>> setFields({field2: \'value2\', field: true })':
         beforeEach: -> @inst.setFields({field2: 'value2', field: true })

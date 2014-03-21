@@ -470,6 +470,44 @@ test['Builder base class'] =
       assert.same 'str', @inst._escapeValue('str')
 
 
+  '_formatCustomValue': ->
+    'not a custom value type': ->
+      assert.same null, @inst._formatCustomValue(null)
+      assert.same 'abc', @inst._formatCustomValue('abc')
+      assert.same 12, @inst._formatCustomValue(12)
+      assert.same 1.2, @inst._formatCustomValue(1.2)
+      assert.same true, @inst._formatCustomValue(true)
+      assert.same false, @inst._formatCustomValue(false)
+
+    'custom value type': ->
+      'global': ->
+        class MyClass
+        myObj = new MyClass
+
+        squel.registerValueHandler MyClass, () -> 3.14
+
+        assert.same 3.14, @inst._formatCustomValue(myObj)
+
+      'instance': ->
+        class MyClass
+        myObj = new MyClass
+
+        @inst.registerValueHandler MyClass, () -> 3.14
+
+        assert.same 3.14, @inst._formatCustomValue(myObj)
+
+      'instance handler takes precedence over global': ->
+        @inst.registerValueHandler Date, (d) -> 'hello'
+        squel.registerValueHandler Date, (d) -> 'goodbye'
+
+        assert.same "'hello'", @inst._formatCustomValue(new Date)
+
+        @inst = new @cls
+          valueHandlers: []
+        assert.same "'goodbye'", @inst._formatCustomValue(new Date)
+
+
+
   '_formatValue':
     'null': ->
       assert.same 'NULL', @inst._formatValue(null)
@@ -495,32 +533,9 @@ test['Builder base class'] =
       escapedValue = 'blah'
       assert.same "'blah'", @inst._formatValue('test')
 
-    'custom handlers':
-      'global': ->
-        class MyClass
-        myObj = new MyClass
-
-        squel.registerValueHandler MyClass, () -> 3.14
-
-        assert.same 3.14, @inst._formatValue(myObj)
-
-      'instance': ->
-        class MyClass
-        myObj = new MyClass
-
-        @inst.registerValueHandler MyClass, () -> 3.14
-
-        assert.same 3.14, @inst._formatValue(myObj)
-
-      'instance handler takes precedence over global': ->
-        @inst.registerValueHandler Date, (d) -> 'hello'
-        squel.registerValueHandler Date, (d) -> 'goodbye'
-
-        assert.same "'hello'", @inst._formatValue(new Date)
-
-        @inst = new @cls
-          valueHandlers: []
-        assert.same "'goodbye'", @inst._formatValue(new Date)
+    'checks to see if it is custom value type first': ->
+      test.mocker.stub @inst, '_formatCustomValue', -> 'abc'
+      assert.same "'abc'", @inst._formatValue(123)
 
 
 
