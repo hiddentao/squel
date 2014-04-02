@@ -275,6 +275,11 @@ Squel allows you to override the built-in query builders with your own as well a
     // 'PRAGMA COMPRESS test'
 
 
+Examples of custom queries in the wild:
+
+ * https://github.com/bostrt/squel-top-start-at (blog post about it: http://blog.bostrt.net/extending-squel-js/)
+
+
 ## Non-standard SQL
 
 Squel supports the standard SQL commands and reserved words. However a number of database engines provide their own
