@@ -1526,7 +1526,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return Insert;
 
     })(cls.QueryBuilder);
-    return cls.Update = (function(_super) {
+    cls.Update = (function(_super) {
       __extends(Update, _super);
 
       function Update(options, blocks) {
@@ -1538,6 +1538,24 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
 
       return Update;
+
+    })(cls.QueryBuilder);
+    return cls.Delete = (function(_super) {
+      __extends(Delete, _super);
+
+      function Delete(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [
+          new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
+            singleTable: true
+          })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)
+        ]);
+        Delete.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Delete;
 
     })(cls.QueryBuilder);
   };
