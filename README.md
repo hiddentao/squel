@@ -306,18 +306,20 @@ Squel in the future will be usable in the above manner.
 
 ## Building it
 
-We use Grunt to do the build and [docco](http://jashkenas.github.com/docco/) to build annotated source code docs.
+To build the code:
 
     $ npm install -g grunt-cli
-    $ npm install -g docco
     $ npm install
     $ grunt <-- this will build the code and run the tests
 
-Annotated source code can be found in the `docs/` folder.
-
-Tests are written in [Mocha](http://visionmedia.github.com/mocha/) and can be found in the `test/` folder. To run them:
+To run the tests on their own:
 
     $ grunt test
+
+To build annotated source code docs into the `docs/` folder:
+
+    $ npm install -g docco
+    $ grunt docs
 
 ## Documentation
 
