@@ -4,6 +4,8 @@ module.exports = function (grunt) {
   require('load-grunt-tasks')(grunt);
   require('time-grunt')(grunt);
 
+  var SQUEL_VERSION = require('./package.json').version;
+
   grunt.initConfig({
     clean: {
       build: ['squel.js', 'squel.min.js'],
@@ -23,6 +25,16 @@ module.exports = function (grunt) {
         files: [{
           src: ['src/squel.coffee', 'src/postgres.coffee', 'src/mysql.coffee'],
           dest: './squel.js'
+        }]
+      }
+    },
+    replace: {
+      squel: {
+        src: ['./squel-basic.js', './squel.js'],
+        overwrite: true,
+        replacements: [{
+          from: '<<VERSION_STRING>>',
+          to: SQUEL_VERSION
         }]
       }
     },
@@ -62,19 +74,24 @@ module.exports = function (grunt) {
   });
 
 
+  grunt.registerTask('docs', [
+    'shell:docs'
+  ]);
+
 
   grunt.registerTask('test', [
     'clean:build',
     'coffee',
+    'replace',
     'mochaTest'
   ]);
 
   grunt.registerTask('build', [
     'clean',
     'coffee',
-    'mochaTest',
+    'replace',
     'uglify',
-    'shell:docs'
+    'mochaTest'
   ]);
 
   grunt.registerTask('default', [

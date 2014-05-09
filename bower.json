@@ -1,10 +1,10 @@
 {
   "name": "squel",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "main": "squel.js",
   "ignore": [
     "**/.*",
-    "Makefile",
+    "Gruntfile.js",
     "node_modules",
     "public",
     "test",

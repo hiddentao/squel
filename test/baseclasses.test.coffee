@@ -29,7 +29,7 @@ squel = require "../squel-basic"
 test = testCreator()
 
 test['Version number'] =
-  assert.same squel.VERSION, '2.0.0'
+  assert.same squel.VERSION, require('../package.json').version
 
 
 test['Cloneable base class'] =

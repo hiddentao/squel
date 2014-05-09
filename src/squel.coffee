@@ -1127,7 +1127,7 @@ class cls.Insert extends cls.QueryBuilder
 # ---------------------------------------------------------------------------------------------------------
 
 squel =
-  VERSION: '2.0.0'
+  VERSION: '<<VERSION_STRING>>'
   expr: -> new cls.Expression
   # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
   select: (options, blocks) -> new cls.Select(options, blocks)
