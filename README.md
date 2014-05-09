@@ -12,8 +12,8 @@ A flexible and powerful SQL query string builder for Javascript.
 * Supports non-standard commands for popular DB engines such as Postgres.
 * Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
-* Well tested (~290 tests).
 * Small: <4 KB minified and gzipped
+* And much more, [see the guide..](http://squeljs.org/)
 
 ## Installation
 
@@ -273,6 +273,11 @@ Squel allows you to override the built-in query builders with your own as well a
       .toString();
 
     // 'PRAGMA COMPRESS test'
+
+
+Examples of custom queries in the wild:
+
+ * https://github.com/bostrt/squel-top-start-at (blog post about it: http://blog.bostrt.net/extending-squel-js/)
 
 
 ## Non-standard SQL
