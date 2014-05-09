@@ -318,7 +318,6 @@ To run the tests on their own:
 
 To build annotated source code docs into the `docs/` folder:
 
-    $ npm install -g docco
     $ grunt docs
 
 ## Documentation

@@ -68,7 +68,7 @@ module.exports = function (grunt) {
     },
     shell: {
       docs: {
-        command: 'docco src/*.coffee'
+        command: 'node_modules/.bin/docco src/*.coffee'
       }
     }
   });
