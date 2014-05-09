@@ -1,5 +1,9 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 21 Mar 2014 (3.1.2)
+* Auto-generate version string
+* Don't commit docs/ folder anymore. Also don't auto-build docs as part of build.
+
 ## 21 Mar 2014 (3.1.1)
 * Don't format parameter values returned from the toParam() call, unless their custom value types (#54)
 
