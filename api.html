@@ -509,6 +509,17 @@
               }
             },
             returns: 'this'
+          },
+          '.returning()': {
+            desc: 'Add a RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              str: {
+                desc: 'What to return with the query.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
           }
         }
       }, // delete
