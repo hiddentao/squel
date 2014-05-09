@@ -63,13 +63,28 @@ squel.flavours['postgres'] = ->
         new cls.ReturningBlock(options)
       ]
       super options, blocks
-      
+
+  # UPDATE query builder
   class cls.Update extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
         new cls.StringBlock(options, 'UPDATE'),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
+        new cls.WhereBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+        new cls.ReturningBlock(options)
+      ]
+      super options, blocks
+
+  # DELETE query builder
+  class cls.Delete extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'DELETE'),
+        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
+        new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),

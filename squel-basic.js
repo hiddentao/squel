@@ -1406,7 +1406,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.1.2',
+    VERSION: '3.2.0',
     expr: function() {
       return new cls.Expression;
     },

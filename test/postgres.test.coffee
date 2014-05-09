@@ -45,19 +45,32 @@ test['Postgres flavour'] =
       beforeEach: -> @inst.into('table').set('field', 1).returning('id')
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
-        
+
   'UPDATE builder':
     beforeEach: -> @upd = squel.update()
-    
+
     '>> table(table).set(field, 1).returning("*")':
       beforeEach: -> @upd.table('table').set('field', 1).returning('*')
       toString: ->
         assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING *'
-        
+
     '>> table(table).set(field, 1).returning("field")':
       beforeEach: -> @upd.table('table').set('field', 1).returning('field')
       toString: ->
         assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING field'
+
+  'DELETE builder':
+    beforeEach: -> @del = squel.delete()
+
+    '>> from(table).where(field = 1).returning("*")':
+      beforeEach: -> @del.from('table').where('field = 1').returning('*')
+      toString: ->
+        assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING *'
+
+    '>> from(table).where(field = 1).returning("field")':
+      beforeEach: -> @del.from('table').where('field = 1').returning('field')
+      toString: ->
+        assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field'
 
 
   'Default query builder options': ->

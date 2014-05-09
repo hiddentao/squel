@@ -1,7 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 21 Mar 2014 (3.1.2)
-* Auto-generate version string
+## 9 May 2014 (3.2.0)
+* Added DELETE..RETURNING for Postgres (#60)
+* Auto-generate version string (#61)
 * Don't commit docs/ folder anymore. Also don't auto-build docs as part of build.
 
 ## 21 Mar 2014 (3.1.1)
