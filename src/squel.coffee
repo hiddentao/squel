@@ -47,8 +47,7 @@ cls.DefaultQueryBuilderOptions =
   # If true then field names will rendered inside quotes. The quote character used is configurable via the
   # nameQuoteCharacter option.
   autoQuoteFieldNames: false
-  # If true then alias names will rendered inside quotes. The quote character used is configurable via the
-  # tableAliasQuoteCharacter and fieldAliasQuoteCharacter options.
+  # If true then alias names will rendered inside quotes. The quote character used is configurable via the `tableAliasQuoteCharacter` and `fieldAliasQuoteCharacter` options.
   autoQuoteAliasNames: true
   # The quote character used for when quoting table and field names
   nameQuoteCharacter: '`'
@@ -60,6 +59,11 @@ cls.DefaultQueryBuilderOptions =
   valueHandlers: []
   # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?'
   numberedParameters: false
+  # If true then replaces all single quotes within strings. The replacement string used is configurable via the `singleQuoteReplacement` option.
+  replaceSingleQuotes: false
+  # The string to replace single quotes with in query strings
+  singleQuoteReplacement: '\'\''
+
 
 # Global custom value handlers for all instances of builder
 cls.globalValueHandlers = []
@@ -217,7 +221,9 @@ class cls.BaseBuilder extends cls.Cloneable
     item
 
   # Escape a string value, e.g. escape quotes and other characters within it.
-  _escapeValue: (str) -> str
+  _escapeValue: (value) -> 
+    return value unless true is @options.replaceSingleQuotes
+    value.replace /\'/g, @options.singleQuoteReplacement
 
   # Format the given custom value
   _formatCustomValue: (value) ->

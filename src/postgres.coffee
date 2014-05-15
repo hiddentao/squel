@@ -28,17 +28,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 squel.flavours['postgres'] = ->
   cls = squel.cls
 
-  # If true then replaces all single quotes. The replacement string used is configurable via the singleQuoteReplacement option
-  cls.DefaultQueryBuilderOptions.replaceSingleQuotes = false
-  # The single quote string to replace single quotes in queries
-  cls.DefaultQueryBuilderOptions.singleQuoteReplacement = '\'\''
-  # Numbered parameters
+  # Numbered parameters on by default
   cls.DefaultQueryBuilderOptions.numberedParameters = true
-
-  # Escape strings using the options
-  cls.BaseBuilder.prototype._escapeValue = (value) ->
-    return value unless true is @options.replaceSingleQuotes
-    value.replace /\'/g, @options.singleQuoteReplacement
 
   # RETURNING
   class cls.ReturningBlock extends cls.Block

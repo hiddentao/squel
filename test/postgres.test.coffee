@@ -75,8 +75,8 @@ test['Postgres flavour'] =
 
   'Default query builder options': ->
     assert.same {
-      replaceSingleQuotes: false,
-      singleQuoteReplacement: '\'\'',
+      replaceSingleQuotes: false
+      singleQuoteReplacement: '\'\''
       autoQuoteTableNames: false
       autoQuoteFieldNames: false
       autoQuoteAliasNames: true
@@ -86,22 +86,6 @@ test['Postgres flavour'] =
       valueHandlers: []
       numberedParameters: true
     }, squel.cls.DefaultQueryBuilderOptions
-
-
-  'Builder base class':
-    beforeEach: ->
-      @inst = new squel.cls.BaseBuilder()
-
-    '_escapeValue': ->
-        @inst.options.replaceSingleQuotes = false
-        assert.same "te'st", @inst._escapeValue("te'st")
-
-        @inst.options.replaceSingleQuotes = true
-        assert.same "te''st", @inst._escapeValue("te'st")
-
-        @inst.options.singleQuoteReplacement = '--'
-        assert.same "te--st", @inst._escapeValue("te'st")
-
 
 
 module?.exports[require('path').basename(__filename)] = test

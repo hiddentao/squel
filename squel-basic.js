@@ -58,7 +58,9 @@ OTHER DEALINGS IN THE SOFTWARE.
     tableAliasQuoteCharacter: '`',
     fieldAliasQuoteCharacter: '"',
     valueHandlers: [],
-    numberedParameters: false
+    numberedParameters: false,
+    replaceSingleQuotes: false,
+    singleQuoteReplacement: '\'\''
   };
 
   cls.globalValueHandlers = [];
@@ -235,8 +237,11 @@ OTHER DEALINGS IN THE SOFTWARE.
       return item;
     };
 
-    BaseBuilder.prototype._escapeValue = function(str) {
-      return str;
+    BaseBuilder.prototype._escapeValue = function(value) {
+      if (true !== this.options.replaceSingleQuotes) {
+        return value;
+      }
+      return value.replace(/\'/g, this.options.singleQuoteReplacement);
     };
 
     BaseBuilder.prototype._formatCustomValue = function(value) {

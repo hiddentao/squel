@@ -76,6 +76,8 @@ test['Default query builder options'] =
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
       numberedParameters: false
+      replaceSingleQuotes: false
+      singleQuoteReplacement: '\'\''
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -465,9 +467,15 @@ test['Builder base class'] =
         assert.same date, @inst._sanitizeValue(date)
 
 
-  '_escapeValue':
-    'str': ->
-      assert.same 'str', @inst._escapeValue('str')
+  '_escapeValue': ->
+      @inst.options.replaceSingleQuotes = false
+      assert.same "te'st", @inst._escapeValue("te'st")
+
+      @inst.options.replaceSingleQuotes = true
+      assert.same "te''st", @inst._escapeValue("te'st")
+
+      @inst.options.singleQuoteReplacement = '--'
+      assert.same "te--st", @inst._escapeValue("te'st")
 
 
   '_formatCustomValue': ->
