@@ -63,7 +63,8 @@ cls.DefaultQueryBuilderOptions =
   replaceSingleQuotes: false
   # The string to replace single quotes with in query strings
   singleQuoteReplacement: '\'\''
-
+  # String used to join individual blocks in a query when it's stringified
+  separator: ' '
 
 # Global custom value handlers for all instances of builder
 cls.globalValueHandlers = []
@@ -991,7 +992,6 @@ class cls.QueryBuilder extends cls.BaseBuilder
     super options
 
     @blocks = blocks or []
-    @separator = options?.separator || ' '
 
     # Copy exposed methods into myself
     for block in @blocks
@@ -1027,13 +1027,18 @@ class cls.QueryBuilder extends cls.BaseBuilder
 
   # Get the final fully constructed query string.
   toString: ->
-    (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(@separator)
+    (block.buildStr(@) for block in @blocks).filter (v) ->
+      0 < v.length
+    .join(@options.separator)
 
   # Get the final fully constructed query param obj.
   toParam: ->
     result = { text: '', values: [] }
     blocks = (block.buildParam(@) for block in @blocks)
-    result.text = (block.text for block in blocks).filter( (v) -> return (0 < v.length)).join(@separator)
+    result.text = (block.text for block in blocks).filter (v) ->
+      0 < v.length
+    .join(@options.separator)
+
     result.values = [].concat (block.values for block in blocks)...
     if @options.numberedParameters
       i = 0
