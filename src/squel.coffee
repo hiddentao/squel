@@ -991,6 +991,7 @@ class cls.QueryBuilder extends cls.BaseBuilder
     super options
 
     @blocks = blocks or []
+    @separator = options?.separator || ' '
 
     # Copy exposed methods into myself
     for block in @blocks
@@ -1026,13 +1027,13 @@ class cls.QueryBuilder extends cls.BaseBuilder
 
   # Get the final fully constructed query string.
   toString: ->
-    (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(' ')
+    (block.buildStr(@) for block in @blocks).filter( (v) -> return (0 < v.length)).join(@separator)
 
   # Get the final fully constructed query param obj.
   toParam: ->
     result = { text: '', values: [] }
     blocks = (block.buildParam(@) for block in @blocks)
-    result.text = (block.text for block in blocks).filter( (v) -> return (0 < v.length)).join(' ')
+    result.text = (block.text for block in blocks).filter( (v) -> return (0 < v.length)).join(@separator)
     result.values = [].concat (block.values for block in blocks)...
     if @options.numberedParameters
       i = 0
