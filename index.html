@@ -215,6 +215,20 @@
             /* SELECT * FROM students */
         </pre>
 
+    <p>Squel usually outputs a single line string, but you can use a different <code>separator</code> to change this look:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select({ separator: "\n" })
+                    .from("students")
+            );
+            /*
+                SELECT
+                * 
+                FROM students
+            */
+        </pre>
+
     <h3>Multiple tables</h3>
 
     <p>You can select data from multiple tables and provide aliases where needed:</p>
