@@ -60,7 +60,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     valueHandlers: [],
     numberedParameters: false,
     replaceSingleQuotes: false,
-    singleQuoteReplacement: '\'\''
+    singleQuoteReplacement: '\'\'',
+    separator: ' '
   };
 
   cls.globalValueHandlers = [];
@@ -1266,7 +1267,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _results;
       }).call(this)).filter(function(v) {
         return 0 < v.length;
-      }).join(' ');
+      }).join(this.options.separator);
     };
 
     QueryBuilder.prototype.toParam = function() {
@@ -1295,7 +1296,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _results;
       })()).filter(function(v) {
         return 0 < v.length;
-      }).join(' ');
+      }).join(this.options.separator);
       result.values = (_ref5 = []).concat.apply(_ref5, (function() {
         var _i, _len, _results;
         _results = [];

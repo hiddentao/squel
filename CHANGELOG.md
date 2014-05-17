@@ -1,5 +1,11 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 17 May 2014 (3.4.0)
+* #62 - can specify query separator string
+
+## 15 May 2014 (3.3.0)
+* Shifted `replaceSingleQuotes` and related option into Squel core.
+
 ## 9 May 2014 (3.2.0)
 * Added DELETE..RETURNING for Postgres (#60)
 * Auto-generate version string (#61)
