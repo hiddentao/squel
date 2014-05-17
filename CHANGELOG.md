@@ -1,6 +1,6 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 17 May 2014 (3.4.0)
+## 17 May 2014 (3.4.1)
 * #62 - can specify query separator string
 
 ## 15 May 2014 (3.3.0)

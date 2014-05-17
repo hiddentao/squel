@@ -1412,7 +1412,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.3.0',
+    VERSION: '3.4.1',
     expr: function() {
       return new cls.Expression;
     },
