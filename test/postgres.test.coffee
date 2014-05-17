@@ -85,6 +85,7 @@ test['Postgres flavour'] =
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
       numberedParameters: true
+      separator: ' '
     }, squel.cls.DefaultQueryBuilderOptions
 
 

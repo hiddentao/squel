@@ -148,5 +148,15 @@ test['SELECT builder'] =
   'is nestable': ->
     assert.same true, @inst.isNestable()
 
+  'can specify block separator': ->
+    assert.same squel.select({separator: '\n'})
+      .field('thing')
+      .from('table')
+      .toString(), """
+        SELECT
+        thing
+        FROM table
+      """
+
 
 module?.exports[require('path').basename(__filename)] = test

@@ -78,6 +78,7 @@ test['Default query builder options'] =
       numberedParameters: false
       replaceSingleQuotes: false
       singleQuoteReplacement: '\'\''
+      separator: ' '
     }, squel.cls.DefaultQueryBuilderOptions
 
 
