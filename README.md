@@ -49,7 +49,7 @@ Before running the examples ensure you have `squel` installed and enabled at the
 
     var squel = require("squel");
 
-**SELECT**
+### SELECT
 
     // SELECT * FROM table
     squel.select()
@@ -87,7 +87,7 @@ You can use nested queries too:
         .toString()
 
 
-**UPDATE**
+### UPDATE
 
     // UPDATE test SET f1 = 1
     squel.update()
@@ -107,7 +107,7 @@ You can use nested queries too:
         .set("a.count = a.count + 1")
         .toString()
 
-**INSERT**
+### INSERT
 
     // INSERT INTO test (f1) VALUES (1)
     squel.insert()
@@ -125,7 +125,7 @@ You can use nested queries too:
         .set("f5", null)
         .toString()
 
-**DELETE**
+### DELETE
 
     // DELETE FROM test
     squel.delete()
@@ -139,7 +139,7 @@ You can use nested queries too:
         .order("id", false)
         .limit(2)
 
-**Paramterized queries**
+### Paramterized queries
 
 Use the `useParam()` method to obtain a parameterized query with a separate list of formatted parameter values:
 
@@ -155,7 +155,7 @@ Use the `useParam()` method to obtain a parameterized query with a separate list
 
 
 
-**Expression builder**
+### Expression builder
 
 There is also an expression builder which allows you to build complex expressions for `WHERE` and `ON` clauses:
 
@@ -186,7 +186,7 @@ There is also an expression builder which allows you to build complex expression
         .join( "test2", null, squel.expr().and("test.id = test2.id") )
         .where( squel.expr().or("test = 3").or("test = 4") )
 
-**Custom value types**
+### Custom value types
 
 By default Squel does not support the use of object instances as field values. Instead it lets you tell it how you want
 specific object types to be handled:
@@ -206,7 +206,7 @@ specific object types to be handled:
 
 _Note that custom value handlers can be overridden on a per-instance basis (see the [docs](http://squeljs.org/))_
 
-**Custom queries**
+### Custom queries
 
 Squel allows you to override the built-in query builders with your own as well as create your own types of queries:
 
