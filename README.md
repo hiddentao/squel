@@ -5,6 +5,8 @@
 
 A flexible and powerful SQL query string builder for Javascript.
 
+Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/).
+
 ## Features
 
 * Works in node.js and in the browser.
@@ -320,15 +322,11 @@ To build annotated source code docs into the `docs/` folder:
 
     $ grunt docs
 
-## Documentation
-
-Full documentation (guide and API) is available at [http://squeljs.org/](http://squeljs.org/).
-
 
 ## Contributing
 
-If you wish to submit a pull request please update and/or create new tests for any changes you make and ensure all the
-tests pass.
+Contributions are welcome! Please see CONTRIBUTING.md.
+
 
 ## Ports to other languages
 
