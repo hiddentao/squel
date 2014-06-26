@@ -1483,7 +1483,6 @@ OTHER DEALINGS IN THE SOFTWARE.
   OTHER DEALINGS IN THE SOFTWARE.
   */
 
-
   squel.flavours['postgres'] = function() {
     cls = squel.cls;
     cls.DefaultQueryBuilderOptions.numberedParameters = true;
@@ -1655,3 +1654,130 @@ OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }).call(this);
+
+  /*
+  Copyright (c) Ramesh Nair (hiddentao.com)
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+  
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+  */
+
+  squel.topselect = function(options) {
+	return squel.select(options, [
+		new squel.cls.StringBlock(options, 'SELECT'),
+		new squel.cls.SelectTableBlock(options),
+		new squel.cls.SetFieldBlock(options),
+		new squel.cls.WhereBlock(options),
+		new squel.cls.TopBlock(options),
+	]);
+  };
+	 
+  alert(
+	squel.topselect()
+	.top(10)
+	.table('students')
+  );
+	 
+  /* SELECT TOP 10 students */
+
+cls.TopBlock = (function(_super) {
+  __extends(TopBlock, _super);
+
+  function TopBlock(options) {
+    TopBlock.__super__.constructor.call(this, options);
+    this.top = null;
+  }
+
+  TopBlock.prototype.top = function(start) {
+    start = this._sanitizeLimitTop(start);
+    return this.top = start;
+  };
+
+  TopBlock.prototype.buildStr = function(queryBuilder) {
+    if (this.top) {
+      return "TOP " + this.top;
+    } else {
+      return "";
+    }
+  };
+
+  return TopBlock;
+
+})(cls.Block);
+
+/* Additions by Azadi Bogolubov 6/25/2014 */
+// TOP X 
+cls.TopBlock = (function(_super) {
+  __extends(TopBlock, _super);
+
+  function TopBlock(options) {
+    TopBlock.__super__.constructor.call(this, options);
+    this.topResults = null;
+  }
+
+  TopBlock.prototype.top = function(topResult) {
+    this.topResults = topResult;
+  };
+
+  TopBlock.prototype.buildStr = function(queryBuilder) {
+    if (this.topResults) {
+      return "TOP " + this.topResults;
+    } else {
+      return "";
+    }
+  };
+
+  return TopBlock;
+
+})(cls.Block);
+
+// OFFSET X ROWS
+cls.OffsetMSBlock = (function(_super) {
+  __extends(OffsetMSBlock, _super);
+
+  function OffsetMSBlock(options) {
+    OffsetMSBlock.__super__.constructor.call(this, options);
+    this.numRows = null;
+    this.fetchNext = null;
+  }
+   OffsetMSBlock.prototype.offsetMS = function(offset, fetch) {
+    if (fetch != null) {
+      this.fetchNext = fetch;
+    }
+    this.numRows = offset;
+  };
+
+  OffsetMSBlock.prototype.buildStr = function(queryBuilder) {
+    if (this.numRows) {
+      var valToReturn = "OFFSET " + this.numRows + " ROWS";
+      if (this.fetchNext) {
+        valToReturn += " FETCH NEXT " + this.fetchNext + " ROWS ONLY";
+      }
+      return valToReturn;
+    } else {
+      return "";
+    }
+  };
+
+  return OffsetMSBlock;
+
+})(cls.Block);
+/* End Additions by Azadi Bogolubov 6/25/2014 */
