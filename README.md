@@ -14,7 +14,7 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 * Supports non-standard commands for popular DB engines such as Postgres.
 * Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
-* Small: <4 KB minified and gzipped
+* Small: ~5 KB minified and gzipped
 * And much more, [see the guide..](http://squeljs.org/)
 
 ## Installation
@@ -36,7 +36,6 @@ Or add the following inside your HTML:
 ```html
 <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel-basic.min.js"></script>
 ```
-
 **WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
 ## Available files
