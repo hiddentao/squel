@@ -676,9 +676,14 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
     str = ""
     vals = []
     for i in [0...@fields.length]
+      field = @fields[i]
       str += ", " if "" isnt str
-      str += "#{@fields[i]} = ?"
-      vals.push @_formatCustomValue( @values[0][i] )
+      value = @values[0][i]
+      if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
+        str += field
+      else
+        str += "#{field} = ?"
+        vals.push @_formatCustomValue( value )
 
     { text: "SET #{str}", values: vals }
 

@@ -79,13 +79,6 @@ module.exports = function (grunt) {
   ]);
 
 
-  grunt.registerTask('test', [
-    'clean:build',
-    'coffee',
-    'replace',
-    'mochaTest'
-  ]);
-
   grunt.registerTask('build', [
     'clean',
     'coffee',

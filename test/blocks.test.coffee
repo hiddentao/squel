@@ -670,6 +670,13 @@ test['Blocks'] =
         assert.ok formatValueSpy.calledWithExactly 'value2'
         assert.ok formatValueSpy.calledWithExactly 'value3'
 
+      'Fix for hiddentao/squel#63': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatCustomValue', (v) -> v
+
+        @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
+        @inst.values = [ [ undefined, 'value2', 'value3' ] ]
+
+        assert.same { text: 'SET age = age + 1, field2 = ?, field3 = ?', values: ['value2', 'value3'] }, @inst.buildParam()
 
 
 

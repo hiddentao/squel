@@ -170,6 +170,11 @@ test['UPDATE builder'] =
       toString: ->
         assert.same @inst.toString(), 'UPDATE table `t1` SET count = count + 1'
 
+  'fix for hiddentao/squel#63': ->
+    newinst = @inst.table('students').set('field = field + 1')
+    newinst.set('field2', 2).set('field3', true)
+    assert.same { text: 'UPDATE students SET field = field + 1, field2 = ?, field3 = ?', values: [2, true] }, @inst.toParam()
+
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)

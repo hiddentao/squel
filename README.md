@@ -329,15 +329,11 @@ Squel in the future will be usable in the above manner.
 
 ## Building it
 
-To build the code:
+To build the code and run the tests:
 
     $ npm install -g grunt-cli
     $ npm install
     $ grunt <-- this will build the code and run the tests
-
-To run the tests on their own:
-
-    $ grunt test
 
 To build annotated source code docs into the `docs/` folder:
 

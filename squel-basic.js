@@ -758,18 +758,24 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     SetFieldBlock.prototype.buildParam = function(queryBuilder) {
-      var i, str, vals, _i, _ref4;
+      var field, i, str, vals, value, _i, _ref4;
       if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
       str = "";
       vals = [];
       for (i = _i = 0, _ref4 = this.fields.length; 0 <= _ref4 ? _i < _ref4 : _i > _ref4; i = 0 <= _ref4 ? ++_i : --_i) {
+        field = this.fields[i];
         if ("" !== str) {
           str += ", ";
         }
-        str += "" + this.fields[i] + " = ?";
-        vals.push(this._formatCustomValue(this.values[0][i]));
+        value = this.values[0][i];
+        if (typeof value === 'undefined') {
+          str += field;
+        } else {
+          str += "" + field + " = ?";
+          vals.push(this._formatCustomValue(value));
+        }
       }
       return {
         text: "SET " + str,
@@ -1413,7 +1419,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.4.1',
+    VERSION: '3.4.2',
     expr: function() {
       return new cls.Expression;
     },
