@@ -1,6 +1,7 @@
 test
 docs
 src
-Makefile
+Gruntfile.js
+squel-basic*
 squel.min.js
 .*
