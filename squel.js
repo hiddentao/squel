@@ -976,7 +976,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildStr = function(queryBuilder) {
-      var c, idx, where, whereStr, _i, _j, _len, _ref5, _ref6;
+      var c, idx, pIndex, where, whereStr, _i, _j, _len, _ref5, _ref6;
       if (0 >= this.wheres.length) {
         return "";
       }
@@ -988,10 +988,11 @@ OTHER DEALINGS IN THE SOFTWARE.
           whereStr += ") AND (";
         }
         if (0 < where.values.length) {
+          pIndex = 0;
           for (idx = _j = 0, _ref6 = where.text.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
             c = where.text.charAt(idx);
             if ('?' === c) {
-              whereStr += this._formatValue(where.values.shift());
+              whereStr += this._formatValue(where.values[pIndex++]);
             } else {
               whereStr += c;
             }

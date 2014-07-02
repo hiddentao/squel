@@ -9,7 +9,7 @@ before_script:
   - "npm install"
 
 script:
-  - "grunt"
+  - "npm run build"
 
 notifications:
   email:

@@ -826,10 +826,11 @@ class cls.WhereBlock extends cls.Block
       if "" isnt whereStr then whereStr += ") AND ("
       if 0 < where.values.length
         # replace placeholders with actual parameter values
+        pIndex = 0
         for idx in [0...where.text.length]
           c = where.text.charAt(idx)
           if '?' is c
-            whereStr += @_formatValue( where.values.shift() )
+            whereStr += @_formatValue( where.values[pIndex++] )
           else
             whereStr += c
       else

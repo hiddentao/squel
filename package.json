@@ -32,6 +32,9 @@
     "rdbms"
   ],
   "main": "squel",
+  "scripts": {
+    "build": "grunt"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/hiddentao/squel.git"
