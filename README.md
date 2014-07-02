@@ -109,9 +109,11 @@ squel.update()
     .table("test2")
     .set("test2.val", 1.2)
     .table("test3","a")
-    .set("a.name", "Ram")
-    .set("a.email", null)
-    .set("a.count = a.count + 1")
+    .setFields({
+        "a.name": "Ram",
+        "a.email": null,
+        "a.count = a.count + 1": undefined
+    })
     .toString()
 ```
 
@@ -124,14 +126,13 @@ squel.insert()
     .set("f1", 1)
     .toString()
 
-// INSERT INTO test (f1, f2, f3, f4, f5) VALUES (1, 1.2, TRUE, "blah", NULL)
+// INSERT INTO test (name, age) VALUES ('Thomas', 29), ('Jane', 31)
 squel.insert()
     .into("test")
-    .set("f1", 1)
-    .set("f2", 1.2)
-    .set("f3", true)
-    .set("f4", "blah")
-    .set("f5", null)
+    .setFieldsRows([
+        { name: "Thomas", age: 29 },
+        { name: "Jane", age: 31 }    
+    ])
     .toString()
 ```
 
