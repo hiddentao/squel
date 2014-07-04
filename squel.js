@@ -1661,4 +1661,217 @@ OTHER DEALINGS IN THE SOFTWARE.
     })(cls.SetFieldBlock);
   };
 
+  /*
+  Copyright (c) Ramesh Nair (hiddentao.com)
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+  
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+  */
+
+
+  _extend = function() {
+    var dst, k, sources, src, v, _i, _len;
+    dst = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    if (sources) {
+      for (_i = 0, _len = sources.length; _i < _len; _i++) {
+        src = sources[_i];
+        if (src) {
+          for (k in src) {
+            if (!__hasProp.call(src, k)) continue;
+            v = src[k];
+            dst[k] = v;
+          }
+        }
+      }
+    }
+    return dst;
+  };
+
+  squel.flavours['mssql'] = function() {
+    cls = squel.cls;
+    cls.DefaultQueryBuilderOptions.replaceSingleQuotes = true;
+    cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
+    squel.registerValueHandler(Date, function(date) {
+      return "" + (date.getUTCFullYear()) + "-" + (date.getUTCMonth() + 1) + "-" + (date.getUTCDate()) + " " + (date.getUTCHours()) + ":" + (date.getUTCMinutes()) + ":" + (date.getUTCSeconds());
+    });
+    cls.TopBlock = (function(_super) {
+      __extends(TopBlock, _super);
+
+      function TopBlock(options) {
+        TopBlock.__super__.constructor.call(this, options);
+        this.topRows = void 0;
+      }
+
+      TopBlock.prototype.top = function(rows) {
+        return this.topRows = rows;
+      };
+
+      TopBlock.prototype.buildStr = function(queryBuilder) {
+        if (this.topRows != null) {
+          return "TOP " + this.topRows;
+        } else {
+          return "";
+        }
+      };
+
+      return TopBlock;
+
+    })(cls.Block);
+    cls.InsertFieldValueBlock = (function(_super) {
+      __extends(InsertFieldValueBlock, _super);
+
+      function InsertFieldValueBlock(options) {
+        InsertFieldValueBlock.__super__.constructor.call(this, options);
+        this.outputs = [];
+      }
+
+      InsertFieldValueBlock.prototype.output = function(fields) {
+        var f, _i, _len, _results;
+        if ('string' === typeof fields) {
+          return this.outputs.push("INSERTED." + (this._sanitizeField(fields)));
+        } else {
+          _results = [];
+          for (_i = 0, _len = fields.length; _i < _len; _i++) {
+            f = fields[_i];
+            _results.push(this.outputs.push("INSERTED." + (this._sanitizeField(f))));
+          }
+          return _results;
+        }
+      };
+
+      InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
+        var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
+        if (0 >= this.fields.length) {
+          throw new Error("set() needs to be called");
+        }
+        vals = [];
+        for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
+          for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
+            formattedValue = this._formatValue(this.values[i][j]);
+            if ('string' === typeof vals[i]) {
+              vals[i] += ', ' + formattedValue;
+            } else {
+              vals[i] = '' + formattedValue;
+            }
+          }
+        }
+        return "(" + (this.fields.join(', ')) + ") " + (this.outputs.length !== 0 ? "OUTPUT " + (this.outputs.join(', ')) + " " : '') + "VALUES (" + (vals.join('), (')) + ")";
+      };
+
+      return InsertFieldValueBlock;
+
+    })(cls.SetFieldBlock);
+    cls.UpdateOutputBlock = (function(_super) {
+      __extends(UpdateOutputBlock, _super);
+
+      function UpdateOutputBlock(options) {
+        UpdateOutputBlock.__super__.constructor.call(this, options);
+        this._outputs = [];
+      }
+
+      UpdateOutputBlock.prototype.outputs = function(_outputs) {
+        var alias, output, _results;
+        _results = [];
+        for (output in _outputs) {
+          alias = _outputs[output];
+          _results.push(this.output(output, alias));
+        }
+        return _results;
+      };
+
+      UpdateOutputBlock.prototype.output = function(output, alias) {
+        if (alias == null) {
+          alias = null;
+        }
+        output = this._sanitizeField(output);
+        if (alias) {
+          alias = this._sanitizeFieldAlias(alias);
+        }
+        return this._outputs.push({
+          name: "INSERTED." + output,
+          alias: alias
+        });
+      };
+
+      UpdateOutputBlock.prototype.buildStr = function(queryBuilder) {
+        var output, outputs, _i, _len, _ref5;
+        outputs = "";
+        if (this._outputs.length > 0) {
+          _ref5 = this._outputs;
+          for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+            output = _ref5[_i];
+            if ("" !== outputs) {
+              outputs += ", ";
+            }
+            outputs += output.name;
+            if (output.alias) {
+              outputs += " AS " + output.alias;
+            }
+          }
+          outputs = "OUTPUT " + outputs;
+        }
+        return outputs;
+      };
+
+      return UpdateOutputBlock;
+
+    })(cls.Block);
+    cls.Select = (function(_super) {
+      __extends(Select, _super);
+
+      function Select(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [
+          new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), new cls.TopBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
+            allowNested: true
+          })), new cls.JoinBlock(_extend({}, options, {
+            allowNested: true
+          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)
+        ]);
+        Select.__super__.constructor.call(this, options, blocks);
+      }
+
+      Select.prototype.isNestable = function() {
+        return true;
+      };
+
+      return Select;
+
+    })(cls.QueryBuilder);
+    return cls.Update = (function(_super) {
+      __extends(Update, _super);
+
+      function Update(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.UpdateOutputBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)]);
+        Update.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Update;
+
+    })(cls.QueryBuilder);
+  };
+
 }).call(this);
