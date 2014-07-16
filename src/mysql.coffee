@@ -29,7 +29,7 @@ squel.flavours['mysql'] = ->
   cls = squel.cls
 
   # (INSERT INTO) ... field ... value
-  class cls.InsertFieldValueBlock extends cls.SetFieldBlock
+  class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
     constructor: (options) ->
       super options
       @fields = {}
