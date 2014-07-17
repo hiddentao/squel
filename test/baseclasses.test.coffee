@@ -453,6 +453,10 @@ test['Builder base class'] =
     'if null': ->
       assert.same null, @inst._sanitizeValue(null)
 
+    'if QueryBuilder': ->
+      s = squel.select()
+      assert.same s, @inst._sanitizeValue(s)
+
     'if undefined': ->
       assert.throws (=> @inst._sanitizeValue(undefined)), 'field value must be a string, number, boolean, null or one of the registered custom value types'
 
@@ -516,6 +520,25 @@ test['Builder base class'] =
         assert.same "'goodbye'", @inst._formatCustomValue(new Date)
 
 
+  '_formatValueAsParam': ->
+    'QueryBuilder': ->
+      s = squel.select().from('table')
+      assert.same '(SELECT * FROM table)', @inst._formatValueAsParam(s)
+      u = squel.update().table('table').set('f', 'val')
+      assert.same '(UPDATE table SET f = \'val\')', @inst._formatValueAsParam(u)
+
+    'else calls _formatCustomValue': ->
+      spy = test.mocker.stub @inst, '_formatCustomValue', (v) -> 'test'
+
+      assert.same 'test', @inst._formatValueAsParam(null)
+      assert.same 'test', @inst._formatValueAsParam('abc')
+      assert.same 'test', @inst._formatValueAsParam(12)
+      assert.same 'test', @inst._formatValueAsParam(1.2)
+      assert.same 'test', @inst._formatValueAsParam(true)
+      assert.same 'test', @inst._formatValueAsParam(false)
+
+      assert.same 6, spy.callCount
+
 
   '_formatValue':
     'null': ->
@@ -541,6 +564,12 @@ test['Builder base class'] =
       assert.ok @inst._escapeValue.calledWithExactly('test')
       escapedValue = 'blah'
       assert.same "'blah'", @inst._formatValue('test')
+
+    'QueryBuilder': ->
+      s = squel.select().from('table')
+      assert.same '(SELECT * FROM table)', @inst._formatValue(s)
+      u = squel.update().table('table').set('f', 'val')
+      assert.same '(UPDATE table SET f = \'val\')', @inst._formatValue(u)
 
     'checks to see if it is custom value type first': ->
       test.mocker.stub @inst, '_formatCustomValue', -> 'abc'

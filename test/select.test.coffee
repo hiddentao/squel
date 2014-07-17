@@ -83,6 +83,18 @@ test['SELECT builder'] =
             toString: ->
               assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2'
 
+            '>> where(a = ?, squel.select().field("MAX(score)").from("scores"))':
+              beforeEach: -> 
+                @subQuery = squel.select().field("MAX(score)").from("scores")
+                @inst.where('a = ?', @subQuery)
+              toString: ->
+                assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT MAX(score) FROM scores)) GROUP BY field, field2'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
+                  values: ['SELECT MAX(score) FROM scores']
+                }
+
             '>> where(a = ?, 1)':
               beforeEach: -> @inst.where('a = ?', 1)
               toString: ->

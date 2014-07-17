@@ -214,6 +214,8 @@ class cls.BaseBuilder extends cls.Cloneable
       # null is allowed
     else if "string" is itemType or "number" is itemType or "boolean" is itemType
       # primitives are allowed
+    else if item instanceof cls.QueryBuilder
+      # QueryBuilder instances allowed
     else
       typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
       unless typeIsValid
@@ -236,6 +238,13 @@ class cls.BaseBuilder extends cls.Cloneable
 
     value
 
+  # Format the given field value for inclusion into query parameter array
+  _formatValueAsParam: (value) ->
+    if value instanceof cls.QueryBuilder
+      "#{value}"
+    else 
+      @_formatCustomValue(value)
+
   # Format the given field value for inclusion into the query string
   _formatValue: (value) ->
     value = @_formatCustomValue(value)
@@ -244,6 +253,8 @@ class cls.BaseBuilder extends cls.Cloneable
       value = "NULL"
     else if "boolean" is typeof value
       value = if value then "TRUE" else "FALSE"
+    else if value instanceof cls.QueryBuilder
+      value = "(#{value})"
     else if "number" isnt typeof value
       value = @_escapeValue(value)
       value = "'#{value}'"
@@ -683,7 +694,7 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
         str += field
       else
         str += "#{field} = ?"
-        vals.push @_formatCustomValue( value )
+        vals.push @_formatValueAsParam( value )
 
     { text: "SET #{str}", values: vals }
 
@@ -718,7 +729,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
      for i in [0...@values.length]
       for j in [0...@values[i].length]
-        params.push @_formatCustomValue( @values[i][j] )
+        params.push @_formatValueAsParam( @values[i][j] )
         if 'string' is typeof vals[i]
           vals[i] += ', ?'           
         else 
@@ -857,8 +868,8 @@ class cls.WhereBlock extends cls.Block
       if "" isnt whereStr then whereStr += ") AND ("
       whereStr += where.text
       for v in where.values
-        ret.values.push( @_formatCustomValue v )
-
+        ret.values.push( @_formatValueAsParam v )
+        value = @_formatValueAsParam(value)
     ret.text = "WHERE (#{whereStr})"
     ret
 

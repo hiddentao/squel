@@ -657,8 +657,8 @@ test['Blocks'] =
         catch err
           assert.same 'Error: set() needs to be called', err.toString()
 
-      'does not call formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatCustomValue', (v) -> return "[#{v}]"
+      'calls formatValueAsParam() for each field value': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
@@ -671,7 +671,7 @@ test['Blocks'] =
         assert.ok formatValueSpy.calledWithExactly 'value3'
 
       'Fix for hiddentao/squel#63': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatCustomValue', (v) -> v
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> v
 
         @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
         @inst.values = [ [ undefined, 'value2', 'value3' ] ]
@@ -741,8 +741,8 @@ test['Blocks'] =
         catch err
           assert.same 'Error: set() needs to be called', err.toString()
 
-      'does not call formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatCustomValue', (v) -> return "[#{v}]"
+      'calls formatValueAsParam() for each field value': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
@@ -1014,9 +1014,9 @@ test['Blocks'] =
 
         assert.same { text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
 
-      'formats custom value types': ->
+      'formats value types as params': ->
         formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
-        formatCustomValueStub = test.mocker.stub @cls.prototype, '_formatCustomValue', (a) -> '[' + a + ']'
+        test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
 
         @inst.where('a = ?', 1)
         @inst.where('b = ? OR c = ?', 2, 3)

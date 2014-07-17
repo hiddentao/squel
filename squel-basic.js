@@ -229,6 +229,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
 
+      } else if (item instanceof cls.QueryBuilder) {
+
       } else {
         typeIsValid = void 0 !== getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
         if (!typeIsValid) {
@@ -254,12 +256,22 @@ OTHER DEALINGS IN THE SOFTWARE.
       return value;
     };
 
+    BaseBuilder.prototype._formatValueAsParam = function(value) {
+      if (value instanceof cls.QueryBuilder) {
+        return "" + value;
+      } else {
+        return this._formatCustomValue(value);
+      }
+    };
+
     BaseBuilder.prototype._formatValue = function(value) {
       value = this._formatCustomValue(value);
       if (null === value) {
         value = "NULL";
       } else if ("boolean" === typeof value) {
         value = value ? "TRUE" : "FALSE";
+      } else if (value instanceof cls.QueryBuilder) {
+        value = "(" + value + ")";
       } else if ("number" !== typeof value) {
         value = this._escapeValue(value);
         value = "'" + value + "'";
@@ -774,7 +786,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           str += field;
         } else {
           str += "" + field + " = ?";
-          vals.push(this._formatCustomValue(value));
+          vals.push(this._formatValueAsParam(value));
         }
       }
       return {
@@ -830,7 +842,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       for (i = _j = 0, _ref6 = this.values.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; i = 0 <= _ref6 ? ++_j : --_j) {
         for (j = _k = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _k < _ref7 : _k > _ref7; j = 0 <= _ref7 ? ++_k : --_k) {
-          params.push(this._formatCustomValue(this.values[i][j]));
+          params.push(this._formatValueAsParam(this.values[i][j]));
           if ('string' === typeof vals[i]) {
             vals[i] += ', ?';
           } else {
@@ -1011,7 +1023,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildParam = function(queryBuilder) {
-      var ret, v, where, whereStr, _i, _j, _len, _len1, _ref5, _ref6;
+      var ret, v, value, where, whereStr, _i, _j, _len, _len1, _ref5, _ref6;
       ret = {
         text: "",
         values: []
@@ -1030,7 +1042,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         _ref6 = where.values;
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
           v = _ref6[_j];
-          ret.values.push(this._formatCustomValue(v));
+          ret.values.push(this._formatValueAsParam(v));
+          value = this._formatValueAsParam(value);
         }
       }
       ret.text = "WHERE (" + whereStr + ")";

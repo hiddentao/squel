@@ -73,7 +73,7 @@ squel.flavours['mysql'] = ->
       for field, value of @_duplicateKeyUpdates
         fields += ", " if "" isnt fields
         fields += "#{field} = ?"
-        ret.values.push @_formatCustomValue(value)
+        ret.values.push @_formatValueAsParam(value)
 
       if fields isnt ""
         ret.text = " ON DUPLICATE KEY UPDATE #{fields}"
