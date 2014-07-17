@@ -625,6 +625,11 @@
               expr: {
                 desc: 'The expression to add',
                 type: 'String'
+              },
+              param: {
+                desc: 'The expression parameter',
+                type: 'Any',
+                defaultValue: 'undefined'
               }
             },
             returns: 'this'
@@ -635,6 +640,11 @@
               expr: {
                 desc: 'The expression to add',
                 type: 'String'
+              },
+              param: {
+                desc: 'The expression parameter',
+                type: 'Any',
+                defaultValue: 'undefined'
               }
             },
             returns: 'this'
@@ -646,6 +656,10 @@
           '.toString()': {
             desc: 'Build and return the final expression string.',
             returns: 'String'
+          },
+          '.toParam()': {
+            desc: 'Build and return the final parameterized expression string.',
+            returns: 'Object (text: String, values: Array)'
           }
         }
       }, // expr

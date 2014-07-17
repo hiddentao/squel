@@ -1028,6 +1028,26 @@
             */
         </pre>
 
+      <p>Expressions can be parameterized too:</p>
+
+        <pre class="brush: js">
+            alert(JSON.stringify(
+                squel.expr()
+                    .and("s.name <> ?", 'Fred')
+                    .or_begin()
+                        .or("s.id = ?", 5)
+                        .or("s.id = ?", 6)
+                    .end()
+                    .toParam()
+            ));
+            /*
+                { 
+                    "text": "s.name <> ? AND (s.id = ? OR s.id = ?))", 
+                    "values": ['Fred', 5, 6] 
+                }
+            */
+        </pre>
+
     </section>
 
     <section id="custom_types">
