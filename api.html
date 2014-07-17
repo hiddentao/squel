@@ -80,8 +80,8 @@
             desc: 'Set a field to select data for.',
             params: {
               name: {
-                desc: 'Name of field (or an SQL expression such as <code>DATE_FORMAT</code>).',
-                type: 'String'
+                desc: 'Name of field OR an SQL expression such as <code>DATE_FORMAT</code> OR a [[cls.QueryBuilder]] instance.',
+                type: 'String|QueryBuilder'
               },
               alias: {
                 type: 'String',

@@ -302,6 +302,22 @@
             */
         </pre>
 
+    <p>You can even use a sub-query as a field specifier:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students", "s")
+                    .field(squel.select().field("MAX(score)").from("scores"), 'score')
+            );
+            /*
+                SELECT
+                    (SELECT MAX(score) FROM scores) AS "score"
+                FROM
+                    students `s`
+            */
+        </pre>
+
     <p>If you wish to obtain <code>DISTINCT</code> results you can do so:</p>
 
         <pre class="brush: js">
@@ -387,9 +403,19 @@
             /*  SELECT id FROM students WHERE (name = 'Thomas')  */
         </pre>
 
-    Parameters substitution is supported. As of Squel v2.0.0 the parameter substitution mechanism has been vastly
-    improved for all query builders and now has its <a href="#parameters">own documentation section</a>.
+    <p>Parameters substitution is supported:</p>
 
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("score = ?", squel.select().field('MAX(score)').from('scores'))
+            );
+            /*  SELECT id FROM students WHERE (score = (SELECT MAX(score) FROM scores))  */
+        </pre>
+
+    <em>For more information on using parameterized queries see the <a href="#parameters">parameters documentation section</a>.</em>
 
     <p>Multiple filters are automatically combined using <code>AND</code>:</p>
 
@@ -401,7 +427,7 @@
                     .where("name = 'Thomas'")
                     .where("age > 18")
             );
-            /*  SELECT id FROM students WHERE (name = 'Thomas') AND (age > 18)  */
+            /*  SELECT id FROM students WHERE (name = 'Thomas') AND (age > 18) */
         </pre>
 
     <p>Also filter using <code>OR</code> or any other operator you like:</p>
@@ -577,8 +603,9 @@
                     .set("age", 29)
                     .set("score", 1.2)
                     .set("graduate", false)
+                    .set("level", squel.select().field('MAX(level)').from('levels'))
             );
-            /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE */
+            /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE, level = (SELECT MAX(level) FROM levels) */
         </pre>
 
       <p>You can even use <code>NULL</code> values:</p>
@@ -730,8 +757,10 @@
                     .set("score", 90.2)
                     .set("graduate", true)
                     .set("nickname", null)
+                    .set("level", squel.select().field('MAX(level)').from('levels'))
             );
-            /*  INSERT INTO students (name, age, score, graduate, nickname) VALUES ('Thomas', 29, 90.2, TRUE, NULL) */
+            /*  INSERT INTO students (name, age, score, graduate, nickname, level) 
+                VALUES ('Thomas', 29, 90.2, TRUE, NULL, (SELECT MAX(level) FROM levels)) */
         </pre>
 
         <h3>Multiple fields and rows</h3>
