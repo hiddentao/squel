@@ -1593,54 +1593,39 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   squel.flavours['mysql'] = function() {
     cls = squel.cls;
-    return cls.InsertFieldValueBlock = (function(_super) {
-      __extends(InsertFieldValueBlock, _super);
+    cls.MysqlInsertFieldValueBlock = (function(_super) {
+      __extends(MysqlInsertFieldValueBlock, _super);
 
-      function InsertFieldValueBlock(options) {
-        InsertFieldValueBlock.__super__.constructor.call(this, options);
-        this.fields = {};
+      function MysqlInsertFieldValueBlock(options) {
+        MysqlInsertFieldValueBlock.__super__.constructor.call(this, options);
         this._duplicateKeyUpdates = {};
       }
 
-      InsertFieldValueBlock.prototype.set = function(field, value, options) {
-        field = this._sanitizeField(field);
-        value = this._sanitizeValue(value);
-        this.fields[field] = value;
+      MysqlInsertFieldValueBlock.prototype.set = function(field, value, options) {
+        MysqlInsertFieldValueBlock.__super__.set.call(this, field, value);
         if ((options != null ? options.duplicateKeyUpdate : void 0) !== void 0) {
           this._duplicateKeyUpdates[field] = this._sanitizeValue(options.duplicateKeyUpdate);
         }
         return this;
       };
 
-      InsertFieldValueBlock.prototype.buildStr = function() {
-        var field, fieldNames, fields, name, str, value, values, _i, _len, _ref5;
-        fieldNames = (function() {
-          var _ref5, _results;
-          _ref5 = this.fields;
-          _results = [];
-          for (name in _ref5) {
-            if (!__hasProp.call(_ref5, name)) continue;
-            _results.push(name);
-          }
-          return _results;
-        }).call(this);
-        if (0 >= fieldNames.length) {
-          throw new Error("set() needs to be called");
-        }
-        fields = "";
-        values = "";
-        for (_i = 0, _len = fieldNames.length; _i < _len; _i++) {
-          field = fieldNames[_i];
-          if ("" !== fields) {
-            fields += ", ";
-          }
-          fields += field;
-          if ("" !== values) {
-            values += ", ";
-          }
-          values += this._formatValue(this.fields[field]);
-        }
-        str = "(" + fields + ") VALUES (" + values + ")";
+      MysqlInsertFieldValueBlock.prototype.buildStr = function() {
+        var str;
+        str = MysqlInsertFieldValueBlock.__super__.buildStr.call(this);
+        return "" + str + (this._buildDuplicateKeyUpdateStr());
+      };
+
+      MysqlInsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
+        var dups, qry;
+        qry = MysqlInsertFieldValueBlock.__super__.buildParam.call(this, queryBuilder);
+        dups = this._buildDuplicateKeyUpdateParam();
+        qry.text = "" + qry.text + dups.text;
+        qry.values.push.apply(qry.values, dups.values);
+        return qry;
+      };
+
+      MysqlInsertFieldValueBlock.prototype._buildDuplicateKeyUpdateStr = function() {
+        var field, fields, value, _ref5;
         fields = "";
         _ref5 = this._duplicateKeyUpdates;
         for (field in _ref5) {
@@ -1651,14 +1636,51 @@ OTHER DEALINGS IN THE SOFTWARE.
           fields += "" + field + " = " + (this._formatValue(value));
         }
         if (fields !== "") {
-          str = "" + str + " ON DUPLICATE KEY UPDATE " + fields;
+          return " ON DUPLICATE KEY UPDATE " + fields;
+        } else {
+          return "";
         }
-        return str;
       };
 
-      return InsertFieldValueBlock;
+      MysqlInsertFieldValueBlock.prototype._buildDuplicateKeyUpdateParam = function() {
+        var field, fields, ret, value, _ref5;
+        ret = {
+          text: "",
+          values: []
+        };
+        fields = "";
+        _ref5 = this._duplicateKeyUpdates;
+        for (field in _ref5) {
+          value = _ref5[field];
+          if ("" !== fields) {
+            fields += ", ";
+          }
+          fields += "" + field + " = ?";
+          ret.values.push(this._formatCustomValue(value));
+        }
+        if (fields !== "") {
+          ret.text = " ON DUPLICATE KEY UPDATE " + fields;
+        }
+        return ret;
+      };
 
-    })(cls.AbstractSetFieldBlock);
+      return MysqlInsertFieldValueBlock;
+
+    })(cls.InsertFieldValueBlock);
+    return cls.Insert = (function(_super) {
+      __extends(Insert, _super);
+
+      function Insert(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.MysqlInsertFieldValueBlock(options)]);
+        Insert.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Insert;
+
+    })(cls.QueryBuilder);
   };
 
 }).call(this);

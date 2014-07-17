@@ -52,6 +52,42 @@ test['MySQL flavour'] =
         assert.ok @inst._sanitizeValue.calledWithExactly('str')
         assert.ok @inst._formatValue.calledWithExactly(5)
         assert.ok @inst._formatValue.calledWithExactly('str')
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field, field1, field2) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?'
+          values: [1, 2, 3, 5, 'str']
+        }
+
+
+    '>> into(table).setFields({ field1: 1, field2: str })':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFields({ field1: 1, field2: 'str' })
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\')'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?)'
+          values: [1, 'str']
+        }
+
+
+    '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ])':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFieldsRows([
+            { field1: 1, field2: 'str' },
+            { field1: 2, field2: 'str2' },
+          ])
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\'), (2, \'str2\')'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?)'
+          values: [1, 'str', 2, 'str2']
+        }
 
 
 module?.exports[require('path').basename(__filename)] = test

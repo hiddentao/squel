@@ -29,47 +29,65 @@ squel.flavours['mysql'] = ->
   cls = squel.cls
 
   # (INSERT INTO) ... field ... value
-  class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
+  class cls.MysqlInsertFieldValueBlock extends cls.InsertFieldValueBlock
     constructor: (options) ->
       super options
-      @fields = {}
       @_duplicateKeyUpdates = {}
 
     # Update the given field with the given value.
-    # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for
-    # the option is the value used to update the key with
+    # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
     set: (field, value, options) ->
-      field = @_sanitizeField(field)
-      value = @_sanitizeValue(value)
-      @fields[field] = value
+      super field, value
       @_duplicateKeyUpdates[field] = @_sanitizeValue(options.duplicateKeyUpdate) if options?.duplicateKeyUpdate isnt undefined
       @
 
+
     buildStr: ->
-      fieldNames = (name for own name of @fields)
-      if 0 >= fieldNames.length then throw new Error "set() needs to be called"
+      str = super()
+      "#{str}#{@_buildDuplicateKeyUpdateStr()}"
 
-      # fields
-      fields = ""
-      values = ""
-      for field in fieldNames
-        fields += ", " if "" isnt fields
-        fields += field
-        values += ", " if "" isnt values
-        values += @_formatValue(@fields[field])
 
-      str = "(#{fields}) VALUES (#{values})"
+    buildParam: (queryBuilder) ->
+      qry = super queryBuilder
+      dups = @_buildDuplicateKeyUpdateParam()
+      qry.text = "#{qry.text}#{dups.text}"
+      qry.values.push.apply(qry.values, dups.values)
+      qry
 
-      # ON DUPLICATE KEY UPDATE
+    # Build str: ON DUPLICATE KEY UPDATE      
+    _buildDuplicateKeyUpdateStr: ->
       fields = ""
       for field, value of @_duplicateKeyUpdates
         fields += ", " if "" isnt fields
         fields += "#{field} = #{@_formatValue(value)}"
 
+      return if fields isnt "" then " ON DUPLICATE KEY UPDATE #{fields}" else ""
+
+    # Build params str: ON DUPLICATE KEY UPDATE      
+    _buildDuplicateKeyUpdateParam: ->
+      ret = 
+        text: ""
+        values: []
+
+      fields = ""
+      for field, value of @_duplicateKeyUpdates
+        fields += ", " if "" isnt fields
+        fields += "#{field} = ?"
+        ret.values.push @_formatCustomValue(value)
+
       if fields isnt ""
-        str = "#{str} ON DUPLICATE KEY UPDATE #{fields}"
+        ret.text = " ON DUPLICATE KEY UPDATE #{fields}"
 
-      str
+      ret
 
 
+  # An INSERT query builder.
+  class cls.Insert extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'INSERT'),
+        new cls.IntoTableBlock(options),
+        new cls.MysqlInsertFieldValueBlock(options)
+      ]
 
+      super options, blocks        
