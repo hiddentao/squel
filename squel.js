@@ -1658,7 +1658,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       return InsertFieldValueBlock;
 
-    })(cls.SetFieldBlock);
+    })(cls.AbstractSetFieldBlock);
   };
 
 }).call(this);
