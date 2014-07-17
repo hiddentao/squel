@@ -284,7 +284,7 @@ class cls.BaseBuilder extends cls.Cloneable
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class cls.Expression extends cls.Cloneable
+class cls.Expression extends cls.BaseBuilder
 
     # The expression tree.
     tree: null
@@ -294,6 +294,7 @@ class cls.Expression extends cls.Cloneable
 
     # Initialise the expression.
     constructor: ->
+        super() 
         @tree =
             parent: null
             nodes: []
@@ -333,21 +334,23 @@ class cls.Expression extends cls.Cloneable
 
 
     # Combine the current expression with the given expression using the intersection operator (AND).
-    and: (expr) ->
+    and: (expr, param) ->
         if not expr or "string" isnt typeof expr
             throw new Error "expr must be a string"
         @current.nodes.push
             type: 'AND'
             expr: expr
+            para: param
         @
 
     # Combine the current expression with the given expression using the union operator (OR).
-    or: (expr) ->
+    or: (expr, param) ->
         if not expr or "string" isnt typeof expr
             throw new Error "expr must be a string"
         @current.nodes.push
             type: 'OR'
             expr: expr
+            para: param
         @
 
 
@@ -355,25 +358,59 @@ class cls.Expression extends cls.Cloneable
     toString: ->
         if null isnt @current.parent
             throw new Error "end() needs to be called"
-        _toString @tree
+        @_toString @tree
 
+    # Get the final fully constructed expression string.
+    toParam: ->
+        if null isnt @current.parent
+            throw new Error "end() needs to be called"
+        @_toString @tree, true
 
     # Get a string representation of the given expression tree node.
-    _toString = (node) ->
+    _toString: (node, paramMode = false) ->
         str = ""
+        params = []
         for child in node.nodes
             if child.expr?
                 nodeStr = child.expr
+                # have param?
+                if child.para?
+                  if not paramMode
+                    child.para = 
+                      # [1,2,3] -> '(1,2,3)'
+                      if Array.isArray(child.para)
+                        "(#{child.para.join(', ')})"
+                      else
+                        @_formatValue(child.para)
+                    nodeStr = nodeStr.replace '?', child.para
+                  else
+                    if Array.isArray(child.para)
+                      for p in child.para
+                        params.push @_formatValueAsParam(p)
+                    else
+                      params.push @_formatValueAsParam(child.para)
             else
-                nodeStr = _toString(child)
+                nodeStr = @_toString(child, paramMode)
+                if paramMode
+                  params = params.concat(nodeStr.values)
+                  nodeStr = nodeStr.text
                 # wrap nested expressions in brackets
                 if "" isnt nodeStr
-                    nodeStr = "(" + nodeStr + ")"
+                  nodeStr = "(" + nodeStr + ")"
+
             if "" isnt nodeStr
-                # if this isn't first expression then add the operator
-                if "" isnt str then str += " " + child.type + " "
-                str += nodeStr
-        str
+              # if this isn't first expression then add the operator
+              if "" isnt str then str += " " + child.type + " "
+              str += nodeStr
+
+        if paramMode
+          return {
+            text: str
+            values: params
+          }
+        else  
+          return str
+
 
     ###
     Clone this expression.

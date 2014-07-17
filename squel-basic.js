@@ -286,8 +286,6 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.Cloneable);
 
   cls.Expression = (function(_super) {
-    var _toString;
-
     __extends(Expression, _super);
 
     Expression.prototype.tree = null;
@@ -296,6 +294,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function Expression() {
       var _this = this;
+      Expression.__super__.constructor.call(this);
       this.tree = {
         parent: null,
         nodes: []
@@ -330,24 +329,26 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    Expression.prototype.and = function(expr) {
+    Expression.prototype.and = function(expr, param) {
       if (!expr || "string" !== typeof expr) {
         throw new Error("expr must be a string");
       }
       this.current.nodes.push({
         type: 'AND',
-        expr: expr
+        expr: expr,
+        para: param
       });
       return this;
     };
 
-    Expression.prototype.or = function(expr) {
+    Expression.prototype.or = function(expr, param) {
       if (!expr || "string" !== typeof expr) {
         throw new Error("expr must be a string");
       }
       this.current.nodes.push({
         type: 'OR',
-        expr: expr
+        expr: expr,
+        para: param
       });
       return this;
     };
@@ -356,19 +357,50 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (null !== this.current.parent) {
         throw new Error("end() needs to be called");
       }
-      return _toString(this.tree);
+      return this._toString(this.tree);
     };
 
-    _toString = function(node) {
-      var child, nodeStr, str, _i, _len, _ref;
+    Expression.prototype.toParam = function() {
+      if (null !== this.current.parent) {
+        throw new Error("end() needs to be called");
+      }
+      return this._toString(this.tree, true);
+    };
+
+    Expression.prototype._toString = function(node, paramMode) {
+      var child, nodeStr, p, params, str, _i, _j, _len, _len1, _ref, _ref1;
+      if (paramMode == null) {
+        paramMode = false;
+      }
       str = "";
+      params = [];
       _ref = node.nodes;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         child = _ref[_i];
         if (child.expr != null) {
           nodeStr = child.expr;
+          if (child.para != null) {
+            if (!paramMode) {
+              child.para = Array.isArray(child.para) ? "(" + (child.para.join(', ')) + ")" : this._formatValue(child.para);
+              nodeStr = nodeStr.replace('?', child.para);
+            } else {
+              if (Array.isArray(child.para)) {
+                _ref1 = child.para;
+                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                  p = _ref1[_j];
+                  params.push(this._formatValueAsParam(p));
+                }
+              } else {
+                params.push(this._formatValueAsParam(child.para));
+              }
+            }
+          }
         } else {
-          nodeStr = _toString(child);
+          nodeStr = this._toString(child, paramMode);
+          if (paramMode) {
+            params = params.concat(nodeStr.values);
+            nodeStr = nodeStr.text;
+          }
           if ("" !== nodeStr) {
             nodeStr = "(" + nodeStr + ")";
           }
@@ -380,7 +412,14 @@ OTHER DEALINGS IN THE SOFTWARE.
           str += nodeStr;
         }
       }
-      return str;
+      if (paramMode) {
+        return {
+          text: str,
+          values: params
+        };
+      } else {
+        return str;
+      }
     };
 
     /*
@@ -419,7 +458,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     return Expression;
 
-  })(cls.Cloneable);
+  })(cls.BaseBuilder);
 
   cls.Block = (function(_super) {
     __extends(Block, _super);
