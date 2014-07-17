@@ -216,7 +216,7 @@ class cls.BaseBuilder extends cls.Cloneable
       # null is allowed
     else if "string" is itemType or "number" is itemType or "boolean" is itemType
       # primitives are allowed
-    else if item instanceof cls.QueryBuilder
+    else if item instanceof cls.QueryBuilder and item.isNestable()
       # QueryBuilder instances allowed
     else
       typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
@@ -242,7 +242,7 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Format the given field value for inclusion into query parameter array
   _formatValueAsParam: (value) ->
-    if value instanceof cls.QueryBuilder
+    if value instanceof cls.QueryBuilder and value.isNestable()
       "#{value}"
     else 
       @_formatCustomValue(value)

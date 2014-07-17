@@ -231,7 +231,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
 
-      } else if (item instanceof cls.QueryBuilder) {
+      } else if (item instanceof cls.QueryBuilder && item.isNestable()) {
 
       } else {
         typeIsValid = void 0 !== getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
@@ -259,7 +259,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValueAsParam = function(value) {
-      if (value instanceof cls.QueryBuilder) {
+      if (value instanceof cls.QueryBuilder && value.isNestable()) {
         return "" + value;
       } else {
         return this._formatCustomValue(value);
