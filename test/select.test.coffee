@@ -68,6 +68,11 @@ test['SELECT builder'] =
       toString: ->
         assert.same @inst.toString(), 'SELECT * FROM table, table2 `alias2`'
 
+      '>> field(squel.select().field("MAX(score)").FROM("scores"), fa1)':
+        beforeEach: -> @inst.field(squel.select().field("MAX(score)").from("scores"), 'fa1')
+        toString: ->
+          assert.same @inst.toString(), 'SELECT (SELECT MAX(score) FROM scores) AS "fa1" FROM table, table2 `alias2`'
+
       '>> field(field1, fa1) >> field(field2)':
         beforeEach: -> @inst.field('field1', 'fa1').field('field2')
         toString: ->

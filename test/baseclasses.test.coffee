@@ -296,6 +296,10 @@ test['Builder base class'] =
         @inst.options.nameQuoteCharacter = '|'
         assert.same '|abc|', @inst._sanitizeField('abc')
 
+    'QueryBuilder': ->
+      s = squel.select().from('scores').field('MAX(score)')
+      assert.same '(SELECT MAX(score) FROM scores)', @inst._sanitizeField(s)
+
 
   '_sanitizeTable':
     'nesting allowed':

@@ -162,13 +162,15 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._sanitizeField = function(item) {
-      var sanitized;
-      sanitized = this._sanitizeName(item, "field name");
-      if (this.options.autoQuoteFieldNames) {
-        return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
+      if (item instanceof cls.QueryBuilder) {
+        item = "(" + item + ")";
       } else {
-        return sanitized;
+        item = this._sanitizeName(item, "field name");
+        if (this.options.autoQuoteFieldNames) {
+          item = "" + this.options.nameQuoteCharacter + item + this.options.nameQuoteCharacter;
+        }
       }
+      return item;
     };
 
     BaseBuilder.prototype._sanitizeTable = function(item, allowNested) {

@@ -159,12 +159,14 @@ class cls.BaseBuilder extends cls.Cloneable
     value
 
   _sanitizeField: (item) ->
-    sanitized = @_sanitizeName item, "field name"
-
-    if @options.autoQuoteFieldNames
-      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+    if item instanceof cls.QueryBuilder
+      item = "(#{item})"
     else
-      sanitized
+      item = @_sanitizeName item, "field name"
+      if @options.autoQuoteFieldNames
+        item = "#{@options.nameQuoteCharacter}#{item}#{@options.nameQuoteCharacter}"
+
+    item
 
   _sanitizeTable: (item, allowNested = false) ->
     if allowNested
