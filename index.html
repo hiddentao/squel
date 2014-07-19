@@ -73,7 +73,7 @@
         </a>
         <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
           <p class="label">Development version</p>
-          <p class="stats">(~47 KB)</p>
+          <p class="stats">(~44 KB)</p>
         </a>
       </div>
 
@@ -608,6 +608,20 @@
             /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE, level = (SELECT MAX(level) FROM levels) */
         </pre>
 
+        <p>You can turn off automatic quoting on a per-field basis:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("time", "GETDATE()", {
+                        dontQuote: true
+                    })
+                    .set("city", "London")
+            );
+            /*  UPDATE students SET time = GETDATE(), city = "London" */
+        </pre>
+
       <p>You can even use <code>NULL</code> values:</p>
 
         <pre class="brush: js">
@@ -763,6 +777,20 @@
                 VALUES ('Thomas', 29, 90.2, TRUE, NULL, (SELECT MAX(level) FROM levels)) */
         </pre>
 
+        <p>You can turn off automatic quoting on a per-field basis:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.insert()
+                    .into("students")
+                    .set("time", "GETDATE()", {
+                        dontQuote: true
+                    })
+                    .set("city", "London")
+            );
+            /*  INSERT INTO students (time, city) VALUES(GETDATE(), "London") */
+        </pre>
+
         <h3>Multiple fields and rows</h3>
 
         <p>You can set multiple fields in a single call:</p>
@@ -902,14 +930,28 @@
       <pre class="brush: js">
         alert(
           squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
-            .from("students")
-            .field("name", "Student name")
+            .from("students", "s")
+            .field("s.name", "Student name")
         );
 
-        /*   SELECT `name` AS "Student name" FROM `students`  */
+        /*   SELECT `s`.`name` AS "Student name" FROM `students` `s`  */
+      </pre>
+
+      <p>Notice how squel was smart enough to detect the period separator within <code>s.name</code> when quoting. 
+      You can turn off this behaviour if you wish:</p>
+
+      <pre class="brush: js">
+        alert(
+          squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
+            .from("students", "s")
+            .field("s.name", "Student name", { ignorePeriodsForFieldNameQuotes: true })
+        );
+
+        /*   SELECT `s.name` AS "Student name" FROM `students` `s`  */
       </pre>
 
       <p>You can also customize the quote character using the <code>nameQuoteCharacter</code> option:</p>
+
 
       <pre class="brush: js">
         alert(
@@ -1333,20 +1375,52 @@
       nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
       <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
       version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
-        <a href="http://www.postgresql.org/">Postgres</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL:</p>
+        <a href="http://www.postgresql.org/">Postgres</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL.</p>
+
+        <h3>Postgres</h3>
+
+        The <code>postgres</code> flavor uses numbered query parameters by default. It also provides the <code>RETURNING</code> clause:
 
       <pre class="brush: js">
-        /* Tell squel to use the Postgres flavour */
         squel.useFlavour('postgres');
+
+        alert(JSON.stringify(
+          squel.insert()
+            .into('table')
+            .set('field', 5)
+            .returning('*')
+            .toParam()
+        ));
+
+        /*  
+            {
+                text: 'INSERT INTO table (field) VALUES ($1) RETURNING *'
+                values: [5]
+            }
+        */
+      </pre>
+
+        <h3>MySQL</h3>
+
+        The <code>mysql</code> flavour provides the <code>ON DUPLICATE KEY UPDATE</code> clause:
+
+      <pre class="brush: js">
+        squel.useFlavour('mysql');
 
         alert(
           squel.insert()
             .into('table')
-            .set('field', 1)
-            .returning('*')
+            .setFields({
+                field1: 'abc',
+                field2: 3
+            }, {
+                duplicateKeyUpdate: {
+                    field1: 5
+                }
+            })
         );
 
-        /*  INSERT INTO table (field) VALUES (1) RETURNING *  */
+        /*  INSERT INTO table (field1, field2) VALUES ('abc', 3) ON DUPLICATE KEY UPDATE field1 = 5 */
       </pre>
 
       <p>The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</p>
