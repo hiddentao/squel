@@ -561,10 +561,17 @@
                 type: 'Any',
                 desc: 'Value to set to field.'
               },
+              options: {
+                flavours: ['mysql'],
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
               'options.duplicateKeyUpdate': {
                 flavours: ['mysql'],
                 type: 'Any',
-                desc: 'Value to set to field using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.'
+                desc: 'Value to set to field using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.',
+                defaultValue: 'null',
               }
             },
             returns: 'this'
@@ -575,6 +582,18 @@
               fields: {
                 desc: 'Field-value pairs.',
                 type: 'Object'
+              },
+              options: {
+                flavours: ['mysql'],
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.duplicateKeyUpdate': {
+                flavours: ['mysql'],
+                type: 'Object',
+                desc: 'Key-value pairs specifying value to set to fields using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.',
+                defaultValue: 'null',
               }
             },
             returns: 'this'
@@ -585,6 +604,18 @@
               fields: {
                 desc: 'An array of objects, where each object is map of field-value pairs for that row',
                 type: 'Array'
+              },
+              options: {
+                flavours: ['mysql'],
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.duplicateKeyUpdate': {
+                flavours: ['mysql'],
+                type: 'Object',
+                desc: 'Key-value pairs specifying value to set to fields using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.',
+                defaultValue: 'null',
               }
             },
             returns: 'this'
