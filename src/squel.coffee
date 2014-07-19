@@ -37,6 +37,13 @@ _extend = (dst, sources...) ->
                     dst[k] = v
     dst
 
+# Get a copy of given object with given properties removed
+_without = (obj, properties...) ->
+  dst = _extend {}, obj
+  for p in properties
+    delete dst[p]
+  dst
+
 
 
 # Default query builder options
@@ -158,13 +165,23 @@ class cls.BaseBuilder extends cls.Cloneable
       throw new Error "#{type} must be a string"
     value
 
-  _sanitizeField: (item) ->
+  _sanitizeField: (item, formattingOptions = {}) ->
     if item instanceof cls.QueryBuilder
       item = "(#{item})"
     else
       item = @_sanitizeName item, "field name"
       if @options.autoQuoteFieldNames
-        item = "#{@options.nameQuoteCharacter}#{item}#{@options.nameQuoteCharacter}"
+        quoteChar = @options.nameQuoteCharacter
+
+        if formattingOptions.ignorePeriodsForFieldNameQuotes
+          # a.b.c -> `a.b.c`
+          item = "#{quoteChar}#{item}#{quoteChar}"
+        else
+          # a.b.c -> `a`.`b`.`c`
+          item = item
+            .split('.')
+            .map( (v) -> "#{quoteChar}#{v}#{quoteChar}" )
+            .join('.')
 
     item
 
@@ -179,7 +196,6 @@ class cls.BaseBuilder extends cls.Cloneable
         throw new Error "table name must be a string or a nestable query instance"
     else
       sanitized = @_sanitizeName item, 'table name'
-
 
     if @options.autoQuoteTableNames
       "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
@@ -248,9 +264,7 @@ class cls.BaseBuilder extends cls.Cloneable
       @_formatCustomValue(value)
 
   # Format the given field value for inclusion into the query string
-  _formatValue: (value, formattingOptions) ->
-    formattingOptions or= {}
-
+  _formatValue: (value, formattingOptions = {}) ->
     value = @_formatCustomValue(value)
 
     if null is value
@@ -596,9 +610,11 @@ class cls.GetFieldBlock extends cls.Block
   # as the values. If the value for a key is null then no alias is set for that field.
   #
   # Internally this method simply calls the field() method of this block to add each individual field.
-  fields: (_fields) ->
+  # 
+  # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
+  fields: (_fields, options = {}) ->
     for field, alias of _fields
-      @field(field, alias)
+      @field(field, alias, options)
 
 
   # Add the given field to the final result set.
@@ -607,8 +623,10 @@ class cls.GetFieldBlock extends cls.Block
   # e.g. DATE_FORMAT(a.started, "%H")
   #
   # An alias may also be specified for this field.
-  field: (field, alias = null) ->
-    field = @_sanitizeField(field)
+  # 
+  # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
+  field: (field, alias = null, options = {}) ->
+    field = @_sanitizeField(field, options)
     alias = @_sanitizeFieldAlias(alias) if alias
 
     @_fields.push
@@ -636,20 +654,18 @@ class cls.AbstractSetFieldBlock extends cls.Block
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
-  set: (field, value, options) ->
+  set: (field, value, options = {}) ->
     throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
-
-    options or= {}
 
     value = @_sanitizeValue(value) if undefined isnt value
 
     # Explicity overwrite existing fields
-    index = @fields.indexOf(@_sanitizeField(field))
+    index = @fields.indexOf(@_sanitizeField(field, options))
     if index isnt -1
       @values[0][index] = value
       @fieldOptions[0][index] = options
     else
-      @fields.push @_sanitizeField(field)
+      @fields.push @_sanitizeField(field, options)
       index = @fields.length - 1
 
       # The first value added needs to create the array of values for the row
@@ -664,20 +680,18 @@ class cls.AbstractSetFieldBlock extends cls.Block
 
 
   # Insert fields based on the key/value pairs in the given object
-  setFields: (fields) ->
+  setFields: (fields, options = {}) ->
     throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
 
     for own field of fields
-      @set field, fields[field]
+      @set field, fields[field], options
     @
 
 
   # Insert multiple rows for the given fields. Accepts an array of objects.
   # This will override all previously set values for every field.
-  setFieldsRows: (fieldsRows) ->
+  setFieldsRows: (fieldsRows, options = {}) ->
     throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
-
-    fieldOptions = {}
 
     # Reset the objects stored fields and values
     @fields = []
@@ -685,12 +699,12 @@ class cls.AbstractSetFieldBlock extends cls.Block
     for i in [0...fieldsRows.length]
       for own field of fieldsRows[i]
 
-        index = @fields.indexOf(@_sanitizeField(field))
+        index = @fields.indexOf(@_sanitizeField(field, options))
         throw new Error 'All fields in subsequent rows must match the fields in the first row' if 0 < i and -1 is index
 
         # Add field only if it hasn't been added before
         if -1 is index
-          @fields.push @_sanitizeField(field) 
+          @fields.push @_sanitizeField(field, options) 
           index = @fields.length - 1
 
         value = @_sanitizeValue(fieldsRows[i][field])
@@ -698,10 +712,10 @@ class cls.AbstractSetFieldBlock extends cls.Block
         # The first value added needs to add the array
         if Array.isArray(@values[i])
           @values[i][index] = value
-          @fieldOptions[i][index] = fieldOptions
+          @fieldOptions[i][index] = options
         else
           @values[i] = [value]
-          @fieldOptions[i] = [fieldOptions]
+          @fieldOptions[i] = [options]
     @
 
   buildStr: ->

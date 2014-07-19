@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2, _ref3, _ref4,
+  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2, _ref3, _ref4, _without,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -46,6 +46,17 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
         }
       }
+    }
+    return dst;
+  };
+
+  _without = function() {
+    var dst, obj, p, properties, _i, _len;
+    obj = arguments[0], properties = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    dst = _extend({}, obj);
+    for (_i = 0, _len = properties.length; _i < _len; _i++) {
+      p = properties[_i];
+      delete dst[p];
     }
     return dst;
   };
@@ -161,13 +172,24 @@ OTHER DEALINGS IN THE SOFTWARE.
       return value;
     };
 
-    BaseBuilder.prototype._sanitizeField = function(item) {
+    BaseBuilder.prototype._sanitizeField = function(item, formattingOptions) {
+      var quoteChar;
+      if (formattingOptions == null) {
+        formattingOptions = {};
+      }
       if (item instanceof cls.QueryBuilder) {
         item = "(" + item + ")";
       } else {
         item = this._sanitizeName(item, "field name");
         if (this.options.autoQuoteFieldNames) {
-          item = "" + this.options.nameQuoteCharacter + item + this.options.nameQuoteCharacter;
+          quoteChar = this.options.nameQuoteCharacter;
+          if (formattingOptions.ignorePeriodsForFieldNameQuotes) {
+            item = "" + quoteChar + item + quoteChar;
+          } else {
+            item = item.split('.').map(function(v) {
+              return "" + quoteChar + v + quoteChar;
+            }).join('.');
+          }
         }
       }
       return item;
@@ -267,7 +289,9 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
-      formattingOptions || (formattingOptions = {});
+      if (formattingOptions == null) {
+        formattingOptions = {};
+      }
       value = this._formatCustomValue(value);
       if (null === value) {
         value = "NULL";
@@ -643,21 +667,27 @@ OTHER DEALINGS IN THE SOFTWARE.
       this._fields = [];
     }
 
-    GetFieldBlock.prototype.fields = function(_fields) {
+    GetFieldBlock.prototype.fields = function(_fields, options) {
       var alias, field, _results;
+      if (options == null) {
+        options = {};
+      }
       _results = [];
       for (field in _fields) {
         alias = _fields[field];
-        _results.push(this.field(field, alias));
+        _results.push(this.field(field, alias, options));
       }
       return _results;
     };
 
-    GetFieldBlock.prototype.field = function(field, alias) {
+    GetFieldBlock.prototype.field = function(field, alias, options) {
       if (alias == null) {
         alias = null;
       }
-      field = this._sanitizeField(field);
+      if (options == null) {
+        options = {};
+      }
+      field = this._sanitizeField(field, options);
       if (alias) {
         alias = this._sanitizeFieldAlias(alias);
       }
@@ -704,19 +734,21 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     AbstractSetFieldBlock.prototype.set = function(field, value, options) {
       var index;
+      if (options == null) {
+        options = {};
+      }
       if (this.values.length > 1) {
         throw new Error("Cannot call set or setFields on multiple rows of fields.");
       }
-      options || (options = {});
       if (void 0 !== value) {
         value = this._sanitizeValue(value);
       }
-      index = this.fields.indexOf(this._sanitizeField(field));
+      index = this.fields.indexOf(this._sanitizeField(field, options));
       if (index !== -1) {
         this.values[0][index] = value;
         this.fieldOptions[0][index] = options;
       } else {
-        this.fields.push(this._sanitizeField(field));
+        this.fields.push(this._sanitizeField(field, options));
         index = this.fields.length - 1;
         if (Array.isArray(this.values[0])) {
           this.values[0][index] = value;
@@ -729,45 +761,50 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFields = function(fields) {
+    AbstractSetFieldBlock.prototype.setFields = function(fields, options) {
       var field;
+      if (options == null) {
+        options = {};
+      }
       if (typeof fields !== 'object') {
         throw new Error("Expected an object but got " + typeof fields);
       }
       for (field in fields) {
         if (!__hasProp.call(fields, field)) continue;
-        this.set(field, fields[field]);
+        this.set(field, fields[field], options);
       }
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows) {
-      var field, fieldOptions, i, index, value, _i, _ref3, _ref4;
+    AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+      var field, i, index, value, _i, _ref3, _ref4;
+      if (options == null) {
+        options = {};
+      }
       if (!Array.isArray(fieldsRows)) {
         throw new Error("Expected an array of objects but got " + typeof fieldsRows);
       }
-      fieldOptions = {};
       this.fields = [];
       this.values = [];
       for (i = _i = 0, _ref3 = fieldsRows.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
         _ref4 = fieldsRows[i];
         for (field in _ref4) {
           if (!__hasProp.call(_ref4, field)) continue;
-          index = this.fields.indexOf(this._sanitizeField(field));
+          index = this.fields.indexOf(this._sanitizeField(field, options));
           if (0 < i && -1 === index) {
             throw new Error('All fields in subsequent rows must match the fields in the first row');
           }
           if (-1 === index) {
-            this.fields.push(this._sanitizeField(field));
+            this.fields.push(this._sanitizeField(field, options));
             index = this.fields.length - 1;
           }
           value = this._sanitizeValue(fieldsRows[i][field]);
           if (Array.isArray(this.values[i])) {
             this.values[i][index] = value;
-            this.fieldOptions[i][index] = fieldOptions;
+            this.fieldOptions[i][index] = options;
           } else {
             this.values[i] = [value];
-            this.fieldOptions[i] = [fieldOptions];
+            this.fieldOptions[i] = [options];
           }
         }
       }

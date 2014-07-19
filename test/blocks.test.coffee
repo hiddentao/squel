@@ -392,11 +392,11 @@ test['Blocks'] =
       'saves inputs': ->
         fieldSpy = test.mocker.spy(@inst, 'field')
 
-        @inst.fields(
+        @inst.fields({
           'field1': null
           'field2': 'alias2'
           'field3': null
-        )
+        }, { dummy: true})
 
         expected = [
           {
@@ -414,9 +414,9 @@ test['Blocks'] =
         ]
 
         assert.ok fieldSpy.calledThrice
-        assert.ok fieldSpy.calledWithExactly('field1', null)
-        assert.ok fieldSpy.calledWithExactly('field2', 'alias2')
-        assert.ok fieldSpy.calledWithExactly('field3', null)
+        assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
+        assert.ok fieldSpy.calledWithExactly('field2', 'alias2', dummy: true)
+        assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
 
         assert.same expected, @inst._fields
 
@@ -447,9 +447,9 @@ test['Blocks'] =
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeFieldAlias', -> return '_a'
 
-        @inst.field('field1', 'alias1')
+        @inst.field('field1', 'alias1', { dummy: true})
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', { dummy: true }
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
 
         assert.same [ { name: '_f', alias: '_a' } ], @inst._fields
@@ -513,9 +513,9 @@ test['Blocks'] =
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        @inst.set('field1', 'value1')
+        @inst.set('field1', 'value1', dummy: true)
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
 
         assert.same [ '_f' ], @inst.fields
@@ -541,9 +541,9 @@ test['Blocks'] =
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        @inst.setFields('field1': 'value1')
+        @inst.setFields({'field1': 'value1'}, {dummy: true})
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
 
         assert.same [ '_f' ], @inst.fields
@@ -583,9 +583,9 @@ test['Blocks'] =
           {
             'field1': 'value21'
           }
-        ]
+        ], { dummy: true }
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', { dummy: true }
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
         assert.ok sanitizeValueSpy.calledWithExactly 'value21'
 

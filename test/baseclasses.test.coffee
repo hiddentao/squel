@@ -290,11 +290,14 @@ test['Builder base class'] =
         @inst.options.autoQuoteFieldNames = true
 
       'default quote character': ->
-        assert.same '`abc`', @inst._sanitizeField('abc')
+        assert.same '`abc`.`def`', @inst._sanitizeField('abc.def')
 
       'custom quote character': ->
         @inst.options.nameQuoteCharacter = '|'
-        assert.same '|abc|', @inst._sanitizeField('abc')
+        assert.same '|abc|.|def|', @inst._sanitizeField('abc.def')
+
+      'ignore periods when quoting': ->
+        assert.same '`abc.def`', @inst._sanitizeField('abc.def', ignorePeriodsForFieldNameQuotes: true)
 
     'QueryBuilder': ->
       s = squel.select().from('scores').field('MAX(score)')

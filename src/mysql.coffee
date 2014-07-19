@@ -35,33 +35,27 @@ squel.flavours['mysql'] = ->
       @_duplicateKeyUpdates = {}
 
     # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
-    set: (field, value, options) ->
-      super field, value, options
+    set: (field, value, options = {}) ->
+      super field, value, _without(options, 'duplicateKeyUpdate')
       @_duplicateKeyUpdates[field] = @_sanitizeValue(options.duplicateKeyUpdate) if options?.duplicateKeyUpdate isnt undefined
       @
 
     # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
-    setFields: (fields, options) ->
-      super fields, options
+    setFields: (fields, options = {}) ->
+      super fields, _without(options, 'duplicateKeyUpdate')
 
-      options or= {}
-
-      if options.duplicateKeyUpdate?
-        for field,value of options.duplicateKeyUpdate
-          @_duplicateKeyUpdates[field] = @_sanitizeValue(value)
+      for field,value of options.duplicateKeyUpdate
+        @_duplicateKeyUpdates[field] = @_sanitizeValue(value)
 
       @
 
 
     # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
-    setFieldsRows: (fieldsRows, options) ->
-      super fieldsRows, options
+    setFieldsRows: (fieldsRows, options = {}) ->
+      super fieldsRows, _without(options, 'duplicateKeyUpdate')
 
-      options or= {}
-
-      if options.duplicateKeyUpdate?
-        for field,value of options.duplicateKeyUpdate
-          @_duplicateKeyUpdates[field] = @_sanitizeValue(value)
+      for field,value of options.duplicateKeyUpdate
+        @_duplicateKeyUpdates[field] = @_sanitizeValue(value)
 
       @
 
