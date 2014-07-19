@@ -12,7 +12,7 @@ Issues and merge requests should be in English and contain appropriate language 
 
 We will only accept a merge requests which meets the following criteria:
 
-* Squel.js and squel.min.js have been rebuilt using `grunt build`.
+* Squel.js and squel.min.js have been rebuilt using `npm run build`.
 * Includes proper tests and all tests pass (unless it contains a test exposing a bug in existing code)
 * Can be merged without problems (if not please use: `git rebase master`)
 * Does not break any existing functionality

@@ -1,7 +1,7 @@
 {
   "name": "squel",
   "description": "SQL query string builder",
-  "version": "3.4.2",
+  "version": "3.5.0",
   "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
   "contributors": [
     "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
@@ -10,7 +10,6 @@
   "dependencies": {},
   "devDependencies": {
     "coffee-script": "~1.6.3",
-    "docco": "0.6.x",
     "uglify-js": "1.3.x",
     "chai": "1.5.x",
     "mocha": "1.9.x",

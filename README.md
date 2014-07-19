@@ -330,10 +330,6 @@ To build the code and run the tests:
     $ npm install
     $ grunt <-- this will build the code and run the tests
 
-To build annotated source code docs into the `docs/` folder:
-
-    $ grunt docs
-
 
 ## Contributing
 

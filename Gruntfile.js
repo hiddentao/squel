@@ -65,18 +65,8 @@ module.exports = function (grunt) {
         },
         src: ['test/*.test.coffee']
       }
-    },
-    shell: {
-      docs: {
-        command: 'node_modules/.bin/docco src/*.coffee'
-      }
     }
   });
-
-
-  grunt.registerTask('docs', [
-    'shell:docs'
-  ]);
 
 
   grunt.registerTask('build', [
