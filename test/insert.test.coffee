@@ -85,6 +85,16 @@ test['INSERT builder'] =
             values: [ 1, 'str' ]
           }
 
+      '>> set(field2, "str", { dontQuote: true } )':
+        beforeEach: -> @inst.set('field2', 'str', dontQuote: true)
+        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
+        toParam: ->
+          assert.same @inst.toParam(), {
+            text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
+            values: [ 1, 'str' ]
+          }
+
       '>> set(field2, true)':
         beforeEach: -> @inst.set('field2', true)
         toString: ->

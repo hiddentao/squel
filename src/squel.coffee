@@ -248,7 +248,9 @@ class cls.BaseBuilder extends cls.Cloneable
       @_formatCustomValue(value)
 
   # Format the given field value for inclusion into the query string
-  _formatValue: (value) ->
+  _formatValue: (value, formattingOptions) ->
+    formattingOptions or= {}
+
     value = @_formatCustomValue(value)
 
     if null is value
@@ -259,7 +261,7 @@ class cls.BaseBuilder extends cls.Cloneable
       value = "(#{value})"
     else if "number" isnt typeof value
       value = @_escapeValue(value)
-      value = "'#{value}'"
+      value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
 
     value
 
@@ -628,13 +630,16 @@ class cls.GetFieldBlock extends cls.Block
 class cls.AbstractSetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
+    @fieldOptions = []
     @fields = []
     @values = []
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
-  set: (field, value) ->
+  set: (field, value, options) ->
     throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
+
+    options or= {}
 
     value = @_sanitizeValue(value) if undefined isnt value
 
@@ -642,6 +647,7 @@ class cls.AbstractSetFieldBlock extends cls.Block
     index = @fields.indexOf(@_sanitizeField(field))
     if index isnt -1
       @values[0][index] = value
+      @fieldOptions[0][index] = options
     else
       @fields.push @_sanitizeField(field)
       index = @fields.length - 1
@@ -649,8 +655,11 @@ class cls.AbstractSetFieldBlock extends cls.Block
       # The first value added needs to create the array of values for the row
       if Array.isArray(@values[0])
         @values[0][index] = value
+        @fieldOptions[0][index] = options
       else
         @values.push [value]
+        @fieldOptions.push [options]
+
     @
 
 
@@ -667,6 +676,8 @@ class cls.AbstractSetFieldBlock extends cls.Block
   # This will override all previously set values for every field.
   setFieldsRows: (fieldsRows) ->
     throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
+
+    fieldOptions = {}
 
     # Reset the objects stored fields and values
     @fields = []
@@ -687,8 +698,10 @@ class cls.AbstractSetFieldBlock extends cls.Block
         # The first value added needs to add the array
         if Array.isArray(@values[i])
           @values[i][index] = value
+          @fieldOptions[i][index] = fieldOptions
         else
           @values[i] = [value]
+          @fieldOptions[i] = [fieldOptions]
     @
 
   buildStr: ->
@@ -713,10 +726,11 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
       field = @fields[i]
       str += ", " if "" isnt str
       value = @values[0][i]
+      fieldOptions = @fieldOptions[0][i]
       if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
         str += field
       else
-        str += "#{field} = #{@_formatValue(value)}"
+        str += "#{field} = #{@_formatValue(value, fieldOptions)}"
 
     "SET #{str}"
 
@@ -747,7 +761,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
     vals = []
     for i in [0...@values.length]
       for j in [0...@values[i].length]
-        formattedValue = @_formatValue(@values[i][j])
+        formattedValue = @_formatValue @values[i][j], @fieldOptions[i][j]
         if 'string' is typeof vals[i]
           vals[i] += ', ' + formattedValue          
         else 

@@ -488,21 +488,26 @@ test['Blocks'] =
     'initial fields': ->
       assert.same [], @inst.fields
 
+    'initial field options': ->
+      assert.same [], @inst.fieldOptions
+
     'initial values': ->
       assert.same [], @inst.values
 
     'set()':
       'saves inputs': ->
-        @inst.set('field1', 'value1')
-        @inst.set('field2', 'value2')
-        @inst.set('field3', 'value3')
+        @inst.set('field1', 'value1', dummy: 1)
+        @inst.set('field2', 'value2', dummy: 2)
+        @inst.set('field3', 'value3', dummy: 3)
         @inst.set('field4')
 
         expectedFields = [ 'field1', 'field2', 'field3', 'field4' ]
         expectedValues = [ [ 'value1', 'value2', 'value3', undefined ] ]
+        expectedFieldOptions = [ [ {dummy: 1}, {dummy: 2}, {dummy: 3}, {} ] ]
 
         assert.same expectedFields, @inst.fields
         assert.same expectedValues, @inst.values
+        assert.same expectedFieldOptions, @inst.fieldOptions
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
@@ -516,6 +521,7 @@ test['Blocks'] =
         assert.same [ '_f' ], @inst.fields
         assert.same [ [ '_v' ] ], @inst.values
 
+
     'setFields()':
       'saves inputs': ->
         @inst.setFields
@@ -525,9 +531,11 @@ test['Blocks'] =
 
         expectedFields = [ 'field1', 'field2', 'field3' ]
         expectedValues = [ [ 'value1', 'value2', 'value3'] ]
+        expectedFieldOptions = [ [ {}, {}, {} ] ]
 
         assert.same expectedFields, @inst.fields
         assert.same expectedValues, @inst.values
+        assert.same expectedFieldOptions, @inst.fieldOptions
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
@@ -558,9 +566,11 @@ test['Blocks'] =
 
         expectedFields = [ 'field1', 'field2', 'field3' ]
         expectedValues = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
+        expectedFieldOptions = [ [ {}, {}, {} ], [ {}, {}, {} ] ]
 
         assert.same expectedFields, @inst.fields
         assert.same expectedValues, @inst.values
+        assert.same expectedFieldOptions, @inst.fieldOptions
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
@@ -608,6 +618,9 @@ test['Blocks'] =
       assert.ok spy.calledWithExactly
         dummy:true
 
+    'initial field options': ->
+      assert.same [], @inst.fieldOptions
+
     'initial fields': ->
       assert.same [], @inst.fields
 
@@ -640,13 +653,14 @@ test['Blocks'] =
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+        @inst.fieldOptions = [ [ {dummy: true}, {dummy: false}, {} ] ]
 
         assert.same 'SET field1 = [value1], field2 = [value2], field3 = [value3]', @inst.buildStr()
 
         assert.ok formatValueSpy.calledThrice
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
+        assert.ok formatValueSpy.calledWithExactly 'value1', { dummy: true }
+        assert.ok formatValueSpy.calledWithExactly 'value2', { dummy: false }
+        assert.ok formatValueSpy.calledWithExactly 'value3', {}
 
     'buildParam()':
       'needs at least one field to have been provided': ->
@@ -724,13 +738,17 @@ test['Blocks'] =
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
+        @inst.fieldOptions = [ [ {}, {}, {} ], [ {}, {}, { dummy: 23 } ] ]
 
         assert.same '(field1, field2, field3) VALUES ([value1], [value2], [value3]), ([value21], [value22], [value23])', @inst.buildStr()
 
         assert.same formatValueSpy.callCount, 6
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
+        assert.ok formatValueSpy.calledWithExactly 'value1', {}
+        assert.ok formatValueSpy.calledWithExactly 'value2', {}
+        assert.ok formatValueSpy.calledWithExactly 'value3', {}
+        assert.ok formatValueSpy.calledWithExactly 'value21', {}
+        assert.ok formatValueSpy.calledWithExactly 'value22', {}
+        assert.ok formatValueSpy.calledWithExactly 'value23', { dummy: 23 }
 
     'buildParam()':
       'needs at least one field to have been provided': ->

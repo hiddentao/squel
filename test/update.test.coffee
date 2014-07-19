@@ -90,6 +90,16 @@ test['UPDATE builder'] =
             values: [1, 'str']
           }
 
+      '>> set(field2, "str", { dontQuote: true })':
+        beforeEach: -> @inst.set('field2', 'str', dontQuote: true)
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = str'
+        toParam: ->
+          assert.same @inst.toParam(), {
+            text: 'UPDATE table `t1` SET field = ?, field2 = ?'
+            values: [1, 'str']
+          }
+
       '>> set(field, query builder)':
         beforeEach: -> 
           @subQuery = squel.select().field('MAX(score)').from('scores')

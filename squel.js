@@ -266,7 +266,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
     };
 
-    BaseBuilder.prototype._formatValue = function(value) {
+    BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
+      formattingOptions || (formattingOptions = {});
       value = this._formatCustomValue(value);
       if (null === value) {
         value = "NULL";
@@ -276,7 +277,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         value = "(" + value + ")";
       } else if ("number" !== typeof value) {
         value = this._escapeValue(value);
-        value = "'" + value + "'";
+        value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
       }
       return value;
     };
@@ -696,28 +697,33 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function AbstractSetFieldBlock(options) {
       AbstractSetFieldBlock.__super__.constructor.call(this, options);
+      this.fieldOptions = [];
       this.fields = [];
       this.values = [];
     }
 
-    AbstractSetFieldBlock.prototype.set = function(field, value) {
+    AbstractSetFieldBlock.prototype.set = function(field, value, options) {
       var index;
       if (this.values.length > 1) {
         throw new Error("Cannot call set or setFields on multiple rows of fields.");
       }
+      options || (options = {});
       if (void 0 !== value) {
         value = this._sanitizeValue(value);
       }
       index = this.fields.indexOf(this._sanitizeField(field));
       if (index !== -1) {
         this.values[0][index] = value;
+        this.fieldOptions[0][index] = options;
       } else {
         this.fields.push(this._sanitizeField(field));
         index = this.fields.length - 1;
         if (Array.isArray(this.values[0])) {
           this.values[0][index] = value;
+          this.fieldOptions[0][index] = options;
         } else {
           this.values.push([value]);
+          this.fieldOptions.push([options]);
         }
       }
       return this;
@@ -736,10 +742,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows) {
-      var field, i, index, value, _i, _ref3, _ref4;
+      var field, fieldOptions, i, index, value, _i, _ref3, _ref4;
       if (!Array.isArray(fieldsRows)) {
         throw new Error("Expected an array of objects but got " + typeof fieldsRows);
       }
+      fieldOptions = {};
       this.fields = [];
       this.values = [];
       for (i = _i = 0, _ref3 = fieldsRows.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
@@ -757,8 +764,10 @@ OTHER DEALINGS IN THE SOFTWARE.
           value = this._sanitizeValue(fieldsRows[i][field]);
           if (Array.isArray(this.values[i])) {
             this.values[i][index] = value;
+            this.fieldOptions[i][index] = fieldOptions;
           } else {
             this.values[i] = [value];
+            this.fieldOptions[i] = [fieldOptions];
           }
         }
       }
@@ -790,7 +799,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
-      var field, i, str, value, _i, _ref4;
+      var field, fieldOptions, i, str, value, _i, _ref4;
       if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
@@ -801,10 +810,11 @@ OTHER DEALINGS IN THE SOFTWARE.
           str += ", ";
         }
         value = this.values[0][i];
+        fieldOptions = this.fieldOptions[0][i];
         if (typeof value === 'undefined') {
           str += field;
         } else {
-          str += "" + field + " = " + (this._formatValue(value));
+          str += "" + field + " = " + (this._formatValue(value, fieldOptions));
         }
       }
       return "SET " + str;
@@ -856,7 +866,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       vals = [];
       for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
         for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
-          formattedValue = this._formatValue(this.values[i][j]);
+          formattedValue = this._formatValue(this.values[i][j], this.fieldOptions[i][j]);
           if ('string' === typeof vals[i]) {
             vals[i] += ', ' + formattedValue;
           } else {
@@ -1656,7 +1666,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
 
       MysqlInsertFieldValueBlock.prototype.set = function(field, value, options) {
-        MysqlInsertFieldValueBlock.__super__.set.call(this, field, value);
+        MysqlInsertFieldValueBlock.__super__.set.call(this, field, value, options);
         if ((options != null ? options.duplicateKeyUpdate : void 0) !== void 0) {
           this._duplicateKeyUpdates[field] = this._sanitizeValue(options.duplicateKeyUpdate);
         }
@@ -1665,7 +1675,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       MysqlInsertFieldValueBlock.prototype.setFields = function(fields, options) {
         var field, value, _ref5;
-        MysqlInsertFieldValueBlock.__super__.setFields.call(this, fields);
+        MysqlInsertFieldValueBlock.__super__.setFields.call(this, fields, options);
         options || (options = {});
         if (options.duplicateKeyUpdate != null) {
           _ref5 = options.duplicateKeyUpdate;
@@ -1679,7 +1689,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       MysqlInsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
         var field, value, _ref5;
-        MysqlInsertFieldValueBlock.__super__.setFieldsRows.call(this, fieldsRows);
+        MysqlInsertFieldValueBlock.__super__.setFieldsRows.call(this, fieldsRows, options);
         options || (options = {});
         if (options.duplicateKeyUpdate != null) {
           _ref5 = options.duplicateKeyUpdate;

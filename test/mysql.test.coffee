@@ -33,6 +33,49 @@ test = testCreator()
 test['MySQL flavour'] =
   beforeEach: -> squel.useFlavour 'mysql'
 
+  'MysqlInsertFieldValueBlock':
+    beforeEach: ->
+      @cls = squel.cls.MysqlInsertFieldValueBlock
+      @inst = new @cls()
+
+    'instanceof of InsertFieldValueBlock': ->
+      assert.instanceOf @inst, squel.cls.InsertFieldValueBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.InsertFieldValueBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'set()':
+      'calls base class': ->
+        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'set'
+
+        @inst.set 'f', 'v', dummy: true
+
+        assert.ok spy.calledWithExactly('f', 'v', dummy: true)
+
+    'setFields()':
+      'calls base class': ->
+        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'setFields'
+
+        @inst.setFields({ 'f': 'v'}, { dummy: true })
+
+        assert.ok spy.calledWithExactly({ 'f': 'v'}, { dummy: true })
+
+    'setFieldsRows()':
+      'calls base class': ->
+        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'setFieldsRows'
+
+        @inst.setFieldsRows([{ 'f': 'v'}], { dummy: true })
+
+        assert.ok spy.calledWithExactly([{ 'f': 'v'}], { dummy: true })
+
+
+
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 

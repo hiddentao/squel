@@ -569,6 +569,16 @@ test['Builder base class'] =
       escapedValue = 'blah'
       assert.same "'blah'", @inst._formatValue('test')
 
+    'string - dont quote': ->
+      escapedValue = undefined
+      test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+
+      assert.same "test", @inst._formatValue('test', dontQuote: true )
+
+      assert.ok @inst._escapeValue.calledWithExactly('test')
+      escapedValue = 'blah'
+      assert.same "blah", @inst._formatValue('test', dontQuote: true )
+
     'QueryBuilder': ->
       s = squel.select().from('table')
       assert.same '(SELECT * FROM table)', @inst._formatValue(s)

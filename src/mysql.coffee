@@ -36,13 +36,13 @@ squel.flavours['mysql'] = ->
 
     # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
     set: (field, value, options) ->
-      super field, value
+      super field, value, options
       @_duplicateKeyUpdates[field] = @_sanitizeValue(options.duplicateKeyUpdate) if options?.duplicateKeyUpdate isnt undefined
       @
 
     # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
     setFields: (fields, options) ->
-      super fields
+      super fields, options
 
       options or= {}
 
@@ -55,7 +55,7 @@ squel.flavours['mysql'] = ->
 
     # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
     setFieldsRows: (fieldsRows, options) ->
-      super fieldsRows
+      super fieldsRows, options
 
       options or= {}
 
