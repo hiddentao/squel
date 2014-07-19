@@ -1663,6 +1663,34 @@ OTHER DEALINGS IN THE SOFTWARE.
         return this;
       };
 
+      MysqlInsertFieldValueBlock.prototype.setFields = function(fields, options) {
+        var field, value, _ref5;
+        MysqlInsertFieldValueBlock.__super__.setFields.call(this, fields);
+        options || (options = {});
+        if (options.duplicateKeyUpdate != null) {
+          _ref5 = options.duplicateKeyUpdate;
+          for (field in _ref5) {
+            value = _ref5[field];
+            this._duplicateKeyUpdates[field] = this._sanitizeValue(value);
+          }
+        }
+        return this;
+      };
+
+      MysqlInsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+        var field, value, _ref5;
+        MysqlInsertFieldValueBlock.__super__.setFieldsRows.call(this, fieldsRows);
+        options || (options = {});
+        if (options.duplicateKeyUpdate != null) {
+          _ref5 = options.duplicateKeyUpdate;
+          for (field in _ref5) {
+            value = _ref5[field];
+            this._duplicateKeyUpdates[field] = this._sanitizeValue(value);
+          }
+        }
+        return this;
+      };
+
       MysqlInsertFieldValueBlock.prototype.buildStr = function() {
         var str;
         str = MysqlInsertFieldValueBlock.__super__.buildStr.call(this);

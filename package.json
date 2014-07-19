@@ -33,6 +33,7 @@
   ],
   "main": "squel",
   "scripts": {
+    "test": "grunt",
     "build": "grunt"
   },
   "repository": {

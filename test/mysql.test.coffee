@@ -73,6 +73,20 @@ test['MySQL flavour'] =
         }
 
 
+    '>> into(table).setFields({ field1: 1, field2: str }, { duplicateKeyUpdate: {field2: 5} })':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFields({ field1: 1, field2: 'str' }, { duplicateKeyUpdate: { field2: 5 }})
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\') ON DUPLICATE KEY UPDATE field2 = 5'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?) ON DUPLICATE KEY UPDATE field2 = ?'
+          values: [1, 'str', 5]
+        }
+
+
     '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ])':
       beforeEach: ->
         @inst
@@ -87,6 +101,28 @@ test['MySQL flavour'] =
         assert.same @inst.toParam(), {
           text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?)'
           values: [1, 'str', 2, 'str2']
+        }
+
+
+    '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ], { duplicateKeyUpdate: {...} })':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFieldsRows([
+            { field1: 1, field2: 'str' },
+            { field1: 2, field2: 'str2' },
+          ], { 
+            duplicateKeyUpdate: { 
+              field1: 'mad'
+              field2: 5 
+            } 
+          })
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\'), (2, \'str2\') ON DUPLICATE KEY UPDATE field1 = \'mad\', field2 = 5'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?) ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?'
+          values: [1, 'str', 2, 'str2', 'mad', 5]
         }
 
 
