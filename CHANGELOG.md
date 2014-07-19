@@ -1,5 +1,12 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## TBC (3.5)
+* #82 - `ON DUPLIATE KEY UPDATE` enchancements
+* #25, #72, #73 - parameter substitution in expressions
+* #75 - disable automatic string quoting on a per-field basis
+* #55 - specify sub-query as a field
+* #80, #81 - Bugfixes
+
 ## 17 May 2014 (3.4.1)
 * #62 - can specify query separator string
 
