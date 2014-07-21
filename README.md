@@ -1,7 +1,6 @@
 # squel - SQL query string builder
 
-[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png)](http://travis-ci.org/hiddentao/squel) [![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel)
-[![NPM](https://nodei.co/npm/squel.png?stars&downloads)](https://nodei.co/npm/squel/)
+[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png?branch=master)](http://travis-ci.org/hiddentao/squel) [![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel)
 
 A flexible and powerful SQL query string builder for Javascript.
 
@@ -31,11 +30,6 @@ Use [bower](https://github.com/bower/bower) if you like:
 
     $ bower install squel
 
-Or add the following inside your HTML:
-
-```html
-<script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel-basic.min.js"></script>
-```
 **WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
 ## Available files
@@ -60,8 +54,8 @@ squel.select()
     .from("table")
     .toString()
 
-// SELECT t1.id, t1.name as "My name", t1.started as "Date" FROM table `t1` ORDER BY id ASC LIMIT 20
-squel.select()
+// SELECT `t1`.`id`, `t1`.`name` as "My name", `t1`.`started` as "Date" FROM table `t1` ORDER BY id ASC LIMIT 20
+squel.select({ autoQuoteFieldNames: true })
     .from("table", "t1")
     .field("t1.id")
     .field("t1.name", "My name")
@@ -334,10 +328,6 @@ To build the code and run the tests:
     $ npm install -g grunt-cli
     $ npm install
     $ grunt <-- this will build the code and run the tests
-
-To build annotated source code docs into the `docs/` folder:
-
-    $ grunt docs
 
 
 ## Contributing

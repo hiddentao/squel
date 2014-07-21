@@ -68,6 +68,11 @@ test['SELECT builder'] =
       toString: ->
         assert.same @inst.toString(), 'SELECT * FROM table, table2 `alias2`'
 
+      '>> field(squel.select().field("MAX(score)").FROM("scores"), fa1)':
+        beforeEach: -> @inst.field(squel.select().field("MAX(score)").from("scores"), 'fa1')
+        toString: ->
+          assert.same @inst.toString(), 'SELECT (SELECT MAX(score) FROM scores) AS "fa1" FROM table, table2 `alias2`'
+
       '>> field(field1, fa1) >> field(field2)':
         beforeEach: -> @inst.field('field1', 'fa1').field('field2')
         toString: ->
@@ -82,6 +87,18 @@ test['SELECT builder'] =
             beforeEach: -> @inst.group('field').group('field2')
             toString: ->
               assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2'
+
+            '>> where(a = ?, squel.select().field("MAX(score)").from("scores"))':
+              beforeEach: -> 
+                @subQuery = squel.select().field("MAX(score)").from("scores")
+                @inst.where('a = ?', @subQuery)
+              toString: ->
+                assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT MAX(score) FROM scores)) GROUP BY field, field2'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
+                  values: ['SELECT MAX(score) FROM scores']
+                }
 
             '>> where(a = ?, 1)':
               beforeEach: -> @inst.where('a = ?', 1)

@@ -34,10 +34,13 @@ test['Expression builder base class'] =
   beforeEach: ->
     @inst = squel.expr()
 
-  'calling toString() returns empty': ->
+  'extends BaseBuilder': ->
+    assert.ok (@inst instanceof squel.cls.BaseBuilder)
+
+  'toString() returns empty': ->
     assert.same "", @inst.toString()
 
-  'calling end() throws error': ->
+  'end() throws error': ->
     assert.throws (=> @inst.end()), 'begin() needs to be called'
 
   'when and_begin() gets called':
@@ -50,6 +53,9 @@ test['Expression builder base class'] =
     '>> toString() throws error': ->
       assert.throws (=> @inst.toString()), 'end() needs to be called'
 
+    '>> toParam() throws error': ->
+      assert.throws (=> @inst.toParam()), 'end() needs to be called'
+
     'followed by end()':
       beforeEach: ->
         @ret = @inst.end()
@@ -59,6 +65,12 @@ test['Expression builder base class'] =
 
       '>> toString() returns empty': ->
         assert.same "", @inst.toString()
+
+      '>> toParam() returns empty': ->
+        exp =
+          text: ''
+          values: []
+        assert.same exp, @inst.toParam()
 
 
   'when or_begin() gets called':
@@ -71,6 +83,9 @@ test['Expression builder base class'] =
     '>> toString() throws error': ->
       assert.throws (=> @inst.toString()), 'end() needs to be called'
 
+    '>> toParam() throws error': ->
+      assert.throws (=> @inst.toParam()), 'end() needs to be called'
+
     'followed by end()':
       beforeEach: ->
         @ret = @inst.end()
@@ -81,8 +96,14 @@ test['Expression builder base class'] =
       '>> toString() returns empty': ->
         assert.same "", @inst.toString()
 
+      '>> toParam() returns empty': ->
+        exp =
+          text: ''
+          values: []
+        assert.same exp, @inst.toParam()
 
-  'calling and()':
+
+  'and()':
     'without an argument throws an error': ->
       assert.throws (=> @inst.and()), 'expr must be a string'
     'with an array throws an error': ->
@@ -95,7 +116,7 @@ test['Expression builder base class'] =
       assert.same @inst, @inst.and('bla')
 
 
-  'calling or()':
+  'or()':
     'without an argument throws an error': ->
       assert.throws (=> @inst.or()), 'expr must be a string'
     'with an array throws an error': ->
@@ -108,7 +129,7 @@ test['Expression builder base class'] =
       assert.same @inst, @inst.or('bla')
 
 
-  'calling and("test = 3")':
+  'and("test = 3")':
     beforeEach: ->
       @inst.and("test = 3")
 
@@ -130,7 +151,48 @@ test['Expression builder base class'] =
           assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (1,2,3)"
 
 
-  'calling or("test = 3")':
+  'and("test = ?", 3)':
+    beforeEach: ->
+      @inst.and("test = ?", 3)
+
+    '>> toString()': ->
+      assert.same @inst.toString(), 'test = 3'
+
+    '>> toParam()': ->
+      assert.same @inst.toParam(), {
+        text: 'test = ?'
+        values: [3]
+      }
+
+    '>> and("flight = ?", "4")':
+      beforeEach: ->
+        @inst.and("flight = ?", '4')
+
+      '>> toString()': ->
+        assert.same @inst.toString(), "test = 3 AND flight = '4'"
+
+      '>> toParam()': ->
+        assert.same @inst.toParam(), {
+          text: "test = ? AND flight = ?"
+          values: [3, '4']
+        }
+
+      '>> or("dummy IN ?", [1,2,3])':
+        beforeEach: ->
+          @inst.or("dummy IN ?", [1,2,3])
+
+        '>> toString()': ->
+          assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (1, 2, 3)"
+
+        '>> toParam()': ->
+          assert.same @inst.toParam(), {
+            text: "test = ? AND flight = ? OR dummy IN ?"
+            values: [3, '4', 1, 2, 3]
+          }
+
+
+
+  'or("test = 3")':
     beforeEach: ->
       @inst.or("test = 3")
 
@@ -152,17 +214,58 @@ test['Expression builder base class'] =
           assert.same @inst.toString(), "test = 3 OR flight = '4' AND dummy IN (1,2,3)"
 
 
-  'calling or("test = 4")':
-    beforeEach: -> @inst.or("test = 4")
+
+  'or("test = ?", 3)':
+    beforeEach: ->
+      @inst.or("test = ?", 3)
+
+    '>> toString()': ->
+      assert.same @inst.toString(), 'test = 3'
+
+    '>> toParam()': ->
+      assert.same @inst.toParam(), {
+        text: 'test = ?'
+        values: [3]
+      }
+
+    '>> or("flight = ?", "4")':
+      beforeEach: ->
+        @inst.or("flight = ?", "4")
+
+      '>> toString()': ->
+        assert.same @inst.toString(), "test = 3 OR flight = '4'"
+
+      '>> toParam()': ->
+        assert.same @inst.toParam(), {
+          text: "test = ? OR flight = ?"
+          values: [3, '4']
+        }
+
+      '>> and("dummy IN ?", [1,2,3])':
+        beforeEach: ->
+          @inst.and("dummy IN ?", [1,2,3])
+
+        '>> toString()': ->
+          assert.same @inst.toString(), "test = 3 OR flight = '4' AND dummy IN (1, 2, 3)"
+
+        '>> toParam()': ->
+          assert.same @inst.toParam(), {
+            text: "test = ? OR flight = ? AND dummy IN ?"
+            values: [3, '4', 1, 2, 3]
+          }
+
+
+  'or("test = ?", 4)':
+    beforeEach: -> @inst.or("test = ?", 4)
 
     '>> and_begin()':
       beforeEach: -> @inst.and_begin()
 
-      '>> or("inner = 1")':
-        beforeEach: -> @inst.or("inner = 1")
+      '>> or("inner = ?", 1)':
+        beforeEach: -> @inst.or("inner = ?", 1)
 
-        '>> or("inner = 2")':
-          beforeEach: -> @inst.or("inner = 2")
+        '>> or("inner = ?", 2)':
+          beforeEach: -> @inst.or("inner = ?", 2)
 
           '>> toString() throws error': ->
             assert.throws (=> @inst.toString()), 'end() needs to be called'
@@ -172,6 +275,12 @@ test['Expression builder base class'] =
 
             '>> toString()': ->
               assert.same @inst.toString(), "test = 4 AND (inner = 1 OR inner = 2)"
+
+            '>> toParam()': ->
+              assert.same @inst.toParam(), {
+                text: "test = ? AND (inner = ? OR inner = ?)"
+                values: [4, 1, 2]
+              }
 
             '>> end() throws error': ->
               assert.throws (=> @inst.end()), 'begin() needs to be called'
@@ -185,8 +294,8 @@ test['Expression builder base class'] =
               '>> and("inner = 3")':
                 beforeEach: -> @inst.and("inner = 3")
 
-                '>> and("inner = 2")':
-                  beforeEach: -> @inst.and("inner = 4")
+                '>> and("inner = ?", 4)':
+                  beforeEach: -> @inst.and("inner = ?", 4)
 
                   '>> or_begin()':
                     beforeEach: -> @inst.or_begin()
@@ -205,6 +314,12 @@ test['Expression builder base class'] =
 
                           '>> toString()': ->
                             assert.same @inst.toString(), "test = 4 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner = 5))"
+
+                          '>> toParam()': ->
+                            assert.same @inst.toParam(), {
+                              text: "test = ? AND (inner = ? OR inner = ?) OR (inner = 3 AND inner = ? OR (inner = 5))"
+                              values: [4, 1, 2, 4]
+                            }
 
   'cloning': ->
     newinst = @inst.or("test = 4").and_begin().or("inner = 1").or("inner = 2").clone()

@@ -1,5 +1,13 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 19 July 2014 (3.5.0)
+* #82 - `ON DUPLIATE KEY UPDATE` enchancements
+* #25, #72, #73 - parameter substitution in expressions
+* #79 - smarter automatic fieldname quoting
+* #75 - disable automatic string quoting on a per-field basis
+* #55 - specify sub-query as a field
+* #80, #81 - Bugfixes
+
 ## 17 May 2014 (3.4.1)
 * #62 - can specify query separator string
 

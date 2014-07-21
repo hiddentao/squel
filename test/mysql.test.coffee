@@ -33,6 +33,49 @@ test = testCreator()
 test['MySQL flavour'] =
   beforeEach: -> squel.useFlavour 'mysql'
 
+  'MysqlInsertFieldValueBlock':
+    beforeEach: ->
+      @cls = squel.cls.MysqlInsertFieldValueBlock
+      @inst = new @cls()
+
+    'instanceof of InsertFieldValueBlock': ->
+      assert.instanceOf @inst, squel.cls.InsertFieldValueBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.InsertFieldValueBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'set()':
+      'calls base class': ->
+        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'set'
+
+        @inst.set 'f', 'v', dummy: true
+
+        assert.ok spy.calledWithExactly('f', 'v', dummy: true)
+
+    'setFields()':
+      'calls base class': ->
+        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'setFields'
+
+        @inst.setFields({ 'f': 'v'}, { dummy: true })
+
+        assert.ok spy.calledWithExactly({ 'f': 'v'}, { dummy: true })
+
+    'setFieldsRows()':
+      'calls base class': ->
+        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'setFieldsRows'
+
+        @inst.setFieldsRows([{ 'f': 'v'}], { dummy: true })
+
+        assert.ok spy.calledWithExactly([{ 'f': 'v'}], { dummy: true })
+
+
+
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 
@@ -52,6 +95,78 @@ test['MySQL flavour'] =
         assert.ok @inst._sanitizeValue.calledWithExactly('str')
         assert.ok @inst._formatValue.calledWithExactly(5)
         assert.ok @inst._formatValue.calledWithExactly('str')
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field, field1, field2) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?'
+          values: [1, 2, 3, 5, 'str']
+        }
+
+
+    '>> into(table).setFields({ field1: 1, field2: str })':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFields({ field1: 1, field2: 'str' })
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\')'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?)'
+          values: [1, 'str']
+        }
+
+
+    '>> into(table).setFields({ field1: 1, field2: str }, { duplicateKeyUpdate: {field2: 5} })':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFields({ field1: 1, field2: 'str' }, { duplicateKeyUpdate: { field2: 5 }})
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\') ON DUPLICATE KEY UPDATE field2 = 5'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?) ON DUPLICATE KEY UPDATE field2 = ?'
+          values: [1, 'str', 5]
+        }
+
+
+    '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ])':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFieldsRows([
+            { field1: 1, field2: 'str' },
+            { field1: 2, field2: 'str2' },
+          ])
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\'), (2, \'str2\')'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?)'
+          values: [1, 'str', 2, 'str2']
+        }
+
+
+    '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ], { duplicateKeyUpdate: {...} })':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .setFieldsRows([
+            { field1: 1, field2: 'str' },
+            { field1: 2, field2: 'str2' },
+          ], { 
+            duplicateKeyUpdate: { 
+              field1: 'mad'
+              field2: 5 
+            } 
+          })
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\'), (2, \'str2\') ON DUPLICATE KEY UPDATE field1 = \'mad\', field2 = 5'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?) ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?'
+          values: [1, 'str', 2, 'str2', 'mad', 5]
+        }
 
 
 module?.exports[require('path').basename(__filename)] = test

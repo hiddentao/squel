@@ -37,6 +37,13 @@ _extend = (dst, sources...) ->
                     dst[k] = v
     dst
 
+# Get a copy of given object with given properties removed
+_without = (obj, properties...) ->
+  dst = _extend {}, obj
+  for p in properties
+    delete dst[p]
+  dst
+
 
 
 # Default query builder options
@@ -158,13 +165,25 @@ class cls.BaseBuilder extends cls.Cloneable
       throw new Error "#{type} must be a string"
     value
 
-  _sanitizeField: (item) ->
-    sanitized = @_sanitizeName item, "field name"
-
-    if @options.autoQuoteFieldNames
-      "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
+  _sanitizeField: (item, formattingOptions = {}) ->
+    if item instanceof cls.QueryBuilder
+      item = "(#{item})"
     else
-      sanitized
+      item = @_sanitizeName item, "field name"
+      if @options.autoQuoteFieldNames
+        quoteChar = @options.nameQuoteCharacter
+
+        if formattingOptions.ignorePeriodsForFieldNameQuotes
+          # a.b.c -> `a.b.c`
+          item = "#{quoteChar}#{item}#{quoteChar}"
+        else
+          # a.b.c -> `a`.`b`.`c`
+          item = item
+            .split('.')
+            .map( (v) -> "#{quoteChar}#{v}#{quoteChar}" )
+            .join('.')
+
+    item
 
   _sanitizeTable: (item, allowNested = false) ->
     if allowNested
@@ -177,7 +196,6 @@ class cls.BaseBuilder extends cls.Cloneable
         throw new Error "table name must be a string or a nestable query instance"
     else
       sanitized = @_sanitizeName item, 'table name'
-
 
     if @options.autoQuoteTableNames
       "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
@@ -214,6 +232,8 @@ class cls.BaseBuilder extends cls.Cloneable
       # null is allowed
     else if "string" is itemType or "number" is itemType or "boolean" is itemType
       # primitives are allowed
+    else if item instanceof cls.QueryBuilder and item.isNestable()
+      # QueryBuilder instances allowed
     else
       typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
       unless typeIsValid
@@ -236,17 +256,26 @@ class cls.BaseBuilder extends cls.Cloneable
 
     value
 
+  # Format the given field value for inclusion into query parameter array
+  _formatValueAsParam: (value) ->
+    if value instanceof cls.QueryBuilder and value.isNestable()
+      "#{value}"
+    else 
+      @_formatCustomValue(value)
+
   # Format the given field value for inclusion into the query string
-  _formatValue: (value) ->
+  _formatValue: (value, formattingOptions = {}) ->
     value = @_formatCustomValue(value)
 
     if null is value
       value = "NULL"
     else if "boolean" is typeof value
       value = if value then "TRUE" else "FALSE"
+    else if value instanceof cls.QueryBuilder
+      value = "(#{value})"
     else if "number" isnt typeof value
       value = @_escapeValue(value)
-      value = "'#{value}'"
+      value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
 
     value
 
@@ -271,7 +300,7 @@ class cls.BaseBuilder extends cls.Cloneable
 # When rendered a nested expression will be fully contained within brackets.
 #
 # All the build methods in this object return the object instance for chained method calling purposes.
-class cls.Expression extends cls.Cloneable
+class cls.Expression extends cls.BaseBuilder
 
     # The expression tree.
     tree: null
@@ -281,6 +310,7 @@ class cls.Expression extends cls.Cloneable
 
     # Initialise the expression.
     constructor: ->
+        super() 
         @tree =
             parent: null
             nodes: []
@@ -320,21 +350,23 @@ class cls.Expression extends cls.Cloneable
 
 
     # Combine the current expression with the given expression using the intersection operator (AND).
-    and: (expr) ->
+    and: (expr, param) ->
         if not expr or "string" isnt typeof expr
             throw new Error "expr must be a string"
         @current.nodes.push
             type: 'AND'
             expr: expr
+            para: param
         @
 
     # Combine the current expression with the given expression using the union operator (OR).
-    or: (expr) ->
+    or: (expr, param) ->
         if not expr or "string" isnt typeof expr
             throw new Error "expr must be a string"
         @current.nodes.push
             type: 'OR'
             expr: expr
+            para: param
         @
 
 
@@ -342,25 +374,59 @@ class cls.Expression extends cls.Cloneable
     toString: ->
         if null isnt @current.parent
             throw new Error "end() needs to be called"
-        _toString @tree
+        @_toString @tree
 
+    # Get the final fully constructed expression string.
+    toParam: ->
+        if null isnt @current.parent
+            throw new Error "end() needs to be called"
+        @_toString @tree, true
 
     # Get a string representation of the given expression tree node.
-    _toString = (node) ->
+    _toString: (node, paramMode = false) ->
         str = ""
+        params = []
         for child in node.nodes
             if child.expr?
                 nodeStr = child.expr
+                # have param?
+                if child.para?
+                  if not paramMode
+                    child.para = 
+                      # [1,2,3] -> '(1,2,3)'
+                      if Array.isArray(child.para)
+                        "(#{child.para.join(', ')})"
+                      else
+                        @_formatValue(child.para)
+                    nodeStr = nodeStr.replace '?', child.para
+                  else
+                    if Array.isArray(child.para)
+                      for p in child.para
+                        params.push @_formatValueAsParam(p)
+                    else
+                      params.push @_formatValueAsParam(child.para)
             else
-                nodeStr = _toString(child)
+                nodeStr = @_toString(child, paramMode)
+                if paramMode
+                  params = params.concat(nodeStr.values)
+                  nodeStr = nodeStr.text
                 # wrap nested expressions in brackets
                 if "" isnt nodeStr
-                    nodeStr = "(" + nodeStr + ")"
+                  nodeStr = "(" + nodeStr + ")"
+
             if "" isnt nodeStr
-                # if this isn't first expression then add the operator
-                if "" isnt str then str += " " + child.type + " "
-                str += nodeStr
-        str
+              # if this isn't first expression then add the operator
+              if "" isnt str then str += " " + child.type + " "
+              str += nodeStr
+
+        if paramMode
+          return {
+            text: str
+            values: params
+          }
+        else  
+          return str
+
 
     ###
     Clone this expression.
@@ -544,9 +610,11 @@ class cls.GetFieldBlock extends cls.Block
   # as the values. If the value for a key is null then no alias is set for that field.
   #
   # Internally this method simply calls the field() method of this block to add each individual field.
-  fields: (_fields) ->
+  # 
+  # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
+  fields: (_fields, options = {}) ->
     for field, alias of _fields
-      @field(field, alias)
+      @field(field, alias, options)
 
 
   # Add the given field to the final result set.
@@ -555,8 +623,10 @@ class cls.GetFieldBlock extends cls.Block
   # e.g. DATE_FORMAT(a.started, "%H")
   #
   # An alias may also be specified for this field.
-  field: (field, alias = null) ->
-    field = @_sanitizeField(field)
+  # 
+  # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
+  field: (field, alias = null, options = {}) ->
+    field = @_sanitizeField(field, options)
     alias = @_sanitizeFieldAlias(alias) if alias
 
     @_fields.push
@@ -578,44 +648,49 @@ class cls.GetFieldBlock extends cls.Block
 class cls.AbstractSetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
+    @fieldOptions = []
     @fields = []
     @values = []
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
-  set: (field, value) ->
+  set: (field, value, options = {}) ->
     throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
 
     value = @_sanitizeValue(value) if undefined isnt value
 
     # Explicity overwrite existing fields
-    index = @fields.indexOf(@_sanitizeField(field))
+    index = @fields.indexOf(@_sanitizeField(field, options))
     if index isnt -1
       @values[0][index] = value
+      @fieldOptions[0][index] = options
     else
-      @fields.push @_sanitizeField(field)
+      @fields.push @_sanitizeField(field, options)
       index = @fields.length - 1
 
       # The first value added needs to create the array of values for the row
       if Array.isArray(@values[0])
         @values[0][index] = value
+        @fieldOptions[0][index] = options
       else
         @values.push [value]
+        @fieldOptions.push [options]
+
     @
 
 
   # Insert fields based on the key/value pairs in the given object
-  setFields: (fields) ->
+  setFields: (fields, options = {}) ->
     throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
 
     for own field of fields
-      @set field, fields[field]
+      @set field, fields[field], options
     @
 
 
   # Insert multiple rows for the given fields. Accepts an array of objects.
   # This will override all previously set values for every field.
-  setFieldsRows: (fieldsRows) ->
+  setFieldsRows: (fieldsRows, options = {}) ->
     throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
 
     # Reset the objects stored fields and values
@@ -624,12 +699,12 @@ class cls.AbstractSetFieldBlock extends cls.Block
     for i in [0...fieldsRows.length]
       for own field of fieldsRows[i]
 
-        index = @fields.indexOf(@_sanitizeField(field))
+        index = @fields.indexOf(@_sanitizeField(field, options))
         throw new Error 'All fields in subsequent rows must match the fields in the first row' if 0 < i and -1 is index
 
         # Add field only if it hasn't been added before
         if -1 is index
-          @fields.push @_sanitizeField(field) 
+          @fields.push @_sanitizeField(field, options) 
           index = @fields.length - 1
 
         value = @_sanitizeValue(fieldsRows[i][field])
@@ -637,8 +712,10 @@ class cls.AbstractSetFieldBlock extends cls.Block
         # The first value added needs to add the array
         if Array.isArray(@values[i])
           @values[i][index] = value
+          @fieldOptions[i][index] = options
         else
           @values[i] = [value]
+          @fieldOptions[i] = [options]
     @
 
   buildStr: ->
@@ -663,10 +740,11 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
       field = @fields[i]
       str += ", " if "" isnt str
       value = @values[0][i]
+      fieldOptions = @fieldOptions[0][i]
       if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
         str += field
       else
-        str += "#{field} = #{@_formatValue(value)}"
+        str += "#{field} = #{@_formatValue(value, fieldOptions)}"
 
     "SET #{str}"
 
@@ -683,7 +761,7 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
         str += field
       else
         str += "#{field} = ?"
-        vals.push @_formatCustomValue( value )
+        vals.push @_formatValueAsParam( value )
 
     { text: "SET #{str}", values: vals }
 
@@ -697,7 +775,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
     vals = []
     for i in [0...@values.length]
       for j in [0...@values[i].length]
-        formattedValue = @_formatValue(@values[i][j])
+        formattedValue = @_formatValue @values[i][j], @fieldOptions[i][j]
         if 'string' is typeof vals[i]
           vals[i] += ', ' + formattedValue          
         else 
@@ -718,7 +796,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
      for i in [0...@values.length]
       for j in [0...@values[i].length]
-        params.push @_formatCustomValue( @values[i][j] )
+        params.push @_formatValueAsParam( @values[i][j] )
         if 'string' is typeof vals[i]
           vals[i] += ', ?'           
         else 
@@ -857,8 +935,8 @@ class cls.WhereBlock extends cls.Block
       if "" isnt whereStr then whereStr += ") AND ("
       whereStr += where.text
       for v in where.values
-        ret.values.push( @_formatCustomValue v )
-
+        ret.values.push( @_formatValueAsParam v )
+        value = @_formatValueAsParam(value)
     ret.text = "WHERE (#{whereStr})"
     ret
 
