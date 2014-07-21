@@ -47,12 +47,33 @@ test['MSSQL flavour'] =
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (\'2012-12-12 4:30:0\')'
   
   'SELECT builder':
-    beforeEach: -> @sel = squel.select()
+    beforeEach: ->
+      @sel = squel.select()
 
     '>> from(table).field(field).top(10)':
       beforeEach: -> @sel.from('table').field('field').top(10)
       toString: ->
-        assert.same @sel.toString(), 'SELECT TOP 10 field FROM table'
+        assert.same @sel.toString(), 'SELECT TOP (10) field FROM table'
+
+    '>> from(table).field(field).limit(10)':
+      beforeEach: -> @sel.from('table').field('field').limit(10)
+      toString: ->
+        assert.same @sel.toString(), 'SELECT TOP (10) field FROM table'
+
+    '>> from(table).field(field).limit(10).offset(5)':
+      beforeEach: -> @sel.from('table').field('field').limit(10).offset(5)
+      toString: ->
+        assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY'
+
+    '>> from(table).field(field).top(10).offset(5)':
+      beforeEach: -> @sel.from('table').field('field').top(10).offset(5)
+      toString: ->
+        assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY'
+        
+    '>> from(table).field(field).offset(5)':
+      beforeEach: -> @sel.from('table').field('field').offset(5)
+      toString: ->
+        assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS'
   
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
@@ -64,6 +85,16 @@ test['MSSQL flavour'] =
   
   'UPDATE builder':
     beforeEach: -> @upt = squel.update()
+	
+    '>> table(table).set(field, 1).top(12)':
+      beforeEach: -> @upt.table('table').set('field', 1).top(12)
+      toString: ->
+        assert.same @upt.toString(), 'UPDATE TOP (12) table SET field = 1'
+	
+    '>> table(table).set(field, 1).limit(12)':
+      beforeEach: -> @upt.table('table').set('field', 1).limit(12)
+      toString: ->
+        assert.same @upt.toString(), 'UPDATE TOP (12) table SET field = 1'
 	
     '>> table(table).set(field, 1).output(id)':
       beforeEach: -> @upt.table('table').output('id').set('field', 1)

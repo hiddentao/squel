@@ -42,18 +42,65 @@ squel.flavours['mssql'] = ->
   
   squel.registerValueHandler Date, (date) -> "#{date.getUTCFullYear()}-#{date.getUTCMonth()+1}-#{date.getUTCDate()} #{date.getUTCHours()}:#{date.getUTCMinutes()}:#{date.getUTCSeconds()}"
   
-  # TOP
-  class cls.TopBlock extends cls.Block
+  # LIMIT,  OFFSET x and TOP x
+  class cls.MssqlLimitOffsetTopBlock extends cls.Block
     constructor: (options) ->
       super options
-      @topRows = undefined
+      @limits = null
+      @offsets = null
     
-    # Add the TOP keyword to the query with row count.
-    top: (rows) -> @topRows = rows
+    # This is setup as one block to return many as they all have to use each others data at different times
+    # The build String of EITHER LIMIT OR TOP should execute, never both.
     
-    buildStr: (queryBuilder) -> if @topRows? then "TOP #{@topRows}" else ""
+    # Set the LIMIT/TOP transformation.
+    #
+    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+    # the limit.
+    _limit = (max) ->
+        max = @_sanitizeLimitOffset(max)
+        @_parent.limits = max
+    
+    class ParentBlock extends cls.Block
+      constructor: (parent) ->
+        super parent.options
+        @_parent = parent
+    
+    class LimitBlock extends ParentBlock
+      limit: _limit
+      buildStr: (queryBuilder) ->
+        if @_parent.limits and @_parent.offsets then "FETCH NEXT #{@_parent.limits} ROWS ONLY" else ""
+    
+    class TopBlock extends ParentBlock
+      top: _limit
+      buildStr: (queryBuilder) ->
+        if @_parent.limits and not @_parent.offsets then "TOP (#{@_parent.limits})" else ""
+    
+    class OffsetBlock extends ParentBlock
+      offset: (start) =>
+        start = @_sanitizeLimitOffset(start)
+        @_parent.offsets = start
+      buildStr: (queryBuilder) ->
+        if @_parent.offsets then "OFFSET #{@_parent.offsets} ROWS" else ""
+    
+    LIMIT: new LimitBlock @
+    TOP: new TopBlock @
+    OFFSET: new OffsetBlock @
   
-  class cls.InsertFieldValueBlock extends cls.SetFieldBlock
+  class cls.MssqlUpdateTopBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @limits = null
+    
+    _limit = (max) ->
+      max = @_sanitizeLimitOffset(max)
+      @limits = max
+    
+    limit: _limit
+    top: _limit
+    buildStr: (queryBuilder) ->
+      if @limits then "TOP (#{@limits})" else ""
+  
+  class cls.MssqlInsertFieldValueBlock extends cls.SetFieldBlock
     constructor: (options) ->
       super options
       @outputs = []
@@ -78,7 +125,7 @@ squel.flavours['mssql'] = ->
       
       "(#{@fields.join(', ')}) #{if @outputs.length isnt 0 then ("OUTPUT #{@outputs.join ', '} ") else ''}VALUES (#{vals.join('), (')})"
   
-  class cls.UpdateOutputBlock extends cls.Block
+  class cls.MssqlUpdateOutputBlock extends cls.Block
     constructor: (options) ->
       super options
       @_outputs = []
@@ -124,34 +171,62 @@ squel.flavours['mssql'] = ->
   # SELECT query builder.
   class cls.Select extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
+      limitOffsetTopBlock = new cls.MssqlLimitOffsetTopBlock(options)
       blocks or= [
         new cls.StringBlock(options, 'SELECT'),
         new cls.DistinctBlock(options),
-        new cls.TopBlock(options),
+        limitOffsetTopBlock.TOP,
         new cls.GetFieldBlock(options),
         new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
         new cls.JoinBlock(_extend({}, options, { allowNested: true })),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.OrderByBlock(options),
-        new cls.LimitBlock(options),
-        new cls.OffsetBlock(options)
+        limitOffsetTopBlock.OFFSET,
+        limitOffsetTopBlock.LIMIT
       ]
     
       super options, blocks
     
     isNestable: -> true
+  
+  # Order By in update requires subquery
+  
   # UPDATE query builder.
   class cls.Update extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
         new cls.StringBlock(options, 'UPDATE'),
+        new cls.MssqlUpdateTopBlock(options),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
-        new cls.UpdateOutputBlock(options),
-        new cls.WhereBlock(options),
-        new cls.OrderByBlock(options),
-        new cls.LimitBlock(options)
+        new cls.MssqlUpdateOutputBlock(options),
+        new cls.WhereBlock(options)
       ]
     
+      super options, blocks
+  
+  # Order By and Limit/Top in delete requires subquery
+  
+  # DELETE query builder.
+  class cls.Delete extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'DELETE'),
+        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
+        new cls.JoinBlock(options),
+        new cls.WhereBlock(options)
+      ]
+  
+      super options, blocks
+  # An INSERT query builder.
+  #
+  class cls.Insert extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'INSERT'),
+        new cls.IntoTableBlock(options),
+        new cls.MssqlInsertFieldValueBlock(options)
+      ]
+  
       super options, blocks
