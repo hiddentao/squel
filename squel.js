@@ -1978,11 +1978,20 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       })(ParentBlock);
 
-      MssqlLimitOffsetTopBlock.prototype.LIMIT = new LimitBlock(MssqlLimitOffsetTopBlock);
+      MssqlLimitOffsetTopBlock.prototype.LIMIT = function(options) {
+        this.constructor(options);
+        return new LimitBlock(this);
+      };
 
-      MssqlLimitOffsetTopBlock.prototype.TOP = new TopBlock(MssqlLimitOffsetTopBlock);
+      MssqlLimitOffsetTopBlock.prototype.TOP = function(options) {
+        this.constructor(options);
+        return new TopBlock(this);
+      };
 
-      MssqlLimitOffsetTopBlock.prototype.OFFSET = new OffsetBlock(MssqlLimitOffsetTopBlock);
+      MssqlLimitOffsetTopBlock.prototype.OFFSET = function(options) {
+        this.constructor(options);
+        return new OffsetBlock(this);
+      };
 
       return MssqlLimitOffsetTopBlock;
 
@@ -2133,11 +2142,11 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         limitOffsetTopBlock = new cls.MssqlLimitOffsetTopBlock(options);
         blocks || (blocks = [
-          new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), limitOffsetTopBlock.TOP, new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
+          new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), limitOffsetTopBlock.TOP(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
             allowNested: true
           })), new cls.JoinBlock(_extend({}, options, {
             allowNested: true
-          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET, limitOffsetTopBlock.LIMIT
+          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET(options), limitOffsetTopBlock.LIMIT(options)
         ]);
         Select.__super__.constructor.call(this, options, blocks);
       }

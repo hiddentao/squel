@@ -74,7 +74,11 @@ test['MSSQL flavour'] =
       beforeEach: -> @sel.from('table').field('field').offset(5)
       toString: ->
         assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS'
-  
+    
+    '>> check variales arent being shared':
+      toString: ->
+        assert.same squel.select().from('table').field('field').top(10).toString(), 'SELECT TOP (10) field FROM table'
+        assert.same squel.select().from('table').field('field').toString(), 'SELECT field FROM table'
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 

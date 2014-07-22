@@ -57,8 +57,8 @@ squel.flavours['mssql'] = ->
     # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
     # the limit.
     _limit = (max) ->
-        max = @_sanitizeLimitOffset(max)
-        @_parent.limits = max
+      max = @_sanitizeLimitOffset(max)
+      @_parent.limits = max
     
     class ParentBlock extends cls.Block
       constructor: (parent) ->
@@ -82,9 +82,15 @@ squel.flavours['mssql'] = ->
       buildStr: (queryBuilder) ->
         if @_parent.offsets then "OFFSET #{@_parent.offsets} ROWS" else ""
     
-    LIMIT: new LimitBlock @
-    TOP: new TopBlock @
-    OFFSET: new OffsetBlock @
+    LIMIT: (options) ->
+      @constructor options
+      new LimitBlock @
+    TOP: (options) ->
+      @constructor options
+      new TopBlock @
+    OFFSET: (options) ->
+      @constructor options
+      new OffsetBlock @
   
   class cls.MssqlUpdateTopBlock extends cls.Block
     constructor: (options) ->
@@ -177,15 +183,15 @@ squel.flavours['mssql'] = ->
       blocks or= [
         new cls.StringBlock(options, 'SELECT'),
         new cls.DistinctBlock(options),
-        limitOffsetTopBlock.TOP,
+        limitOffsetTopBlock.TOP(options),
         new cls.GetFieldBlock(options),
         new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
         new cls.JoinBlock(_extend({}, options, { allowNested: true })),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.OrderByBlock(options),
-        limitOffsetTopBlock.OFFSET,
-        limitOffsetTopBlock.LIMIT
+        limitOffsetTopBlock.OFFSET(options),
+        limitOffsetTopBlock.LIMIT(options)
       ]
     
       super options, blocks
