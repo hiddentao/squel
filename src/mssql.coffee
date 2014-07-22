@@ -100,7 +100,7 @@ squel.flavours['mssql'] = ->
     buildStr: (queryBuilder) ->
       if @limits then "TOP (#{@limits})" else ""
   
-  class cls.MssqlInsertFieldValueBlock extends cls.SetFieldBlock
+  class cls.MssqlInsertFieldValueBlock extends cls.InsertFieldValueBlock
     constructor: (options) ->
       super options
       @outputs = []
@@ -110,20 +110,22 @@ squel.flavours['mssql'] = ->
       if 'string' is typeof fields then @outputs.push "INSERTED.#{@_sanitizeField fields}"
       else @outputs.push "INSERTED.#{@_sanitizeField f}" for f in fields
     
-        
     buildStr: (queryBuilder) ->
       if 0 >= @fields.length then throw new Error "set() needs to be called"
-      
-      vals = []
-      for i in [0...@values.length]
-        for j in [0...@values[i].length]
-          formattedValue = @_formatValue(@values[i][j])
-          if 'string' is typeof vals[i]
-            vals[i] += ', ' + formattedValue      
-          else 
-            vals[i] = '' + formattedValue
-      
-      "(#{@fields.join(', ')}) #{if @outputs.length isnt 0 then ("OUTPUT #{@outputs.join ', '} ") else ''}VALUES (#{vals.join('), (')})"
+  
+      "(#{@fields.join(', ')}) #{if @outputs.length isnt 0 then ("OUTPUT #{@outputs.join ', '} ") else ''}VALUES (#{@_buildVals().join('), (')})"
+  
+    buildParam: (queryBuilder) ->
+      if 0 >= @fields.length then throw new Error "set() needs to be called"
+  
+      # fields
+      str = ""
+      {vals, params} = @_buildValParams()
+      for i in [0...@fields.length]
+        str += ", " if "" isnt str
+        str += @fields[i]
+  
+      { text: "(#{str}) #{if @outputs.length isnt 0 then ("OUTPUT #{@outputs.join ', '} ") else ''}VALUES (#{vals.join('), (')})", values: params }
   
   class cls.MssqlUpdateOutputBlock extends cls.Block
     constructor: (options) ->

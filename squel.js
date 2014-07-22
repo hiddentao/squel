@@ -28,7 +28,8 @@ OTHER DEALINGS IN THE SOFTWARE.
   var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2, _ref3, _ref4, _without,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   cls = {};
 
@@ -895,11 +896,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       return _ref4;
     }
 
-    InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
+    InsertFieldValueBlock.prototype._buildVals = function() {
       var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
-      }
       vals = [];
       for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
         for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
@@ -911,25 +909,15 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
         }
       }
-      return "(" + (this.fields.join(', ')) + ") VALUES (" + (vals.join('), (')) + ")";
+      return vals;
     };
 
-    InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
-      var i, j, params, str, vals, _i, _j, _k, _ref5, _ref6, _ref7;
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
-      }
-      str = "";
+    InsertFieldValueBlock.prototype._buildValParams = function() {
+      var i, j, params, vals, _i, _j, _ref5, _ref6;
       vals = [];
       params = [];
-      for (i = _i = 0, _ref5 = this.fields.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
-        if ("" !== str) {
-          str += ", ";
-        }
-        str += this.fields[i];
-      }
-      for (i = _j = 0, _ref6 = this.values.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; i = 0 <= _ref6 ? ++_j : --_j) {
-        for (j = _k = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _k < _ref7 : _k > _ref7; j = 0 <= _ref7 ? ++_k : --_k) {
+      for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
+        for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
           params.push(this._formatValueAsParam(this.values[i][j]));
           if ('string' === typeof vals[i]) {
             vals[i] += ', ?';
@@ -937,6 +925,32 @@ OTHER DEALINGS IN THE SOFTWARE.
             vals[i] = '?';
           }
         }
+      }
+      return {
+        vals: vals,
+        params: params
+      };
+    };
+
+    InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
+      if (0 >= this.fields.length) {
+        throw new Error("set() needs to be called");
+      }
+      return "(" + (this.fields.join(', ')) + ") VALUES (" + (this._buildVals().join('), (')) + ")";
+    };
+
+    InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
+      var i, params, str, vals, _i, _ref5, _ref6;
+      if (0 >= this.fields.length) {
+        throw new Error("set() needs to be called");
+      }
+      str = "";
+      _ref5 = this._buildValParams(), vals = _ref5.vals, params = _ref5.params;
+      for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+        if ("" !== str) {
+          str += ", ";
+        }
+        str += this.fields[i];
       }
       return {
         text: "(" + str + ") VALUES (" + (vals.join('), (')) + ")",
@@ -1866,38 +1880,152 @@ OTHER DEALINGS IN THE SOFTWARE.
     squel.registerValueHandler(Date, function(date) {
       return "" + (date.getUTCFullYear()) + "-" + (date.getUTCMonth() + 1) + "-" + (date.getUTCDate()) + " " + (date.getUTCHours()) + ":" + (date.getUTCMinutes()) + ":" + (date.getUTCSeconds());
     });
-    cls.TopBlock = (function(_super) {
-      __extends(TopBlock, _super);
+    cls.MssqlLimitOffsetTopBlock = (function(_super) {
+      var LimitBlock, OffsetBlock, ParentBlock, TopBlock, _limit, _ref5, _ref6, _ref7;
 
-      function TopBlock(options) {
-        TopBlock.__super__.constructor.call(this, options);
-        this.topRows = void 0;
+      __extends(MssqlLimitOffsetTopBlock, _super);
+
+      function MssqlLimitOffsetTopBlock(options) {
+        MssqlLimitOffsetTopBlock.__super__.constructor.call(this, options);
+        this.limits = null;
+        this.offsets = null;
       }
 
-      TopBlock.prototype.top = function(rows) {
-        return this.topRows = rows;
+      _limit = function(max) {
+        max = this._sanitizeLimitOffset(max);
+        return this._parent.limits = max;
       };
 
-      TopBlock.prototype.buildStr = function(queryBuilder) {
-        if (this.topRows != null) {
-          return "TOP " + this.topRows;
+      ParentBlock = (function(_super1) {
+        __extends(ParentBlock, _super1);
+
+        function ParentBlock(parent) {
+          ParentBlock.__super__.constructor.call(this, parent.options);
+          this._parent = parent;
+        }
+
+        return ParentBlock;
+
+      })(cls.Block);
+
+      LimitBlock = (function(_super1) {
+        __extends(LimitBlock, _super1);
+
+        function LimitBlock() {
+          _ref5 = LimitBlock.__super__.constructor.apply(this, arguments);
+          return _ref5;
+        }
+
+        LimitBlock.prototype.limit = _limit;
+
+        LimitBlock.prototype.buildStr = function(queryBuilder) {
+          if (this._parent.limits && this._parent.offsets) {
+            return "FETCH NEXT " + this._parent.limits + " ROWS ONLY";
+          } else {
+            return "";
+          }
+        };
+
+        return LimitBlock;
+
+      })(ParentBlock);
+
+      TopBlock = (function(_super1) {
+        __extends(TopBlock, _super1);
+
+        function TopBlock() {
+          _ref6 = TopBlock.__super__.constructor.apply(this, arguments);
+          return _ref6;
+        }
+
+        TopBlock.prototype.top = _limit;
+
+        TopBlock.prototype.buildStr = function(queryBuilder) {
+          if (this._parent.limits && !this._parent.offsets) {
+            return "TOP (" + this._parent.limits + ")";
+          } else {
+            return "";
+          }
+        };
+
+        return TopBlock;
+
+      })(ParentBlock);
+
+      OffsetBlock = (function(_super1) {
+        __extends(OffsetBlock, _super1);
+
+        function OffsetBlock() {
+          this.offset = __bind(this.offset, this);
+          _ref7 = OffsetBlock.__super__.constructor.apply(this, arguments);
+          return _ref7;
+        }
+
+        OffsetBlock.prototype.offset = function(start) {
+          start = this._sanitizeLimitOffset(start);
+          return this._parent.offsets = start;
+        };
+
+        OffsetBlock.prototype.buildStr = function(queryBuilder) {
+          if (this._parent.offsets) {
+            return "OFFSET " + this._parent.offsets + " ROWS";
+          } else {
+            return "";
+          }
+        };
+
+        return OffsetBlock;
+
+      })(ParentBlock);
+
+      MssqlLimitOffsetTopBlock.prototype.LIMIT = new LimitBlock(MssqlLimitOffsetTopBlock);
+
+      MssqlLimitOffsetTopBlock.prototype.TOP = new TopBlock(MssqlLimitOffsetTopBlock);
+
+      MssqlLimitOffsetTopBlock.prototype.OFFSET = new OffsetBlock(MssqlLimitOffsetTopBlock);
+
+      return MssqlLimitOffsetTopBlock;
+
+    }).call(this, cls.Block);
+    cls.MssqlUpdateTopBlock = (function(_super) {
+      var _limit;
+
+      __extends(MssqlUpdateTopBlock, _super);
+
+      function MssqlUpdateTopBlock(options) {
+        MssqlUpdateTopBlock.__super__.constructor.call(this, options);
+        this.limits = null;
+      }
+
+      _limit = function(max) {
+        max = this._sanitizeLimitOffset(max);
+        return this.limits = max;
+      };
+
+      MssqlUpdateTopBlock.prototype.limit = _limit;
+
+      MssqlUpdateTopBlock.prototype.top = _limit;
+
+      MssqlUpdateTopBlock.prototype.buildStr = function(queryBuilder) {
+        if (this.limits) {
+          return "TOP (" + this.limits + ")";
         } else {
           return "";
         }
       };
 
-      return TopBlock;
+      return MssqlUpdateTopBlock;
 
     })(cls.Block);
-    cls.InsertFieldValueBlock = (function(_super) {
-      __extends(InsertFieldValueBlock, _super);
+    cls.MssqlInsertFieldValueBlock = (function(_super) {
+      __extends(MssqlInsertFieldValueBlock, _super);
 
-      function InsertFieldValueBlock(options) {
-        InsertFieldValueBlock.__super__.constructor.call(this, options);
+      function MssqlInsertFieldValueBlock(options) {
+        MssqlInsertFieldValueBlock.__super__.constructor.call(this, options);
         this.outputs = [];
       }
 
-      InsertFieldValueBlock.prototype.output = function(fields) {
+      MssqlInsertFieldValueBlock.prototype.output = function(fields) {
         var f, _i, _len, _results;
         if ('string' === typeof fields) {
           return this.outputs.push("INSERTED." + (this._sanitizeField(fields)));
@@ -1911,37 +2039,44 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       };
 
-      InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
-        var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
+      MssqlInsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
         if (0 >= this.fields.length) {
           throw new Error("set() needs to be called");
         }
-        vals = [];
-        for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
-          for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
-            formattedValue = this._formatValue(this.values[i][j]);
-            if ('string' === typeof vals[i]) {
-              vals[i] += ', ' + formattedValue;
-            } else {
-              vals[i] = '' + formattedValue;
-            }
-          }
-        }
-        return "(" + (this.fields.join(', ')) + ") " + (this.outputs.length !== 0 ? "OUTPUT " + (this.outputs.join(', ')) + " " : '') + "VALUES (" + (vals.join('), (')) + ")";
+        return "(" + (this.fields.join(', ')) + ") " + (this.outputs.length !== 0 ? "OUTPUT " + (this.outputs.join(', ')) + " " : '') + "VALUES (" + (this._buildVals().join('), (')) + ")";
       };
 
-      return InsertFieldValueBlock;
+      MssqlInsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
+        var i, params, str, vals, _i, _ref5, _ref6;
+        if (0 >= this.fields.length) {
+          throw new Error("set() needs to be called");
+        }
+        str = "";
+        _ref5 = this._buildValParams(), vals = _ref5.vals, params = _ref5.params;
+        for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+          if ("" !== str) {
+            str += ", ";
+          }
+          str += this.fields[i];
+        }
+        return {
+          text: "(" + str + ") " + (this.outputs.length !== 0 ? "OUTPUT " + (this.outputs.join(', ')) + " " : '') + "VALUES (" + (vals.join('), (')) + ")",
+          values: params
+        };
+      };
 
-    })(cls.SetFieldBlock);
-    cls.UpdateOutputBlock = (function(_super) {
-      __extends(UpdateOutputBlock, _super);
+      return MssqlInsertFieldValueBlock;
 
-      function UpdateOutputBlock(options) {
-        UpdateOutputBlock.__super__.constructor.call(this, options);
+    })(cls.InsertFieldValueBlock);
+    cls.MssqlUpdateOutputBlock = (function(_super) {
+      __extends(MssqlUpdateOutputBlock, _super);
+
+      function MssqlUpdateOutputBlock(options) {
+        MssqlUpdateOutputBlock.__super__.constructor.call(this, options);
         this._outputs = [];
       }
 
-      UpdateOutputBlock.prototype.outputs = function(_outputs) {
+      MssqlUpdateOutputBlock.prototype.outputs = function(_outputs) {
         var alias, output, _results;
         _results = [];
         for (output in _outputs) {
@@ -1951,7 +2086,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _results;
       };
 
-      UpdateOutputBlock.prototype.output = function(output, alias) {
+      MssqlUpdateOutputBlock.prototype.output = function(output, alias) {
         if (alias == null) {
           alias = null;
         }
@@ -1965,7 +2100,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         });
       };
 
-      UpdateOutputBlock.prototype.buildStr = function(queryBuilder) {
+      MssqlUpdateOutputBlock.prototype.buildStr = function(queryBuilder) {
         var output, outputs, _i, _len, _ref5;
         outputs = "";
         if (this._outputs.length > 0) {
@@ -1985,22 +2120,24 @@ OTHER DEALINGS IN THE SOFTWARE.
         return outputs;
       };
 
-      return UpdateOutputBlock;
+      return MssqlUpdateOutputBlock;
 
     })(cls.Block);
     cls.Select = (function(_super) {
       __extends(Select, _super);
 
       function Select(options, blocks) {
+        var limitOffsetTopBlock;
         if (blocks == null) {
           blocks = null;
         }
+        limitOffsetTopBlock = new cls.MssqlLimitOffsetTopBlock(options);
         blocks || (blocks = [
-          new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), new cls.TopBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
+          new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), limitOffsetTopBlock.TOP, new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
             allowNested: true
           })), new cls.JoinBlock(_extend({}, options, {
             allowNested: true
-          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)
+          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET, limitOffsetTopBlock.LIMIT
         ]);
         Select.__super__.constructor.call(this, options, blocks);
       }
@@ -2012,18 +2149,50 @@ OTHER DEALINGS IN THE SOFTWARE.
       return Select;
 
     })(cls.QueryBuilder);
-    return cls.Update = (function(_super) {
+    cls.Update = (function(_super) {
       __extends(Update, _super);
 
       function Update(options, blocks) {
         if (blocks == null) {
           blocks = null;
         }
-        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.UpdateOutputBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)]);
+        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.MssqlUpdateTopBlock(options), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.MssqlUpdateOutputBlock(options), new cls.WhereBlock(options)]);
         Update.__super__.constructor.call(this, options, blocks);
       }
 
       return Update;
+
+    })(cls.QueryBuilder);
+    cls.Delete = (function(_super) {
+      __extends(Delete, _super);
+
+      function Delete(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [
+          new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
+            singleTable: true
+          })), new cls.JoinBlock(options), new cls.WhereBlock(options)
+        ]);
+        Delete.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Delete;
+
+    })(cls.QueryBuilder);
+    return cls.Insert = (function(_super) {
+      __extends(Insert, _super);
+
+      function Insert(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.MssqlInsertFieldValueBlock(options)]);
+        Insert.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Insert;
 
     })(cls.QueryBuilder);
   };
