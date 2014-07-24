@@ -657,7 +657,7 @@ class cls.AbstractSetFieldBlock extends cls.Block
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
-  set: (field, value, options = {}) ->
+  _set: (field, value, options = {}) ->
     throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
 
     value = @_sanitizeValue(value) if undefined isnt value
@@ -683,17 +683,17 @@ class cls.AbstractSetFieldBlock extends cls.Block
 
 
   # Insert fields based on the key/value pairs in the given object
-  setFields: (fields, options = {}) ->
+  _setFields: (fields, options = {}) ->
     throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
 
     for own field of fields
-      @set field, fields[field], options
+      @_set field, fields[field], options
     @
 
 
   # Insert multiple rows for the given fields. Accepts an array of objects.
   # This will override all previously set values for every field.
-  setFieldsRows: (fieldsRows, options = {}) ->
+  _setFieldsRows: (fieldsRows, options = {}) ->
     throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
 
     # Reset the objects stored fields and values
@@ -732,8 +732,11 @@ class cls.AbstractSetFieldBlock extends cls.Block
 # (UPDATE) SET field=value
 class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
 
-  setFieldsRows: ->
-    throw new Error('Cannot call setFieldRows for an UPDATE SET')
+  set: (field, value, options) ->
+    @_set field, value, options
+
+  setFields: (fields, options) ->
+    @_setFields fields, options
 
   buildStr: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
@@ -772,6 +775,15 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
 
 # (INSERT INTO) ... field ... value
 class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
+  set: (field, value, options = {}) ->
+    @_set field, value, options
+
+  setFields: (fields, options) ->
+    @_setFields fields, options
+
+  setFieldsRows: (fieldsRows, options) ->
+    @_setFieldsRows fieldsRows, options
+
   buildStr: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
 

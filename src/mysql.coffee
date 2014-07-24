@@ -28,84 +28,53 @@ OTHER DEALINGS IN THE SOFTWARE.
 squel.flavours['mysql'] = ->
   cls = squel.cls
 
-  # (INSERT INTO) ... field ... value
-  class cls.MysqlInsertFieldValueBlock extends cls.InsertFieldValueBlock
-    constructor: (options) ->
-      super options
-      @_duplicateKeyUpdates = {}
-
-    # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
-    set: (field, value, options = {}) ->
-      super field, value, _without(options, 'duplicateKeyUpdate')
-      @_duplicateKeyUpdates[field] = @_sanitizeValue(options.duplicateKeyUpdate) if options?.duplicateKeyUpdate isnt undefined
-      @
-
-    # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
-    setFields: (fields, options = {}) ->
-      super fields, _without(options, 'duplicateKeyUpdate')
-
-      for field,value of options.duplicateKeyUpdate
-        @_duplicateKeyUpdates[field] = @_sanitizeValue(value)
-
-      @
-
-
-    # options.duplicateKeyUpdate - whether to include the ON DUPLICATE KEY UPDATE clause for this field. The value for the option is the value used to update the key with
-    setFieldsRows: (fieldsRows, options = {}) ->
-      super fieldsRows, _without(options, 'duplicateKeyUpdate')
-
-      for field,value of options.duplicateKeyUpdate
-        @_duplicateKeyUpdates[field] = @_sanitizeValue(value)
-
-      @
-
+  # ON DUPLICATE KEY UPDATE ...
+  class cls.MysqlOnDuplicateKeyUpdateBlock extends cls.AbstractSetFieldBlock
+    onDupUpdate: (field, value, options) ->
+      @_set field, value, options
 
     buildStr: ->
-      str = super()
-      "#{str}#{@_buildDuplicateKeyUpdateStr()}"
+      str = ""
+      for i in [0...@fields.length]
+        field = @fields[i]
+        str += ", " if "" isnt str
+        value = @values[0][i]
+        fieldOptions = @fieldOptions[0][i]
+        if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
+          str += field
+        else
+          str += "#{field} = #{@_formatValue(value, fieldOptions)}"
 
+      return if str is "" then "" else "ON DUPLICATE KEY UPDATE #{str}"
 
     buildParam: (queryBuilder) ->
-      qry = super queryBuilder
-      dups = @_buildDuplicateKeyUpdateParam()
-      qry.text = "#{qry.text}#{dups.text}"
-      qry.values.push.apply(qry.values, dups.values)
-      qry
+      str = ""
+      vals = []
+      for i in [0...@fields.length]
+        field = @fields[i]
+        str += ", " if "" isnt str
+        value = @values[0][i]
+        if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
+          str += field
+        else
+          str += "#{field} = ?"
+          vals.push @_formatValueAsParam( value )
 
-    # Build str: ON DUPLICATE KEY UPDATE      
-    _buildDuplicateKeyUpdateStr: ->
-      fields = ""
-      for field, value of @_duplicateKeyUpdates
-        fields += ", " if "" isnt fields
-        fields += "#{field} = #{@_formatValue(value)}"
-
-      return if fields isnt "" then " ON DUPLICATE KEY UPDATE #{fields}" else ""
-
-    # Build params str: ON DUPLICATE KEY UPDATE      
-    _buildDuplicateKeyUpdateParam: ->
-      ret = 
-        text: ""
-        values: []
-
-      fields = ""
-      for field, value of @_duplicateKeyUpdates
-        fields += ", " if "" isnt fields
-        fields += "#{field} = ?"
-        ret.values.push @_formatValueAsParam(value)
-
-      if fields isnt ""
-        ret.text = " ON DUPLICATE KEY UPDATE #{fields}"
-
-      ret
+      { 
+        text: if str is "" then "" else "ON DUPLICATE KEY UPDATE #{str}"
+        values: vals 
+      }
 
 
-  # An INSERT query builder.
+
+  # INSERT query builder.
   class cls.Insert extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
-        new cls.StringBlock(options, 'INSERT'),
-        new cls.IntoTableBlock(options),
-        new cls.MysqlInsertFieldValueBlock(options)
+        new cls.StringBlock(options, 'INSERT')
+        new cls.IntoTableBlock(options)
+        new cls.InsertFieldValueBlock(options)
+        new cls.MysqlOnDuplicateKeyUpdateBlock(options)
       ]
 
       super options, blocks        

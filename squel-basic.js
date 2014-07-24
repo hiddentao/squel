@@ -736,7 +736,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.values = [];
     }
 
-    AbstractSetFieldBlock.prototype.set = function(field, value, options) {
+    AbstractSetFieldBlock.prototype._set = function(field, value, options) {
       var index;
       if (options == null) {
         options = {};
@@ -765,7 +765,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFields = function(fields, options) {
+    AbstractSetFieldBlock.prototype._setFields = function(fields, options) {
       var field;
       if (options == null) {
         options = {};
@@ -775,12 +775,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       for (field in fields) {
         if (!__hasProp.call(fields, field)) continue;
-        this.set(field, fields[field], options);
+        this._set(field, fields[field], options);
       }
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+    AbstractSetFieldBlock.prototype._setFieldsRows = function(fieldsRows, options) {
       var field, i, index, value, _i, _ref3, _ref4;
       if (options == null) {
         options = {};
@@ -835,8 +835,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       return _ref3;
     }
 
-    SetFieldBlock.prototype.setFieldsRows = function() {
-      throw new Error('Cannot call setFieldRows for an UPDATE SET');
+    SetFieldBlock.prototype.set = function(field, value, options) {
+      return this._set(field, value, options);
+    };
+
+    SetFieldBlock.prototype.setFields = function(fields, options) {
+      return this._setFields(fields, options);
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
@@ -898,6 +902,21 @@ OTHER DEALINGS IN THE SOFTWARE.
       _ref4 = InsertFieldValueBlock.__super__.constructor.apply(this, arguments);
       return _ref4;
     }
+
+    InsertFieldValueBlock.prototype.set = function(field, value, options) {
+      if (options == null) {
+        options = {};
+      }
+      return this._set(field, value, options);
+    };
+
+    InsertFieldValueBlock.prototype.setFields = function(fields, options) {
+      return this._setFields(fields, options);
+    };
+
+    InsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+      return this._setFieldsRows(fieldsRows, options);
+    };
 
     InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
       var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;

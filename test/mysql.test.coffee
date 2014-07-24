@@ -33,16 +33,16 @@ test = testCreator()
 test['MySQL flavour'] =
   beforeEach: -> squel.useFlavour 'mysql'
 
-  'MysqlInsertFieldValueBlock':
+  'MysqlOnDuplicateKeyUpdateBlock':
     beforeEach: ->
-      @cls = squel.cls.MysqlInsertFieldValueBlock
+      @cls = squel.cls.MysqlOnDuplicateKeyUpdateBlock
       @inst = new @cls()
 
-    'instanceof of InsertFieldValueBlock': ->
-      assert.instanceOf @inst, squel.cls.InsertFieldValueBlock
+    'instanceof of AbstractSetFieldBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
 
     'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.InsertFieldValueBlock.prototype, 'constructor')
+      spy = test.mocker.spy(squel.cls.AbstractSetFieldBlock.prototype, 'constructor')
 
       @inst = new @cls
         dummy: true
@@ -50,122 +50,103 @@ test['MySQL flavour'] =
       assert.ok spy.calledWithExactly
         dummy:true
 
-    'set()':
-      'calls base class': ->
-        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'set'
+    'onDupUpdate()':
+      'calls to _set()': ->
+        spy = test.mocker.stub @inst, '_set'
 
-        @inst.set 'f', 'v', dummy: true
+        @inst.onDupUpdate 'f', 'v', dummy: true
 
         assert.ok spy.calledWithExactly('f', 'v', dummy: true)
 
-    'setFields()':
-      'calls base class': ->
-        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'setFields'
 
-        @inst.setFields({ 'f': 'v'}, { dummy: true })
+    'buildStr()':
+      'calls formatValue() for each field value': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        assert.ok spy.calledWithExactly({ 'f': 'v'}, { dummy: true })
+        @inst.fields = [ 'field1', 'field2', 'field3' ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+        @inst.fieldOptions = [ [ {dummy: true}, {dummy: false}, {} ] ]
 
-    'setFieldsRows()':
-      'calls base class': ->
-        spy = test.mocker.spy squel.cls.InsertFieldValueBlock.prototype, 'setFieldsRows'
+        assert.same 'ON DUPLICATE KEY UPDATE field1 = [value1], field2 = [value2], field3 = [value3]', @inst.buildStr()
 
-        @inst.setFieldsRows([{ 'f': 'v'}], { dummy: true })
+        assert.ok formatValueSpy.calledThrice
+        assert.ok formatValueSpy.calledWithExactly 'value1', { dummy: true }
+        assert.ok formatValueSpy.calledWithExactly 'value2', { dummy: false }
+        assert.ok formatValueSpy.calledWithExactly 'value3', {}
 
-        assert.ok spy.calledWithExactly([{ 'f': 'v'}], { dummy: true })
+    'buildParam()':
+      'calls formatValueAsParam() for each field value': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
 
+        @inst.fields = [ 'field1', 'field2', 'field3' ]
+        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+
+        assert.same { text: 'ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
+
+        assert.ok formatValueSpy.calledThrice
+        assert.ok formatValueSpy.calledWithExactly 'value1'
+        assert.ok formatValueSpy.calledWithExactly 'value2'
+        assert.ok formatValueSpy.calledWithExactly 'value3'
+
+      'Fix for hiddentao/squel#63': ->
+        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> v
+
+        @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
+        @inst.values = [ [ undefined, 'value2', 'value3' ] ]
+
+        assert.same { text: 'ON DUPLICATE KEY UPDATE age = age + 1, field2 = ?, field3 = ?', values: ['value2', 'value3'] }, @inst.buildParam()
 
 
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 
-    '>> into(table).set(field, 1).set(field1, 2, { duplicateKeyUpdate: 5 }).set(field2, 3, { duplicateKeyUpdate: "str" })':
+    'has same blocks as default': ->
+      assert.ok @inst.blocks[0] instanceof squel.cls.StringBlock
+      assert.ok @inst.blocks[1] instanceof squel.cls.IntoTableBlock
+      assert.ok @inst.blocks[2] instanceof squel.cls.InsertFieldValueBlock
+      assert.ok @inst.blocks[3] instanceof squel.cls.MysqlOnDuplicateKeyUpdateBlock
+
+    '>> into(table).set(field, 1).set(field1, 2).onDupUpdate(field, 5).onDupUpdate(field1, "str")':
       beforeEach: ->
         test.mocker.spy squel.cls.BaseBuilder.prototype, '_sanitizeValue'
         test.mocker.spy squel.cls.BaseBuilder.prototype, '_formatValue'
         @inst
           .into('table')
           .set('field', 1)
-          .set('field1', 2, { duplicateKeyUpdate: 5 })
-          .set('field2', 3, { duplicateKeyUpdate: 'str' })
+          .set('field1', 2)
+          .onDupUpdate('field', 5)
+          .onDupUpdate('field1', 'str')
       toString: ->
-        assert.same @inst.toString(), 'INSERT INTO table (field, field1, field2) VALUES (1, 2, 3) ON DUPLICATE KEY UPDATE field1 = 5, field2 = \'str\''
+        assert.same @inst.toString(), 'INSERT INTO table (field, field1) VALUES (1, 2) ON DUPLICATE KEY UPDATE field = 5, field1 = \'str\''
 
         assert.ok @inst._sanitizeValue.calledWithExactly(5)
         assert.ok @inst._sanitizeValue.calledWithExactly('str')
-        assert.ok @inst._formatValue.calledWithExactly(5)
-        assert.ok @inst._formatValue.calledWithExactly('str')
+        assert.ok @inst._formatValue.calledWithExactly(5, {})
+        assert.ok @inst._formatValue.calledWithExactly('str', {})
+
       toParam: ->
         assert.same @inst.toParam(), {
-          text: 'INSERT INTO table (field, field1, field2) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?'
-          values: [1, 2, 3, 5, 'str']
+          text: 'INSERT INTO table (field, field1) VALUES (?, ?) ON DUPLICATE KEY UPDATE field = ?, field1 = ?'
+          values: [1, 2, 5, 'str']
         }
 
-
-    '>> into(table).setFields({ field1: 1, field2: str })':
+    '>> into(table).set(field2, 3).onDupUpdate(field2, "str", { dontQuote: true })':
       beforeEach: ->
+        test.mocker.spy squel.cls.BaseBuilder.prototype, '_sanitizeValue'
+        test.mocker.spy squel.cls.BaseBuilder.prototype, '_formatValue'
         @inst
           .into('table')
-          .setFields({ field1: 1, field2: 'str' })
+          .set('field2', 3)
+          .onDupUpdate('field2', 'str', { dontQuote: true })
       toString: ->
-        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\')'
+        assert.same @inst.toString(), 'INSERT INTO table (field2) VALUES (3) ON DUPLICATE KEY UPDATE field2 = str'
+
+        assert.ok @inst._sanitizeValue.calledWithExactly('str')
+        assert.ok @inst._formatValue.calledWithExactly('str', { dontQuote: true })
       toParam: ->
         assert.same @inst.toParam(), {
-          text: 'INSERT INTO table (field1, field2) VALUES (?, ?)'
-          values: [1, 'str']
-        }
-
-
-    '>> into(table).setFields({ field1: 1, field2: str }, { duplicateKeyUpdate: {field2: 5} })':
-      beforeEach: ->
-        @inst
-          .into('table')
-          .setFields({ field1: 1, field2: 'str' }, { duplicateKeyUpdate: { field2: 5 }})
-      toString: ->
-        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\') ON DUPLICATE KEY UPDATE field2 = 5'
-      toParam: ->
-        assert.same @inst.toParam(), {
-          text: 'INSERT INTO table (field1, field2) VALUES (?, ?) ON DUPLICATE KEY UPDATE field2 = ?'
-          values: [1, 'str', 5]
-        }
-
-
-    '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ])':
-      beforeEach: ->
-        @inst
-          .into('table')
-          .setFieldsRows([
-            { field1: 1, field2: 'str' },
-            { field1: 2, field2: 'str2' },
-          ])
-      toString: ->
-        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\'), (2, \'str2\')'
-      toParam: ->
-        assert.same @inst.toParam(), {
-          text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?)'
-          values: [1, 'str', 2, 'str2']
-        }
-
-
-    '>> into(table).setFieldsRows([{ field1: 1, field2: str },{ field1: 2, field2: str2 } ], { duplicateKeyUpdate: {...} })':
-      beforeEach: ->
-        @inst
-          .into('table')
-          .setFieldsRows([
-            { field1: 1, field2: 'str' },
-            { field1: 2, field2: 'str2' },
-          ], { 
-            duplicateKeyUpdate: { 
-              field1: 'mad'
-              field2: 5 
-            } 
-          })
-      toString: ->
-        assert.same @inst.toString(), 'INSERT INTO table (field1, field2) VALUES (1, \'str\'), (2, \'str2\') ON DUPLICATE KEY UPDATE field1 = \'mad\', field2 = 5'
-      toParam: ->
-        assert.same @inst.toParam(), {
-          text: 'INSERT INTO table (field1, field2) VALUES (?, ?), (?, ?) ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?'
-          values: [1, 'str', 2, 'str2', 'mad', 5]
+          text: 'INSERT INTO table (field2) VALUES (?) ON DUPLICATE KEY UPDATE field2 = ?'
+          values: [3, 'str']
         }
 
 
