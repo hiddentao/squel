@@ -1,5 +1,5 @@
 ###
-Copyright (c) Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -180,7 +180,10 @@ class cls.BaseBuilder extends cls.Cloneable
           # a.b.c -> `a`.`b`.`c`
           item = item
             .split('.')
-            .map( (v) -> "#{quoteChar}#{v}#{quoteChar}" )
+            .map( (v) -> 
+              # treat '*' as special case (#79)
+              return if '*' is v then v else "#{quoteChar}#{v}#{quoteChar}" 
+            )
             .join('.')
 
     item

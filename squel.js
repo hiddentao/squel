@@ -1,5 +1,5 @@
 /*
-Copyright (c) Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -187,7 +187,11 @@ OTHER DEALINGS IN THE SOFTWARE.
             item = "" + quoteChar + item + quoteChar;
           } else {
             item = item.split('.').map(function(v) {
-              return "" + quoteChar + v + quoteChar;
+              if ('*' === v) {
+                return v;
+              } else {
+                return "" + quoteChar + v + quoteChar;
+              }
             }).join('.');
           }
         }

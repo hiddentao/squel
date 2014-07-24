@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -291,6 +291,9 @@ test['Builder base class'] =
 
       'default quote character': ->
         assert.same '`abc`.`def`', @inst._sanitizeField('abc.def')
+
+      'do not quote *': ->
+        assert.same '`abc`.*', @inst._sanitizeField('abc.*')
 
       'custom quote character': ->
         @inst.options.nameQuoteCharacter = '|'
