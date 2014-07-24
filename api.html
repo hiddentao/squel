@@ -620,12 +620,6 @@
                 type: 'Boolean',
                 desc: 'If set and the value is a String then it will not be quoted in the output',
                 defaultValue: 'false',
-              },
-              'options.duplicateKeyUpdate': {
-                flavours: ['mysql'],
-                type: 'Any',
-                desc: 'Value to set for this field using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.',
-                defaultValue: 'null',
               }
             },
             returns: 'this'
@@ -647,12 +641,6 @@
                 desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
                 defaultValue: 'false',
               },
-              'options.duplicateKeyUpdate': {
-                flavours: ['mysql'],
-                type: 'Object',
-                desc: 'Key-value pairs specifying value to set for fields using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.',
-                defaultValue: 'null',
-              }
             },
             returns: 'this'
           },
@@ -673,14 +661,37 @@
                 desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
                 defaultValue: 'false',
               },
-              'options.duplicateKeyUpdate': {
-                flavours: ['mysql'],
-                type: 'Object',
-                desc: 'Key-value pairs specifying value to set for fields using an <code>ON DUPLICATE KEY UPDATE</code> clause if a row for given key already exists within the table.',
-                defaultValue: 'null',
-              }
             },
             returns: 'this'
+          },
+          '.onDupUpdate()': {
+            desc: 'Add an <code>ON DUPLICATE KEY UPDATE</code> clause for given field',
+            flavours: ['mysql'],
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              value: {
+                type: 'Any',
+                desc: 'Value to set to field.'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+              'options.dontQuote': {
+                type: 'Boolean',
+                desc: 'If set and the value is a String then it will not be quoted in the output',
+                defaultValue: 'false',
+              }
+            }
           },
           '.returning()': {
             desc: 'Add a RETURNING clause.',

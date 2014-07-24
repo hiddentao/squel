@@ -48,7 +48,7 @@
             <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
             <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
             <li><a href="#cloning" title="Cloning">Cloning</a></li>
-            <li><a href="#db_engines" title="Database engine support">Database support</a></li>
+            <li><a href="#db_engines" title="Database engine support">Database engines</a></li>
           </ul>
         </nav>
     </header>
@@ -1407,20 +1407,23 @@
       <pre class="brush: js">
         squel.useFlavour('mysql');
 
-        alert(
+        alert(JSON.stringify(
           squel.insert()
             .into('table')
             .setFields({
                 field1: 'abc',
                 field2: 3
-            }, {
-                duplicateKeyUpdate: {
-                    field1: 5
-                }
             })
-        );
+            .onDupUpdate('field1', 'upd')
+            .toParam()
+        ));
 
-        /*  INSERT INTO table (field1, field2) VALUES ('abc', 3) ON DUPLICATE KEY UPDATE field1 = 5 */
+        /*  
+            {
+                text: 'INSERT INTO table (field1, field2) VALUES (?, ?) ON DUPLICATE KEY UPDATE field1 = ?'
+                values: ['abc', 3, 'upd']
+            }
+        */
       </pre>
 
       <p>The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</p>
