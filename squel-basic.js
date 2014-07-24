@@ -1543,7 +1543,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.5.0',
+    VERSION: '3.6.0',
     expr: function() {
       return new cls.Expression;
     },
