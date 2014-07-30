@@ -784,9 +784,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
   setFieldsRows: (fieldsRows, options) ->
     @_setFieldsRows fieldsRows, options
 
-  buildStr: (queryBuilder) ->
-    if 0 >= @fields.length then throw new Error "set() needs to be called"
-
+  _buildVals: ->
     vals = []
     for i in [0...@values.length]
       for j in [0...@values[i].length]
@@ -795,27 +793,37 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
           vals[i] += ', ' + formattedValue          
         else 
           vals[i] = '' + formattedValue
-
-    "(#{@fields.join(', ')}) VALUES (#{vals.join('), (')})"
-
-  buildParam: (queryBuilder) ->
-    if 0 >= @fields.length then throw new Error "set() needs to be called"
-
-    # fields
-    str = ""
+    vals
+  
+  _buildValParams: ->
     vals = []
     params = []
-    for i in [0...@fields.length]
-      str += ", " if "" isnt str
-      str += @fields[i]
-
-     for i in [0...@values.length]
+    
+    for i in [0...@values.length]
       for j in [0...@values[i].length]
         params.push @_formatValueAsParam( @values[i][j] )
         if 'string' is typeof vals[i]
           vals[i] += ', ?'           
         else 
           vals[i] = '?'
+    
+    vals: vals
+    params: params
+    
+  buildStr: (queryBuilder) ->
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
+    
+    "(#{@fields.join(', ')}) VALUES (#{@_buildVals().join('), (')})"
+
+  buildParam: (queryBuilder) ->
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
+
+    # fields
+    str = ""
+    {vals, params} = @_buildValParams()
+    for i in [0...@fields.length]
+      str += ", " if "" isnt str
+      str += @fields[i]
 
     { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
 

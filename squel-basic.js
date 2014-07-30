@@ -918,11 +918,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this._setFieldsRows(fieldsRows, options);
     };
 
-    InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
+    InsertFieldValueBlock.prototype._buildVals = function() {
       var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
-      }
       vals = [];
       for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
         for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
@@ -934,25 +931,15 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
         }
       }
-      return "(" + (this.fields.join(', ')) + ") VALUES (" + (vals.join('), (')) + ")";
+      return vals;
     };
 
-    InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
-      var i, j, params, str, vals, _i, _j, _k, _ref5, _ref6, _ref7;
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
-      }
-      str = "";
+    InsertFieldValueBlock.prototype._buildValParams = function() {
+      var i, j, params, vals, _i, _j, _ref5, _ref6;
       vals = [];
       params = [];
-      for (i = _i = 0, _ref5 = this.fields.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
-        if ("" !== str) {
-          str += ", ";
-        }
-        str += this.fields[i];
-      }
-      for (i = _j = 0, _ref6 = this.values.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; i = 0 <= _ref6 ? ++_j : --_j) {
-        for (j = _k = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _k < _ref7 : _k > _ref7; j = 0 <= _ref7 ? ++_k : --_k) {
+      for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
+        for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
           params.push(this._formatValueAsParam(this.values[i][j]));
           if ('string' === typeof vals[i]) {
             vals[i] += ', ?';
@@ -960,6 +947,32 @@ OTHER DEALINGS IN THE SOFTWARE.
             vals[i] = '?';
           }
         }
+      }
+      return {
+        vals: vals,
+        params: params
+      };
+    };
+
+    InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
+      if (0 >= this.fields.length) {
+        throw new Error("set() needs to be called");
+      }
+      return "(" + (this.fields.join(', ')) + ") VALUES (" + (this._buildVals().join('), (')) + ")";
+    };
+
+    InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
+      var i, params, str, vals, _i, _ref5, _ref6;
+      if (0 >= this.fields.length) {
+        throw new Error("set() needs to be called");
+      }
+      str = "";
+      _ref5 = this._buildValParams(), vals = _ref5.vals, params = _ref5.params;
+      for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+        if ("" !== str) {
+          str += ", ";
+        }
+        str += this.fields[i];
       }
       return {
         text: "(" + str + ") VALUES (" + (vals.join('), (')) + ")",
