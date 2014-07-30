@@ -261,24 +261,32 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Format the given field value for inclusion into query parameter array
   _formatValueAsParam: (value) ->
-    if value instanceof cls.QueryBuilder and value.isNestable()
-      "#{value}"
-    else 
-      @_formatCustomValue(value)
+    if Array.isArray(value)
+      value.map (v) => @_formatValueAsParam v
+    else
+      if value instanceof cls.QueryBuilder and value.isNestable()
+        "#{value}"
+      else 
+        @_formatCustomValue(value)
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value, formattingOptions = {}) ->
     value = @_formatCustomValue(value)
 
-    if null is value
-      value = "NULL"
-    else if "boolean" is typeof value
-      value = if value then "TRUE" else "FALSE"
-    else if value instanceof cls.QueryBuilder
-      value = "(#{value})"
-    else if "number" isnt typeof value
-      value = @_escapeValue(value)
-      value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
+    # if it's an array then format each element separately
+    if Array.isArray(value)
+      value = value.map (v) => @_formatValue v
+      value = "(#{value.join(', ')})"
+    else
+      if null is value
+        value = "NULL"
+      else if "boolean" is typeof value
+        value = if value then "TRUE" else "FALSE"
+      else if value instanceof cls.QueryBuilder
+        value = "(#{value})"
+      else if "number" isnt typeof value
+        value = @_escapeValue(value)
+        value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
 
     value
 
@@ -395,19 +403,13 @@ class cls.Expression extends cls.BaseBuilder
                 # have param?
                 if child.para?
                   if not paramMode
-                    child.para = 
-                      # [1,2,3] -> '(1,2,3)'
-                      if Array.isArray(child.para)
-                        "(#{child.para.join(', ')})"
-                      else
-                        @_formatValue(child.para)
-                    nodeStr = nodeStr.replace '?', child.para
+                    nodeStr = nodeStr.replace '?', @_formatValue(child.para)
                   else
+                    params = params.concat(@_formatValueAsParam child.para)
+                    # IN ? -> IN (?, ?, ..., ?)
                     if Array.isArray(child.para)
-                      for p in child.para
-                        params.push @_formatValueAsParam(p)
-                    else
-                      params.push @_formatValueAsParam(child.para)
+                      inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
+                      nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
             else
                 nodeStr = @_toString(child, paramMode)
                 if paramMode
