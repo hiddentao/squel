@@ -1,5 +1,5 @@
 /*
-Copyright (c) Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -187,7 +187,11 @@ OTHER DEALINGS IN THE SOFTWARE.
             item = "" + quoteChar + item + quoteChar;
           } else {
             item = item.split('.').map(function(v) {
-              return "" + quoteChar + v + quoteChar;
+              if ('*' === v) {
+                return v;
+              } else {
+                return "" + quoteChar + v + quoteChar;
+              }
             }).join('.');
           }
         }
@@ -281,27 +285,42 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValueAsParam = function(value) {
-      if (value instanceof cls.QueryBuilder && value.isNestable()) {
-        return "" + value;
+      var _this = this;
+      if (Array.isArray(value)) {
+        return value.map(function(v) {
+          return _this._formatValueAsParam(v);
+        });
       } else {
-        return this._formatCustomValue(value);
+        if (value instanceof cls.QueryBuilder && value.isNestable()) {
+          return "" + value;
+        } else {
+          return this._formatCustomValue(value);
+        }
       }
     };
 
     BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
+      var _this = this;
       if (formattingOptions == null) {
         formattingOptions = {};
       }
       value = this._formatCustomValue(value);
-      if (null === value) {
-        value = "NULL";
-      } else if ("boolean" === typeof value) {
-        value = value ? "TRUE" : "FALSE";
-      } else if (value instanceof cls.QueryBuilder) {
-        value = "(" + value + ")";
-      } else if ("number" !== typeof value) {
-        value = this._escapeValue(value);
-        value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+      if (Array.isArray(value)) {
+        value = value.map(function(v) {
+          return _this._formatValue(v);
+        });
+        value = "(" + (value.join(', ')) + ")";
+      } else {
+        if (null === value) {
+          value = "NULL";
+        } else if ("boolean" === typeof value) {
+          value = value ? "TRUE" : "FALSE";
+        } else if (value instanceof cls.QueryBuilder) {
+          value = "(" + value + ")";
+        } else if ("number" !== typeof value) {
+          value = this._escapeValue(value);
+          value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+        }
       }
       return value;
     };
@@ -393,7 +412,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Expression.prototype._toString = function(node, paramMode) {
-      var child, nodeStr, p, params, str, _i, _j, _len, _len1, _ref, _ref1;
+      var child, inStr, nodeStr, params, str, _i, _len, _ref;
       if (paramMode == null) {
         paramMode = false;
       }
@@ -406,17 +425,14 @@ OTHER DEALINGS IN THE SOFTWARE.
           nodeStr = child.expr;
           if (child.para != null) {
             if (!paramMode) {
-              child.para = Array.isArray(child.para) ? "(" + (child.para.join(', ')) + ")" : this._formatValue(child.para);
-              nodeStr = nodeStr.replace('?', child.para);
+              nodeStr = nodeStr.replace('?', this._formatValue(child.para));
             } else {
+              params = params.concat(this._formatValueAsParam(child.para));
               if (Array.isArray(child.para)) {
-                _ref1 = child.para;
-                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                  p = _ref1[_j];
-                  params.push(this._formatValueAsParam(p));
-                }
-              } else {
-                params.push(this._formatValueAsParam(child.para));
+                inStr = Array.apply(null, new Array(child.para.length)).map(function() {
+                  return '?';
+                });
+                nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
               }
             }
           }
@@ -732,7 +748,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.values = [];
     }
 
-    AbstractSetFieldBlock.prototype.set = function(field, value, options) {
+    AbstractSetFieldBlock.prototype._set = function(field, value, options) {
       var index;
       if (options == null) {
         options = {};
@@ -761,7 +777,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFields = function(fields, options) {
+    AbstractSetFieldBlock.prototype._setFields = function(fields, options) {
       var field;
       if (options == null) {
         options = {};
@@ -771,12 +787,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       for (field in fields) {
         if (!__hasProp.call(fields, field)) continue;
-        this.set(field, fields[field], options);
+        this._set(field, fields[field], options);
       }
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+    AbstractSetFieldBlock.prototype._setFieldsRows = function(fieldsRows, options) {
       var field, i, index, value, _i, _ref3, _ref4;
       if (options == null) {
         options = {};
@@ -831,8 +847,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       return _ref3;
     }
 
-    SetFieldBlock.prototype.setFieldsRows = function() {
-      throw new Error('Cannot call setFieldRows for an UPDATE SET');
+    SetFieldBlock.prototype.set = function(field, value, options) {
+      return this._set(field, value, options);
+    };
+
+    SetFieldBlock.prototype.setFields = function(fields, options) {
+      return this._setFields(fields, options);
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
@@ -894,6 +914,21 @@ OTHER DEALINGS IN THE SOFTWARE.
       _ref4 = InsertFieldValueBlock.__super__.constructor.apply(this, arguments);
       return _ref4;
     }
+
+    InsertFieldValueBlock.prototype.set = function(field, value, options) {
+      if (options == null) {
+        options = {};
+      }
+      return this._set(field, value, options);
+    };
+
+    InsertFieldValueBlock.prototype.setFields = function(fields, options) {
+      return this._setFields(fields, options);
+    };
+
+    InsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+      return this._setFieldsRows(fieldsRows, options);
+    };
 
     InsertFieldValueBlock.prototype._buildVals = function() {
       var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
@@ -1533,7 +1568,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.5.0',
+    VERSION: '3.6.1',
     expr: function() {
       return new cls.Expression;
     },

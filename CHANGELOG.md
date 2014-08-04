@@ -1,5 +1,10 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 30 July 2014 (3.6.1)
+* Better fix for #82
+* Treat `*` as a special case when auto-quoting field names
+* Fix for #84
+
 ## 19 July 2014 (3.5.0)
 * #82 - `ON DUPLIATE KEY UPDATE` enchancements
 * #25, #72, #73 - parameter substitution in expressions

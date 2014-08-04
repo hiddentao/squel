@@ -1,5 +1,5 @@
 ###
-Copyright (c) Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -180,7 +180,10 @@ class cls.BaseBuilder extends cls.Cloneable
           # a.b.c -> `a`.`b`.`c`
           item = item
             .split('.')
-            .map( (v) -> "#{quoteChar}#{v}#{quoteChar}" )
+            .map( (v) -> 
+              # treat '*' as special case (#79)
+              return if '*' is v then v else "#{quoteChar}#{v}#{quoteChar}" 
+            )
             .join('.')
 
     item
@@ -258,24 +261,32 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Format the given field value for inclusion into query parameter array
   _formatValueAsParam: (value) ->
-    if value instanceof cls.QueryBuilder and value.isNestable()
-      "#{value}"
-    else 
-      @_formatCustomValue(value)
+    if Array.isArray(value)
+      value.map (v) => @_formatValueAsParam v
+    else
+      if value instanceof cls.QueryBuilder and value.isNestable()
+        "#{value}"
+      else 
+        @_formatCustomValue(value)
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value, formattingOptions = {}) ->
     value = @_formatCustomValue(value)
 
-    if null is value
-      value = "NULL"
-    else if "boolean" is typeof value
-      value = if value then "TRUE" else "FALSE"
-    else if value instanceof cls.QueryBuilder
-      value = "(#{value})"
-    else if "number" isnt typeof value
-      value = @_escapeValue(value)
-      value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
+    # if it's an array then format each element separately
+    if Array.isArray(value)
+      value = value.map (v) => @_formatValue v
+      value = "(#{value.join(', ')})"
+    else
+      if null is value
+        value = "NULL"
+      else if "boolean" is typeof value
+        value = if value then "TRUE" else "FALSE"
+      else if value instanceof cls.QueryBuilder
+        value = "(#{value})"
+      else if "number" isnt typeof value
+        value = @_escapeValue(value)
+        value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
 
     value
 
@@ -392,19 +403,13 @@ class cls.Expression extends cls.BaseBuilder
                 # have param?
                 if child.para?
                   if not paramMode
-                    child.para = 
-                      # [1,2,3] -> '(1,2,3)'
-                      if Array.isArray(child.para)
-                        "(#{child.para.join(', ')})"
-                      else
-                        @_formatValue(child.para)
-                    nodeStr = nodeStr.replace '?', child.para
+                    nodeStr = nodeStr.replace '?', @_formatValue(child.para)
                   else
+                    params = params.concat(@_formatValueAsParam child.para)
+                    # IN ? -> IN (?, ?, ..., ?)
                     if Array.isArray(child.para)
-                      for p in child.para
-                        params.push @_formatValueAsParam(p)
-                    else
-                      params.push @_formatValueAsParam(child.para)
+                      inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
+                      nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
             else
                 nodeStr = @_toString(child, paramMode)
                 if paramMode
@@ -654,7 +659,7 @@ class cls.AbstractSetFieldBlock extends cls.Block
 
   # Update the given field with the given value.
   # This will override any previously set value for the given field.
-  set: (field, value, options = {}) ->
+  _set: (field, value, options = {}) ->
     throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
 
     value = @_sanitizeValue(value) if undefined isnt value
@@ -680,17 +685,17 @@ class cls.AbstractSetFieldBlock extends cls.Block
 
 
   # Insert fields based on the key/value pairs in the given object
-  setFields: (fields, options = {}) ->
+  _setFields: (fields, options = {}) ->
     throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
 
     for own field of fields
-      @set field, fields[field], options
+      @_set field, fields[field], options
     @
 
 
   # Insert multiple rows for the given fields. Accepts an array of objects.
   # This will override all previously set values for every field.
-  setFieldsRows: (fieldsRows, options = {}) ->
+  _setFieldsRows: (fieldsRows, options = {}) ->
     throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
 
     # Reset the objects stored fields and values
@@ -729,8 +734,11 @@ class cls.AbstractSetFieldBlock extends cls.Block
 # (UPDATE) SET field=value
 class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
 
-  setFieldsRows: ->
-    throw new Error('Cannot call setFieldRows for an UPDATE SET')
+  set: (field, value, options) ->
+    @_set field, value, options
+
+  setFields: (fields, options) ->
+    @_setFields fields, options
 
   buildStr: (queryBuilder) ->
     if 0 >= @fields.length then throw new Error "set() needs to be called"
@@ -769,6 +777,15 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
 
 # (INSERT INTO) ... field ... value
 class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
+  set: (field, value, options = {}) ->
+    @_set field, value, options
+
+  setFields: (fields, options) ->
+    @_setFields fields, options
+
+  setFieldsRows: (fieldsRows, options) ->
+    @_setFieldsRows fieldsRows, options
+
   _buildVals: ->
     vals = []
     for i in [0...@values.length]

@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -494,12 +494,12 @@ test['Blocks'] =
     'initial values': ->
       assert.same [], @inst.values
 
-    'set()':
+    '_set()':
       'saves inputs': ->
-        @inst.set('field1', 'value1', dummy: 1)
-        @inst.set('field2', 'value2', dummy: 2)
-        @inst.set('field3', 'value3', dummy: 3)
-        @inst.set('field4')
+        @inst._set('field1', 'value1', dummy: 1)
+        @inst._set('field2', 'value2', dummy: 2)
+        @inst._set('field3', 'value3', dummy: 3)
+        @inst._set('field4')
 
         expectedFields = [ 'field1', 'field2', 'field3', 'field4' ]
         expectedValues = [ [ 'value1', 'value2', 'value3', undefined ] ]
@@ -513,7 +513,7 @@ test['Blocks'] =
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        @inst.set('field1', 'value1', dummy: true)
+        @inst._set('field1', 'value1', dummy: true)
 
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
@@ -522,9 +522,9 @@ test['Blocks'] =
         assert.same [ [ '_v' ] ], @inst.values
 
 
-    'setFields()':
+    '_setFields()':
       'saves inputs': ->
-        @inst.setFields
+        @inst._setFields
           'field1': 'value1'
           'field2': 'value2'
           'field3': 'value3'
@@ -541,7 +541,7 @@ test['Blocks'] =
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        @inst.setFields({'field1': 'value1'}, {dummy: true})
+        @inst._setFields({'field1': 'value1'}, {dummy: true})
 
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
         assert.ok sanitizeValueSpy.calledWithExactly 'value1'
@@ -549,9 +549,9 @@ test['Blocks'] =
         assert.same [ '_f' ], @inst.fields
         assert.same [ [ '_v' ] ], @inst.values
 
-    'setFieldsRows()':
+    '_setFieldsRows()':
       'saves inputs': ->
-        @inst.setFieldsRows [
+        @inst._setFieldsRows [
           {
             'field1': 'value1'
             'field2': 'value2'
@@ -576,7 +576,7 @@ test['Blocks'] =
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        @inst.setFieldsRows [
+        @inst._setFieldsRows [
           {
             'field1': 'value1'
           },
@@ -628,16 +628,21 @@ test['Blocks'] =
       assert.same [], @inst.values
 
     'set()':
-      'same as base class': ->
-        assert.same squel.cls.AbstractSetFieldBlock.prototype.set, @inst.set
+      'calls to _set()': ->
+        spy = test.mocker.stub @inst, '_set'
+
+        @inst.set 'f', 'v', dummy: true
+
+        assert.ok spy.calledWithExactly('f', 'v', dummy: true)
 
     'setFields()':
-      'same as base class': ->
-        assert.same squel.cls.AbstractSetFieldBlock.prototype.setFields, @inst.setFields
+      'calls to _setFields()': ->
+        spy = test.mocker.stub @inst, '_setFields'
 
-    'setFieldsRows()':
-      'not allowed': ->
-        assert.throws (=> @inst.setFieldsRows([])), 'Cannot call setFieldRows for an UPDATE SET'
+        @inst.setFields 'f', dummy: true
+
+        assert.ok spy.calledWithExactly('f', dummy: true)
+
 
     'buildStr()':
       'needs at least one field to have been provided': ->
@@ -713,16 +718,28 @@ test['Blocks'] =
         dummy:true
 
     'set()':
-      'same as base class': ->
-        assert.same squel.cls.AbstractSetFieldBlock.prototype.set, @inst.set
+      'calls to _set()': ->
+        spy = test.mocker.stub @inst, '_set'
+
+        @inst.set 'f', 'v', dummy: true
+
+        assert.ok spy.calledWithExactly('f', 'v', dummy: true)
 
     'setFields()':
-      'same as base class': ->
-        assert.same squel.cls.AbstractSetFieldBlock.prototype.setFields, @inst.setFields
+      'calls to _setFields()': ->
+        spy = test.mocker.stub @inst, '_setFields'
+
+        @inst.setFields 'f', dummy: true
+
+        assert.ok spy.calledWithExactly('f', dummy: true)
 
     'setFieldsRows()':
-      'same as base class': ->
-        assert.same squel.cls.AbstractSetFieldBlock.prototype.setFieldsRows, @inst.setFieldsRows
+      'calls to _setFieldsRows()': ->
+        spy = test.mocker.stub @inst, '_setFieldsRows'
+
+        @inst.setFieldsRows 'f', dummy: true
+
+        assert.ok spy.calledWithExactly('f', dummy: true)
 
     'buildStr()':
       'needs at least one field to have been provided': ->

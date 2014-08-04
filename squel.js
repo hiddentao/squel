@@ -1,5 +1,5 @@
 /*
-Copyright (c) Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -188,7 +188,11 @@ OTHER DEALINGS IN THE SOFTWARE.
             item = "" + quoteChar + item + quoteChar;
           } else {
             item = item.split('.').map(function(v) {
-              return "" + quoteChar + v + quoteChar;
+              if ('*' === v) {
+                return v;
+              } else {
+                return "" + quoteChar + v + quoteChar;
+              }
             }).join('.');
           }
         }
@@ -282,27 +286,42 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValueAsParam = function(value) {
-      if (value instanceof cls.QueryBuilder && value.isNestable()) {
-        return "" + value;
+      var _this = this;
+      if (Array.isArray(value)) {
+        return value.map(function(v) {
+          return _this._formatValueAsParam(v);
+        });
       } else {
-        return this._formatCustomValue(value);
+        if (value instanceof cls.QueryBuilder && value.isNestable()) {
+          return "" + value;
+        } else {
+          return this._formatCustomValue(value);
+        }
       }
     };
 
     BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
+      var _this = this;
       if (formattingOptions == null) {
         formattingOptions = {};
       }
       value = this._formatCustomValue(value);
-      if (null === value) {
-        value = "NULL";
-      } else if ("boolean" === typeof value) {
-        value = value ? "TRUE" : "FALSE";
-      } else if (value instanceof cls.QueryBuilder) {
-        value = "(" + value + ")";
-      } else if ("number" !== typeof value) {
-        value = this._escapeValue(value);
-        value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+      if (Array.isArray(value)) {
+        value = value.map(function(v) {
+          return _this._formatValue(v);
+        });
+        value = "(" + (value.join(', ')) + ")";
+      } else {
+        if (null === value) {
+          value = "NULL";
+        } else if ("boolean" === typeof value) {
+          value = value ? "TRUE" : "FALSE";
+        } else if (value instanceof cls.QueryBuilder) {
+          value = "(" + value + ")";
+        } else if ("number" !== typeof value) {
+          value = this._escapeValue(value);
+          value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+        }
       }
       return value;
     };
@@ -394,7 +413,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Expression.prototype._toString = function(node, paramMode) {
-      var child, nodeStr, p, params, str, _i, _j, _len, _len1, _ref, _ref1;
+      var child, inStr, nodeStr, params, str, _i, _len, _ref;
       if (paramMode == null) {
         paramMode = false;
       }
@@ -407,17 +426,14 @@ OTHER DEALINGS IN THE SOFTWARE.
           nodeStr = child.expr;
           if (child.para != null) {
             if (!paramMode) {
-              child.para = Array.isArray(child.para) ? "(" + (child.para.join(', ')) + ")" : this._formatValue(child.para);
-              nodeStr = nodeStr.replace('?', child.para);
+              nodeStr = nodeStr.replace('?', this._formatValue(child.para));
             } else {
+              params = params.concat(this._formatValueAsParam(child.para));
               if (Array.isArray(child.para)) {
-                _ref1 = child.para;
-                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                  p = _ref1[_j];
-                  params.push(this._formatValueAsParam(p));
-                }
-              } else {
-                params.push(this._formatValueAsParam(child.para));
+                inStr = Array.apply(null, new Array(child.para.length)).map(function() {
+                  return '?';
+                });
+                nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
               }
             }
           }
@@ -733,7 +749,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       this.values = [];
     }
 
-    AbstractSetFieldBlock.prototype.set = function(field, value, options) {
+    AbstractSetFieldBlock.prototype._set = function(field, value, options) {
       var index;
       if (options == null) {
         options = {};
@@ -762,7 +778,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFields = function(fields, options) {
+    AbstractSetFieldBlock.prototype._setFields = function(fields, options) {
       var field;
       if (options == null) {
         options = {};
@@ -772,12 +788,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       for (field in fields) {
         if (!__hasProp.call(fields, field)) continue;
-        this.set(field, fields[field], options);
+        this._set(field, fields[field], options);
       }
       return this;
     };
 
-    AbstractSetFieldBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+    AbstractSetFieldBlock.prototype._setFieldsRows = function(fieldsRows, options) {
       var field, i, index, value, _i, _ref3, _ref4;
       if (options == null) {
         options = {};
@@ -832,8 +848,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       return _ref3;
     }
 
-    SetFieldBlock.prototype.setFieldsRows = function() {
-      throw new Error('Cannot call setFieldRows for an UPDATE SET');
+    SetFieldBlock.prototype.set = function(field, value, options) {
+      return this._set(field, value, options);
+    };
+
+    SetFieldBlock.prototype.setFields = function(fields, options) {
+      return this._setFields(fields, options);
     };
 
     SetFieldBlock.prototype.buildStr = function(queryBuilder) {
@@ -895,6 +915,21 @@ OTHER DEALINGS IN THE SOFTWARE.
       _ref4 = InsertFieldValueBlock.__super__.constructor.apply(this, arguments);
       return _ref4;
     }
+
+    InsertFieldValueBlock.prototype.set = function(field, value, options) {
+      if (options == null) {
+        options = {};
+      }
+      return this._set(field, value, options);
+    };
+
+    InsertFieldValueBlock.prototype.setFields = function(fields, options) {
+      return this._setFields(fields, options);
+    };
+
+    InsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
+      return this._setFieldsRows(fieldsRows, options);
+    };
 
     InsertFieldValueBlock.prototype._buildVals = function() {
       var formattedValue, i, j, vals, _i, _j, _ref5, _ref6;
@@ -1534,7 +1569,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.5.0',
+    VERSION: '3.6.1',
     expr: function() {
       return new cls.Expression;
     },
@@ -1707,112 +1742,69 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
   squel.flavours['mysql'] = function() {
+    var _ref5;
     cls = squel.cls;
-    cls.MysqlInsertFieldValueBlock = (function(_super) {
-      __extends(MysqlInsertFieldValueBlock, _super);
+    cls.MysqlOnDuplicateKeyUpdateBlock = (function(_super) {
+      __extends(MysqlOnDuplicateKeyUpdateBlock, _super);
 
-      function MysqlInsertFieldValueBlock(options) {
-        MysqlInsertFieldValueBlock.__super__.constructor.call(this, options);
-        this._duplicateKeyUpdates = {};
+      function MysqlOnDuplicateKeyUpdateBlock() {
+        _ref5 = MysqlOnDuplicateKeyUpdateBlock.__super__.constructor.apply(this, arguments);
+        return _ref5;
       }
 
-      MysqlInsertFieldValueBlock.prototype.set = function(field, value, options) {
-        if (options == null) {
-          options = {};
-        }
-        MysqlInsertFieldValueBlock.__super__.set.call(this, field, value, _without(options, 'duplicateKeyUpdate'));
-        if ((options != null ? options.duplicateKeyUpdate : void 0) !== void 0) {
-          this._duplicateKeyUpdates[field] = this._sanitizeValue(options.duplicateKeyUpdate);
-        }
-        return this;
+      MysqlOnDuplicateKeyUpdateBlock.prototype.onDupUpdate = function(field, value, options) {
+        return this._set(field, value, options);
       };
 
-      MysqlInsertFieldValueBlock.prototype.setFields = function(fields, options) {
-        var field, value, _ref5;
-        if (options == null) {
-          options = {};
-        }
-        MysqlInsertFieldValueBlock.__super__.setFields.call(this, fields, _without(options, 'duplicateKeyUpdate'));
-        _ref5 = options.duplicateKeyUpdate;
-        for (field in _ref5) {
-          value = _ref5[field];
-          this._duplicateKeyUpdates[field] = this._sanitizeValue(value);
-        }
-        return this;
-      };
-
-      MysqlInsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
-        var field, value, _ref5;
-        if (options == null) {
-          options = {};
-        }
-        MysqlInsertFieldValueBlock.__super__.setFieldsRows.call(this, fieldsRows, _without(options, 'duplicateKeyUpdate'));
-        _ref5 = options.duplicateKeyUpdate;
-        for (field in _ref5) {
-          value = _ref5[field];
-          this._duplicateKeyUpdates[field] = this._sanitizeValue(value);
-        }
-        return this;
-      };
-
-      MysqlInsertFieldValueBlock.prototype.buildStr = function() {
-        var str;
-        str = MysqlInsertFieldValueBlock.__super__.buildStr.call(this);
-        return "" + str + (this._buildDuplicateKeyUpdateStr());
-      };
-
-      MysqlInsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
-        var dups, qry;
-        qry = MysqlInsertFieldValueBlock.__super__.buildParam.call(this, queryBuilder);
-        dups = this._buildDuplicateKeyUpdateParam();
-        qry.text = "" + qry.text + dups.text;
-        qry.values.push.apply(qry.values, dups.values);
-        return qry;
-      };
-
-      MysqlInsertFieldValueBlock.prototype._buildDuplicateKeyUpdateStr = function() {
-        var field, fields, value, _ref5;
-        fields = "";
-        _ref5 = this._duplicateKeyUpdates;
-        for (field in _ref5) {
-          value = _ref5[field];
-          if ("" !== fields) {
-            fields += ", ";
+      MysqlOnDuplicateKeyUpdateBlock.prototype.buildStr = function() {
+        var field, fieldOptions, i, str, value, _i, _ref6;
+        str = "";
+        for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+          field = this.fields[i];
+          if ("" !== str) {
+            str += ", ";
           }
-          fields += "" + field + " = " + (this._formatValue(value));
+          value = this.values[0][i];
+          fieldOptions = this.fieldOptions[0][i];
+          if (typeof value === 'undefined') {
+            str += field;
+          } else {
+            str += "" + field + " = " + (this._formatValue(value, fieldOptions));
+          }
         }
-        if (fields !== "") {
-          return " ON DUPLICATE KEY UPDATE " + fields;
-        } else {
+        if (str === "") {
           return "";
+        } else {
+          return "ON DUPLICATE KEY UPDATE " + str;
         }
       };
 
-      MysqlInsertFieldValueBlock.prototype._buildDuplicateKeyUpdateParam = function() {
-        var field, fields, ret, value, _ref5;
-        ret = {
-          text: "",
-          values: []
-        };
-        fields = "";
-        _ref5 = this._duplicateKeyUpdates;
-        for (field in _ref5) {
-          value = _ref5[field];
-          if ("" !== fields) {
-            fields += ", ";
+      MysqlOnDuplicateKeyUpdateBlock.prototype.buildParam = function(queryBuilder) {
+        var field, i, str, vals, value, _i, _ref6;
+        str = "";
+        vals = [];
+        for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+          field = this.fields[i];
+          if ("" !== str) {
+            str += ", ";
           }
-          fields += "" + field + " = ?";
-          ret.values.push(this._formatValueAsParam(value));
+          value = this.values[0][i];
+          if (typeof value === 'undefined') {
+            str += field;
+          } else {
+            str += "" + field + " = ?";
+            vals.push(this._formatValueAsParam(value));
+          }
         }
-        if (fields !== "") {
-          ret.text = " ON DUPLICATE KEY UPDATE " + fields;
-        }
-        return ret;
+        return {
+          text: str === "" ? "" : "ON DUPLICATE KEY UPDATE " + str,
+          values: vals
+        };
       };
 
-      return MysqlInsertFieldValueBlock;
+      return MysqlOnDuplicateKeyUpdateBlock;
 
-    })(cls.InsertFieldValueBlock);
+    })(cls.AbstractSetFieldBlock);
     return cls.Insert = (function(_super) {
       __extends(Insert, _super);
 
@@ -1820,7 +1812,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (blocks == null) {
           blocks = null;
         }
-        blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.MysqlInsertFieldValueBlock(options)]);
+        blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.MysqlOnDuplicateKeyUpdateBlock(options)]);
         Insert.__super__.constructor.call(this, options, blocks);
       }
 

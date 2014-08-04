@@ -1,45 +1,45 @@
 {
-  "name": "squel",
-  "description": "SQL query string builder",
-  "version": "3.5.0",
-  "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
-  "contributors": [
-    "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
-    "nl_0 <nl.imbecile@gmail.com>"
-  ],
-  "dependencies": {},
-  "devDependencies": {
-    "coffee-script": "~1.6.3",
-    "uglify-js": "1.3.x",
-    "chai": "1.5.x",
-    "mocha": "1.9.x",
-    "sinon": "1.6.x",
-    "underscore": "1.4.x",
-    "grunt-contrib-coffee": "~0.7.0",
-    "time-grunt": "~0.1.1",
-    "grunt-contrib-clean": "~0.5.0",
-    "load-grunt-tasks": "~0.1.0",
-    "grunt": "~0.4.1",
-    "grunt-contrib-uglify": "~0.2.4",
-    "grunt-mocha-test": "~0.6.3",
-    "grunt-shell": "~0.4.0",
-    "grunt-text-replace": "~0.3.11"
-  },
-  "keywords": [
-    "sql",
-    "database",
-    "rdbms"
-  ],
-  "main": "squel",
-  "scripts": {
-    "test": "grunt",
-    "build": "grunt"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hiddentao/squel.git"
-  },
-  "engines": {
-    "node": ">= 0.6.0"
-  }
+    "name": "squel",
+    "description": "SQL query string builder",
+    "version": "3.6.1",
+    "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
+    "contributors": [
+        "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
+        "nl_0 <nl.imbecile@gmail.com>"
+    ],
+    "dependencies": {},
+    "devDependencies": {
+        "coffee-script": "~1.6.3",
+        "uglify-js": "1.3.x",
+        "chai": "1.5.x",
+        "mocha": "1.9.x",
+        "sinon": "1.6.x",
+        "underscore": "1.4.x",
+        "grunt-contrib-coffee": "~0.7.0",
+        "time-grunt": "~0.1.1",
+        "grunt-contrib-clean": "~0.5.0",
+        "load-grunt-tasks": "~0.1.0",
+        "grunt": "~0.4.1",
+        "grunt-contrib-uglify": "~0.2.4",
+        "grunt-mocha-test": "~0.6.3",
+        "grunt-shell": "~0.4.0",
+        "grunt-text-replace": "~0.3.11"
+    },
+    "keywords": [
+        "sql",
+        "database",
+        "rdbms"
+    ],
+    "main": "squel",
+    "scripts": {
+        "test": "grunt",
+        "build": "grunt"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hiddentao/squel.git"
+    },
+    "engines": {
+        "node": ">= 0.6.0"
+    }
 }

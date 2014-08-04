@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -292,6 +292,9 @@ test['Builder base class'] =
       'default quote character': ->
         assert.same '`abc`.`def`', @inst._sanitizeField('abc.def')
 
+      'do not quote *': ->
+        assert.same '`abc`.*', @inst._sanitizeField('abc.*')
+
       'custom quote character': ->
         @inst.options.nameQuoteCharacter = '|'
         assert.same '|abc|.|def|', @inst._sanitizeField('abc.def')
@@ -546,6 +549,18 @@ test['Builder base class'] =
 
       assert.same 6, spy.callCount
 
+    'Array - recursively calls itself on each element': ->
+      spy = test.mocker.spy @inst, '_formatValueAsParam'
+
+      v = [ squel.select().from('table'), 1.2 ]
+      res = @inst._formatValueAsParam(v)
+
+      assert.same ['(SELECT * FROM table)', 1.2], res
+
+      assert.same 3, spy.callCount
+      assert.ok spy.calledWith v[0]
+      assert.ok spy.calledWith v[1]
+
 
   '_formatValue':
     'null': ->
@@ -581,6 +596,19 @@ test['Builder base class'] =
       assert.ok @inst._escapeValue.calledWithExactly('test')
       escapedValue = 'blah'
       assert.same "blah", @inst._formatValue('test', dontQuote: true )
+
+    'Array - recursively calls itself on each element': ->
+      spy = test.mocker.spy @inst, '_formatValue'
+
+      expected = "('test', 123, TRUE, 1.2, NULL)"
+      assert.same expected, @inst._formatValue([ 'test', 123, true, 1.2, null ])
+
+      assert.same 6, spy.callCount
+      assert.ok spy.calledWith 'test'
+      assert.ok spy.calledWith 123
+      assert.ok spy.calledWith true
+      assert.ok spy.calledWith 1.2
+      assert.ok spy.calledWith null
 
     'QueryBuilder': ->
       s = squel.select().from('table')

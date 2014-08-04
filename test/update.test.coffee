@@ -1,5 +1,5 @@
 ###
-Copyright (c) 2012 Ramesh Nair (hiddentao.com)
+Copyright (c) 2014 Ramesh Nair (hiddentao.com)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -181,10 +181,6 @@ test['UPDATE builder'] =
         beforeEach: -> @inst.setFields({field1: true, field3: 'value3'})
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field1 = TRUE, field2 = \'value2\', field3 = \'value3\''
-
-    '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])': ->
-        fieldsValues = [ {field: 'value2', field2: true },{field: 'value3', field2: 13 } ]
-        assert.throws (=> @inst.table('table', 't1').setFieldsRows(fieldsValues).toString()), 'Cannot call setFieldRows for an UPDATE SET'
 
     '>> table(table, t1).set("count = count + 1")':
       beforeEach: -> @inst.table('table', 't1').set('count = count + 1')
