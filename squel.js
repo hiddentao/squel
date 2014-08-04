@@ -2174,7 +2174,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         blocks || (blocks = [
           new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
             singleTable: true
-          })), new cls.JoinBlock(options), new cls.WhereBlock(options)
+          })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
         ]);
         Delete.__super__.constructor.call(this, options, blocks);
       }
