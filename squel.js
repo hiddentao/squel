@@ -286,27 +286,42 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValueAsParam = function(value) {
-      if (value instanceof cls.QueryBuilder && value.isNestable()) {
-        return "" + value;
+      var _this = this;
+      if (Array.isArray(value)) {
+        return value.map(function(v) {
+          return _this._formatValueAsParam(v);
+        });
       } else {
-        return this._formatCustomValue(value);
+        if (value instanceof cls.QueryBuilder && value.isNestable()) {
+          return "" + value;
+        } else {
+          return this._formatCustomValue(value);
+        }
       }
     };
 
     BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
+      var _this = this;
       if (formattingOptions == null) {
         formattingOptions = {};
       }
       value = this._formatCustomValue(value);
-      if (null === value) {
-        value = "NULL";
-      } else if ("boolean" === typeof value) {
-        value = value ? "TRUE" : "FALSE";
-      } else if (value instanceof cls.QueryBuilder) {
-        value = "(" + value + ")";
-      } else if ("number" !== typeof value) {
-        value = this._escapeValue(value);
-        value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+      if (Array.isArray(value)) {
+        value = value.map(function(v) {
+          return _this._formatValue(v);
+        });
+        value = "(" + (value.join(', ')) + ")";
+      } else {
+        if (null === value) {
+          value = "NULL";
+        } else if ("boolean" === typeof value) {
+          value = value ? "TRUE" : "FALSE";
+        } else if (value instanceof cls.QueryBuilder) {
+          value = "(" + value + ")";
+        } else if ("number" !== typeof value) {
+          value = this._escapeValue(value);
+          value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+        }
       }
       return value;
     };
@@ -398,7 +413,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Expression.prototype._toString = function(node, paramMode) {
-      var child, nodeStr, p, params, str, _i, _j, _len, _len1, _ref, _ref1;
+      var child, inStr, nodeStr, params, str, _i, _len, _ref;
       if (paramMode == null) {
         paramMode = false;
       }
@@ -411,17 +426,14 @@ OTHER DEALINGS IN THE SOFTWARE.
           nodeStr = child.expr;
           if (child.para != null) {
             if (!paramMode) {
-              child.para = Array.isArray(child.para) ? "(" + (child.para.join(', ')) + ")" : this._formatValue(child.para);
-              nodeStr = nodeStr.replace('?', child.para);
+              nodeStr = nodeStr.replace('?', this._formatValue(child.para));
             } else {
+              params = params.concat(this._formatValueAsParam(child.para));
               if (Array.isArray(child.para)) {
-                _ref1 = child.para;
-                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                  p = _ref1[_j];
-                  params.push(this._formatValueAsParam(p));
-                }
-              } else {
-                params.push(this._formatValueAsParam(child.para));
+                inStr = Array.apply(null, new Array(child.para.length)).map(function() {
+                  return '?';
+                });
+                nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
               }
             }
           }
@@ -1557,7 +1569,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.6.0',
+    VERSION: '3.6.1',
     expr: function() {
       return new cls.Expression;
     },

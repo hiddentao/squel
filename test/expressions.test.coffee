@@ -177,17 +177,17 @@ test['Expression builder base class'] =
           values: [3, '4']
         }
 
-      '>> or("dummy IN ?", [1,2,3])':
+      '>> or("dummy IN ?", [false, 2, null, "str"])':
         beforeEach: ->
-          @inst.or("dummy IN ?", [1,2,3])
+          @inst.or("dummy IN ?", [false,2,null,"str"])
 
         '>> toString()': ->
-          assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (1, 2, 3)"
+          assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (FALSE, 2, NULL, 'str')"
 
         '>> toParam()': ->
           assert.same @inst.toParam(), {
-            text: "test = ? AND flight = ? OR dummy IN ?"
-            values: [3, '4', 1, 2, 3]
+            text: "test = ? AND flight = ? OR dummy IN (?, ?, ?, ?)"
+            values: [3, '4', false, 2, null, 'str']
           }
 
 
@@ -241,17 +241,17 @@ test['Expression builder base class'] =
           values: [3, '4']
         }
 
-      '>> and("dummy IN ?", [1,2,3])':
+      '>> and("dummy IN ?", [false, 2, null, "str"])':
         beforeEach: ->
-          @inst.and("dummy IN ?", [1,2,3])
+          @inst.and("dummy IN ?", [false, 2, null, "str"])
 
         '>> toString()': ->
-          assert.same @inst.toString(), "test = 3 OR flight = '4' AND dummy IN (1, 2, 3)"
+          assert.same @inst.toString(), "test = 3 OR flight = '4' AND dummy IN (FALSE, 2, NULL, 'str')"
 
         '>> toParam()': ->
           assert.same @inst.toParam(), {
-            text: "test = ? OR flight = ? AND dummy IN ?"
-            values: [3, '4', 1, 2, 3]
+            text: "test = ? OR flight = ? AND dummy IN (?, ?, ?, ?)"
+            values: [3, '4', false, 2, null, 'str']
           }
 
 
