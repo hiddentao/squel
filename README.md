@@ -10,7 +10,7 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 
 * Works in node.js and in the browser.
 * Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
-* Supports non-standard commands for popular DB engines such as Postgres.
+* Supports non-standard commands for popular DB engines such as MySQL.
 * Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
 * Small: ~5 KB minified and gzipped
@@ -298,8 +298,8 @@ Examples of custom queries in the wild:
 Squel supports the standard SQL commands and reserved words. However a number of database engines provide their own
 non-standard commands. To make things easy Squel allows for different 'flavours' of SQL to be loaded and used.
 
-At the moment Squel provides a Postgres flavour which augments query builders with additional commands (e.g. `INSERT ... RETURNING`)
-for use with the Postgres database engine.
+At the moment Squel provides `mysql`, `mssql` and `postgres` flavours which augments query builders with additional commands (e.g. `INSERT ... RETURNING`
+for use with Postgres).
 
 To use this in node.js:
 

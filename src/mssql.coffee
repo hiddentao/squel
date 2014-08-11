@@ -171,6 +171,7 @@ squel.flavours['mssql'] = ->
         name: "INSERTED.#{output}"
         alias: alias
     
+
     buildStr: (queryBuilder) ->
       outputs = ""
       if @_outputs.length > 0
