@@ -148,12 +148,11 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Sanitize the given condition.
   _sanitizeCondition: (condition) ->
-    # If it's an expression builder instance then convert it to string form.
-    if condition instanceof cls.Expression
-      condition = condition.toString()
-
-    if "string" isnt typeof condition
-      throw new Error "condition must be a string or Expression instance"
+    # If it's not an Expression builder instance
+    if not (condition instanceof cls.Expression)
+      # It must then be a string
+      if "string" isnt typeof condition
+        throw new Error "condition must be a string or Expression instance"
 
     condition
 
@@ -903,21 +902,27 @@ class cls.WhereBlock extends cls.Block
     finalCondition = ""
     finalValues = []
 
-    for idx in [0...condition.length]
-      c = condition.charAt(idx)
-      if '?' is c and 0 < values.length
-        nextValue = values.shift()
-        if Array.isArray(nextValue) # where b in (?, ? ?)
-          inValues = []
-          for item in nextValue
-            inValues.push @_sanitizeValue(item)
-          finalValues = finalValues.concat(inValues)
-          finalCondition += "(#{('?' for item in inValues).join ', '})"
+    # if it's an Expression instance then convert to text and values
+    if condition instanceof cls.Expression
+      t = condition.toParam()
+      finalCondition = t.text
+      finalValues = t.values
+    else
+      for idx in [0...condition.length]
+        c = condition.charAt(idx)
+        if '?' is c and 0 < values.length
+          nextValue = values.shift()
+          if Array.isArray(nextValue) # where b in (?, ? ?)
+            inValues = []
+            for item in nextValue
+              inValues.push @_sanitizeValue(item)
+            finalValues = finalValues.concat(inValues)
+            finalCondition += "(#{('?' for item in inValues).join ', '})"
+          else
+            finalCondition += '?'
+            finalValues.push @_sanitizeValue(nextValue)
         else
-          finalCondition += '?'
-          finalValues.push @_sanitizeValue(nextValue)
-      else
-        finalCondition += c
+          finalCondition += c
 
     if "" isnt finalCondition
       @wheres.push

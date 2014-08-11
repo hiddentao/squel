@@ -1,5 +1,9 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 11 Aug 2014 (3.7.0)
+* #76 - MSSQL flavour
+* #85 - Using expressions in .where() followed by .toParam()
+
 ## 30 July 2014 (3.6.1)
 * Better fix for #82
 * Treat `*` as a special case when auto-quoting field names

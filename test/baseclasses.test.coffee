@@ -229,7 +229,7 @@ test['Builder base class'] =
     'if Expression':
       'empty expression': ->
         e = squel.expr()
-        assert.same "", @inst._sanitizeCondition(e)
+        assert.same e, @inst._sanitizeCondition(e)
       'non-empty expression': ->
         e = squel.expr()
           .and("s.name <> 'Fred'")
@@ -237,7 +237,7 @@ test['Builder base class'] =
             .or("s.id = 5")
             .or("s.id = 6")
           .end()
-        assert.same "s.name <> 'Fred' OR (s.id = 5 OR s.id = 6)", @inst._sanitizeCondition(e)
+        assert.same e, @inst._sanitizeCondition(e)
 
     'if string': ->
       s = 'BLA BLA'

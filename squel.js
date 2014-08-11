@@ -157,11 +157,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._sanitizeCondition = function(condition) {
-      if (condition instanceof cls.Expression) {
-        condition = condition.toString();
-      }
-      if ("string" !== typeof condition) {
-        throw new Error("condition must be a string or Expression instance");
+      if (!(condition instanceof cls.Expression)) {
+        if ("string" !== typeof condition) {
+          throw new Error("condition must be a string or Expression instance");
+        }
       }
       return condition;
     };
@@ -1089,37 +1088,43 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     WhereBlock.prototype.where = function() {
-      var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, values, _i, _j, _len, _ref5;
+      var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, t, values, _i, _j, _len, _ref5;
       condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       condition = this._sanitizeCondition(condition);
       finalCondition = "";
       finalValues = [];
-      for (idx = _i = 0, _ref5 = condition.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; idx = 0 <= _ref5 ? ++_i : --_i) {
-        c = condition.charAt(idx);
-        if ('?' === c && 0 < values.length) {
-          nextValue = values.shift();
-          if (Array.isArray(nextValue)) {
-            inValues = [];
-            for (_j = 0, _len = nextValue.length; _j < _len; _j++) {
-              item = nextValue[_j];
-              inValues.push(this._sanitizeValue(item));
-            }
-            finalValues = finalValues.concat(inValues);
-            finalCondition += "(" + (((function() {
-              var _k, _len1, _results;
-              _results = [];
-              for (_k = 0, _len1 = inValues.length; _k < _len1; _k++) {
-                item = inValues[_k];
-                _results.push('?');
+      if (condition instanceof cls.Expression) {
+        t = condition.toParam();
+        finalCondition = t.text;
+        finalValues = t.values;
+      } else {
+        for (idx = _i = 0, _ref5 = condition.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; idx = 0 <= _ref5 ? ++_i : --_i) {
+          c = condition.charAt(idx);
+          if ('?' === c && 0 < values.length) {
+            nextValue = values.shift();
+            if (Array.isArray(nextValue)) {
+              inValues = [];
+              for (_j = 0, _len = nextValue.length; _j < _len; _j++) {
+                item = nextValue[_j];
+                inValues.push(this._sanitizeValue(item));
               }
-              return _results;
-            })()).join(', ')) + ")";
+              finalValues = finalValues.concat(inValues);
+              finalCondition += "(" + (((function() {
+                var _k, _len1, _results;
+                _results = [];
+                for (_k = 0, _len1 = inValues.length; _k < _len1; _k++) {
+                  item = inValues[_k];
+                  _results.push('?');
+                }
+                return _results;
+              })()).join(', ')) + ")";
+            } else {
+              finalCondition += '?';
+              finalValues.push(this._sanitizeValue(nextValue));
+            }
           } else {
-            finalCondition += '?';
-            finalValues.push(this._sanitizeValue(nextValue));
+            finalCondition += c;
           }
-        } else {
-          finalCondition += c;
         }
       }
       if ("" !== finalCondition) {
@@ -1569,7 +1574,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.6.1',
+    VERSION: '3.7.0',
     expr: function() {
       return new cls.Expression;
     },
