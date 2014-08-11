@@ -235,7 +235,9 @@ squel.flavours['mssql'] = ->
         new cls.StringBlock(options, 'DELETE'),
         new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
         new cls.JoinBlock(options),
-        new cls.WhereBlock(options)
+        new cls.WhereBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
       ]
   
       super options, blocks
