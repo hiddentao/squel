@@ -275,7 +275,18 @@
               }
             },
             returns: 'this'
-          }
+          },
+          '.top()': {
+            flavours: ['mssql'],
+            desc: 'Insert the <code>TOP</code> keyword to limit the number of rows returned.',
+            params: {
+              num: {
+                desc: 'Number of rows or percentage of rows to limit to',
+                type: 'Integer'
+              },
+            },
+            returns: 'this',
+          },
         }
       }, // select
 
@@ -392,6 +403,33 @@
                 desc: 'Index of record to start updating from.',
                 type: 'Integer'
               }
+            },
+            returns: 'this'
+          },
+          '.output()': {
+            desc: 'Add field to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              },
+            },
+            returns: 'this'
+          },
+          '.outputs()': {
+            desc: 'Add fields to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              fields: {
+                desc: 'List of field:alias pairs.',
+                type: 'Object'
+              },
             },
             returns: 'this'
           },
@@ -693,6 +731,17 @@
               }
             }
           },
+          '.output()': {
+            desc: 'Add field to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              name: {
+                desc: 'Name of field or array of field names.',
+                type: 'String|Array'
+              }
+            },
+            returns: 'this'
+          },
           '.returning()': {
             desc: 'Add a RETURNING clause.',
             flavours: ['postgres'],
@@ -878,7 +927,7 @@
             desc: 'Load and use the given SQL flavour.',
             params: {
               'flavour': {
-                desc: 'The flavour of SQL to use. At the moment only <code>postgres</code> and <code>mysql</code> are supported.',
+                desc: 'The flavour of SQL to use. At the moment <code>postgres</code>, <code>mssql</code> and <code>mysql</code> are available.',
                 type: 'String'
               }
             },

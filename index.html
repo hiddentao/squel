@@ -67,13 +67,13 @@
         <p class="npm">
           npm install squel
         </p>
-        <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download production version">
-          <p class="label">Production version</p>
-          <p class="stats">(~5 KB minified + gzipped)</p>
+        <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel-basic.min.js" title="Download production version">
+          <p class="label">Basic version</p>
+          <p class="stats">(~5.3 KB minified + gzipped)</p>
         </a>
-        <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.js" title="Download development version">
-          <p class="label">Development version</p>
-          <p class="stats">(~44 KB)</p>
+        <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download development version">
+          <p class="label">Basic + Database engines</p>
+          <p class="stats">(~6.1 KB minified + gzipped)</p>
         </a>
       </div>
 
@@ -1375,7 +1375,10 @@
       nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
       <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
       version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
-        <a href="http://www.postgresql.org/">Postgres</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL.</p>
+        <a href="http://www.postgresql.org/">Postgres</a>,  
+        <a href="http://msdn.microsoft.com/en-us/library/bb510741.aspx">MSSQL/Transact-SQL</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL.</p>
+
+      <em>Note: The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</em>
 
         <h3>Postgres</h3>
 
@@ -1426,7 +1429,97 @@
         */
       </pre>
 
-      <p>The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</p>
+        <h3>MSSQL/Transact-SQL</h3>
+
+        <p>Default date formatting:</p>
+
+      <pre class="brush: js">
+        squel.useFlavour('mssql');
+
+        alert(
+          squel.insert()
+            .into('table')
+            .setFields({
+                field1: new Date('2012-12-12T04:30:00Z')
+            })
+            .toString()
+        );
+
+        /*  
+            INSERT INTO table (field1) VALUES('2012-12-12 4:30:0')
+        */
+      </pre>
+
+        <p>TOP:</p>
+
+      <pre class="brush: js">
+        squel.useFlavour('mssql');
+
+        alert(
+          squel.select()
+            .from('table')
+            .field('field')
+            .top(10)
+            .toString()
+        );
+
+        /*  
+            SELECT TOP (10) field FROM table
+        */
+      </pre>
+
+      <p>OFFSET and FETCH NEXT:</p>
+
+      <pre class="brush: js">
+        squel.useFlavour('mssql');
+
+        alert(
+          squel.select()
+            .from('table')
+            .field('field')
+            .limit(10)
+            .offset(5)
+            .toString()
+        );
+
+        /*  
+            SELECT field FROM table OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY
+        */
+      </pre>
+
+        <p>OUTPUT INSERTED:</p>
+
+      <pre class="brush: js">
+        squel.useFlavour('mssql');
+
+        alert(
+          squel.update()
+            .table('table')
+            .output('id', 'blah')
+            .set('field', 1)
+            .toString()
+        );
+
+        /*  
+            UPDATE table SET field = 1 OUTPUT INSERTED.id AS blah
+        */
+      </pre>
+
+      <pre class="brush: js">
+        squel.useFlavour('mssql');
+
+        alert(
+          squel.insert()
+            .into('table')
+            .output('id')
+            .set('field', 1)
+            .toString()
+        );
+
+        /*  
+            INSERT INTO table (field) OUTPUT INSERTED.id VALUES (1)
+        */
+      </pre>
 
     </section>
 
