@@ -242,6 +242,11 @@
                 desc: 'Sort direction. <code>true</code> = ascending, <code>false</code> = descending.',
                 type: 'Boolean',
                 defaultValue: true
+              },
+              '...': {
+                desc: 'List of parameter values specified as additional arguments.',
+                type: 'Any',
+                defaultValue: '[]'
               }
             },
             returns: 'this'
@@ -889,7 +894,7 @@
                 'will override any globally registered handlers set via [[cls.registerValueHandler]].',
             params: {
               'type': {
-                desc: 'The class object representing the value type to handle',
+                desc: 'The class object or <code>typeof</code> string representing the value type to handle',
                 type: 'Class'
               },
               'handler': {
@@ -953,7 +958,7 @@
             'Squel automatically take care of formatting them when building the output query string.',
         params: {
           'type': {
-            desc: 'The class object representing the value type to handle',
+            desc: 'The class object or <code>typeof</code> string representing the value type to handle',
             type: 'Class'
           },
           'handler': {

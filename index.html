@@ -483,6 +483,18 @@
             /*  SELECT id FROM students ORDER BY id ASC, name DESC */
         </pre>
 
+    <p>Additional arguments count as parameter values, e.g. for custom sort functions::</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .order("DIST(?, ?)", true, 1, 2)
+            );
+            /*  SELECT id FROM students ORDER BY DIST(1, 2) ASC */
+        </pre>
+
     <h3>Grouping</h3>
 
         <pre class="brush: js">
@@ -841,13 +853,14 @@
           squel.select()
             .from("students")
             .where("a = ? AND b = ?", "test", true)
+            .order("CALC(?, ?)", true, 1.2, false)
             .toParam()
         ));
 
         /*
           {
-            text:  SELECT * FROM students WHERE (a = ? AND b = ?),
-            values:  [ 'test', true ]
+            text:  SELECT * FROM students WHERE (a = ? AND b = ?) ORDER BY CALC(?, ?) ASC,
+            values:  [ 'test', true, 1.2, false ]
           }
         */
       </pre>
@@ -1095,8 +1108,7 @@
     <section id="custom_types">
       <a name="custom_types" href="#custom_types"><h2>Custom value types</h2></a>
 
-      <p>Sometimes you might want to pass in <code>Object</code> instances as field values. For instance, let's say
-        you are updating a <code>DateTime</code> field. You could do the following:</p>
+      <p>Sometimes you might want to override how Squel formats certainst types of values, e.g. <code>Date</code> instances. You could do the following:</p>
 
       <pre class="brush: js">
             var myDate = new Date(2012, 4, 22),
@@ -1163,6 +1175,22 @@
                     .set("value", new ClassB())
             );
             /*  UPDATE students SET value = 2 */
+      </pre>
+
+      <p>We can even register handlers for primitive types such as strings and booleans. Simply pass in the 
+      primitive type name as a string:</p>
+
+      <pre class="brush: js">
+            squel.registerValueHandler('boolean', function(v) {
+              return v ? 'YES': 'NO';
+            });
+
+            alert(
+                squel.update()
+                    .table("students")
+                    .set("value", true)
+            );
+            /*  UPDATE students SET value = 'YES' */
       </pre>
 
       <p>We can even override the registered handler for a value type on a per-instance basis.</p>
