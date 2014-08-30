@@ -977,12 +977,14 @@ class cls.OrderByBlock extends cls.Block
   constructor: (options) ->
     super options
     @orders = []
+    @_values = []
 
   # Add an ORDER BY transformation for the given field in the given order.
   #
   # To specify descending order pass false for the 'asc' parameter.
-  order: (field, asc = true) ->
+  order: (field, asc = true, values...) ->
     field = @_sanitizeField(field)
+    @_values = values
     @orders.push
       field: field
       dir: if asc then true else false
@@ -996,6 +998,12 @@ class cls.OrderByBlock extends cls.Block
       "ORDER BY #{orders}"
     else
       ""
+
+  buildParam: (queryBuilder) ->
+    {
+      text: @buildStr(queryBuilder)
+      values: @_values
+    }
 
 
 # LIMIT

@@ -1084,6 +1084,7 @@ test['Blocks'] =
 
     'initial field values': ->
       assert.same [], @inst.orders
+      assert.same [], @inst._values
 
     'order()':
       'adds to list': ->
@@ -1117,6 +1118,12 @@ test['Blocks'] =
 
         assert.same [ { field: '_f', dir: true } ], @inst.orders
 
+      'saves additional values': ->
+        @inst.order('field1', false, 1.2, 4)
+
+        assert.same [ { field: 'field1', dir: false } ], @inst.orders
+        assert.same [1.2, 4], @inst._values
+
 
     'buildStr()':
       'output nothing if nothing set': ->
@@ -1130,7 +1137,22 @@ test['Blocks'] =
 
         assert.same 'ORDER BY field1 ASC, field2 DESC, field3 ASC', @inst.buildStr()
 
+    'buildParam()':
+      'empty': ->
+        @inst.orders = []
+        assert.same { text: '', values: [] }, @inst.buildParam()
 
+      'default': ->
+        @inst.order('field1')
+        @inst.order('field2', false)
+        @inst.order('field3', true)
+
+        assert.same { text: 'ORDER BY field1 ASC, field2 DESC, field3 ASC', values: [] }, @inst.buildParam()
+
+      'with values': ->
+        @inst.order('field3', true, 1.2, 5)
+
+        assert.same { text: 'ORDER BY field3 ASC', values: [1.2, 5] }, @inst.buildParam()
 
 
   'LimitBlock':

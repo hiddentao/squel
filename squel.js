@@ -1202,13 +1202,17 @@ OTHER DEALINGS IN THE SOFTWARE.
     function OrderByBlock(options) {
       OrderByBlock.__super__.constructor.call(this, options);
       this.orders = [];
+      this._values = [];
     }
 
-    OrderByBlock.prototype.order = function(field, asc) {
+    OrderByBlock.prototype.order = function() {
+      var asc, field, values;
+      field = arguments[0], asc = arguments[1], values = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
       if (asc == null) {
         asc = true;
       }
       field = this._sanitizeField(field);
+      this._values = values;
       return this.orders.push({
         field: field,
         dir: asc ? true : false
@@ -1231,6 +1235,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       } else {
         return "";
       }
+    };
+
+    OrderByBlock.prototype.buildParam = function(queryBuilder) {
+      return {
+        text: this.buildStr(queryBuilder),
+        values: this._values
+      };
     };
 
     return OrderByBlock;
