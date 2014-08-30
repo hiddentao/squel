@@ -1,6 +1,6 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 30 Aug 2014 (3.8.0)
+## 30 Aug 2014 (3.8.1)
 * #90 - custom value handlers with primitives
 * #87 - OrderBlock not compatible by values
 
