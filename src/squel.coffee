@@ -81,10 +81,10 @@ cls.globalValueHandlers = []
 #
 # Note: this will override any existing handler registered for this value type.
 registerValueHandler = (handlers, type, handler) ->
-  unless 'function' is typeof type
-   throw new Error "type must be a class constructor"
+  if 'function' isnt typeof type and 'string' isnt typeof type
+   throw new Error "type must be a class constructor or string denoting 'typeof' result"
 
-  unless 'function' is typeof handler
+  if 'function' isnt typeof handler
     throw new Error "handler must be a function"
 
   for typeHandler in handlers
@@ -101,7 +101,8 @@ registerValueHandler = (handlers, type, handler) ->
 getValueHandler = (value, handlerLists...) ->
   for handlers in handlerLists
     for typeHandler in handlers
-      if value instanceof typeHandler.type
+      # if type is a string then use `typeof` or else use `instanceof`
+      if typeHandler.type is typeof value or (typeof typeHandler.type isnt 'string' and value instanceof typeHandler.type)
         return typeHandler.handler
   undefined
 

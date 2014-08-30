@@ -80,8 +80,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   registerValueHandler = function(handlers, type, handler) {
     var typeHandler, _i, _len;
-    if ('function' !== typeof type) {
-      throw new Error("type must be a class constructor");
+    if ('function' !== typeof type && 'string' !== typeof type) {
+      throw new Error("type must be a class constructor or string denoting 'typeof' result");
     }
     if ('function' !== typeof handler) {
       throw new Error("handler must be a function");
@@ -106,7 +106,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       handlers = handlerLists[_i];
       for (_j = 0, _len1 = handlers.length; _j < _len1; _j++) {
         typeHandler = handlers[_j];
-        if (value instanceof typeHandler.type) {
+        if (typeHandler.type === typeof value || (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type)) {
           return typeHandler.handler;
         }
       }

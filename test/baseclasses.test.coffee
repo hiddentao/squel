@@ -91,13 +91,15 @@ test['Register global custom value handler'] =
     handler = -> 'test'
     squel.registerValueHandler(Date, handler)
     squel.registerValueHandler(Object, handler)
+    squel.registerValueHandler('boolean', handler)
 
-    assert.same 2, squel.cls.globalValueHandlers.length
+    assert.same 3, squel.cls.globalValueHandlers.length
     assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[0]
     assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[1]
+    assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[2]
 
   'type should be class constructor': ->
-    assert.throws (-> squel.registerValueHandler 1, null), 'type must be a class constructor'
+    assert.throws (-> squel.registerValueHandler 1, null), "type must be a class constructor or string denoting \'typeof\' result"
 
   'handler should be function': ->
     class MyClass
@@ -141,6 +143,9 @@ test['Builder base class'] =
   beforeEach: ->
     @cls = squel.cls.BaseBuilder
     @inst = new @cls
+
+  afterEach: ->
+    squel.cls.globalValueHandlers = []
 
   'instanceof Cloneable': ->
     assert.instanceOf @inst, squel.cls.Cloneable
@@ -188,13 +193,15 @@ test['Builder base class'] =
       handler = -> 'test'
       @inst.registerValueHandler(Date, handler)
       @inst.registerValueHandler(Object, handler)
+      @inst.registerValueHandler('number', handler)
 
-      assert.same 2, @inst.options.valueHandlers.length
+      assert.same 3, @inst.options.valueHandlers.length
       assert.same { type: Date, handler: handler }, @inst.options.valueHandlers[0]
       assert.same { type: Object, handler: handler }, @inst.options.valueHandlers[1]
+      assert.same { type: 'number', handler: handler }, @inst.options.valueHandlers[2]
 
     'type should be class constructor': ->
-      assert.throws (=> @inst.registerValueHandler 1, null), 'type must be a class constructor'
+      assert.throws (=> @inst.registerValueHandler 1, null), "type must be a class constructor or string denoting \'typeof\' result"
 
     'handler should be function': ->
       class MyClass
@@ -493,7 +500,7 @@ test['Builder base class'] =
       assert.same "te--st", @inst._escapeValue("te'st")
 
 
-  '_formatCustomValue': ->
+  '_formatCustomValue':
     'not a custom value type': ->
       assert.same null, @inst._formatCustomValue(null)
       assert.same 'abc', @inst._formatCustomValue('abc')
@@ -502,40 +509,44 @@ test['Builder base class'] =
       assert.same true, @inst._formatCustomValue(true)
       assert.same false, @inst._formatCustomValue(false)
 
-    'custom value type': ->
+    'custom value type':
       'global': ->
         class MyClass
         myObj = new MyClass
 
         squel.registerValueHandler MyClass, () -> 3.14
+        squel.registerValueHandler 'boolean', (v) -> 'a' + v
 
         assert.same 3.14, @inst._formatCustomValue(myObj)
+        assert.same 'atrue', @inst._formatCustomValue(true)
 
       'instance': ->
         class MyClass
         myObj = new MyClass
 
         @inst.registerValueHandler MyClass, () -> 3.14
+        @inst.registerValueHandler 'number', (v) -> v + 'a'
 
         assert.same 3.14, @inst._formatCustomValue(myObj)
+        assert.same '5.2a', @inst._formatCustomValue(5.2)
 
       'instance handler takes precedence over global': ->
         @inst.registerValueHandler Date, (d) -> 'hello'
         squel.registerValueHandler Date, (d) -> 'goodbye'
 
-        assert.same "'hello'", @inst._formatCustomValue(new Date)
+        assert.same "hello", @inst._formatCustomValue(new Date)
 
         @inst = new @cls
           valueHandlers: []
-        assert.same "'goodbye'", @inst._formatCustomValue(new Date)
+        assert.same "goodbye", @inst._formatCustomValue(new Date)
 
 
-  '_formatValueAsParam': ->
+  '_formatValueAsParam':
     'QueryBuilder': ->
       s = squel.select().from('table')
-      assert.same '(SELECT * FROM table)', @inst._formatValueAsParam(s)
+      assert.same 'SELECT * FROM table', @inst._formatValueAsParam(s)
       u = squel.update().table('table').set('f', 'val')
-      assert.same '(UPDATE table SET f = \'val\')', @inst._formatValueAsParam(u)
+      assert.same u, @inst._formatValueAsParam(u)
 
     'else calls _formatCustomValue': ->
       spy = test.mocker.stub @inst, '_formatCustomValue', (v) -> 'test'
@@ -555,7 +566,7 @@ test['Builder base class'] =
       v = [ squel.select().from('table'), 1.2 ]
       res = @inst._formatValueAsParam(v)
 
-      assert.same ['(SELECT * FROM table)', 1.2], res
+      assert.same ['SELECT * FROM table', 1.2], res
 
       assert.same 3, spy.callCount
       assert.ok spy.calledWith v[0]
@@ -823,8 +834,9 @@ test['QueryBuilder base class'] =
 
       handler = -> 'test'
       @inst.registerValueHandler(Date, handler)
+      @inst.registerValueHandler('number', handler)
 
-      assert.ok baseBuilderSpy.calledOnce
+      assert.ok baseBuilderSpy.calledTwice
       assert.ok baseBuilderSpy.calledOn(@inst)
 
     'returns instance for chainability': ->
