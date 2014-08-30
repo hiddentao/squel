@@ -1,5 +1,9 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 30 Aug 2014 (3.8.0)
+* #90 - custom value handlers with primitives
+* #87 - OrderBlock not compatible by values
+
 ## 11 Aug 2014 (3.7.0)
 * #76 - MSSQL flavour
 * #85 - Using expressions in .where() followed by .toParam()
