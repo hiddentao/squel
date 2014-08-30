@@ -1218,9 +1218,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       });
     };
 
-    OrderByBlock.prototype.buildStr = function(queryBuilder) {
-      var o, orders, _i, _len, _ref5;
+    OrderByBlock.prototype._buildStr = function(toParam) {
+      var c, fstr, idx, o, orders, pIndex, _i, _j, _len, _ref5, _ref6;
+      if (toParam == null) {
+        toParam = false;
+      }
       if (0 < this.orders.length) {
+        pIndex = 0;
         orders = "";
         _ref5 = this.orders;
         for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
@@ -1228,7 +1232,20 @@ OTHER DEALINGS IN THE SOFTWARE.
           if ("" !== orders) {
             orders += ", ";
           }
-          orders += "" + o.field + " " + (o.dir ? 'ASC' : 'DESC');
+          fstr = "";
+          if (!toParam) {
+            for (idx = _j = 0, _ref6 = o.field.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
+              c = o.field.charAt(idx);
+              if ('?' === c) {
+                fstr += this._formatValue(this._values[pIndex++]);
+              } else {
+                fstr += c;
+              }
+            }
+          } else {
+            fstr = o.field;
+          }
+          orders += "" + fstr + " " + (o.dir ? 'ASC' : 'DESC');
         }
         return "ORDER BY " + orders;
       } else {
@@ -1236,10 +1253,17 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
     };
 
+    OrderByBlock.prototype.buildStr = function(queryBuilder) {
+      return this._buildStr();
+    };
+
     OrderByBlock.prototype.buildParam = function(queryBuilder) {
+      var _this = this;
       return {
-        text: this.buildStr(queryBuilder),
-        values: this._values
+        text: this._buildStr(true),
+        values: this._values.map(function(v) {
+          return _this._formatValueAsParam(v);
+        })
       };
     };
 
@@ -1584,7 +1608,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.7.0',
+    VERSION: '3.8.0',
     expr: function() {
       return new cls.Expression;
     },

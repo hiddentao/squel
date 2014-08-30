@@ -140,6 +140,17 @@ test['SELECT builder'] =
                       toString: ->
                         assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2 OFFSET 3'
 
+                '>> order(DIST(?,?), true, 2, 3)':
+                  beforeEach: -> @inst.order('DIST(?, ?)', true, 2, false)
+                  toString: ->
+                    assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY DIST(2, FALSE) ASC'
+                  toParam: ->
+                    assert.same @inst.toParam(), {
+                      text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY DIST(?, ?) ASC'
+                      values: [1, 2, false]
+                    }
+
+
     'nested queries':
       'basic': ->
         inner1 = squel.select().from('students')

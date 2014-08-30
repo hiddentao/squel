@@ -989,20 +989,38 @@ class cls.OrderByBlock extends cls.Block
       field: field
       dir: if asc then true else false
 
-  buildStr: (queryBuilder) ->
+  _buildStr: (toParam = false) ->
     if 0 < @orders.length
+      pIndex = 0
       orders = ""
       for o in @orders
         orders += ", " if "" isnt orders
-        orders += "#{o.field} #{if o.dir then 'ASC' else 'DESC'}"
+        
+        fstr = ""
+
+        if not toParam
+          for idx in [0...o.field.length]
+            c = o.field.charAt(idx)
+            if '?' is c
+              fstr += @_formatValue( @_values[pIndex++] )
+            else
+              fstr += c
+        else
+          fstr = o.field
+
+        orders += "#{fstr} #{if o.dir then 'ASC' else 'DESC'}"
+
       "ORDER BY #{orders}"
     else
       ""
 
+  buildStr: (queryBuilder) ->
+    @_buildStr()
+
   buildParam: (queryBuilder) ->
     {
-      text: @buildStr(queryBuilder)
-      values: @_values
+      text: @_buildStr(true)
+      values: @_values.map (v) => @_formatValueAsParam(v)
     }
 
 
