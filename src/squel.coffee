@@ -1093,6 +1093,10 @@ class cls.JoinBlock extends cls.Block
   left_outer_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'LEFT OUTER'
 
+  # Add an FULL JOIN with the given table.
+  outer_join: (table, alias = null, condition = null) ->
+    @join table, alias, condition, 'FULL'
+
 
   buildStr: (queryBuilder) ->
     joins = ""
