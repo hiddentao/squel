@@ -1094,7 +1094,7 @@ class cls.JoinBlock extends cls.Block
     @join table, alias, condition, 'LEFT OUTER'
 
   # Add an FULL JOIN with the given table.
-  outer_join: (table, alias = null, condition = null) ->
+  full_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'FULL'
 
 
