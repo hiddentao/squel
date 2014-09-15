@@ -30,6 +30,7 @@ squel.flavours['postgres'] = ->
 
   # Numbered parameters on by default
   cls.DefaultQueryBuilderOptions.numberedParameters = true
+  cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1
 
   # RETURNING
   class cls.ReturningBlock extends cls.Block

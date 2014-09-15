@@ -49,7 +49,7 @@ test['SELECT builder'] =
         dummy: true
 
       for block in @inst.blocks
-        if (block instanceof squel.cls.FromTableBlock) or (block instanceof squel.cls.JoinBlock)
+        if (block instanceof squel.cls.FromTableBlock) or (block instanceof squel.cls.JoinBlock) or (block instanceof squel.cls.UnionBlock)
           assert.same _.extend({}, expectedOptions, { allowNested: true }), block.options
         else
           assert.same expectedOptions, block.options
@@ -195,6 +195,94 @@ test['SELECT builder'] =
         thing
         FROM table
       """
+
+  'UNION JOINs':
+    'Two Queries NO Params':
+      beforeEach: ->
+        @qry1 = squel.select().field('name').from('students').where('age > 15')
+        @qry2 = squel.select().field('name').from('students').where('age < 6')
+        @qry1.union(@qry2)
+
+      toString: ->
+        assert.same @qry1.toString(), """
+        SELECT name FROM students WHERE (age > 15) UNION (SELECT name FROM students WHERE (age < 6))
+        """
+      toParam: ->
+        assert.same @qry1.toParam(), {
+          "text": "SELECT name FROM students WHERE (age > 15) UNION (SELECT name FROM students WHERE (age < 6))"
+          "values": [
+          ]
+        }
+
+    'Two Queries with Params':
+      beforeEach: ->
+        @qry1 = squel.select().field('name').from('students').where('age > ?', 15)
+        @qry2 = squel.select().field('name').from('students').where('age < ?', 6)
+        @qry1.union(@qry2)
+
+      toString: ->
+        assert.same @qry1.toString(), """
+        SELECT name FROM students WHERE (age > 15) UNION (SELECT name FROM students WHERE (age < 6))
+        """
+      toParam: ->
+        assert.same @qry1.toParam(), {
+          "text": "SELECT name FROM students WHERE (age > ?) UNION (SELECT name FROM students WHERE (age < ?))"
+          "values": [
+            15
+            6
+          ]
+        }
+
+    'Three Queries':
+      beforeEach: ->
+        @qry1 = squel.select().field('name').from('students').where('age > ?', 15)
+        @qry2 = squel.select().field('name').from('students').where('age < 6')
+        @qry3 = squel.select().field('name').from('students').where('age = ?', 8)
+        @qry1.union(@qry2)
+        @qry1.union(@qry3)
+
+      toParam: ->
+        assert.same @qry1.toParam(), {
+          "text": "SELECT name FROM students WHERE (age > ?) UNION (SELECT name FROM students WHERE (age < 6)) UNION (SELECT name FROM students WHERE (age = ?))"
+          "values": [
+            15
+            8
+          ]
+        }
+      'toParam(2)': ->
+        assert.same @qry1.toParam(2), {
+          "text": "SELECT name FROM students WHERE (age > $2) UNION (SELECT name FROM students WHERE (age < 6)) UNION (SELECT name FROM students WHERE (age = $3))"
+          "values": [
+            15
+            8
+          ]
+        }
+
+    'Multi-Parameter Query':
+      beforeEach: ->
+        @qry1 = squel.select().field('name').from('students').where('age > ?', 15)
+        @qry2 = squel.select().field('name').from('students').where('age < ?', 6)
+        @qry3 = squel.select().field('name').from('students').where('age = ?', 8)
+        @qry4 = squel.select().field('name').from('students').where('age IN [?, ?]', 2, 10)
+        @qry1.union(@qry2)
+        @qry1.union(@qry3)
+        @qry4.union_all(@qry1)
+
+      toString: ->
+        assert.same @qry4.toString(), """
+        SELECT name FROM students WHERE (age IN [2, 10]) UNION ALL (SELECT name FROM students WHERE (age > 15) UNION (SELECT name FROM students WHERE (age < 6)) UNION (SELECT name FROM students WHERE (age = 8)))
+        """
+      toParam: ->
+        assert.same @qry4.toParam(1), {
+          "text": "SELECT name FROM students WHERE (age IN [$1, $2]) UNION ALL (SELECT name FROM students WHERE (age > $3) UNION (SELECT name FROM students WHERE (age < $4)) UNION (SELECT name FROM students WHERE (age = $5)))"
+          "values": [
+            2
+            10
+            15
+            6
+            8
+          ]
+        }
 
 
 module?.exports[require('path').basename(__filename)] = test
