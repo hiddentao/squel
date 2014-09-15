@@ -71,6 +71,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     fieldAliasQuoteCharacter: '"',
     valueHandlers: [],
     numberedParameters: false,
+    numberedParametersStartAt: 1,
     replaceSingleQuotes: false,
     singleQuoteReplacement: '\'\'',
     separator: ' '
@@ -1410,6 +1411,102 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
+  cls.UnionBlock = (function(_super) {
+    __extends(UnionBlock, _super);
+
+    function UnionBlock(options) {
+      UnionBlock.__super__.constructor.call(this, options);
+      this.unions = [];
+    }
+
+    UnionBlock.prototype.union = function(table, type) {
+      if (type == null) {
+        type = 'UNION';
+      }
+      table = this._sanitizeTable(table, true);
+      this.unions.push({
+        type: type,
+        table: table
+      });
+      return this;
+    };
+
+    UnionBlock.prototype.union_all = function(table) {
+      return this.union(table, 'UNION ALL');
+    };
+
+    UnionBlock.prototype.buildStr = function(queryBuilder) {
+      var j, unionStr, _i, _len, _ref5;
+      unionStr = "";
+      _ref5 = this.unions || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        j = _ref5[_i];
+        if (unionStr !== "") {
+          unionStr += " ";
+        }
+        unionStr += "" + j.type + " ";
+        if ("string" === typeof j.table) {
+          unionStr += j.table;
+        } else {
+          unionStr += "(" + j.table + ")";
+        }
+      }
+      return unionStr;
+    };
+
+    UnionBlock.prototype.buildParam = function(queryBuilder) {
+      var blk, p, params, ret, unionStr, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
+      ret = {
+        text: "",
+        values: []
+      };
+      params = [];
+      unionStr = "";
+      if (0 >= this.unions.length) {
+        return ret;
+      }
+      _ref5 = this.unions || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        blk = _ref5[_i];
+        if ("string" === typeof blk.table) {
+          p = {
+            "text": "" + blk.table,
+            "values": []
+          };
+        } else if (blk.table instanceof cls.QueryBuilder) {
+          blk.table.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.table.toParam();
+        } else {
+          blk.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.buildParam(queryBuilder);
+        }
+        p.type = blk.type;
+        params.push(p);
+      }
+      for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
+        p = params[_j];
+        if (unionStr !== "") {
+          unionStr += " ";
+        }
+        unionStr += "" + p.type + " (" + p.text + ")";
+        _ref6 = p.values;
+        for (_k = 0, _len2 = _ref6.length; _k < _len2; _k++) {
+          v = _ref6[_k];
+          ret.values.push(this._formatCustomValue(v));
+        }
+      }
+      ret.text += unionStr;
+      return ret;
+    };
+
+    return UnionBlock;
+
+  })(cls.Block);
+
   cls.QueryBuilder = (function(_super) {
     __extends(QueryBuilder, _super);
 
@@ -1477,8 +1574,11 @@ OTHER DEALINGS IN THE SOFTWARE.
       }).join(this.options.separator);
     };
 
-    QueryBuilder.prototype.toParam = function() {
+    QueryBuilder.prototype.toParam = function(startNumberingAt) {
       var block, blocks, i, result, _ref5;
+      if (startNumberingAt == null) {
+        startNumberingAt = void 0;
+      }
       result = {
         text: '',
         values: []
@@ -1513,11 +1613,19 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         return _results;
       })());
-      if (this.options.numberedParameters) {
-        i = 0;
-        result.text = result.text.replace(/\?/g, function() {
-          return "$" + (++i);
-        });
+      if (this.options.nestedBuilder == null) {
+        if (this.options.numberedParameters || (startNumberingAt != null)) {
+          i = 1;
+          if (this.options.numberedParametersStartAt != null) {
+            i = this.options.numberedParametersStartAt;
+          }
+          if (startNumberingAt != null) {
+            i = startNumberingAt;
+          }
+          result.text = result.text.replace(/\?/g, function() {
+            return "$" + (i++);
+          });
+        }
       }
       return result;
     };
@@ -1556,7 +1664,9 @@ OTHER DEALINGS IN THE SOFTWARE.
           allowNested: true
         })), new cls.JoinBlock(_extend({}, options, {
           allowNested: true
-        })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)
+        })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
+          allowNested: true
+        }))
       ]);
       Select.__super__.constructor.call(this, options, blocks);
     }
@@ -1694,6 +1804,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   squel.flavours['postgres'] = function() {
     cls = squel.cls;
     cls.DefaultQueryBuilderOptions.numberedParameters = true;
+    cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1;
     cls.ReturningBlock = (function(_super) {
       __extends(ReturningBlock, _super);
 
