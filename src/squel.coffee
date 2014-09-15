@@ -1136,17 +1136,17 @@ class cls.UnionBlock extends cls.Block
     @union table, 'UNION ALL'
 
   buildStr: (queryBuilder) ->
-    unions = ""
+    unionStr = ""
 
     for j in (@unions or [])
-      if unions isnt "" then unions += " "
-      unions += "#{j.type} "
+      if unionStr isnt "" then unionStr += " "
+      unionStr += "#{j.type} "
       if "string" is typeof j.table
-        unions += j.table
+        unionStr += j.table
       else
-        unions += "(#{j.table})"
+        unionStr += "(#{j.table})"
 
-    unions
+    unionStr
 
   buildParam: (queryBuilder) ->
     ret =
@@ -1269,21 +1269,6 @@ class cls.QueryBuilder extends cls.BaseBuilder
   # Get whether queries built with this builder can be nested within other queries
   isNestable: ->
     false
-
-
-# UNION query builder.
-class cls.Union extends cls.QueryBuilder
-    constructor: (options, blocks = null) ->
-      blocks or= [
-        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
-        new cls.UnionBlock(_extend({}, options, { allowNested: true }))
-      ]
-
-      super options, blocks
-
-    isNestable: ->
-      true
-
 
 
 # SELECT query builder.

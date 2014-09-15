@@ -44,6 +44,27 @@ squel.flavours['postgres'] = ->
     buildStr: ->
       if @_str then "RETURNING #{@_str}" else ""
 
+  # SELECT query builder.
+  class cls.Select extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'SELECT'),
+        new cls.DistinctBlock(options),
+        new cls.GetFieldBlock(options),
+        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
+        new cls.JoinBlock(_extend({}, options, { allowNested: true })),
+        new cls.WhereBlock(options),
+        new cls.GroupByBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+        new cls.OffsetBlock(options),
+        new cls.UnionBlock(_extend({}, options, { allowNested: true }))
+      ]
+
+      super options, blocks
+
+    isNestable: ->
+      true
 
   # INSERT query builder
   class cls.Insert extends cls.QueryBuilder

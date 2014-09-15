@@ -1360,16 +1360,6 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this.join(table, alias, condition, 'OUTER');
     };
 
-    JoinBlock.prototype.full_outer_join = function(table, alias, condition) {
-      if (alias == null) {
-        alias = null;
-      }
-      if (condition == null) {
-        condition = null;
-      }
-      return this.join(table, alias, condition, 'FULL OUTER');
-    };
-
     JoinBlock.prototype.left_outer_join = function(table, alias, condition) {
       if (alias == null) {
         alias = null;
@@ -1434,22 +1424,22 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     UnionBlock.prototype.buildStr = function(queryBuilder) {
-      var j, unions, _i, _len, _ref5;
-      unions = "";
+      var j, unionStr, _i, _len, _ref5;
+      unionStr = "";
       _ref5 = this.unions || [];
       for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
         j = _ref5[_i];
-        if (unions !== "") {
-          unions += " ";
+        if (unionStr !== "") {
+          unionStr += " ";
         }
-        unions += "" + j.type + " ";
+        unionStr += "" + j.type + " ";
         if ("string" === typeof j.table) {
-          unions += j.table;
+          unionStr += j.table;
         } else {
-          unions += "(" + j.table + ")";
+          unionStr += "(" + j.table + ")";
         }
       }
-      return unions;
+      return unionStr;
     };
 
     UnionBlock.prototype.buildParam = function(queryBuilder) {
@@ -1649,31 +1639,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     return QueryBuilder;
 
   })(cls.BaseBuilder);
-
-  cls.Union = (function(_super) {
-    __extends(Union, _super);
-
-    function Union(options, blocks) {
-      if (blocks == null) {
-        blocks = null;
-      }
-      blocks || (blocks = [
-        new cls.FromTableBlock(_extend({}, options, {
-          allowNested: true
-        })), new cls.UnionBlock(_extend({}, options, {
-          allowNested: true
-        }))
-      ]);
-      Union.__super__.constructor.call(this, options, blocks);
-    }
-
-    Union.prototype.isNestable = function() {
-      return true;
-    };
-
-    return Union;
-
-  })(cls.QueryBuilder);
 
   cls.Select = (function(_super) {
     __extends(Select, _super);
