@@ -24,12 +24,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 # This file contains additional Squel commands for use with the Postgres DB engine
-
 squel.flavours['postgres'] = ->
+
   cls = squel.cls
 
   # Numbered parameters on by default
   cls.DefaultQueryBuilderOptions.numberedParameters = true
+  cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1
 
   # RETURNING
   class cls.ReturningBlock extends cls.Block
@@ -42,7 +43,6 @@ squel.flavours['postgres'] = ->
 
     buildStr: ->
       if @_str then "RETURNING #{@_str}" else ""
-
 
   # INSERT query builder
   class cls.Insert extends cls.QueryBuilder
@@ -82,5 +82,4 @@ squel.flavours['postgres'] = ->
         new cls.ReturningBlock(options)
       ]
       super options, blocks
-
 
