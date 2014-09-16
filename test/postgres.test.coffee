@@ -72,6 +72,68 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field'
 
+  'SELECT builder':
+    beforeEach: ->
+      @sel = squel.select()
+    'select':
+      '>> from(table).where(field = 1)':
+        beforeEach: ->
+          @sel.field('field1').from('table1').where('field1 = 1')
+        toString: ->
+          assert.same @sel.toString(), 'SELECT field1 FROM table1 WHERE (field1 = 1)'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            "text": 'SELECT field1 FROM table1 WHERE (field1 = 1)'
+            "values": []
+          }
+
+      '>> from(table).where(field = ?, 2)':
+        beforeEach: ->
+          @sel.field('field1').from('table1').where('field1 = ?', 2)
+        toString: ->
+          assert.same @sel.toString(), 'SELECT field1 FROM table1 WHERE (field1 = 2)'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            "text": 'SELECT field1 FROM table1 WHERE (field1 = $1)'
+            "values": [2]
+          }
+
+    'union queries':
+      beforeEach: ->
+        @sel = squel.select()
+        @sel2 = squel.select()
+      '>> query1.union(query2)':
+        beforeEach: ->
+          @sel.field('field1').from('table1').where('field1 = ?', 3)
+          @sel2.field('field1').from('table1').where('field1 < ?', 10)
+          @sel.union(@sel2)
+        toString: ->
+          assert.same @sel.toString(), 'SELECT field1 FROM table1 WHERE (field1 = 3) UNION (SELECT field1 FROM table1 WHERE (field1 < 10))'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            "text": 'SELECT field1 FROM table1 WHERE (field1 = $1) UNION (SELECT field1 FROM table1 WHERE (field1 < $2))'
+            "values": [
+              3
+              10
+            ]
+          }
+
+      '>> query1.union_all(query2)':
+        beforeEach: ->
+          @sel.field('field1').from('table1').where('field1 = ?', 3)
+          @sel2.field('field1').from('table1').where('field1 < ?', 10)
+          @sel.union_all(@sel2)
+        toString: ->
+          assert.same @sel.toString(), 'SELECT field1 FROM table1 WHERE (field1 = 3) UNION ALL (SELECT field1 FROM table1 WHERE (field1 < 10))'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            "text": 'SELECT field1 FROM table1 WHERE (field1 = $1) UNION ALL (SELECT field1 FROM table1 WHERE (field1 < $2))'
+            "values": [
+              3
+              10
+            ]
+          }
+
 
   'Default query builder options': ->
     assert.same {
@@ -85,6 +147,7 @@ test['Postgres flavour'] =
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
       numberedParameters: true
+      numberedParametersStartAt: 1
       separator: ' '
     }, squel.cls.DefaultQueryBuilderOptions
 
