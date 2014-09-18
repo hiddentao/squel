@@ -66,7 +66,7 @@ cls.DefaultQueryBuilderOptions =
   valueHandlers: []
   # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?', startAt 1 will give $1...
   numberedParameters: false
-  #numberedParametersStartAt: undefined
+  numberedParametersStartAt: 1
   # If true then replaces all single quotes within strings. The replacement string used is configurable via the `singleQuoteReplacement` option.
   replaceSingleQuotes: false
   # The string to replace single quotes with in query strings

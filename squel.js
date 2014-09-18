@@ -71,6 +71,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     fieldAliasQuoteCharacter: '"',
     valueHandlers: [],
     numberedParameters: false,
+    numberedParametersStartAt: 1,
     replaceSingleQuotes: false,
     singleQuoteReplacement: '\'\'',
     separator: ' '
