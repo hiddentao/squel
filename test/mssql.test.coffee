@@ -29,7 +29,6 @@ squel = undefined
 test = testCreator()
 
 
-
 test['MSSQL flavour'] =
   beforeEach: ->
     delete require.cache[require.resolve('../squel')]

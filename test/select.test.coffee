@@ -175,6 +175,15 @@ test['SELECT builder'] =
 
         assert.same @inst.toString(), "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students)) `meh` ON (meh.ID = ID)"
 
+      'nesting in JOINs with params': ->
+        inner1 = squel.select().from('students').where('age = ?', 6)
+        inner2 = squel.select().from(inner1)
+
+        @inst.from('schools').where('school_type = ?', 'junior').join(inner2, 'meh', 'meh.ID = ID')
+
+        assert.same @inst.toString(), "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = 6))) `meh` ON (meh.ID = ID) WHERE (school_type = 'junior')"
+        assert.same @inst.toParam(), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = ?))) `meh` ON (meh.ID = ID) WHERE (school_type = ?)", "values": [6,'junior'] }
+        assert.same @inst.toParam(1), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = $1))) `meh` ON (meh.ID = ID) WHERE (school_type = $2)", "values": [6,'junior'] }
 
   'cloning': ->
     newinst = @inst.from('students').limit(10).clone()

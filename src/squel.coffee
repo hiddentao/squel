@@ -564,13 +564,61 @@ class cls.AbstractTableBlock extends cls.Block
 
     tables
 
+  _buildParam: (queryBuilder, prefix = null) ->
+    ret =
+      text: ""
+      values: []
+
+    params = []
+    paramStr = ""
+
+    if 0 >= @tables.length then return ret
+
+    # retrieve the parameterised queries
+    for blk in @tables
+      if "string" is typeof blk.table
+        p = { "text": "#{blk.table}", "values": [] }
+      else if blk.table instanceof cls.QueryBuilder
+        # building a nested query
+        blk.table.updateOptions( { "nestedBuilder": true } )
+        p = blk.table.toParam()
+      else
+        # building a nested query
+        blk.updateOptions( { "nestedBuilder": true } )
+        p = blk.buildParam(queryBuilder)
+      p.table = blk
+      params.push( p )
+
+    # join the queries and their parameters
+    # this is the last building block processed so always add UNION if there are any UNION blocks
+    for p in params
+      if paramStr isnt ""
+        paramStr += ", "
+      else
+        paramStr += "#{prefix} #{paramStr}" if prefix? and prefix isnt ""
+        paramStr
+      if "string" is typeof p.table.table
+        paramStr += "#{p.text}"
+      else
+        paramStr += "(#{p.text})"
+
+        # add the table alias, the AS keyword is optional
+      paramStr += " #{p.table.alias}" if p.table.alias?
+
+      for v in p.values
+        ret.values.push( @_formatCustomValue v )
+    ret.text += paramStr
+
+    ret
+
+  buildParam: (queryBuilder) ->
+    @_buildParam(queryBuilder)
+
 
 # Update Table
 class cls.UpdateTableBlock extends cls.AbstractTableBlock
   table: (table, alias = null) ->
     @_table(table, alias)
-
-
 
 # FROM table
 class cls.FromTableBlock extends cls.AbstractTableBlock
@@ -584,6 +632,9 @@ class cls.FromTableBlock extends cls.AbstractTableBlock
 
     "FROM #{tables}"
 
+  buildParam: (queryBuilder) ->
+    if 0 >= @tables.length then throw new Error "from() needs to be called"
+    @_buildParam(queryBuilder, "FROM")
 
 
 # INTO table
@@ -1112,6 +1163,49 @@ class cls.JoinBlock extends cls.Block
       joins += " ON (#{j.condition})" if j.condition
 
     joins
+
+  buildParam: (queryBuilder) ->
+    ret =
+      text: ""
+      values: []
+
+    params = []
+    joinStr = ""
+
+    if 0 >= @joins.length then return ret
+
+    # retrieve the parameterised queries
+    for blk in @joins
+      if "string" is typeof blk.table
+        p = { "text": "#{blk.table}", "values": [] }
+      else if blk.table instanceof cls.QueryBuilder
+        # building a nested query
+        blk.table.updateOptions( { "nestedBuilder": true } )
+        p = blk.table.toParam()
+      else
+        # building a nested query
+        blk.updateOptions( { "nestedBuilder": true } )
+        p = blk.buildParam(queryBuilder)
+      p.join = blk
+      params.push( p )
+
+    # join the queries and their parameters
+    # this is the last building block processed so always add UNION if there are any UNION blocks
+    for p in params
+      if joinStr isnt "" then joinStr += " "
+      joinStr += "#{p.join.type} JOIN "
+      if "string" is typeof p.join.table
+        joinStr += p.text
+      else
+        joinStr += "(#{p.text})"
+      joinStr += " #{p.join.alias}" if p.join.alias
+      joinStr += " ON (#{p.join.condition})" if p.join.condition
+      for v in p.values
+        ret.values.push( @_formatCustomValue v )
+    ret.text += joinStr
+
+    ret
+
 
 # UNION
 class cls.UnionBlock extends cls.Block
