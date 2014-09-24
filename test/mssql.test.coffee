@@ -24,20 +24,17 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../squel"
+squel = undefined
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
-_orginalDefaults = {}
-
 test['MSSQL flavour'] =
   beforeEach: ->
-  	_orginalDefaults = _.clone squel.cls.DefaultQueryBuilderOptions
-  	squel.useFlavour 'mssql'
-  
-  afterEach: -> squel.cls.DefaultQueryBuilderOptions = _orginalDefaults
-  
+    delete require.cache[require.resolve('../squel')]
+    squel = require "../squel"
+    squel.useFlavour 'mssql'
+
   'DATE Conversion':
     beforeEach: -> @inst = squel.insert()
 
@@ -45,7 +42,7 @@ test['MSSQL flavour'] =
       beforeEach: -> @inst.into('table').set('field', new Date("2012-12-12T04:30:00Z"))
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (\'2012-12-12 4:30:0\')'
-  
+
   'SELECT builder':
     beforeEach: ->
       @sel = squel.select()
@@ -69,12 +66,12 @@ test['MSSQL flavour'] =
       beforeEach: -> @sel.from('table').field('field').top(10).offset(5)
       toString: ->
         assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY'
-        
+
     '>> from(table).field(field).offset(5)':
       beforeEach: -> @sel.from('table').field('field').offset(5)
       toString: ->
         assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS'
-    
+
     '>> check variales arent being shared':
       toString: ->
         assert.same squel.select().from('table').field('field').top(10).toString(), 'SELECT TOP (10) field FROM table'
@@ -86,25 +83,25 @@ test['MSSQL flavour'] =
       beforeEach: -> @inst.into('table').output('id').set('field', 1)
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) OUTPUT INSERTED.id VALUES (1)'
-  
+
   'UPDATE builder':
     beforeEach: -> @upt = squel.update()
-	
+
     '>> table(table).set(field, 1).top(12)':
       beforeEach: -> @upt.table('table').set('field', 1).top(12)
       toString: ->
         assert.same @upt.toString(), 'UPDATE TOP (12) table SET field = 1'
-	
+
     '>> table(table).set(field, 1).limit(12)':
       beforeEach: -> @upt.table('table').set('field', 1).limit(12)
       toString: ->
         assert.same @upt.toString(), 'UPDATE TOP (12) table SET field = 1'
-	
+
     '>> table(table).set(field, 1).output(id)':
       beforeEach: -> @upt.table('table').output('id').set('field', 1)
       toString: ->
         assert.same @upt.toString(), 'UPDATE table SET field = 1 OUTPUT INSERTED.id'
-    
+
     '>> table(table).set(field, 1).outputs(id AS ident, name AS naming)':
       beforeEach: -> @upt.table('table').outputs(
       	id: 'ident'
@@ -112,7 +109,7 @@ test['MSSQL flavour'] =
       ).set('field', 1)
       toString: ->
         assert.same @upt.toString(), 'UPDATE table SET field = 1 OUTPUT INSERTED.id AS ident, INSERTED.name AS naming'
-  
+
   'Default query builder options': ->
     assert.same {
       autoQuoteTableNames: false
@@ -123,6 +120,7 @@ test['MSSQL flavour'] =
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
       numberedParameters: false
+      numberedParametersStartAt: 1
       replaceSingleQuotes: true
       singleQuoteReplacement: '\'\''
       separator: ' '

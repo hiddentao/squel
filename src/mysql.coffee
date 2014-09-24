@@ -60,9 +60,9 @@ squel.flavours['mysql'] = ->
           str += "#{field} = ?"
           vals.push @_formatValueAsParam( value )
 
-      { 
+      {
         text: if str is "" then "" else "ON DUPLICATE KEY UPDATE #{str}"
-        values: vals 
+        values: vals
       }
 
 
@@ -77,4 +77,5 @@ squel.flavours['mysql'] = ->
         new cls.MysqlOnDuplicateKeyUpdateBlock(options)
       ]
 
-      super options, blocks        
+      super options, blocks
+

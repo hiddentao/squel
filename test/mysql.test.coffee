@@ -24,14 +24,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../squel"
+squel = undefined
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
-
 test['MySQL flavour'] =
-  beforeEach: -> squel.useFlavour 'mysql'
+  beforeEach: ->
+    delete require.cache[require.resolve('../squel')]
+    squel = require "../squel"
+    squel.useFlavour 'mysql'
 
   'MysqlOnDuplicateKeyUpdateBlock':
     beforeEach: ->
