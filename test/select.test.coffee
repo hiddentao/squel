@@ -96,8 +96,8 @@ test['SELECT builder'] =
                 assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT MAX(score) FROM scores)) GROUP BY field, field2'
               toParam: ->
                 assert.same @inst.toParam(), {
-                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
-                  values: ['SELECT MAX(score) FROM scores']
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT MAX(score) FROM scores)) GROUP BY field, field2'
+                  values: []
                 }
 
             '>> where(squel.expr().and(a = ?, 1).and_begin().or(b = ?, 2).or(c = ?, 3).end())':
@@ -108,6 +108,18 @@ test['SELECT builder'] =
                 assert.same @inst.toParam(), {
                   text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ? AND (b = ? OR c = ?)) GROUP BY field, field2'
                   values: [1, 2, 3]
+                }
+
+            '>> where(squel.expr().and(a = ?, QueryBuilder).and_begin().or(b = ?, 2).or(c = ?, 3).end())':
+              beforeEach: ->
+                subQuery = squel.select().field('field1').from('table1').where('field2 = ?', 10)
+                @inst.where(squel.expr().and("a = ?", subQuery).and_begin().or("b = ?", 2).or("c = ?", 3).end())
+              toString: ->
+                assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT field1 FROM table1 WHERE (field2 = 10)) AND (b = 2 OR c = 3)) GROUP BY field, field2'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT field1 FROM table1 WHERE (field2 = ?)) AND (b = ? OR c = ?)) GROUP BY field, field2'
+                  values: [10, 2, 3]
                 }
 
             '>> where(a = ?, 1)':
@@ -149,6 +161,17 @@ test['SELECT builder'] =
                       text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY DIST(?, ?) ASC'
                       values: [1, 2, false]
                     }
+              '>> join(other_table, condition = expr())':
+                beforeEach: ->
+                  subQuery = squel.select().field('abc').from('table1').where('adf = ?', 'today1')
+                  subQuery2 = squel.select().field('xyz').from('table2').where('adf = ?', 'today2')
+                  expr = squel.expr().and('field1 = ?', subQuery)
+                  @inst.join('other_table', null, expr)
+                  @inst.where('def IN ?', subQuery2)
+                toString: ->
+                  assert.same @inst.toString(), "SELECT DISTINCT field1 AS \"fa1\", field2 FROM table, table2 `alias2` INNER JOIN other_table ON (field1 = (SELECT abc FROM table1 WHERE (adf = 'today1'))) WHERE (a = 1) AND (def IN (SELECT xyz FROM table2 WHERE (adf = 'today2'))) GROUP BY field, field2"
+                toParam: ->
+                  assert.same @inst.toParam(), { text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table ON (field1 = (SELECT abc FROM table1 WHERE (adf = ?))) WHERE (a = ?) AND (def IN (SELECT xyz FROM table2 WHERE (adf = ?))) GROUP BY field, field2', values: ["today1",1,"today2"] }
 
 
     'nested queries':

@@ -70,7 +70,7 @@ module.exports = function (grunt) {
         'test/expressions.test.coffee',
         'test/insert.test.coffee',
         'test/mocha.test.coffee',
-        'test/selet.test.coffee',
+        'test/select.test.coffee',
         'test/testbase.test.coffee',
         'test/update.test.coffee'
         ]

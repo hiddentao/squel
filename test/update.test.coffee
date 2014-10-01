@@ -101,18 +101,18 @@ test['UPDATE builder'] =
           }
 
       '>> set(field, query builder)':
-        beforeEach: -> 
+        beforeEach: ->
           @subQuery = squel.select().field('MAX(score)').from('scores')
           @inst.set( 'field',  @subQuery )
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = (SELECT MAX(score) FROM scores)'
         toParam: ->
           parameterized = @inst.toParam()
-          assert.same parameterized.text, 'UPDATE table `t1` SET field = ?'
-          assert.same parameterized.values, ['SELECT MAX(score) FROM scores']
+          assert.same parameterized.text, 'UPDATE table `t1` SET field = (SELECT MAX(score) FROM scores)'
+          assert.same parameterized.values, []
 
       '>> set(custom value type)':
-        beforeEach: -> 
+        beforeEach: ->
           class MyClass
           @inst.registerValueHandler MyClass, (a) -> 'abcd'
           @inst.set( 'field',  new MyClass() )

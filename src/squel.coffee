@@ -266,7 +266,10 @@ class cls.BaseBuilder extends cls.Cloneable
       value.map (v) => @_formatValueAsParam v
     else
       if value instanceof cls.QueryBuilder and value.isNestable()
-        "#{value}"
+        value.updateOptions( { "nestedBuilder": true } )
+        p = value.toParam()
+      else if value instanceof cls.Expression
+        p = value.toParam()
       else
         @_formatCustomValue(value)
 
@@ -284,6 +287,8 @@ class cls.BaseBuilder extends cls.Cloneable
       else if "boolean" is typeof value
         value = if value then "TRUE" else "FALSE"
       else if value instanceof cls.QueryBuilder
+        value = "(#{value})"
+      else if value instanceof cls.Expression
         value = "(#{value})"
       else if "number" isnt typeof value
         value = @_escapeValue(value)
@@ -406,7 +411,12 @@ class cls.Expression extends cls.BaseBuilder
                   if not paramMode
                     nodeStr = nodeStr.replace '?', @_formatValue(child.para)
                   else
-                    params = params.concat(@_formatValueAsParam child.para)
+                    cv = @_formatValueAsParam child.para
+                    if (cv.text?)
+                      params = params.concat(cv.values)
+                      nodeStr = nodeStr.replace '?', "(#{cv.text})"
+                    else
+                      params = params.concat(cv)
                     # IN ? -> IN (?, ?, ..., ?)
                     if Array.isArray(child.para)
                       inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
@@ -820,8 +830,14 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
       if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
         str += field
       else
-        str += "#{field} = ?"
-        vals.push @_formatValueAsParam( value )
+        p = @_formatValueAsParam( value )
+        if p.text?
+          str += "#{field} = (#{p.text})"
+          for v in p.values
+            vals.push v
+        else
+          str += "#{field} = ?"
+          vals.push p
 
     { text: "SET #{str}", values: vals }
 
@@ -855,11 +871,19 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
     for i in [0...@values.length]
       for j in [0...@values[i].length]
-        params.push @_formatValueAsParam( @values[i][j] )
-        if 'string' is typeof vals[i]
-          vals[i] += ', ?'
+        p = @_formatValueAsParam( @values[i][j] )
+        if p.text?
+          str = p.text
+          for v in p.values
+            params.push v
         else
-          vals[i] = '?'
+          str = '?'
+          params.push p
+        if 'string' is typeof vals[i]
+          vals[i] += ", #{str}"
+        else
+          vals[i] = "#{str}"
+
 
     vals: vals
     params: params
@@ -1016,10 +1040,20 @@ class cls.WhereBlock extends cls.Block
 
     for where in @wheres
       if "" isnt whereStr then whereStr += ") AND ("
-      whereStr += where.text
+      str = where.text.split('?')
+      i = 0
       for v in where.values
-        ret.values.push( @_formatValueAsParam v )
-        value = @_formatValueAsParam(value)
+        p = @_formatValueAsParam(v)
+        whereStr += "#{str[i]}" if str[i]?
+        if (p.text?)
+          whereStr += "(#{p.text})"
+          for qv in p.values
+            ret.values.push( qv )
+        else
+          whereStr += "?"
+          ret.values.push( p )
+        i = i+1
+      whereStr += "#{str[i]}" if str[i]?
     ret.text = "WHERE (#{whereStr})"
     ret
 
@@ -1176,6 +1210,7 @@ class cls.JoinBlock extends cls.Block
 
     # retrieve the parameterised queries
     for blk in @joins
+
       if "string" is typeof blk.table
         p = { "text": "#{blk.table}", "values": [] }
       else if blk.table instanceof cls.QueryBuilder
@@ -1186,6 +1221,14 @@ class cls.JoinBlock extends cls.Block
         # building a nested query
         blk.updateOptions( { "nestedBuilder": true } )
         p = blk.buildParam(queryBuilder)
+
+      if blk.condition instanceof cls.Expression
+        cp = blk.condition.toParam()
+        p.condition = cp.text
+        p.values = p.values.concat(cp.values)
+      else
+        p.condition = blk.condition
+
       p.join = blk
       params.push( p )
 
@@ -1199,7 +1242,8 @@ class cls.JoinBlock extends cls.Block
       else
         joinStr += "(#{p.text})"
       joinStr += " #{p.join.alias}" if p.join.alias
-      joinStr += " ON (#{p.join.condition})" if p.join.condition
+      joinStr += " ON (#{p.condition})" if p.condition
+
       for v in p.values
         ret.values.push( @_formatCustomValue v )
     ret.text += joinStr
