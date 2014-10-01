@@ -106,15 +106,15 @@ test['INSERT builder'] =
           assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, NULL)'
 
       '>> set(field, query builder)':
-        beforeEach: -> 
+        beforeEach: ->
           @subQuery = squel.select().field('MAX(score)').from('scores')
           @inst.set( 'field',  @subQuery )
         toString: ->
           assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
         toParam: ->
           parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field) VALUES (?)'
-          assert.same parameterized.values, ['SELECT MAX(score) FROM scores']
+          assert.same parameterized.text, 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
+          assert.same parameterized.values, []
 
       '>> setFields({field2: \'value2\', field3: true })':
         beforeEach: -> @inst.setFields({field2: 'value2', field3: true })
@@ -135,7 +135,7 @@ test['INSERT builder'] =
           assert.same parameterized.values, [true, 'value2']
 
       '>> setFields(custom value type)':
-        beforeEach: -> 
+        beforeEach: ->
           class MyClass
           @inst.registerValueHandler MyClass, -> 'abcd'
           @inst.setFields({ field: new MyClass() })

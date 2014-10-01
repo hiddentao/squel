@@ -543,9 +543,11 @@ test['Builder base class'] =
 
 
   '_formatValueAsParam':
-    'QueryBuilder': ->
+    'QueryBuilder Select - nestable': ->
       s = squel.select().from('table')
-      assert.same 'SELECT * FROM table', @inst._formatValueAsParam(s)
+      assert.same { "text": 'SELECT * FROM table', "values":[] }, @inst._formatValueAsParam(s)
+
+    'QueryBuilder Update - not nestable': ->
       u = squel.update().table('table').set('f', 'val')
       assert.same u, @inst._formatValueAsParam(u)
 
@@ -567,7 +569,7 @@ test['Builder base class'] =
       v = [ squel.select().from('table'), 1.2 ]
       res = @inst._formatValueAsParam(v)
 
-      assert.same ['SELECT * FROM table', 1.2], res
+      assert.same [ { "text": 'SELECT * FROM table', "values": [] }, 1.2], res
 
       assert.same 3, spy.callCount
       assert.ok spy.calledWith v[0]
