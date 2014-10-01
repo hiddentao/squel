@@ -293,8 +293,14 @@ OTHER DEALINGS IN THE SOFTWARE.
         });
       } else {
         if (value instanceof cls.QueryBuilder && value.isNestable()) {
+          value.updateOptions({
+            "nestedBuilder": true
+          });
           return p = value.toParam();
         } else if (value instanceof cls.Expression) {
+          value.updateOptions({
+            "nestedBuilder": true
+          });
           return p = value.toParam();
         } else {
           return this._formatCustomValue(value);

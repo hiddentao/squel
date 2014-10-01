@@ -266,8 +266,10 @@ class cls.BaseBuilder extends cls.Cloneable
       value.map (v) => @_formatValueAsParam v
     else
       if value instanceof cls.QueryBuilder and value.isNestable()
+        value.updateOptions( { "nestedBuilder": true } )
         p = value.toParam()
       else if value instanceof cls.Expression
+        value.updateOptions( { "nestedBuilder": true } )
         p = value.toParam()
       else
         @_formatCustomValue(value)
