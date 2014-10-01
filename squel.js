@@ -1563,7 +1563,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           p = blk.buildParam(queryBuilder);
         }
         if (blk.condition instanceof cls.Expression) {
-          cp = p.join.condition.toParam();
+          cp = blk.condition.toParam();
           p.condition = cp.text;
           p.values.concat(cp.values);
         } else {

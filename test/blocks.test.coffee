@@ -1400,6 +1400,25 @@ test['Blocks'] =
 
         assert.same 'INNER JOIN (SELECT * FROM 1) LEFT JOIN (SELECT * FROM 2) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1)', @inst.buildStr()
 
+      'QueryBuilder in ON condition expr()': ->
+        inner1 = squel.select().from('1')
+        inner2 = squel.select().from('2')
+        expr = squel.expr()
+          .and('field1 = ?',inner2)
+
+        @inst.join(inner1, null, expr)
+        assert.same 'INNER JOIN (SELECT * FROM 1) ON (field1 = (SELECT * FROM 2))', @inst.buildStr()
+
+    'buildParam()':
+      'QueryBuilder in ON condition expr()': ->
+        inner1 = squel.select().from('1')
+        inner2 = squel.select().from('2')
+        expr = squel.expr()
+          .and('field1 = ?',inner2)
+
+        @inst.join(inner1, null, expr)
+        assert.same { text: 'INNER JOIN (SELECT * FROM 1) ON (field1 = (SELECT * FROM 2))', values: [] }, @inst.buildParam()
+
 
 
 module?.exports[require('path').basename(__filename)] = test
