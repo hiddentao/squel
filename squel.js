@@ -286,14 +286,15 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValueAsParam = function(value) {
-      var _this = this;
+      var p,
+        _this = this;
       if (Array.isArray(value)) {
         return value.map(function(v) {
           return _this._formatValueAsParam(v);
         });
       } else {
         if (value instanceof cls.QueryBuilder && value.isNestable()) {
-          return "" + value;
+          return p = value.toParam();
         } else {
           return this._formatCustomValue(value);
         }
@@ -413,7 +414,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Expression.prototype._toString = function(node, paramMode) {
-      var child, inStr, nodeStr, params, str, _i, _len, _ref;
+      var child, cv, inStr, nodeStr, params, str, _i, _len, _ref;
       if (paramMode == null) {
         paramMode = false;
       }
@@ -428,13 +429,19 @@ OTHER DEALINGS IN THE SOFTWARE.
             if (!paramMode) {
               nodeStr = nodeStr.replace('?', this._formatValue(child.para));
             } else {
-              params = params.concat(this._formatValueAsParam(child.para));
-              if (Array.isArray(child.para)) {
-                inStr = Array.apply(null, new Array(child.para.length)).map(function() {
-                  return '?';
-                });
-                nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
+              cv = this._formatValueAsParam(child.para);
+              if ((cv.text != null)) {
+                params = params.concat(cv.values);
+                nodeStr = nodeStr.replace('?', this._formatValue(cv.text));
+              } else {
+                params = params.concat(cv);
               }
+            }
+            if (Array.isArray(child.para)) {
+              inStr = Array.apply(null, new Array(child.para.length)).map(function() {
+                return '?';
+              });
+              nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
             }
           }
         } else {
@@ -954,7 +961,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     SetFieldBlock.prototype.buildParam = function(queryBuilder) {
-      var field, i, str, vals, value, _i, _ref4;
+      var field, i, p, str, v, vals, value, _i, _j, _len, _ref4, _ref5;
       if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
@@ -969,8 +976,18 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (typeof value === 'undefined') {
           str += field;
         } else {
-          str += "" + field + " = ?";
-          vals.push(this._formatValueAsParam(value));
+          p = this._formatValueAsParam(value);
+          if (p.text != null) {
+            str += "" + field + " = (" + p.text + ")";
+            _ref5 = p.values;
+            for (_j = 0, _len = _ref5.length; _j < _len; _j++) {
+              v = _ref5[_j];
+              vals.push(v);
+            }
+          } else {
+            str += "" + field + " = ?";
+            vals.push(p);
+          }
         }
       }
       return {
@@ -1023,16 +1040,27 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     InsertFieldValueBlock.prototype._buildValParams = function() {
-      var i, j, params, vals, _i, _j, _ref5, _ref6;
+      var i, j, p, params, str, v, vals, _i, _j, _k, _len, _ref5, _ref6, _ref7;
       vals = [];
       params = [];
       for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
         for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
-          params.push(this._formatValueAsParam(this.values[i][j]));
-          if ('string' === typeof vals[i]) {
-            vals[i] += ', ?';
+          p = this._formatValueAsParam(this.values[i][j]);
+          if (p.text != null) {
+            str = p.text;
+            _ref7 = p.values;
+            for (_k = 0, _len = _ref7.length; _k < _len; _k++) {
+              v = _ref7[_k];
+              params.push(v);
+            }
           } else {
-            vals[i] = '?';
+            str = '?';
+            params.push(p);
+          }
+          if ('string' === typeof vals[i]) {
+            vals[i] += ", " + str;
+          } else {
+            vals[i] = "" + str;
           }
         }
       }
@@ -1241,7 +1269,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildParam = function(queryBuilder) {
-      var ret, v, value, where, whereStr, _i, _j, _len, _len1, _ref5, _ref6;
+      var i, p, qv, ret, str, v, where, whereStr, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6, _ref7;
       ret = {
         text: "",
         values: []
@@ -1256,12 +1284,30 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== whereStr) {
           whereStr += ") AND (";
         }
-        whereStr += where.text;
+        str = where.text.split('?');
+        i = 0;
         _ref6 = where.values;
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
           v = _ref6[_j];
-          ret.values.push(this._formatValueAsParam(v));
-          value = this._formatValueAsParam(value);
+          p = this._formatValueAsParam(v);
+          if (str[i] != null) {
+            whereStr += "" + str[i];
+          }
+          if ((p.text != null)) {
+            whereStr += "(" + p.text + ")";
+            _ref7 = p.values;
+            for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
+              qv = _ref7[_k];
+              ret.values.push(qv);
+            }
+          } else {
+            whereStr += "?";
+            ret.values.push(p);
+          }
+          i = i + 1;
+        }
+        if (str[i] != null) {
+          whereStr += "" + str[i];
         }
       }
       ret.text = "WHERE (" + whereStr + ")";

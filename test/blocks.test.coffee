@@ -555,12 +555,12 @@ test['Blocks'] =
           {
             'field1': 'value1'
             'field2': 'value2'
-            'field3': 'value3'            
+            'field3': 'value3'
           }
           {
             'field1': 'value21'
             'field2': 'value22'
-            'field3': 'value23'            
+            'field3': 'value23'
           }
         ]
 
@@ -591,7 +591,7 @@ test['Blocks'] =
 
         assert.same [ '_f' ], @inst.fields
         assert.same [ [ '_v' ], [ '_v' ] ], @inst.values
-    
+
     'buildStr()': ->
       assert.throws ( => @inst.buildStr()), 'Not yet implemented'
 
@@ -782,9 +782,9 @@ test['Blocks'] =
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
 
-        assert.same { 
-          text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)', 
-          values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ] 
+        assert.same {
+          text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)',
+          values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ]
         }, @inst.buildParam()
 
         assert.same formatValueSpy.callCount, 6
@@ -973,7 +973,7 @@ test['Blocks'] =
           }
           {
             text: 'b = 2 OR c = 3'
-            values: []            
+            values: []
           }
         ], @inst.wheres
 
@@ -1007,6 +1007,15 @@ test['Blocks'] =
         ], @inst.wheres
 
     'buildStr()':
+      'output QueryBuilder ': ->
+        subquery = new squel.select()
+        subquery.field('col1').from('table1').where('field1 = ?', 10)
+        @inst.where('a in ?', subquery)
+        @inst.where('b = ? OR c = ?', 2, 3)
+        @inst.where('d in ?', [4, 5, 6])
+
+        assert.same 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
       'output nothing if no conditions set': ->
         @inst.wheres = []
         assert.same '', @inst.buildStr()
@@ -1022,7 +1031,7 @@ test['Blocks'] =
         @inst.where('a = ?', 1)
         @inst.where('b = ? OR c = ?', 2, 3)
         @inst.where('d in ?', [4, 5, 6])
-        
+
         # second time it should still work
         @inst.buildStr()
         @inst.buildStr()
@@ -1038,6 +1047,15 @@ test['Blocks'] =
         assert.same 'WHERE (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
 
     'buildParam()':
+      'output QueryBuilder ': ->
+        subquery = new squel.select()
+        subquery.field('col1').from('table1').where('field1 = ?', 10)
+        @inst.where('a in ?', subquery)
+        @inst.where('b = ? OR c = ?', 2, 3)
+        @inst.where('d in ?', [4, 5, 6])
+
+        assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
       'output nothing if no conditions set': ->
         @inst.wheres = []
         assert.same { text: '', values: [] }, @inst.buildParam()
@@ -1057,9 +1075,9 @@ test['Blocks'] =
         @inst.where('b = ? OR c = ?', 2, 3)
         @inst.where('d in ?', [4, 5, 6])
 
-        assert.same { 
-          text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', 
-          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]'] 
+        assert.same {
+          text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
+          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
         }, @inst.buildParam()
 
         assert.ok formatValueSpy.notCalled
