@@ -294,6 +294,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       } else {
         if (value instanceof cls.QueryBuilder && value.isNestable()) {
           return p = value.toParam();
+        } else if (value instanceof cls.Expression) {
+          return p = value.toParam();
         } else {
           return this._formatCustomValue(value);
         }
@@ -317,6 +319,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else if ("boolean" === typeof value) {
           value = value ? "TRUE" : "FALSE";
         } else if (value instanceof cls.QueryBuilder) {
+          value = "(" + value + ")";
+        } else if (value instanceof cls.Expression) {
           value = "(" + value + ")";
         } else if ("number" !== typeof value) {
           value = this._escapeValue(value);
@@ -431,7 +435,7 @@ OTHER DEALINGS IN THE SOFTWARE.
               cv = this._formatValueAsParam(child.para);
               if ((cv.text != null)) {
                 params = params.concat(cv.values);
-                nodeStr = nodeStr.replace('?', this._formatValue(cv.text));
+                nodeStr = nodeStr.replace('?', "(" + cv.text + ")");
               } else {
                 params = params.concat(cv);
               }
@@ -1528,7 +1532,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     JoinBlock.prototype.buildParam = function(queryBuilder) {
-      var blk, joinStr, p, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
+      var blk, cp, joinStr, p, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
       ret = {
         text: "",
         values: []
@@ -1557,6 +1561,13 @@ OTHER DEALINGS IN THE SOFTWARE.
           });
           p = blk.buildParam(queryBuilder);
         }
+        if (blk.condition instanceof cls.Expression) {
+          cp = p.join.condition.toParam();
+          p.condition = cp.text;
+          p.values.concat(cp.values);
+        } else {
+          p.condition = blk.condition;
+        }
         p.join = blk;
         params.push(p);
       }
@@ -1574,8 +1585,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (p.join.alias) {
           joinStr += " " + p.join.alias;
         }
-        if (p.join.condition) {
-          joinStr += " ON (" + p.join.condition + ")";
+        if (p.condition) {
+          joinStr += " ON (" + p.condition + ")";
         }
         _ref6 = p.values;
         for (_k = 0, _len2 = _ref6.length; _k < _len2; _k++) {

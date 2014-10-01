@@ -1056,6 +1056,17 @@ test['Blocks'] =
 
         assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
 
+      'output QueryBuilder expr': ->
+        subquery = new squel.select()
+        subquery.field('col1').from('table1').where('field1 = ?', 10)
+        expr = squel.expr().and('a in ?',subquery)
+          .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
+          .and('d in ?', [4, 5, 6]).end()
+        @inst.where(expr)
+
+        #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+        assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
       'output nothing if no conditions set': ->
         @inst.wheres = []
         assert.same { text: '', values: [] }, @inst.buildParam()

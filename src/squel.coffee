@@ -267,6 +267,8 @@ class cls.BaseBuilder extends cls.Cloneable
     else
       if value instanceof cls.QueryBuilder and value.isNestable()
         p = value.toParam()
+      else if value instanceof cls.Expression
+        p = value.toParam()
       else
         @_formatCustomValue(value)
 
@@ -284,6 +286,8 @@ class cls.BaseBuilder extends cls.Cloneable
       else if "boolean" is typeof value
         value = if value then "TRUE" else "FALSE"
       else if value instanceof cls.QueryBuilder
+        value = "(#{value})"
+      else if value instanceof cls.Expression
         value = "(#{value})"
       else if "number" isnt typeof value
         value = @_escapeValue(value)
@@ -409,7 +413,7 @@ class cls.Expression extends cls.BaseBuilder
                     cv = @_formatValueAsParam child.para
                     if (cv.text?)
                       params = params.concat(cv.values)
-                      nodeStr = nodeStr.replace '?', @_formatValue(cv.text)
+                      nodeStr = nodeStr.replace '?', "(#{cv.text})"
                     else
                       params = params.concat(cv)
                     # IN ? -> IN (?, ?, ..., ?)
@@ -1205,6 +1209,7 @@ class cls.JoinBlock extends cls.Block
 
     # retrieve the parameterised queries
     for blk in @joins
+
       if "string" is typeof blk.table
         p = { "text": "#{blk.table}", "values": [] }
       else if blk.table instanceof cls.QueryBuilder
@@ -1215,6 +1220,14 @@ class cls.JoinBlock extends cls.Block
         # building a nested query
         blk.updateOptions( { "nestedBuilder": true } )
         p = blk.buildParam(queryBuilder)
+
+      if blk.condition instanceof cls.Expression
+        cp = p.join.condition.toParam()
+        p.condition = cp.text;
+        p.values.concat(cp.values)
+      else
+        p.condition = blk.condition
+
       p.join = blk
       params.push( p )
 
@@ -1228,7 +1241,8 @@ class cls.JoinBlock extends cls.Block
       else
         joinStr += "(#{p.text})"
       joinStr += " #{p.join.alias}" if p.join.alias
-      joinStr += " ON (#{p.join.condition})" if p.join.condition
+      joinStr += " ON (#{p.condition})" if p.condition
+
       for v in p.values
         ret.values.push( @_formatCustomValue v )
     ret.text += joinStr
