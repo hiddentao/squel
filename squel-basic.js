@@ -435,12 +435,12 @@ OTHER DEALINGS IN THE SOFTWARE.
               } else {
                 params = params.concat(cv);
               }
-            }
-            if (Array.isArray(child.para)) {
-              inStr = Array.apply(null, new Array(child.para.length)).map(function() {
-                return '?';
-              });
-              nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
+              if (Array.isArray(child.para)) {
+                inStr = Array.apply(null, new Array(child.para.length)).map(function() {
+                  return '?';
+                });
+                nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
+              }
             }
           }
         } else {

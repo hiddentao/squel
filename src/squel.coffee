@@ -412,10 +412,10 @@ class cls.Expression extends cls.BaseBuilder
                       nodeStr = nodeStr.replace '?', @_formatValue(cv.text)
                     else
                       params = params.concat(cv)
-                  # IN ? -> IN (?, ?, ..., ?)
-                  if Array.isArray(child.para)
-                    inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
-                    nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
+                    # IN ? -> IN (?, ?, ..., ?)
+                    if Array.isArray(child.para)
+                      inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
+                      nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
             else
                 nodeStr = @_toString(child, paramMode)
                 if paramMode
