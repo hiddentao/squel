@@ -70,6 +70,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     fieldAliasQuoteCharacter: '"',
     valueHandlers: [],
     numberedParameters: false,
+    numberedParametersStartAt: 1,
     replaceSingleQuotes: false,
     singleQuoteReplacement: '\'\'',
     separator: ' '
@@ -284,14 +285,20 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValueAsParam = function(value) {
-      var _this = this;
+      var p,
+        _this = this;
       if (Array.isArray(value)) {
         return value.map(function(v) {
           return _this._formatValueAsParam(v);
         });
       } else {
         if (value instanceof cls.QueryBuilder && value.isNestable()) {
-          return "" + value;
+          value.updateOptions({
+            "nestedBuilder": true
+          });
+          return p = value.toParam();
+        } else if (value instanceof cls.Expression) {
+          return p = value.toParam();
         } else {
           return this._formatCustomValue(value);
         }
@@ -315,6 +322,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else if ("boolean" === typeof value) {
           value = value ? "TRUE" : "FALSE";
         } else if (value instanceof cls.QueryBuilder) {
+          value = "(" + value + ")";
+        } else if (value instanceof cls.Expression) {
           value = "(" + value + ")";
         } else if ("number" !== typeof value) {
           value = this._escapeValue(value);
@@ -411,7 +420,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     Expression.prototype._toString = function(node, paramMode) {
-      var child, inStr, nodeStr, params, str, _i, _len, _ref;
+      var child, cv, inStr, nodeStr, params, str, _i, _len, _ref;
       if (paramMode == null) {
         paramMode = false;
       }
@@ -426,7 +435,13 @@ OTHER DEALINGS IN THE SOFTWARE.
             if (!paramMode) {
               nodeStr = nodeStr.replace('?', this._formatValue(child.para));
             } else {
-              params = params.concat(this._formatValueAsParam(child.para));
+              cv = this._formatValueAsParam(child.para);
+              if ((cv.text != null)) {
+                params = params.concat(cv.values);
+                nodeStr = nodeStr.replace('?', "(" + cv.text + ")");
+              } else {
+                params = params.concat(cv);
+              }
               if (Array.isArray(child.para)) {
                 inStr = Array.apply(null, new Array(child.para.length)).map(function() {
                   return '?';
@@ -600,6 +615,74 @@ OTHER DEALINGS IN THE SOFTWARE.
       return tables;
     };
 
+    AbstractTableBlock.prototype._buildParam = function(queryBuilder, prefix) {
+      var blk, p, paramStr, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref1, _ref2;
+      if (prefix == null) {
+        prefix = null;
+      }
+      ret = {
+        text: "",
+        values: []
+      };
+      params = [];
+      paramStr = "";
+      if (0 >= this.tables.length) {
+        return ret;
+      }
+      _ref1 = this.tables;
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        blk = _ref1[_i];
+        if ("string" === typeof blk.table) {
+          p = {
+            "text": "" + blk.table,
+            "values": []
+          };
+        } else if (blk.table instanceof cls.QueryBuilder) {
+          blk.table.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.table.toParam();
+        } else {
+          blk.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.buildParam(queryBuilder);
+        }
+        p.table = blk;
+        params.push(p);
+      }
+      for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
+        p = params[_j];
+        if (paramStr !== "") {
+          paramStr += ", ";
+        } else {
+          if ((prefix != null) && prefix !== "") {
+            paramStr += "" + prefix + " " + paramStr;
+          }
+          paramStr;
+        }
+        if ("string" === typeof p.table.table) {
+          paramStr += "" + p.text;
+        } else {
+          paramStr += "(" + p.text + ")";
+        }
+        if (p.table.alias != null) {
+          paramStr += " " + p.table.alias;
+        }
+        _ref2 = p.values;
+        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+          v = _ref2[_k];
+          ret.values.push(this._formatCustomValue(v));
+        }
+      }
+      ret.text += paramStr;
+      return ret;
+    };
+
+    AbstractTableBlock.prototype.buildParam = function(queryBuilder) {
+      return this._buildParam(queryBuilder);
+    };
+
     return AbstractTableBlock;
 
   })(cls.Block);
@@ -645,6 +728,13 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
       tables = FromTableBlock.__super__.buildStr.call(this, queryBuilder);
       return "FROM " + tables;
+    };
+
+    FromTableBlock.prototype.buildParam = function(queryBuilder) {
+      if (0 >= this.tables.length) {
+        throw new Error("from() needs to be called");
+      }
+      return this._buildParam(queryBuilder, "FROM");
     };
 
     return FromTableBlock;
@@ -877,7 +967,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     SetFieldBlock.prototype.buildParam = function(queryBuilder) {
-      var field, i, str, vals, value, _i, _ref4;
+      var field, i, p, str, v, vals, value, _i, _j, _len, _ref4, _ref5;
       if (0 >= this.fields.length) {
         throw new Error("set() needs to be called");
       }
@@ -892,8 +982,18 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (typeof value === 'undefined') {
           str += field;
         } else {
-          str += "" + field + " = ?";
-          vals.push(this._formatValueAsParam(value));
+          p = this._formatValueAsParam(value);
+          if (p.text != null) {
+            str += "" + field + " = (" + p.text + ")";
+            _ref5 = p.values;
+            for (_j = 0, _len = _ref5.length; _j < _len; _j++) {
+              v = _ref5[_j];
+              vals.push(v);
+            }
+          } else {
+            str += "" + field + " = ?";
+            vals.push(p);
+          }
         }
       }
       return {
@@ -946,16 +1046,27 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     InsertFieldValueBlock.prototype._buildValParams = function() {
-      var i, j, params, vals, _i, _j, _ref5, _ref6;
+      var i, j, p, params, str, v, vals, _i, _j, _k, _len, _ref5, _ref6, _ref7;
       vals = [];
       params = [];
       for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
         for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
-          params.push(this._formatValueAsParam(this.values[i][j]));
-          if ('string' === typeof vals[i]) {
-            vals[i] += ', ?';
+          p = this._formatValueAsParam(this.values[i][j]);
+          if (p.text != null) {
+            str = p.text;
+            _ref7 = p.values;
+            for (_k = 0, _len = _ref7.length; _k < _len; _k++) {
+              v = _ref7[_k];
+              params.push(v);
+            }
           } else {
-            vals[i] = '?';
+            str = '?';
+            params.push(p);
+          }
+          if ('string' === typeof vals[i]) {
+            vals[i] += ", " + str;
+          } else {
+            vals[i] = "" + str;
           }
         }
       }
@@ -1164,7 +1275,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildParam = function(queryBuilder) {
-      var ret, v, value, where, whereStr, _i, _j, _len, _len1, _ref5, _ref6;
+      var i, p, qv, ret, str, v, where, whereStr, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6, _ref7;
       ret = {
         text: "",
         values: []
@@ -1179,12 +1290,30 @@ OTHER DEALINGS IN THE SOFTWARE.
         if ("" !== whereStr) {
           whereStr += ") AND (";
         }
-        whereStr += where.text;
+        str = where.text.split('?');
+        i = 0;
         _ref6 = where.values;
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
           v = _ref6[_j];
-          ret.values.push(this._formatValueAsParam(v));
-          value = this._formatValueAsParam(value);
+          p = this._formatValueAsParam(v);
+          if (str[i] != null) {
+            whereStr += "" + str[i];
+          }
+          if ((p.text != null)) {
+            whereStr += "(" + p.text + ")";
+            _ref7 = p.values;
+            for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
+              qv = _ref7[_k];
+              ret.values.push(qv);
+            }
+          } else {
+            whereStr += "?";
+            ret.values.push(p);
+          }
+          i = i + 1;
+        }
+        if (str[i] != null) {
+          whereStr += "" + str[i];
         }
       }
       ret.text = "WHERE (" + whereStr + ")";
@@ -1405,7 +1534,170 @@ OTHER DEALINGS IN THE SOFTWARE.
       return joins;
     };
 
+    JoinBlock.prototype.buildParam = function(queryBuilder) {
+      var blk, cp, joinStr, p, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
+      ret = {
+        text: "",
+        values: []
+      };
+      params = [];
+      joinStr = "";
+      if (0 >= this.joins.length) {
+        return ret;
+      }
+      _ref5 = this.joins;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        blk = _ref5[_i];
+        if ("string" === typeof blk.table) {
+          p = {
+            "text": "" + blk.table,
+            "values": []
+          };
+        } else if (blk.table instanceof cls.QueryBuilder) {
+          blk.table.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.table.toParam();
+        } else {
+          blk.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.buildParam(queryBuilder);
+        }
+        if (blk.condition instanceof cls.Expression) {
+          cp = blk.condition.toParam();
+          p.condition = cp.text;
+          p.values = p.values.concat(cp.values);
+        } else {
+          p.condition = blk.condition;
+        }
+        p.join = blk;
+        params.push(p);
+      }
+      for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
+        p = params[_j];
+        if (joinStr !== "") {
+          joinStr += " ";
+        }
+        joinStr += "" + p.join.type + " JOIN ";
+        if ("string" === typeof p.join.table) {
+          joinStr += p.text;
+        } else {
+          joinStr += "(" + p.text + ")";
+        }
+        if (p.join.alias) {
+          joinStr += " " + p.join.alias;
+        }
+        if (p.condition) {
+          joinStr += " ON (" + p.condition + ")";
+        }
+        _ref6 = p.values;
+        for (_k = 0, _len2 = _ref6.length; _k < _len2; _k++) {
+          v = _ref6[_k];
+          ret.values.push(this._formatCustomValue(v));
+        }
+      }
+      ret.text += joinStr;
+      return ret;
+    };
+
     return JoinBlock;
+
+  })(cls.Block);
+
+  cls.UnionBlock = (function(_super) {
+    __extends(UnionBlock, _super);
+
+    function UnionBlock(options) {
+      UnionBlock.__super__.constructor.call(this, options);
+      this.unions = [];
+    }
+
+    UnionBlock.prototype.union = function(table, type) {
+      if (type == null) {
+        type = 'UNION';
+      }
+      table = this._sanitizeTable(table, true);
+      this.unions.push({
+        type: type,
+        table: table
+      });
+      return this;
+    };
+
+    UnionBlock.prototype.union_all = function(table) {
+      return this.union(table, 'UNION ALL');
+    };
+
+    UnionBlock.prototype.buildStr = function(queryBuilder) {
+      var j, unionStr, _i, _len, _ref5;
+      unionStr = "";
+      _ref5 = this.unions || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        j = _ref5[_i];
+        if (unionStr !== "") {
+          unionStr += " ";
+        }
+        unionStr += "" + j.type + " ";
+        if ("string" === typeof j.table) {
+          unionStr += j.table;
+        } else {
+          unionStr += "(" + j.table + ")";
+        }
+      }
+      return unionStr;
+    };
+
+    UnionBlock.prototype.buildParam = function(queryBuilder) {
+      var blk, p, params, ret, unionStr, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
+      ret = {
+        text: "",
+        values: []
+      };
+      params = [];
+      unionStr = "";
+      if (0 >= this.unions.length) {
+        return ret;
+      }
+      _ref5 = this.unions || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        blk = _ref5[_i];
+        if ("string" === typeof blk.table) {
+          p = {
+            "text": "" + blk.table,
+            "values": []
+          };
+        } else if (blk.table instanceof cls.QueryBuilder) {
+          blk.table.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.table.toParam();
+        } else {
+          blk.updateOptions({
+            "nestedBuilder": true
+          });
+          p = blk.buildParam(queryBuilder);
+        }
+        p.type = blk.type;
+        params.push(p);
+      }
+      for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
+        p = params[_j];
+        if (unionStr !== "") {
+          unionStr += " ";
+        }
+        unionStr += "" + p.type + " (" + p.text + ")";
+        _ref6 = p.values;
+        for (_k = 0, _len2 = _ref6.length; _k < _len2; _k++) {
+          v = _ref6[_k];
+          ret.values.push(this._formatCustomValue(v));
+        }
+      }
+      ret.text += unionStr;
+      return ret;
+    };
+
+    return UnionBlock;
 
   })(cls.Block);
 
@@ -1476,8 +1768,11 @@ OTHER DEALINGS IN THE SOFTWARE.
       }).join(this.options.separator);
     };
 
-    QueryBuilder.prototype.toParam = function() {
+    QueryBuilder.prototype.toParam = function(startNumberingAt) {
       var block, blocks, i, result, _ref5;
+      if (startNumberingAt == null) {
+        startNumberingAt = void 0;
+      }
       result = {
         text: '',
         values: []
@@ -1512,11 +1807,19 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
         return _results;
       })());
-      if (this.options.numberedParameters) {
-        i = 0;
-        result.text = result.text.replace(/\?/g, function() {
-          return "$" + (++i);
-        });
+      if (this.options.nestedBuilder == null) {
+        if (this.options.numberedParameters || (startNumberingAt != null)) {
+          i = 1;
+          if (this.options.numberedParametersStartAt != null) {
+            i = this.options.numberedParametersStartAt;
+          }
+          if (startNumberingAt != null) {
+            i = startNumberingAt;
+          }
+          result.text = result.text.replace(/\?/g, function() {
+            return "$" + (i++);
+          });
+        }
       }
       return result;
     };
@@ -1555,7 +1858,9 @@ OTHER DEALINGS IN THE SOFTWARE.
           allowNested: true
         })), new cls.JoinBlock(_extend({}, options, {
           allowNested: true
-        })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options)
+        })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
+          allowNested: true
+        }))
       ]);
       Select.__super__.constructor.call(this, options, blocks);
     }
