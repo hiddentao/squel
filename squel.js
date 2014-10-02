@@ -299,9 +299,6 @@ OTHER DEALINGS IN THE SOFTWARE.
           });
           return p = value.toParam();
         } else if (value instanceof cls.Expression) {
-          value.updateOptions({
-            "nestedBuilder": true
-          });
           return p = value.toParam();
         } else {
           return this._formatCustomValue(value);
@@ -1571,7 +1568,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (blk.condition instanceof cls.Expression) {
           cp = blk.condition.toParam();
           p.condition = cp.text;
-          p.values.concat(cp.values);
+          p.values = p.values.concat(cp.values);
         } else {
           p.condition = blk.condition;
         }

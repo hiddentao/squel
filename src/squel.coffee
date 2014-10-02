@@ -269,7 +269,6 @@ class cls.BaseBuilder extends cls.Cloneable
         value.updateOptions( { "nestedBuilder": true } )
         p = value.toParam()
       else if value instanceof cls.Expression
-        value.updateOptions( { "nestedBuilder": true } )
         p = value.toParam()
       else
         @_formatCustomValue(value)
@@ -1225,8 +1224,8 @@ class cls.JoinBlock extends cls.Block
 
       if blk.condition instanceof cls.Expression
         cp = blk.condition.toParam()
-        p.condition = cp.text;
-        p.values.concat(cp.values)
+        p.condition = cp.text
+        p.values = p.values.concat(cp.values)
       else
         p.condition = blk.condition
 
