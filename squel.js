@@ -1769,10 +1769,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       }).join(this.options.separator);
     };
 
-    QueryBuilder.prototype.toParam = function(startNumberingAt) {
-      var block, blocks, i, result, _ref5;
-      if (startNumberingAt == null) {
-        startNumberingAt = void 0;
+    QueryBuilder.prototype.toParam = function(options) {
+      var block, blocks, i, old, result, _ref5;
+      if (options == null) {
+        options = void 0;
+      }
+      old = this.options;
+      if (options != null) {
+        this.options = _extend({}, this.options, options);
       }
       result = {
         text: '',
@@ -1809,19 +1813,17 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _results;
       })());
       if (this.options.nestedBuilder == null) {
-        if (this.options.numberedParameters || (startNumberingAt != null)) {
+        if (this.options.numberedParameters || ((options != null ? options.numberedParametersStartAt : void 0) != null)) {
           i = 1;
           if (this.options.numberedParametersStartAt != null) {
             i = this.options.numberedParametersStartAt;
-          }
-          if (startNumberingAt != null) {
-            i = startNumberingAt;
           }
           result.text = result.text.replace(/\?/g, function() {
             return "$" + (i++);
           });
         }
       }
+      this.options = old;
       return result;
     };
 

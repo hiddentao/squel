@@ -206,7 +206,7 @@ test['SELECT builder'] =
 
         assert.same @inst.toString(), "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = 6))) `meh` ON (meh.ID = ID) WHERE (school_type = 'junior')"
         assert.same @inst.toParam(), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = ?))) `meh` ON (meh.ID = ID) WHERE (school_type = ?)", "values": [6,'junior'] }
-        assert.same @inst.toParam(1), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = $1))) `meh` ON (meh.ID = ID) WHERE (school_type = $2)", "values": [6,'junior'] }
+        assert.same @inst.toParam({ "numberedParametersStartAt": 1}), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = $1))) `meh` ON (meh.ID = ID) WHERE (school_type = $2)", "values": [6,'junior'] }
 
   'cloning': ->
     newinst = @inst.from('students').limit(10).clone()
@@ -282,7 +282,7 @@ test['SELECT builder'] =
           ]
         }
       'toParam(2)': ->
-        assert.same @qry1.toParam(2), {
+        assert.same @qry1.toParam({ "numberedParametersStartAt": 2}), {
           "text": "SELECT name FROM students WHERE (age > $2) UNION (SELECT name FROM students WHERE (age < 6)) UNION (SELECT name FROM students WHERE (age = $3))"
           "values": [
             15
@@ -305,7 +305,7 @@ test['SELECT builder'] =
         SELECT name FROM students WHERE (age IN [2, 10]) UNION ALL (SELECT name FROM students WHERE (age > 15) UNION (SELECT name FROM students WHERE (age < 6)) UNION (SELECT name FROM students WHERE (age = 8)))
         """
       toParam: ->
-        assert.same @qry4.toParam(1), {
+        assert.same @qry4.toParam({ "numberedParametersStartAt": 1}), {
           "text": "SELECT name FROM students WHERE (age IN [$1, $2]) UNION ALL (SELECT name FROM students WHERE (age > $3) UNION (SELECT name FROM students WHERE (age < $4)) UNION (SELECT name FROM students WHERE (age = $5)))"
           "values": [
             2
