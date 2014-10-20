@@ -1388,7 +1388,9 @@ class cls.QueryBuilder extends cls.BaseBuilder
     .join(@options.separator)
 
   # Get the final fully constructed query param obj.
-  toParam: (startNumberingAt = undefined)->
+  toParam: (options = undefined)->
+    old = @options
+    @options = _extend({}, @options, options) if options?
     result = { text: '', values: [] }
     blocks = (block.buildParam(@) for block in @blocks)
     result.text = (block.text for block in blocks).filter (v) ->
@@ -1397,11 +1399,11 @@ class cls.QueryBuilder extends cls.BaseBuilder
 
     result.values = [].concat (block.values for block in blocks)...
     if not @options.nestedBuilder?
-      if @options.numberedParameters || startNumberingAt?
+      if @options.numberedParameters || options?.numberedParametersStartAt?
         i = 1
         i = @options.numberedParametersStartAt if @options.numberedParametersStartAt?
-        i = startNumberingAt if startNumberingAt?
         result.text = result.text.replace /\?/g, () -> return "$#{i++}"
+    @options = old
     result
 
   # Deep clone
