@@ -407,12 +407,12 @@ class cls.Expression extends cls.BaseBuilder
             if child.expr?
                 nodeStr = child.expr
                 # have param?
-                if child.para?
+                if undefined isnt child.para
                   if not paramMode
                     nodeStr = nodeStr.replace '?', @_formatValue(child.para)
                   else
                     cv = @_formatValueAsParam child.para
-                    if (cv.text?)
+                    if (cv?.text?)
                       params = params.concat(cv.values)
                       nodeStr = nodeStr.replace '?', "(#{cv.text})"
                     else
@@ -831,7 +831,7 @@ class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
         str += field
       else
         p = @_formatValueAsParam( value )
-        if p.text?
+        if p?.text?
           str += "#{field} = (#{p.text})"
           for v in p.values
             vals.push v
@@ -872,7 +872,7 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
     for i in [0...@values.length]
       for j in [0...@values[i].length]
         p = @_formatValueAsParam( @values[i][j] )
-        if p.text?
+        if p?.text?
           str = p.text
           for v in p.values
             params.push v
@@ -1043,9 +1043,9 @@ class cls.WhereBlock extends cls.Block
       str = where.text.split('?')
       i = 0
       for v in where.values
-        p = @_formatValueAsParam(v)
         whereStr += "#{str[i]}" if str[i]?
-        if (p.text?)
+        p = @_formatValueAsParam(v)
+        if (p?.text?)
           whereStr += "(#{p.text})"
           for qv in p.values
             ret.values.push( qv )

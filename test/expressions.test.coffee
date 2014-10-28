@@ -151,6 +151,19 @@ test['Expression builder base class'] =
           assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (1,2,3)"
 
 
+  'and("test = ?", null)':
+    beforeEach: ->
+      @inst.and("test = ?", null)
+
+    '>> toString()': ->
+      assert.same @inst.toString(), 'test = NULL'
+
+    '>> toParam()': ->
+      assert.same @inst.toParam(), {
+        text: 'test = ?'
+        values: [null]
+      }
+
   'and("test = ?", 3)':
     beforeEach: ->
       @inst.and("test = ?", 3)

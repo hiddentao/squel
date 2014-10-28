@@ -122,6 +122,16 @@ test['SELECT builder'] =
                   values: [10, 2, 3]
                 }
 
+            '>> where(a = ?, null)':
+              beforeEach: -> @inst.where('a = ?', null)
+              toString: ->
+                assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = NULL) GROUP BY field, field2'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
+                  values: [null]
+                }
+                
             '>> where(a = ?, 1)':
               beforeEach: -> @inst.where('a = ?', 1)
               toString: ->

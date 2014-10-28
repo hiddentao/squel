@@ -431,12 +431,12 @@ OTHER DEALINGS IN THE SOFTWARE.
         child = _ref[_i];
         if (child.expr != null) {
           nodeStr = child.expr;
-          if (child.para != null) {
+          if (void 0 !== child.para) {
             if (!paramMode) {
               nodeStr = nodeStr.replace('?', this._formatValue(child.para));
             } else {
               cv = this._formatValueAsParam(child.para);
-              if ((cv.text != null)) {
+              if (((cv != null ? cv.text : void 0) != null)) {
                 params = params.concat(cv.values);
                 nodeStr = nodeStr.replace('?', "(" + cv.text + ")");
               } else {
@@ -983,7 +983,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           str += field;
         } else {
           p = this._formatValueAsParam(value);
-          if (p.text != null) {
+          if ((p != null ? p.text : void 0) != null) {
             str += "" + field + " = (" + p.text + ")";
             _ref5 = p.values;
             for (_j = 0, _len = _ref5.length; _j < _len; _j++) {
@@ -1052,7 +1052,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (i = _i = 0, _ref5 = this.values.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
         for (j = _j = 0, _ref6 = this.values[i].length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; j = 0 <= _ref6 ? ++_j : --_j) {
           p = this._formatValueAsParam(this.values[i][j]);
-          if (p.text != null) {
+          if ((p != null ? p.text : void 0) != null) {
             str = p.text;
             _ref7 = p.values;
             for (_k = 0, _len = _ref7.length; _k < _len; _k++) {
@@ -1295,11 +1295,11 @@ OTHER DEALINGS IN THE SOFTWARE.
         _ref6 = where.values;
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
           v = _ref6[_j];
-          p = this._formatValueAsParam(v);
           if (str[i] != null) {
             whereStr += "" + str[i];
           }
-          if ((p.text != null)) {
+          p = this._formatValueAsParam(v);
+          if (((p != null ? p.text : void 0) != null)) {
             whereStr += "(" + p.text + ")";
             _ref7 = p.values;
             for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {

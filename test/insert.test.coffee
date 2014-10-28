@@ -65,6 +65,13 @@ test['INSERT builder'] =
       @inst.into('table')
       assert.throws (=> @inst.toString()), 'set() needs to be called'
 
+    '>> into(table).set(field, null)':
+      beforeEach: -> @inst.into('table').set('field', null)
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (NULL)'
+      toParam: ->
+        assert.same @inst.toParam(), { text: 'INSERT INTO table (field) VALUES (?)', values: [null] }
+
     '>> into(table).set(field, 1)':
       beforeEach: -> @inst.into('table').set('field', 1)
       toString: ->

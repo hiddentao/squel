@@ -80,6 +80,13 @@ test['UPDATE builder'] =
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = TRUE'
 
+      '>> set(field2, null)':
+        beforeEach: -> @inst.set('field2', null)
+        toString: ->
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = NULL'
+        toParam: ->
+          assert.same @inst.toParam(), { text: 'UPDATE table `t1` SET field = 1, field2 = ?', values: [null] }
+
       '>> set(field2, "str")':
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->

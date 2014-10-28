@@ -630,6 +630,15 @@ test['Builder base class'] =
       u = squel.update().table('table').set('f', 'val')
       assert.same '(UPDATE table SET f = \'val\')', @inst._formatValue(u)
 
+    'Expression': ->
+      s = squel.expr()
+          .and("s.name <> 'Fred'")
+          .or_begin()
+            .or("s.id = 5")
+            .or("s.id = 6")
+          .end()
+      assert.same "(s.name <> 'Fred' OR (s.id = 5 OR s.id = 6))", @inst._formatValue(s)
+
     'checks to see if it is custom value type first': ->
       test.mocker.stub @inst, '_formatCustomValue', -> 'abc'
       assert.same "'abc'", @inst._formatValue(123)
