@@ -292,6 +292,26 @@
             },
             returns: 'this',
           },
+          '.union()': {
+            desc: 'Combine with another <code>SELECT</code> using <code>UNION</code>.',
+            params: {
+              query: {
+                desc: 'Another <code>SELECT</code> query to combine this query with.',
+                type: 'QueryBuilder'
+              },
+            },
+            returns: 'this',
+          },
+          '.union_all()': {
+            desc: 'Combine with another <code>SELECT</code> using <code>UNION ALL</code>.',
+            params: {
+              query: {
+                desc: 'Another <code>SELECT</code> query to combine this query with.',
+                type: 'QueryBuilder'
+              },
+            },
+            returns: 'this',
+          },
         }
       }, // select
 
@@ -828,8 +848,8 @@
           '.DefaultQueryBuilderOptions': {
             desc: 'Default configuration options for all query builders. These can be overridden in the query builder constructors.',
             subKeys: {
-              autoQuoteTableNames: {
-                desc: 'If <code>true</code> then table names will be rendered inside quotes. The quote character used is configurable via the <code>nameQuoteCharacter</code> option.',
+              autoQuoteAliasNames: {
+                desc: 'If <code>true</code> then alias names will be rendered inside quotes. The quote character used is configurable via the <code>tableAliasQuoteCharacter</code> and <code>fieldAliasQuoteCharacter</code> options.',
                 type: 'Boolean',
                 defaultValue: 'false'
               },
@@ -838,30 +858,30 @@
                 type: 'Boolean',
                 defaultValue: 'false'
               },
-              autoQuoteAliasNames: {
-                desc: 'If <code>true</code> then alias names will be rendered inside quotes. The quote character used is configurable via the <code>tableAliasQuoteCharacter</code> and <code>fieldAliasQuoteCharacter</code> options.',
+              autoQuoteTableNames: {
+                desc: 'If <code>true</code> then table names will be rendered inside quotes. The quote character used is configurable via the <code>nameQuoteCharacter</code> option.',
                 type: 'Boolean',
                 defaultValue: 'false'
               },
-              nameQuoteCharacter: {
-                desc: 'The quote character used when quoting table and field names.',
-                type: 'String',
-                defaultValue: '`'
-              },
-              tableAliasQuoteCharacter: {
-                desc: 'The quote character used when quoting table alias names.',
-                type: 'String',
-                defaultValue: '`'
+              customValueHandlers: {
+                desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
+                type: 'Array',
+                defaultValue: '[]'
               },
               fieldAliasQuoteCharacter: {
                 desc: 'The quote character used when quoting field alias names.',
                 type: 'String',
                 defaultValue: '"'
               },
-              customValueHandlers: {
-                desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
-                type: 'Array',
-                defaultValue: '[]'
+              nameQuoteCharacter: {
+                desc: 'The quote character used when quoting table and field names.',
+                type: 'String',
+                defaultValue: '`'
+              },
+              nestedBuilder: {
+                desc: 'Whether the output of this query builder is to be nested within another builder, e.g. for <code>UNION</code> queries. Setting this flag has implications for the query builing logic and thus you should not normally need to set it yourself.',
+                type: 'Boolean',
+                defaultValue: 'false' ,
               },
               numberedParameters: {
                 desc: 'Whether to use numbered parameters placeholders when building parameterized query strings.',
@@ -871,21 +891,31 @@
                   postgres: 'true'
                 }
               },
+              numberedParametersStartAt: {
+                desc: 'The index to start numbered parameter placeholders at.',
+                type: 'Number',
+                defaultValue: '1',
+              },
               replaceSingleQuotes: {
                 desc: 'Whether to replace single quotes within strings - useful for escaping purposes',
                 type: 'Boolean',
                 defaultValue: 'false'
+              },
+              separator: {
+                desc: 'String used to join individual blocks in a query when it is stringified.',
+                type: 'String',
+                defaultValue: ' ' 
               },
               singleQuoteReplacement: {
                 desc: 'What to replace single quotes with if <code>replaceSingleQuotes</code> is enabled.',
                 type: 'String',
                 defaultValue: '\'\''
               },
-              separator: {
-                desc: 'String used to join individual blocks in a query when it is stringified.',
+              tableAliasQuoteCharacter: {
+                desc: 'The quote character used when quoting table alias names.',
                 type: 'String',
-                defaultValue: ' ' 
-              }
+                defaultValue: '`'
+              },
             }
           },
           '.registerValueHandler()': {
@@ -982,6 +1012,17 @@
       },
       '.toParam()': {
         desc: 'Build and return the final parameterized query string along with the list of formatted parameter values.',
+        params: {
+          'options': {
+            desc: 'Additional options.',
+            type: 'Object',
+          },
+          'options.numberedParametersStartAt': {
+            desc: 'The index to start numbered parameter placeholders at.',
+            type: 'Number',
+            defaultValue: '1',
+          },
+        },
         returns: 'Object (text: String, values: Array)'
       }
     };

@@ -69,11 +69,11 @@
         </p>
         <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel-basic.min.js" title="Download production version">
           <p class="label">Basic version</p>
-          <p class="stats">(~5.3 KB minified + gzipped)</p>
+          <p class="stats">(~6.4 KB minified + gzipped)</p>
         </a>
         <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download development version">
           <p class="label">Basic + Database engines</p>
-          <p class="stats">(~6.1 KB minified + gzipped)</p>
+          <p class="stats">(~7.3 KB minified + gzipped)</p>
         </a>
       </div>
 
@@ -332,8 +332,8 @@
 
     <h3>Joins</h3>
 
-    Squel supports <code>INNER</code>, <code>OUTER</code>, <code>LEFT</code> and <code>RIGHT</code> joins. To do an
-    <code>INNER</code> join:
+    <p>Squel supports <code>INNER</code>, <code>OUTER</code>, <code>LEFT</code> and <code>RIGHT</code> joins. To do an
+    <code>INNER</code> join:</p>
 
         <pre class="brush: js">
             alert(
@@ -344,7 +344,7 @@
             /*  SELECT * FROM students INNER JOIN teachers */
         </pre>
 
-    You can specify table aliases:
+    <p>You can specify table aliases:</p>
 
         <pre class="brush: js">
             alert(
@@ -359,7 +359,25 @@
             */
         </pre>
 
-    And you can specify JOIN-ing conditions:
+    <p>You can specify sub-queries:</p>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .join(
+                        squel.select().field('score').from('results'),
+                        't'
+                    )
+                    .outer_join("expelled")
+            );
+            /*  SELECT * FROM students
+                    INNER JOIN (SELECT score FROM results) `t`
+                    OUTER JOIN expelled
+            */
+        </pre>
+
+    <p>And you can specify JOIN-ing conditions:</p>
 
         <pre class="brush: js">
             alert(
@@ -567,6 +585,28 @@
             );
             /*  SELECT * FROM students */
         </pre>
+
+
+    <h3>Unions</h3>
+
+    A simple <code>UNION</code> query:
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .from("students")
+                    .union( 
+                        squel.select()
+                            .from('scores') 
+                    )
+                    .union( 
+                        squel.select()
+                            .from('batches') 
+                    )
+            );
+            /*  SELECT * FROM students UNION (SELECT * FROM scores) UNION (SELECT * FROM batches) */
+        </pre>
+
 
     </section>
 
@@ -865,7 +905,48 @@
         */
       </pre>
 
-      <p>As you can see the parameter values are not specially formatted as they are normally are when <code>toString()</code> 
+      <p>Using sub-queries as parameter values:</p>
+
+        <pre class="brush: js">
+            alert(JSON.stringify(
+              squel.select()
+                .from("students")
+                .where("a = ? AND b IN ?", "test", squel.select().field('score').from('results').where('c = ?', 5))
+                .toParam()
+            ));
+
+            /*
+              {
+                text:  SELECT * FROM students WHERE (a = ? AND b IN (SELECT score FROM results WHERE c = ?)),
+                values:  [ 'test', 5 ]
+              }
+            */
+        </pre>
+
+      <p>A more complex example involving sub-queries and unions:</p>
+
+        <pre class="brush: js">
+            alert(JSON.stringify(
+              squel.select()
+                .from("students")
+                .where("a IN ?", squel.select().field('score').from('results').where('c = ?', 5))
+                .union(
+                    squel.select().field('age').from('states').where('person = ?', 
+                        squel.select().field('id').from('students').where('name = ?', 'John').limit(1)
+                    )
+                )
+                .toParam()
+            ));
+
+            /*
+              {
+                text:  SELECT * FROM students WHERE (a IN (SELECT score FROM results WHERE (c = ?))) UNION (SELECT age FROM states WHERE (person = (SELECT id FROM students WHERE (name = ?) LIMIT 1))),
+                values:  [ 5, 'John' ]
+              }
+            */
+        </pre>
+
+      <p>As you can see the parameter values are not specially formatted as they normally are when <code>toString()</code> 
       is called. Also note that the parameter placeholders are non-numbered by default. To enable numbering use the
       <code>numberedParameters</code> option:</p>
 
@@ -888,6 +969,27 @@
       </pre>
 
       <em>Note: For the Postgres flavour numbered parameters are enabled by default.</em>
+
+      <p>You can both turn on numbered parameters and change the start number in one go:</p>
+
+      <pre class="brush: js">
+        alert(JSON.stringify(
+          squel.insert()
+            .into("students")
+            .set("a", "test")
+            .set("b", 1)
+            .set("c", null)
+            .toParam({ numberedParametersStartAt: 3 })
+        ));
+
+        /*
+          {
+            text:  INSERT INTO students (a, b, c) VALUES ($3, $4, $5)
+            values:  [ 'test', 1, null ]
+          }
+        */
+      </pre>
+
 
       <p>The <code>values</code> array returned is always flat, even for multi-row inserts:</p>
 
