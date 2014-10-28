@@ -69,7 +69,6 @@ module.exports = function (grunt) {
         'test/delete.test.coffee',
         'test/expressions.test.coffee',
         'test/insert.test.coffee',
-        'test/mocha.test.coffee',
         'test/select.test.coffee',
         'test/testbase.test.coffee',
         'test/update.test.coffee'
