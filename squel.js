@@ -2496,7 +2496,9 @@ OTHER DEALINGS IN THE SOFTWARE.
             allowNested: true
           })), new cls.JoinBlock(_extend({}, options, {
             allowNested: true
-          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET(options), limitOffsetTopBlock.LIMIT(options)
+          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET(options), limitOffsetTopBlock.LIMIT(options), new cls.UnionBlock(_extend({}, options, {
+            allowNested: true
+          }))
         ]);
         Select.__super__.constructor.call(this, options, blocks);
       }
