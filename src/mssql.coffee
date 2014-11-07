@@ -140,7 +140,7 @@ squel.flavours['mssql'] = ->
 
       { text: "(#{str}) #{if @outputs.length isnt 0 then ("OUTPUT #{@outputs.join ', '} ") else ''}VALUES (#{vals.join('), (')})", values: params }
 
-  class cls.MssqlUpdateOutputBlock extends cls.Block
+  class cls.MssqlUpdateDeleteOutputBlock extends cls.Block
     constructor: (options) ->
       super options
       @_outputs = []
@@ -219,7 +219,7 @@ squel.flavours['mssql'] = ->
         new cls.MssqlUpdateTopBlock(options),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
-        new cls.MssqlUpdateOutputBlock(options),
+        new cls.MssqlUpdateDeleteOutputBlock(options),
         new cls.WhereBlock(options)
       ]
 
@@ -236,6 +236,7 @@ squel.flavours['mssql'] = ->
         new cls.StringBlock(options, 'DELETE'),
         new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
         new cls.JoinBlock(options),
+        new cls.MssqlUpdateDeleteOutputBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),

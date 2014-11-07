@@ -2427,15 +2427,15 @@ OTHER DEALINGS IN THE SOFTWARE.
       return MssqlInsertFieldValueBlock;
 
     })(cls.InsertFieldValueBlock);
-    cls.MssqlUpdateOutputBlock = (function(_super) {
-      __extends(MssqlUpdateOutputBlock, _super);
+    cls.MssqlUpdateDeleteOutputBlock = (function(_super) {
+      __extends(MssqlUpdateDeleteOutputBlock, _super);
 
-      function MssqlUpdateOutputBlock(options) {
-        MssqlUpdateOutputBlock.__super__.constructor.call(this, options);
+      function MssqlUpdateDeleteOutputBlock(options) {
+        MssqlUpdateDeleteOutputBlock.__super__.constructor.call(this, options);
         this._outputs = [];
       }
 
-      MssqlUpdateOutputBlock.prototype.outputs = function(_outputs) {
+      MssqlUpdateDeleteOutputBlock.prototype.outputs = function(_outputs) {
         var alias, output, _results;
         _results = [];
         for (output in _outputs) {
@@ -2445,7 +2445,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _results;
       };
 
-      MssqlUpdateOutputBlock.prototype.output = function(output, alias) {
+      MssqlUpdateDeleteOutputBlock.prototype.output = function(output, alias) {
         if (alias == null) {
           alias = null;
         }
@@ -2459,7 +2459,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         });
       };
 
-      MssqlUpdateOutputBlock.prototype.buildStr = function(queryBuilder) {
+      MssqlUpdateDeleteOutputBlock.prototype.buildStr = function(queryBuilder) {
         var output, outputs, _i, _len, _ref5;
         outputs = "";
         if (this._outputs.length > 0) {
@@ -2479,7 +2479,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         return outputs;
       };
 
-      return MssqlUpdateOutputBlock;
+      return MssqlUpdateDeleteOutputBlock;
 
     })(cls.Block);
     cls.Select = (function(_super) {
@@ -2515,7 +2515,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (blocks == null) {
           blocks = null;
         }
-        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.MssqlUpdateTopBlock(options), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.MssqlUpdateOutputBlock(options), new cls.WhereBlock(options)]);
+        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.MssqlUpdateTopBlock(options), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.MssqlUpdateDeleteOutputBlock(options), new cls.WhereBlock(options)]);
         Update.__super__.constructor.call(this, options, blocks);
       }
 
@@ -2532,7 +2532,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         blocks || (blocks = [
           new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
             singleTable: true
-          })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
+          })), new cls.JoinBlock(options), new cls.MssqlUpdateDeleteOutputBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
         ]);
         Delete.__super__.constructor.call(this, options, blocks);
       }
