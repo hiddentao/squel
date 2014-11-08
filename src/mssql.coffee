@@ -200,7 +200,8 @@ squel.flavours['mssql'] = ->
         new cls.GroupByBlock(options),
         new cls.OrderByBlock(options),
         limitOffsetTopBlock.OFFSET(options),
-        limitOffsetTopBlock.LIMIT(options)
+        limitOffsetTopBlock.LIMIT(options),
+        new cls.UnionBlock(_extend({}, options, { allowNested: true })),
       ]
 
       super options, blocks
