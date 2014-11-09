@@ -103,6 +103,48 @@ test['Blocks'] =
 
         assert.same 'TAG', @inst.buildStr()
 
+    'buildParam()':
+      'returns the string as is': ->
+        @inst = new @cls {}, 'TAG'
+
+        assert.same { text: 'TAG', values: [] }, @inst.buildParam()
+
+  'AbstractValueBlock':
+    beforeEach: ->
+      @cls = squel.cls.AbstractValueBlock
+      @inst = new @cls
+
+    'instanceof of Block': ->
+      assert.instanceOf @inst, squel.cls.Block
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'initial member values': ->
+      assert.same null, @inst._val
+
+    'buildStr()':
+      'when value not set': ->
+        assert.same '', @inst.buildStr()
+      'when value set': ->
+        @inst._setValue 'bla'
+
+        assert.same 'bla', @inst.buildStr()
+
+    'buildParam()':
+      'when value not set': ->
+        assert.same @inst.buildParam(), { text: '', values: [] }
+      'when value set': ->
+        @inst._setValue 'bla'
+
+        assert.same @inst.buildParam(), { text: 'bla', values: [] }
+
 
   'AbstractTableBlock':
     beforeEach: ->

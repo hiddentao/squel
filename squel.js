@@ -567,6 +567,30 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
+  cls.AbstractValueBlock = (function(_super) {
+    __extends(AbstractValueBlock, _super);
+
+    function AbstractValueBlock(options) {
+      AbstractValueBlock.__super__.constructor.call(this, options);
+      this._val = null;
+    }
+
+    AbstractValueBlock.prototype._setValue = function(val) {
+      return this._val = val;
+    };
+
+    AbstractValueBlock.prototype.buildStr = function(queryBuilder) {
+      if (!this._val) {
+        return "";
+      } else {
+        return this._val;
+      }
+    };
+
+    return AbstractValueBlock;
+
+  })(cls.Block);
+
   cls.AbstractTableBlock = (function(_super) {
     __extends(AbstractTableBlock, _super);
 
@@ -2100,14 +2124,29 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
   squel.flavours['mysql'] = function() {
-    var _ref5;
+    var _ref5, _ref6;
     cls = squel.cls;
+    cls.TargetTableBlock = (function(_super) {
+      __extends(TargetTableBlock, _super);
+
+      function TargetTableBlock() {
+        _ref5 = TargetTableBlock.__super__.constructor.apply(this, arguments);
+        return _ref5;
+      }
+
+      TargetTableBlock.prototype.target = function(table) {
+        return this._setValue(this._sanitizeTable(table));
+      };
+
+      return TargetTableBlock;
+
+    })(cls.AbstractValueBlock);
     cls.MysqlOnDuplicateKeyUpdateBlock = (function(_super) {
       __extends(MysqlOnDuplicateKeyUpdateBlock, _super);
 
       function MysqlOnDuplicateKeyUpdateBlock() {
-        _ref5 = MysqlOnDuplicateKeyUpdateBlock.__super__.constructor.apply(this, arguments);
-        return _ref5;
+        _ref6 = MysqlOnDuplicateKeyUpdateBlock.__super__.constructor.apply(this, arguments);
+        return _ref6;
       }
 
       MysqlOnDuplicateKeyUpdateBlock.prototype.onDupUpdate = function(field, value, options) {
@@ -2115,9 +2154,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       MysqlOnDuplicateKeyUpdateBlock.prototype.buildStr = function() {
-        var field, fieldOptions, i, str, value, _i, _ref6;
+        var field, fieldOptions, i, str, value, _i, _ref7;
         str = "";
-        for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+        for (i = _i = 0, _ref7 = this.fields.length; 0 <= _ref7 ? _i < _ref7 : _i > _ref7; i = 0 <= _ref7 ? ++_i : --_i) {
           field = this.fields[i];
           if ("" !== str) {
             str += ", ";
@@ -2138,10 +2177,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       MysqlOnDuplicateKeyUpdateBlock.prototype.buildParam = function(queryBuilder) {
-        var field, i, str, vals, value, _i, _ref6;
+        var field, i, str, vals, value, _i, _ref7;
         str = "";
         vals = [];
-        for (i = _i = 0, _ref6 = this.fields.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
+        for (i = _i = 0, _ref7 = this.fields.length; 0 <= _ref7 ? _i < _ref7 : _i > _ref7; i = 0 <= _ref7 ? ++_i : --_i) {
           field = this.fields[i];
           if ("" !== str) {
             str += ", ";
@@ -2163,7 +2202,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return MysqlOnDuplicateKeyUpdateBlock;
 
     })(cls.AbstractSetFieldBlock);
-    return cls.Insert = (function(_super) {
+    cls.Insert = (function(_super) {
       __extends(Insert, _super);
 
       function Insert(options, blocks) {
@@ -2175,6 +2214,24 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
 
       return Insert;
+
+    })(cls.QueryBuilder);
+    return cls.Delete = (function(_super) {
+      __extends(Delete, _super);
+
+      function Delete(options, blocks) {
+        if (blocks == null) {
+          blocks = null;
+        }
+        blocks || (blocks = [
+          new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, {
+            singleTable: true
+          })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
+        ]);
+        Delete.__super__.constructor.call(this, options, blocks);
+      }
+
+      return Delete;
 
     })(cls.QueryBuilder);
   };

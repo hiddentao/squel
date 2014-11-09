@@ -566,6 +566,30 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.Block);
 
+  cls.AbstractValueBlock = (function(_super) {
+    __extends(AbstractValueBlock, _super);
+
+    function AbstractValueBlock(options) {
+      AbstractValueBlock.__super__.constructor.call(this, options);
+      this._val = null;
+    }
+
+    AbstractValueBlock.prototype._setValue = function(val) {
+      return this._val = val;
+    };
+
+    AbstractValueBlock.prototype.buildStr = function(queryBuilder) {
+      if (!this._val) {
+        return "";
+      } else {
+        return this._val;
+      }
+    };
+
+    return AbstractValueBlock;
+
+  })(cls.Block);
+
   cls.AbstractTableBlock = (function(_super) {
     __extends(AbstractTableBlock, _super);
 

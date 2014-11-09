@@ -529,6 +529,20 @@ class cls.StringBlock extends cls.Block
     @str
 
 
+# A values which gets output as is
+class cls.AbstractValueBlock extends cls.Block
+  constructor: (options) ->
+    super options
+    @_val = null
+
+  _setValue: (val) ->
+    @_val = val
+
+  buildStr: (queryBuilder) ->
+    if not @_val then "" else @_val
+
+
+
 
 # Table specifier base class
 #

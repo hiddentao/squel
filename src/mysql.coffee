@@ -28,6 +28,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 squel.flavours['mysql'] = ->
   cls = squel.cls
 
+  # target <table> in DELETE <table> FROM ...
+  class cls.TargetTableBlock extends cls.AbstractValueBlock
+    target: (table) ->
+      @_setValue( @_sanitizeTable table )
+
+
   # ON DUPLICATE KEY UPDATE ...
   class cls.MysqlOnDuplicateKeyUpdateBlock extends cls.AbstractSetFieldBlock
     onDupUpdate: (field, value, options) ->
@@ -78,4 +84,19 @@ squel.flavours['mysql'] = ->
       ]
 
       super options, blocks
+
+  class cls.Delete extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'DELETE'),
+        new cls.TargetTableBlock(options),
+        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
+        new cls.JoinBlock(options),
+        new cls.WhereBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+      ]
+
+      super options, blocks
+
 

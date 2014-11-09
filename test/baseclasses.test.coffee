@@ -757,14 +757,14 @@ test['QueryBuilder base class'] =
       assert.same '', @inst.toString()
 
     'returns final query string': ->
+      i = 1
+      buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+
       @inst.blocks = [
         new squel.cls.StringBlock({}, 'STR1'),
         new squel.cls.StringBlock({}, 'STR2'),
         new squel.cls.StringBlock({}, 'STR3')
       ]
-
-      i = 1
-      buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
 
       assert.same 'ret2 ret3 ret4', @inst.toString()
 
