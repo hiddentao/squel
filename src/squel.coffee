@@ -694,8 +694,12 @@ class cls.GetFieldBlock extends cls.Block
   #
   # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
   fields: (_fields, options = {}) ->
-    for field, alias of _fields
-      @field(field, alias, options)
+    if Array.isArray(_fields)
+      for field in _fields
+        @field field, null, options
+    else
+      for field, alias of _fields
+        @field(field, alias, options)
 
 
   # Add the given field to the final result set.

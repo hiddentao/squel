@@ -797,16 +797,25 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     GetFieldBlock.prototype.fields = function(_fields, options) {
-      var alias, field, _results;
+      var alias, field, _i, _len, _results, _results1;
       if (options == null) {
         options = {};
       }
-      _results = [];
-      for (field in _fields) {
-        alias = _fields[field];
-        _results.push(this.field(field, alias, options));
+      if (Array.isArray(_fields)) {
+        _results = [];
+        for (_i = 0, _len = _fields.length; _i < _len; _i++) {
+          field = _fields[_i];
+          _results.push(this.field(field, null, options));
+        }
+        return _results;
+      } else {
+        _results1 = [];
+        for (field in _fields) {
+          alias = _fields[field];
+          _results1.push(this.field(field, alias, options));
+        }
+        return _results1;
       }
-      return _results;
     };
 
     GetFieldBlock.prototype.field = function(field, alias, options) {

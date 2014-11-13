@@ -430,7 +430,7 @@ test['Blocks'] =
     'initial field values': ->
       assert.same [], @inst._fields
 
-    'fields()':
+    'fields() - object':
       'saves inputs': ->
         fieldSpy = test.mocker.spy(@inst, 'field')
 
@@ -458,6 +458,34 @@ test['Blocks'] =
         assert.ok fieldSpy.calledThrice
         assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
         assert.ok fieldSpy.calledWithExactly('field2', 'alias2', dummy: true)
+        assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
+
+        assert.same expected, @inst._fields
+
+    'fields() - array':
+      'saves inputs': ->
+        fieldSpy = test.mocker.spy(@inst, 'field')
+
+        @inst.fields([ 'field1', 'field2', 'field3' ], { dummy: true})
+
+        expected = [
+          {
+            name: 'field1',
+            alias: null
+          },
+          {
+            name: 'field2',
+            alias: null
+          },
+          {
+            name: 'field3',
+            alias: null
+          }
+        ]
+
+        assert.ok fieldSpy.calledThrice
+        assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
+        assert.ok fieldSpy.calledWithExactly('field2', null, dummy: true)
         assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
 
         assert.same expected, @inst._fields
