@@ -344,7 +344,7 @@ test['Expression builder base class'] =
   'issue 104': ->
     newinst = @inst.clone()
     newinst.and("test1 = ?", 1).and("test2 = ?", 2);
-    @inst.and_expr(newinst).end()
+    @inst.and_expr(newinst)
 
     assert.same '(test1 = 1 AND test2 = 2)', @inst.toString()
 
