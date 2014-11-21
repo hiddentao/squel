@@ -341,7 +341,12 @@ test['Expression builder base class'] =
     assert.same 'test = 4 AND (inner = 1 OR inner = 2)', @inst.end().toString()
     assert.same 'test = 4 AND (inner = 1 OR inner = 2 OR inner = 3)', newinst.end().toString()
 
+  'issue 104': ->
+    newinst = @inst.clone()
+    newinst.and("test1 = ?", 1).and("test2 = ?", 2);
+    @inst.and_expr(newinst)
 
+    assert.same '(test1 = 1 AND test2 = 2)', @inst.toString()
 
 
 
