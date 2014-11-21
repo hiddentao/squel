@@ -363,6 +363,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         _this.current = _this.current.nodes[_this.current.nodes.length - 1];
         return _this;
       };
+      this._add_node = function(node) {
+        return _this.current.nodes.push(node);
+      };
     }
 
     Expression.prototype.and_begin = function() {
@@ -371,6 +374,28 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     Expression.prototype.or_begin = function() {
       return this._begin('OR');
+    };
+
+    Expression.prototype.and_expr = function(expr) {
+      var node, _i, _len, _ref;
+      this._begin('AND');
+      _ref = expr.tree.nodes;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        node = _ref[_i];
+        this._add_node(node);
+      }
+      return this.end();
+    };
+
+    Expression.prototype.or_expr = function(expr) {
+      var node, _i, _len, _ref;
+      this._begin('OR');
+      _ref = expr.tree.nodes;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        node = _ref[_i];
+        this._add_node(node);
+      }
+      return this.end();
     };
 
     Expression.prototype.end = function() {
