@@ -343,6 +343,8 @@ class cls.Expression extends cls.BaseBuilder
             @current = @current.nodes[@current.nodes.length-1]
             @
 
+        @_add_node = (node) =>
+            @current.nodes.push node
 
 
     # Begin a nested expression and combine it with the current expression using the intersection operator (AND).
@@ -354,7 +356,15 @@ class cls.Expression extends cls.BaseBuilder
     or_begin: ->
         @_begin 'OR'
 
+    and_expr: (expr) ->
+        @_begin 'AND'
+        @_add_node node for node in expr.tree.nodes
+        @end()
 
+    or_expr: (expr) ->
+        @_begin 'OR'
+        @_add_node node for node in expr.tree.nodes
+        @end()
 
     # End the current compound expression.
     #
