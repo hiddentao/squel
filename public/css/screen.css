@@ -495,7 +495,7 @@ aside > ul li.active > a {
 }
 
 /* Handle different screen sizes, etc. */
-@media only screen and (max-width: 800px) {
+@media screen and (max-width: 820px) {
   /* force text-wrap in code blocks */
   pre, div.syntaxhighlighter .line {
     white-space: pre-wrap !important;
@@ -509,23 +509,30 @@ aside > ul li.active > a {
     word-wrap: break-word !important;
     /* Internet Explorer 5.5+ */
   }
-}
-@media only screen and (max-width: 640px) {
-  header {
-    position: static;
+
+  #api {
+    width: 90%;
+    padding-left: 2em;
+    padding-right: 2em;
   }
-  header nav {
+
+  header nav.guide {
     display: none;
   }
+
+  #home, #api {
+    padding-top: 100px;
+  }    
+
+  aside {
+    display: none;
+  }
+
 
   section {
     padding: 0 2em 1.5em 1em;
   }
 
-  #api,
-  #home {
-    padding-top: 30px;
-  }
   #api .left, #api .right,
   #home .left,
   #home .right {
@@ -535,6 +542,19 @@ aside > ul li.active > a {
     margin: 0;
     padding-bottom: 0.7em;
   }
+}
 
-  aside-display: none;
+@media screen and (max-width: 500px) {
+  header {
+    position: static;
+    height: 120px;
+  }
+
+  #home {
+    padding-top: 30px;
+  }    
+
+  header nav.top {
+    margin-top: 1.7em;
+  }
 }
