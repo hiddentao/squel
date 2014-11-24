@@ -793,6 +793,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     function GetFieldBlock(options) {
       GetFieldBlock.__super__.constructor.call(this, options);
+      this._fieldAliases = {};
       this._fields = [];
     }
 
@@ -829,6 +830,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (alias) {
         alias = this._sanitizeFieldAlias(alias);
       }
+      if (this._fieldAliases[field] === alias) {
+        return;
+      }
+      this._fieldAliases[field] = alias;
       return this._fields.push({
         name: field,
         alias: alias
@@ -1958,7 +1963,7 @@ OTHER DEALINGS IN THE SOFTWARE.
   })(cls.QueryBuilder);
 
   squel = {
-    VERSION: '3.9.1',
+    VERSION: '3.10.0',
     expr: function() {
       return new cls.Expression;
     },

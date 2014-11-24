@@ -513,6 +513,30 @@ test['Blocks'] =
 
         assert.same expected, @inst._fields
 
+    'field() - discard duplicates':
+      'saves inputs': ->
+        @inst.field('field1')
+        @inst.field('field2', 'alias2')
+        @inst.field('field2', 'alias2')
+        @inst.field('field1', 'alias1')
+
+        expected = [
+          {
+          name: 'field1',
+          alias: null
+          },
+          {
+          name: 'field2',
+          alias: '"alias2"'
+          },
+          {
+          name: 'field1',
+          alias: '"alias1"'
+          }
+        ]
+
+        assert.same expected, @inst._fields
+
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
         sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeFieldAlias', -> return '_a'

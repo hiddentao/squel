@@ -682,6 +682,7 @@ class cls.IntoTableBlock extends cls.Block
 class cls.GetFieldBlock extends cls.Block
   constructor: (options) ->
     super options
+    @_fieldAliases = {}
     @_fields = []
 
 
@@ -713,6 +714,11 @@ class cls.GetFieldBlock extends cls.Block
   field: (field, alias = null, options = {}) ->
     field = @_sanitizeField(field, options)
     alias = @_sanitizeFieldAlias(alias) if alias
+
+    # if field-alias already present then don't add
+    return if @_fieldAliases[field] is alias
+
+    @_fieldAliases[field] = alias
 
     @_fields.push
       name: field
