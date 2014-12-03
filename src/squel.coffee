@@ -900,6 +900,10 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
           str = p.text
           for v in p.values
             params.push v
+          #Adds the parenthesis to a subquery
+          #FIXME: if the INSERT-SELECT is implemented, this "if" will be problematic
+          if @values[i][j] instanceof cls.Select
+            str = '(' + str + ')'
         else
           str = '?'
           params.push p

@@ -1098,6 +1098,9 @@ OTHER DEALINGS IN THE SOFTWARE.
               v = _ref7[_k];
               params.push(v);
             }
+            if (this.values[i][j] instanceof cls.Select) {
+              str = '(' + str + ')';
+            }
           } else {
             str = '?';
             params.push(p);

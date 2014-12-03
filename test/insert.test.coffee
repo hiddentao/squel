@@ -120,7 +120,7 @@ test['INSERT builder'] =
           assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
         toParam: ->
           parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
+          assert.same parameterized.text, 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
           assert.same parameterized.values, []
 
       '>> setFields({field2: \'value2\', field3: true })':
