@@ -840,6 +840,29 @@ OTHER DEALINGS IN THE SOFTWARE.
       });
     };
 
+    GetFieldBlock.prototype.unfield = function(options) {
+      var field, i, _i, _len, _ref3, _results;
+      _ref3 = this._fields;
+      _results = [];
+      for (i = _i = 0, _len = _ref3.length; _i < _len; i = ++_i) {
+        field = _ref3[i];
+        if (field) {
+          console.log(options, field, '"#{options.alias}"' === field.alias, "\"" + options.alias + "\"", field.alias);
+          if (options.alias && ("\"" + options.alias + "\"") === field.alias) {
+            this._fields.splice(i, 1);
+          }
+          if (options.name && options.name === field.name) {
+            _results.push(this._fields.splice(i, 1));
+          } else {
+            _results.push(void 0);
+          }
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
     GetFieldBlock.prototype.buildStr = function(queryBuilder) {
       var field, fields, _i, _len, _ref3;
       fields = "";
@@ -1179,6 +1202,16 @@ OTHER DEALINGS IN THE SOFTWARE.
     GroupByBlock.prototype.group = function(field) {
       field = this._sanitizeField(field);
       return this.groups.push(field);
+    };
+
+    GroupByBlock.prototype.ungroup = function(field) {
+      var index;
+      field = this._sanitizeField(field);
+      index = this.groups.indexOf(field);
+      if (index > -1) {
+        this.groups.splice(index, 1);
+      }
+      return this.groups;
     };
 
     GroupByBlock.prototype.buildStr = function(queryBuilder) {
