@@ -78,6 +78,16 @@ test['SELECT builder'] =
         toString: ->
           assert.same @inst.toString(), 'SELECT field1 AS "fa1", field2 FROM table, table2 `alias2`'
 
+        '>> unfield({alias: "fa1")':
+          beforeEach: -> @inst.unfield({alias: 'fa1'})
+          toString: ->
+            assert.same @inst.toString(), 'SELECT field2 FROM table, table2 `alias2`'
+
+        '>> unfield({name: "field2")':
+          beforeEach: -> @inst.unfield({name: 'field2'})
+          toString: ->
+            assert.same @inst.toString(), 'SELECT field1 AS "fa1" FROM table, table2 `alias2`'
+
         '>> distinct()':
           beforeEach: -> @inst.distinct()
           toString: ->

@@ -724,6 +724,14 @@ class cls.GetFieldBlock extends cls.Block
       name: field
       alias: alias
 
+  unfield: (options) ->
+    for field, i in @_fields
+      if field
+        if options.alias && "\"#{options.alias}\"" == field.alias
+          @_fields.splice(i, 1)
+        if options.name && options.name == field.name
+          @_fields.splice(i, 1)
+
   buildStr: (queryBuilder) ->
     fields = ""
     for field in @_fields
@@ -957,6 +965,14 @@ class cls.GroupByBlock extends cls.Block
   group: (field) ->
     field = @_sanitizeField(field)
     @groups.push field
+
+  # Remove field from group array.
+  ungroup: (field) ->
+    field = @_sanitizeField(field)
+    index = @groups.indexOf(field)
+    if index > -1
+      @groups.splice(index, 1)
+    @groups
 
   buildStr: (queryBuilder) ->
     groups = ""

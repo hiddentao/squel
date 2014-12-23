@@ -87,6 +87,33 @@ squel.select()
     .toString()
 ```
 
+
+You can use unfield and ungroup options:
+
+```javascript
+// SELECT s.id FROM students
+squel.select()
+    .from( 'students' )
+    .field('id')
+    .field('name')
+    .field('count(*)', 'count')
+    .unfield({name: 'name'})
+    .unfield({alias: 'count'})
+    .toString()
+```
+
+```javascript
+// SELECT t1.id, t2.name FROM table `t1` GROUP BY t1.id
+squel.select()
+    .from("table", "t1")
+    .field("t1.id")
+    .field("t2.name")
+    .group("t1.id")
+    .group("t1.name")
+    .ungroup("t1.name")
+    .toString()
+```
+
 ### UPDATE
 
 ```javascript
