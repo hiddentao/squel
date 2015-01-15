@@ -251,12 +251,12 @@ class cls.BaseBuilder extends cls.Cloneable
     value.replace /\'/g, @options.singleQuoteReplacement
 
   # Format the given custom value
-  _formatCustomValue: (value) ->
+  _formatCustomValue: (value, formattingOptions = {}) ->
     # user defined custom handlers takes precedence
     customHandler = getValueHandler(value, @options.valueHandlers, cls.globalValueHandlers)
     if customHandler
       # use the custom handler if available
-      value = customHandler(value)
+      value = customHandler(value, formattingOptions)
 
     value
 
@@ -275,7 +275,7 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value, formattingOptions = {}) ->
-    value = @_formatCustomValue(value)
+    value = @_formatCustomValue(value, formattingOptions)
 
     # if it's an array then format each element separately
     if Array.isArray(value)
@@ -1569,5 +1569,3 @@ squel.useFlavour = (flavour) ->
   else
     throw new Error "Flavour not available: #{flavour}"
   squel
-
-
