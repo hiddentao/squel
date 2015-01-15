@@ -275,11 +275,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       return value.replace(/\'/g, this.options.singleQuoteReplacement);
     };
 
-    BaseBuilder.prototype._formatCustomValue = function(value) {
+    BaseBuilder.prototype._formatCustomValue = function(value, formattingOptions) {
       var customHandler;
+      if (formattingOptions == null) {
+        formattingOptions = {};
+      }
       customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
       if (customHandler) {
-        value = customHandler(value);
+        value = customHandler(value, formattingOptions);
       }
       return value;
     };
@@ -310,7 +313,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (formattingOptions == null) {
         formattingOptions = {};
       }
-      value = this._formatCustomValue(value);
+      value = this._formatCustomValue(value, formattingOptions);
       if (Array.isArray(value)) {
         value = value.map(function(v) {
           return _this._formatValue(v);

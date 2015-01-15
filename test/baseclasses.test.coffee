@@ -643,6 +643,13 @@ test['Builder base class'] =
       test.mocker.stub @inst, '_formatCustomValue', -> 'abc'
       assert.same "'abc'", @inst._formatValue(123)
 
+    'Custom value - dont quote option': ->
+      class SqlDefault
+      @inst.registerValueHandler SqlDefault, (v, formattingOptions) ->
+        formattingOptions.dontQuote = true
+        'DEFAULT'
+      assert.same "DEFAULT", @inst._formatValue(new SqlDefault())
+
 
 
 test['QueryBuilder base class'] =
