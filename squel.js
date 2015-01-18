@@ -1156,46 +1156,42 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })(cls.AbstractSetFieldBlock);
 
-  cls.InsertFieldSelectQueryBlock = (function(_super) {
-    __extends(InsertFieldSelectQueryBlock, _super);
+  cls.InsertFieldsFromQueryBlock = (function(_super) {
+    __extends(InsertFieldsFromQueryBlock, _super);
 
-    function InsertFieldSelectQueryBlock() {
-      _ref5 = InsertFieldSelectQueryBlock.__super__.constructor.apply(this, arguments);
+    function InsertFieldsFromQueryBlock() {
+      _ref5 = InsertFieldsFromQueryBlock.__super__.constructor.apply(this, arguments);
       return _ref5;
     }
 
-    InsertFieldSelectQueryBlock.prototype.fromSelect = function(fields, selectQuery) {
-      this._fields = fields;
+    InsertFieldsFromQueryBlock.prototype.fromQuery = function(fields, selectQuery) {
+      var _this = this;
+      this._fields = fields.map((function(v) {
+        return _this._sanitizeField(v);
+      }));
       return this._query = this._sanitizeNestableQuery(selectQuery);
     };
 
-    InsertFieldSelectQueryBlock.prototype.buildStr = function(queryBuilder) {
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
+    InsertFieldsFromQueryBlock.prototype.buildStr = function(queryBuilder) {
+      if (0 >= this._fields.length) {
+        throw new Error("fromQuery() needs to be called");
       }
-      return "(" + (this.fields.join(', ')) + ") VALUES (" + (this._buildVals().join('), (')) + ")";
+      return "(" + (this._fields.join(', ')) + ") (" + (this._query.toString()) + ")";
     };
 
-    InsertFieldSelectQueryBlock.prototype.buildParam = function(queryBuilder) {
-      var i, params, str, vals, _i, _ref6, _ref7;
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
+    InsertFieldsFromQueryBlock.prototype.buildParam = function(queryBuilder) {
+      var qryParam;
+      if (0 >= this._fields.length) {
+        throw new Error("fromQuery() needs to be called");
       }
-      str = "";
-      _ref6 = this._buildValParams(), vals = _ref6.vals, params = _ref6.params;
-      for (i = _i = 0, _ref7 = this.fields.length; 0 <= _ref7 ? _i < _ref7 : _i > _ref7; i = 0 <= _ref7 ? ++_i : --_i) {
-        if ("" !== str) {
-          str += ", ";
-        }
-        str += this.fields[i];
-      }
+      qryParam = this._query.toParam();
       return {
-        text: "(" + str + ") VALUES (" + (vals.join('), (')) + ")",
-        values: params
+        text: "(" + (this._fields.join(', ')) + ") (" + qryParam.text + ")",
+        values: qryParam.values
       };
     };
 
-    return InsertFieldSelectQueryBlock;
+    return InsertFieldsFromQueryBlock;
 
   })(cls.Block);
 

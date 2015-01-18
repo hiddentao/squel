@@ -938,28 +938,25 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
 
 # (INSERT INTO) ... field ... (SELECT ... FROM ...)
-class cls.InsertFieldSelectQueryBlock extends cls.Block
-  fromSelect: (fields, selectQuery) ->
-    @_fields = fields
+class cls.InsertFieldsFromQueryBlock extends cls.Block
+  fromQuery: (fields, selectQuery) ->
+    @_fields = fields.map ( (v) => @_sanitizeField(v) )
     @_query = @_sanitizeNestableQuery(selectQuery)
 
   buildStr: (queryBuilder) ->
-    if 0 >= @fields.length then throw new Error "set() needs to be called"
+    if 0 >= @_fields.length then throw new Error "fromQuery() needs to be called"
 
-    "(#{@fields.join(', ')}) VALUES (#{@_buildVals().join('), (')})"
+    "(#{@_fields.join(', ')}) (#{@_query.toString()})"
 
   buildParam: (queryBuilder) ->
-    if 0 >= @fields.length then throw new Error "set() needs to be called"
+    if 0 >= @_fields.length then throw new Error "fromQuery() needs to be called"
 
-    # fields
-    str = ""
-    {vals, params} = @_buildValParams()
-    for i in [0...@fields.length]
-      str += ", " if "" isnt str
-      str += @fields[i]
+    qryParam = @_query.toParam()
 
-    { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
-
+    {
+      text: "(#{@_fields.join(', ')}) (#{qryParam.text})",
+      values: qryParam.values,
+    }
 
 
 

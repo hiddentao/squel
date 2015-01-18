@@ -891,6 +891,60 @@ test['Blocks'] =
 
 
 
+  'InsertFieldsFromQueryBlock':
+    beforeEach: ->
+      @cls = squel.cls.InsertFieldsFromQueryBlock
+      @inst = new @cls()
+
+    'instanceof of Block': ->
+      assert.instanceOf @inst, squel.cls.Block
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'fromQuery()':
+      'sanitizes field names': ->
+        spy = test.mocker.stub @inst, '_sanitizeField', -> 1
+
+        qry = squel.select()
+
+        @inst.fromQuery(['test', 'one', 'two'], qry)
+
+        assert.ok spy.calledThrice
+        assert.ok spy.calledWithExactly 'test'
+        assert.ok spy.calledWithExactly 'one'
+        assert.ok spy.calledWithExactly 'two'
+
+      'sanitizes query': ->
+        spy = test.mocker.stub @inst, '_sanitizeNestableQuery', -> 1
+
+        qry = 123
+
+        @inst.fromQuery(['test', 'one', 'two'], qry)
+
+        assert.ok spy.calledOnce
+        assert.ok spy.calledWithExactly qry
+
+      'overwrites existing values': ->
+        @inst._fields = 1
+        @inst._query = 2
+        
+        qry = squel.select()
+        @inst.fromQuery(['test', 'one', 'two'], qry)
+
+        assert.same qry, @inst._query
+        assert.same ['test', 'one', 'two'], @inst._fields
+
+
+
+
+
   'DistinctBlock':
     beforeEach: ->
       @cls = squel.cls.DistinctBlock

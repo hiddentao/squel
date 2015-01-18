@@ -63,41 +63,42 @@ module.exports = function (grunt) {
           ui: 'exports',
           require: 'coffee-script'
         },
-        src: ['test/baseclasses.test.coffee',
+        src: [
+        // 'test/baseclasses.test.coffee',
         'test/blocks.test.coffee',
-        'test/custom.test.coffee',
-        'test/delete.test.coffee',
-        'test/expressions.test.coffee',
-        'test/insert.test.coffee',
-        'test/select.test.coffee',
-        'test/testbase.test.coffee',
-        'test/update.test.coffee'
+        // 'test/custom.test.coffee',
+        // 'test/delete.test.coffee',
+        // 'test/expressions.test.coffee',
+        // 'test/insert.test.coffee',
+        // 'test/select.test.coffee',
+        // 'test/testbase.test.coffee',
+        // 'test/update.test.coffee'
         ]
       },
-      test_mysql: {
-        options: {
-          reporter: 'spec',
-          ui: 'exports',
-          require: 'coffee-script'
-        },
-        src: ['test/mysql.test.coffee']
-      },
-      test_mssql: {
-        options: {
-          reporter: 'spec',
-          ui: 'exports',
-          require: 'coffee-script'
-        },
-        src: ['test/mssql.test.coffee']
-      },
-      test_postgres: {
-        options: {
-          reporter: 'spec',
-          ui: 'exports',
-          require: 'coffee-script'
-        },
-        src: ['test/postgres.test.coffee']
-      }
+      // test_mysql: {
+      //   options: {
+      //     reporter: 'spec',
+      //     ui: 'exports',
+      //     require: 'coffee-script'
+      //   },
+      //   src: ['test/mysql.test.coffee']
+      // },
+      // test_mssql: {
+      //   options: {
+      //     reporter: 'spec',
+      //     ui: 'exports',
+      //     require: 'coffee-script'
+      //   },
+      //   src: ['test/mssql.test.coffee']
+      // },
+      // test_postgres: {
+      //   options: {
+      //     reporter: 'spec',
+      //     ui: 'exports',
+      //     require: 'coffee-script'
+      //   },
+      //   src: ['test/postgres.test.coffee']
+      // }
     }
   });
 
