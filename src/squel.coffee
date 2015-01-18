@@ -189,15 +189,21 @@ class cls.BaseBuilder extends cls.Cloneable
 
     item
 
+
+  _sanitizeNestableQuery: (item) =>
+    return item if item instanceof cls.QueryBuilder and item.isNestable()
+    throw new Error "must be a nestable query, e.g. SELECT"
+
+
   _sanitizeTable: (item, allowNested = false) ->
     if allowNested
       if "string" is typeof item
         sanitized = item
-      else if item instanceof cls.QueryBuilder and item.isNestable()
-        # allow nested queries
-        return item
-      else
-        throw new Error "table name must be a string or a nestable query instance"
+      else 
+        try
+          sanitized = @_sanitizeNestableQuery(item)
+        catch e
+          throw new Error "table name must be a string or a nestable query instance"
     else
       sanitized = @_sanitizeName item, 'table name'
 
@@ -931,6 +937,31 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
 
 
+# (INSERT INTO) ... field ... (SELECT ... FROM ...)
+class cls.InsertFieldSelectQueryBlock extends cls.Block
+  fromSelect: (fields, selectQuery) ->
+    @_fields = fields
+    @_query = @_sanitizeNestableQuery(selectQuery)
+
+  buildStr: (queryBuilder) ->
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
+
+    "(#{@fields.join(', ')}) VALUES (#{@_buildVals().join('), (')})"
+
+  buildParam: (queryBuilder) ->
+    if 0 >= @fields.length then throw new Error "set() needs to be called"
+
+    # fields
+    str = ""
+    {vals, params} = @_buildValParams()
+    for i in [0...@fields.length]
+      str += ", " if "" isnt str
+      str += @fields[i]
+
+    { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
+
+
+
 
 # DISTINCT
 class cls.DistinctBlock extends cls.Block
@@ -1508,7 +1539,7 @@ class cls.Insert extends cls.QueryBuilder
     blocks or= [
       new cls.StringBlock(options, 'INSERT'),
       new cls.IntoTableBlock(options),
-      new cls.InsertFieldValueBlock(options)
+      new cls.InsertFieldValueBlock(options),
     ]
 
     super options, blocks

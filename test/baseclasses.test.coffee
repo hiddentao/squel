@@ -315,6 +315,23 @@ test['Builder base class'] =
       assert.same '(SELECT MAX(score) FROM scores)', @inst._sanitizeField(s)
 
 
+  '_sanitizeNestableQuery':
+    'is not query builder': ->
+      assert.throws (=> @inst._sanitizeNestableQuery(null)), 'must be a nestable query, e.g. SELECT'
+
+    'is not a nestable query builder': ->
+      qry = squel.select()
+      stub = test.mocker.stub qry, 'isNestable', -> false
+
+      assert.throws (=> @inst._sanitizeNestableQuery(qry)), 'must be a nestable query, e.g. SELECT'
+
+    'is not a nestable query builder': ->
+      qry = squel.select()
+      stub = test.mocker.stub qry, 'isNestable', -> true
+
+      assert.same qry, @inst._sanitizeNestableQuery(qry)
+
+
   '_sanitizeTable':
     'nesting allowed':
       'string': ->
