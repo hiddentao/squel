@@ -941,7 +941,46 @@ test['Blocks'] =
         assert.same qry, @inst._query
         assert.same ['test', 'one', 'two'], @inst._fields
 
+    'buildStr()':
+      'needs fromQuery() to have been called': ->
+        @inst._fields = []
+        try
+          @inst.buildStr()
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: fromQuery() needs to be called', err.toString()
+      'default': ->
+        qry = squel.select().from('mega')
 
+        @inst.fromQuery ['test', 'one', 'two'], qry
+
+        assert.same "(test, one, two) (#{qry.toString()})", @inst.buildStr()
+
+    'buildParam()':
+      'needs fromQuery() to have been called': ->
+        @inst._fields = []
+        try
+          @inst.buildParam()
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: fromQuery() needs to be called', err.toString()
+      'default': ->
+        qry = squel.select().from('mega')
+
+        @inst.fromQuery ['test', 'one', 'two'], qry
+
+        test.mocker.stub  qry, 'toParam', ->
+          {
+            text: 'blah',
+            values: [1,2,3]
+          }
+
+        expected = {
+          text: '(test, one, two) (blah)',
+          values: [1,2,3]
+        }
+        
+        assert.same expected, @inst.buildParam()
 
 
 
