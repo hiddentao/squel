@@ -251,9 +251,10 @@ squel.flavours['mssql'] = ->
   class cls.Insert extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
-        new cls.StringBlock(options, 'INSERT'),
-        new cls.IntoTableBlock(options),
+        new cls.StringBlock(options, 'INSERT')
+        new cls.IntoTableBlock(options)
         new cls.MssqlInsertFieldValueBlock(options)
+        new cls.InsertFieldsFromQueryBlock(options)
       ]
 
       super options, blocks

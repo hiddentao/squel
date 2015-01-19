@@ -838,11 +838,8 @@ test['Blocks'] =
     'buildStr()':
       'needs at least one field to have been provided': ->
         @inst.fields = []
-        try
-          @inst.buildStr()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: set() needs to be called', err.toString()
+
+        assert.same '', @inst.buildStr()
 
       'calls formatValue() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
@@ -864,11 +861,11 @@ test['Blocks'] =
     'buildParam()':
       'needs at least one field to have been provided': ->
         @inst.fields = []
-        try
-          @inst.buildParam()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: set() needs to be called', err.toString()
+
+        assert.same {
+          text: ''
+          values: []
+        }, @inst.buildParam()
 
       'calls formatValueAsParam() for each field value': ->
         formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
@@ -944,11 +941,9 @@ test['Blocks'] =
     'buildStr()':
       'needs fromQuery() to have been called': ->
         @inst._fields = []
-        try
-          @inst.buildStr()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: fromQuery() needs to be called', err.toString()
+
+        assert.same "", @inst.buildStr()
+
       'default': ->
         qry = squel.select().from('mega')
 
@@ -959,11 +954,14 @@ test['Blocks'] =
     'buildParam()':
       'needs fromQuery() to have been called': ->
         @inst._fields = []
-        try
-          @inst.buildParam()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: fromQuery() needs to be called', err.toString()
+
+        expected = {
+          text: '',
+          values: []
+        }
+
+        assert.same expected, @inst.buildParam()
+        
       'default': ->
         qry = squel.select().from('mega')
 

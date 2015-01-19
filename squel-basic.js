@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _without,
+  var cls, getValueHandler, registerValueHandler, squel, _extend, _ref, _ref1, _ref2, _ref3, _ref4, _without,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -1128,7 +1128,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
       if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
+        return '';
       }
       return "(" + (this.fields.join(', ')) + ") VALUES (" + (this._buildVals().join('), (')) + ")";
     };
@@ -1136,7 +1136,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
       var i, params, str, vals, _i, _ref5, _ref6;
       if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
+        return {
+          text: '',
+          values: []
+        };
       }
       str = "";
       _ref5 = this._buildValParams(), vals = _ref5.vals, params = _ref5.params;
@@ -1159,9 +1162,10 @@ OTHER DEALINGS IN THE SOFTWARE.
   cls.InsertFieldsFromQueryBlock = (function(_super) {
     __extends(InsertFieldsFromQueryBlock, _super);
 
-    function InsertFieldsFromQueryBlock() {
-      _ref5 = InsertFieldsFromQueryBlock.__super__.constructor.apply(this, arguments);
-      return _ref5;
+    function InsertFieldsFromQueryBlock(options) {
+      InsertFieldsFromQueryBlock.__super__.constructor.call(this, options);
+      this._fields = [];
+      this._query = null;
     }
 
     InsertFieldsFromQueryBlock.prototype.fromQuery = function(fields, selectQuery) {
@@ -1174,7 +1178,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     InsertFieldsFromQueryBlock.prototype.buildStr = function(queryBuilder) {
       if (0 >= this._fields.length) {
-        throw new Error("fromQuery() needs to be called");
+        return '';
       }
       return "(" + (this._fields.join(', ')) + ") (" + (this._query.toString()) + ")";
     };
@@ -1182,7 +1186,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     InsertFieldsFromQueryBlock.prototype.buildParam = function(queryBuilder) {
       var qryParam;
       if (0 >= this._fields.length) {
-        throw new Error("fromQuery() needs to be called");
+        return {
+          text: '',
+          values: []
+        };
       }
       qryParam = this._query.toParam();
       return {
@@ -1233,12 +1240,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     GroupByBlock.prototype.buildStr = function(queryBuilder) {
-      var f, groups, _i, _len, _ref6;
+      var f, groups, _i, _len, _ref5;
       groups = "";
       if (0 < this.groups.length) {
-        _ref6 = this.groups;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          f = _ref6[_i];
+        _ref5 = this.groups;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          f = _ref5[_i];
           if ("" !== groups) {
             groups += ", ";
           }
@@ -1287,7 +1294,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     WhereBlock.prototype.where = function() {
-      var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, t, values, _i, _j, _len, _ref6;
+      var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, t, values, _i, _j, _len, _ref5;
       condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       condition = this._sanitizeCondition(condition);
       finalCondition = "";
@@ -1297,7 +1304,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         finalCondition = t.text;
         finalValues = t.values;
       } else {
-        for (idx = _i = 0, _ref6 = condition.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; idx = 0 <= _ref6 ? ++_i : --_i) {
+        for (idx = _i = 0, _ref5 = condition.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; idx = 0 <= _ref5 ? ++_i : --_i) {
           c = condition.charAt(idx);
           if ('?' === c && 0 < values.length) {
             nextValue = values.shift();
@@ -1335,20 +1342,20 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildStr = function(queryBuilder) {
-      var c, idx, pIndex, where, whereStr, _i, _j, _len, _ref6, _ref7;
+      var c, idx, pIndex, where, whereStr, _i, _j, _len, _ref5, _ref6;
       if (0 >= this.wheres.length) {
         return "";
       }
       whereStr = "";
-      _ref6 = this.wheres;
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        where = _ref6[_i];
+      _ref5 = this.wheres;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        where = _ref5[_i];
         if ("" !== whereStr) {
           whereStr += ") AND (";
         }
         if (0 < where.values.length) {
           pIndex = 0;
-          for (idx = _j = 0, _ref7 = where.text.length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; idx = 0 <= _ref7 ? ++_j : --_j) {
+          for (idx = _j = 0, _ref6 = where.text.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
             c = where.text.charAt(idx);
             if ('?' === c) {
               whereStr += this._formatValue(where.values[pIndex++]);
@@ -1364,7 +1371,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     WhereBlock.prototype.buildParam = function(queryBuilder) {
-      var i, p, qv, ret, str, v, where, whereStr, _i, _j, _k, _len, _len1, _len2, _ref6, _ref7, _ref8;
+      var i, p, qv, ret, str, v, where, whereStr, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6, _ref7;
       ret = {
         text: "",
         values: []
@@ -1373,26 +1380,26 @@ OTHER DEALINGS IN THE SOFTWARE.
         return ret;
       }
       whereStr = "";
-      _ref6 = this.wheres;
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        where = _ref6[_i];
+      _ref5 = this.wheres;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        where = _ref5[_i];
         if ("" !== whereStr) {
           whereStr += ") AND (";
         }
         str = where.text.split('?');
         i = 0;
-        _ref7 = where.values;
-        for (_j = 0, _len1 = _ref7.length; _j < _len1; _j++) {
-          v = _ref7[_j];
+        _ref6 = where.values;
+        for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
+          v = _ref6[_j];
           if (str[i] != null) {
             whereStr += "" + str[i];
           }
           p = this._formatValueAsParam(v);
           if (((p != null ? p.text : void 0) != null)) {
             whereStr += "(" + p.text + ")";
-            _ref8 = p.values;
-            for (_k = 0, _len2 = _ref8.length; _k < _len2; _k++) {
-              qv = _ref8[_k];
+            _ref7 = p.values;
+            for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
+              qv = _ref7[_k];
               ret.values.push(qv);
             }
           } else {
@@ -1437,22 +1444,22 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     OrderByBlock.prototype._buildStr = function(toParam) {
-      var c, fstr, idx, o, orders, pIndex, _i, _j, _len, _ref6, _ref7;
+      var c, fstr, idx, o, orders, pIndex, _i, _j, _len, _ref5, _ref6;
       if (toParam == null) {
         toParam = false;
       }
       if (0 < this.orders.length) {
         pIndex = 0;
         orders = "";
-        _ref6 = this.orders;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          o = _ref6[_i];
+        _ref5 = this.orders;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          o = _ref5[_i];
           if ("" !== orders) {
             orders += ", ";
           }
           fstr = "";
           if (!toParam) {
-            for (idx = _j = 0, _ref7 = o.field.length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; idx = 0 <= _ref7 ? ++_j : --_j) {
+            for (idx = _j = 0, _ref6 = o.field.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
               c = o.field.charAt(idx);
               if ('?' === c) {
                 fstr += this._formatValue(this._values[pIndex++]);
@@ -1599,11 +1606,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     JoinBlock.prototype.buildStr = function(queryBuilder) {
-      var j, joins, _i, _len, _ref6;
+      var j, joins, _i, _len, _ref5;
       joins = "";
-      _ref6 = this.joins || [];
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        j = _ref6[_i];
+      _ref5 = this.joins || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        j = _ref5[_i];
         if (joins !== "") {
           joins += " ";
         }
@@ -1624,7 +1631,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     JoinBlock.prototype.buildParam = function(queryBuilder) {
-      var blk, cp, joinStr, p, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref6, _ref7;
+      var blk, cp, joinStr, p, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
       ret = {
         text: "",
         values: []
@@ -1634,9 +1641,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (0 >= this.joins.length) {
         return ret;
       }
-      _ref6 = this.joins;
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        blk = _ref6[_i];
+      _ref5 = this.joins;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        blk = _ref5[_i];
         if ("string" === typeof blk.table) {
           p = {
             "text": "" + blk.table,
@@ -1680,9 +1687,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (p.condition) {
           joinStr += " ON (" + p.condition + ")";
         }
-        _ref7 = p.values;
-        for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
-          v = _ref7[_k];
+        _ref6 = p.values;
+        for (_k = 0, _len2 = _ref6.length; _k < _len2; _k++) {
+          v = _ref6[_k];
           ret.values.push(this._formatCustomValue(v));
         }
       }
@@ -1719,11 +1726,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     UnionBlock.prototype.buildStr = function(queryBuilder) {
-      var j, unionStr, _i, _len, _ref6;
+      var j, unionStr, _i, _len, _ref5;
       unionStr = "";
-      _ref6 = this.unions || [];
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        j = _ref6[_i];
+      _ref5 = this.unions || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        j = _ref5[_i];
         if (unionStr !== "") {
           unionStr += " ";
         }
@@ -1738,7 +1745,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     UnionBlock.prototype.buildParam = function(queryBuilder) {
-      var blk, p, params, ret, unionStr, v, _i, _j, _k, _len, _len1, _len2, _ref6, _ref7;
+      var blk, p, params, ret, unionStr, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6;
       ret = {
         text: "",
         values: []
@@ -1748,9 +1755,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (0 >= this.unions.length) {
         return ret;
       }
-      _ref6 = this.unions || [];
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        blk = _ref6[_i];
+      _ref5 = this.unions || [];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        blk = _ref5[_i];
         if ("string" === typeof blk.table) {
           p = {
             "text": "" + blk.table,
@@ -1776,9 +1783,9 @@ OTHER DEALINGS IN THE SOFTWARE.
           unionStr += " ";
         }
         unionStr += "" + p.type + " (" + p.text + ")";
-        _ref7 = p.values;
-        for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
-          v = _ref7[_k];
+        _ref6 = p.values;
+        for (_k = 0, _len2 = _ref6.length; _k < _len2; _k++) {
+          v = _ref6[_k];
           ret.values.push(this._formatCustomValue(v));
         }
       }
@@ -1794,22 +1801,22 @@ OTHER DEALINGS IN THE SOFTWARE.
     __extends(QueryBuilder, _super);
 
     function QueryBuilder(options, blocks) {
-      var block, methodBody, methodName, _fn, _i, _len, _ref6, _ref7,
+      var block, methodBody, methodName, _fn, _i, _len, _ref5, _ref6,
         _this = this;
       QueryBuilder.__super__.constructor.call(this, options);
       this.blocks = blocks || [];
-      _ref6 = this.blocks;
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        block = _ref6[_i];
-        _ref7 = block.exposedMethods();
+      _ref5 = this.blocks;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        block = _ref5[_i];
+        _ref6 = block.exposedMethods();
         _fn = function(block, name, body) {
           return _this[name] = function() {
             body.apply(block, arguments);
             return _this;
           };
         };
-        for (methodName in _ref7) {
-          methodBody = _ref7[methodName];
+        for (methodName in _ref6) {
+          methodBody = _ref6[methodName];
           if (this[methodName] != null) {
             throw new Error("" + (this._getObjectClassName(this)) + " already has a builder method called: " + methodName);
           }
@@ -1819,10 +1826,10 @@ OTHER DEALINGS IN THE SOFTWARE.
     }
 
     QueryBuilder.prototype.registerValueHandler = function(type, handler) {
-      var block, _i, _len, _ref6;
-      _ref6 = this.blocks;
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        block = _ref6[_i];
+      var block, _i, _len, _ref5;
+      _ref5 = this.blocks;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        block = _ref5[_i];
         block.registerValueHandler(type, handler);
       }
       QueryBuilder.__super__.registerValueHandler.call(this, type, handler);
@@ -1830,12 +1837,12 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     QueryBuilder.prototype.updateOptions = function(options) {
-      var block, _i, _len, _ref6, _results;
+      var block, _i, _len, _ref5, _results;
       this.options = _extend({}, this.options, options);
-      _ref6 = this.blocks;
+      _ref5 = this.blocks;
       _results = [];
-      for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-        block = _ref6[_i];
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        block = _ref5[_i];
         _results.push(block.options = _extend({}, block.options, options));
       }
       return _results;
@@ -1844,11 +1851,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     QueryBuilder.prototype.toString = function() {
       var block;
       return ((function() {
-        var _i, _len, _ref6, _results;
-        _ref6 = this.blocks;
+        var _i, _len, _ref5, _results;
+        _ref5 = this.blocks;
         _results = [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          block = _ref6[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          block = _ref5[_i];
           _results.push(block.buildStr(this));
         }
         return _results;
@@ -1858,7 +1865,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     QueryBuilder.prototype.toParam = function(options) {
-      var block, blocks, i, old, result, _ref6;
+      var block, blocks, i, old, result, _ref5;
       if (options == null) {
         options = void 0;
       }
@@ -1871,11 +1878,11 @@ OTHER DEALINGS IN THE SOFTWARE.
         values: []
       };
       blocks = (function() {
-        var _i, _len, _ref6, _results;
-        _ref6 = this.blocks;
+        var _i, _len, _ref5, _results;
+        _ref5 = this.blocks;
         _results = [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          block = _ref6[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          block = _ref5[_i];
           _results.push(block.buildParam(this));
         }
         return _results;
@@ -1891,7 +1898,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       })()).filter(function(v) {
         return 0 < v.length;
       }).join(this.options.separator);
-      result.values = (_ref6 = []).concat.apply(_ref6, (function() {
+      result.values = (_ref5 = []).concat.apply(_ref5, (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = blocks.length; _i < _len; _i++) {
@@ -1918,11 +1925,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     QueryBuilder.prototype.clone = function() {
       var block;
       return new this.constructor(this.options, (function() {
-        var _i, _len, _ref6, _results;
-        _ref6 = this.blocks;
+        var _i, _len, _ref5, _results;
+        _ref5 = this.blocks;
         _results = [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          block = _ref6[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          block = _ref5[_i];
           _results.push(block.clone());
         }
         return _results;
@@ -2005,7 +2012,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       if (blocks == null) {
         blocks = null;
       }
-      blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options)]);
+      blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)]);
       Insert.__super__.constructor.call(this, options, blocks);
     }
 

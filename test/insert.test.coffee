@@ -61,9 +61,8 @@ test['INSERT builder'] =
     'need to call into() first': ->
       assert.throws (=> @inst.toString()), 'into() needs to be called'
 
-    'need to call set() first': ->
-      @inst.into('table')
-      assert.throws (=> @inst.toString()), 'set() needs to be called'
+    'when set() not called': ->
+      assert.same 'INSERT INTO table', @inst.into('table').toString()
 
     '>> into(table).set(field, null)':
       beforeEach: -> @inst.into('table').set('field', null)
@@ -72,98 +71,114 @@ test['INSERT builder'] =
       toParam: ->
         assert.same @inst.toParam(), { text: 'INSERT INTO table (field) VALUES (?)', values: [null] }
 
-    '>> into(table).set(field, 1)':
-      beforeEach: -> @inst.into('table').set('field', 1)
-      toString: ->
-        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1)'
+    '>> into(table)':
+      beforeEach: -> @inst.into('table')
 
-      '>> set(field2, 1.2)':
-        beforeEach: -> @inst.set('field2', 1.2)
+      '>> set(field, 1)':
+        beforeEach: -> @inst.set('field', 1)
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 1.2)'
+          assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1)'
 
-      '>> set(field2, "str")':
-        beforeEach: -> @inst.set('field2', 'str')
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, \'str\')'
-        toParam: ->
-          assert.same @inst.toParam(), {
-            text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
-            values: [ 1, 'str' ]
-          }
+        '>> set(field2, 1.2)':
+          beforeEach: -> @inst.set('field2', 1.2)
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 1.2)'
 
-      '>> set(field2, "str", { dontQuote: true } )':
-        beforeEach: -> @inst.set('field2', 'str', dontQuote: true)
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
-        toParam: ->
-          assert.same @inst.toParam(), {
-            text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
-            values: [ 1, 'str' ]
-          }
+        '>> set(field2, "str")':
+          beforeEach: -> @inst.set('field2', 'str')
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, \'str\')'
+          toParam: ->
+            assert.same @inst.toParam(), {
+              text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
+              values: [ 1, 'str' ]
+            }
 
-      '>> set(field2, true)':
-        beforeEach: -> @inst.set('field2', true)
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, TRUE)'
+        '>> set(field2, "str", { dontQuote: true } )':
+          beforeEach: -> @inst.set('field2', 'str', dontQuote: true)
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, str)'
+          toParam: ->
+            assert.same @inst.toParam(), {
+              text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
+              values: [ 1, 'str' ]
+            }
 
-      '>> set(field2, null)':
-        beforeEach: -> @inst.set('field2', null)
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, NULL)'
+        '>> set(field2, true)':
+          beforeEach: -> @inst.set('field2', true)
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, TRUE)'
 
-      '>> set(field, query builder)':
-        beforeEach: ->
-          @subQuery = squel.select().field('MAX(score)').from('scores')
-          @inst.set( 'field',  @subQuery )
+        '>> set(field2, null)':
+          beforeEach: -> @inst.set('field2', null)
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, NULL)'
+
+        '>> set(field, query builder)':
+          beforeEach: ->
+            @subQuery = squel.select().field('MAX(score)').from('scores')
+            @inst.set( 'field',  @subQuery )
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
+          toParam: ->
+            parameterized = @inst.toParam()
+            assert.same parameterized.text, 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
+            assert.same parameterized.values, []
+
+        '>> setFields({field2: \'value2\', field3: true })':
+          beforeEach: -> @inst.setFields({field2: 'value2', field3: true })
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2, field3) VALUES (1, \'value2\', TRUE)'
+          toParam: ->
+            parameterized = @inst.toParam()
+            assert.same parameterized.text, 'INSERT INTO table (field, field2, field3) VALUES (?, ?, ?)'
+            assert.same parameterized.values, [1,'value2',true]
+
+        '>> setFields({field2: \'value2\', field: true })':
+          beforeEach: -> @inst.setFields({field2: 'value2', field: true })
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (TRUE, \'value2\')'
+          toParam: ->
+            parameterized = @inst.toParam()
+            assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?)'
+            assert.same parameterized.values, [true, 'value2']
+
+        '>> setFields(custom value type)':
+          beforeEach: ->
+            class MyClass
+            @inst.registerValueHandler MyClass, -> 'abcd'
+            @inst.setFields({ field: new MyClass() })
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (\'abcd\')'
+          toParam: ->
+            parameterized = @inst.toParam()
+            assert.same parameterized.text, 'INSERT INTO table (field) VALUES (?)'
+            assert.same parameterized.values, ['abcd']
+
+        '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])':
+          beforeEach: -> @inst.setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }])
+          toString: ->
+            assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (\'value2\', TRUE), (\'value3\', 13)'
+          toParam: ->
+            parameterized = @inst.toParam()
+            assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?), (?, ?)'
+            assert.same parameterized.values, ['value2',true, 'value3',13]
+
+      '>> fromQuery([field1, field2], select query)':
+        beforeEach: -> @inst.fromQuery(
+            ['field1', 'field2'],
+            squel.select().from('students').where('a = ?', 2)
+          )
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
-        toParam: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE a = 2)'
+        toString: ->
           parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
-          assert.same parameterized.values, []
+          assert.same parameterized.text, 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE (a = ?))'
+          assert.same parameterized.values, [ 2 ]
 
-      '>> setFields({field2: \'value2\', field3: true })':
-        beforeEach: -> @inst.setFields({field2: 'value2', field3: true })
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2, field3) VALUES (1, \'value2\', TRUE)'
-        toParam: ->
-          parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field, field2, field3) VALUES (?, ?, ?)'
-          assert.same parameterized.values, [1,'value2',true]
+      '>> setFieldsRows([{field1: 13, field2: \'value2\'},{field1: true, field3: \'value4\'}])': ->
+        assert.throws (=> @inst.setFieldsRows([{field1: 13, field2: 'value2'},{field1: true, field3: 'value4'}]).toString()), 'All fields in subsequent rows must match the fields in the first row'
 
-      '>> setFields({field2: \'value2\', field: true })':
-        beforeEach: -> @inst.setFields({field2: 'value2', field: true })
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (TRUE, \'value2\')'
-        toParam: ->
-          parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?)'
-          assert.same parameterized.values, [true, 'value2']
-
-      '>> setFields(custom value type)':
-        beforeEach: ->
-          class MyClass
-          @inst.registerValueHandler MyClass, -> 'abcd'
-          @inst.setFields({ field: new MyClass() })
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (\'abcd\')'
-        toParam: ->
-          parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field) VALUES (?)'
-          assert.same parameterized.values, ['abcd']
-
-      '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])':
-        beforeEach: -> @inst.setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }])
-        toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (\'value2\', TRUE), (\'value3\', 13)'
-        toParam: ->
-          parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?), (?, ?)'
-          assert.same parameterized.values, ['value2',true, 'value3',13]
-
-    '>> into(table).setFieldsRows([{field1: 13, field2: \'value2\'},{field1: true, field3: \'value4\'}])': ->
-      assert.throws (=> @inst.into('table').setFieldsRows([{field1: 13, field2: 'value2'},{field1: true, field3: 'value4'}]).toString()), 'All fields in subsequent rows must match the fields in the first row'
 
   'cloning': ->
     newinst = @inst.into('students').set('field', 1).clone()

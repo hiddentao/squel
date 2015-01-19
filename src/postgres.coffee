@@ -48,9 +48,10 @@ squel.flavours['postgres'] = ->
   class cls.Insert extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
-        new cls.StringBlock(options, 'INSERT'),
-        new cls.IntoTableBlock(options),
-        new cls.InsertFieldValueBlock(options),
+        new cls.StringBlock(options, 'INSERT')
+        new cls.IntoTableBlock(options)
+        new cls.InsertFieldValueBlock(options)
+        new cls.InsertFieldsFromQueryBlock(options)
         new cls.ReturningBlock(options)
       ]
       super options, blocks
@@ -59,12 +60,12 @@ squel.flavours['postgres'] = ->
   class cls.Update extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
-        new cls.StringBlock(options, 'UPDATE'),
-        new cls.UpdateTableBlock(options),
-        new cls.SetFieldBlock(options),
-        new cls.WhereBlock(options),
-        new cls.OrderByBlock(options),
-        new cls.LimitBlock(options),
+        new cls.StringBlock(options, 'UPDATE')
+        new cls.UpdateTableBlock(options)
+        new cls.SetFieldBlock(options)
+        new cls.WhereBlock(options)
+        new cls.OrderByBlock(options)
+        new cls.LimitBlock(options)
         new cls.ReturningBlock(options)
       ]
       super options, blocks
@@ -73,12 +74,12 @@ squel.flavours['postgres'] = ->
   class cls.Delete extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
-        new cls.StringBlock(options, 'DELETE'),
-        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
-        new cls.JoinBlock(options),
-        new cls.WhereBlock(options),
-        new cls.OrderByBlock(options),
-        new cls.LimitBlock(options),
+        new cls.StringBlock(options, 'DELETE')
+        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) )
+        new cls.JoinBlock(options)
+        new cls.WhereBlock(options)
+        new cls.OrderByBlock(options)
+        new cls.LimitBlock(options)
         new cls.ReturningBlock(options)
       ]
       super options, blocks

@@ -80,6 +80,7 @@ squel.flavours['mysql'] = ->
         new cls.StringBlock(options, 'INSERT')
         new cls.IntoTableBlock(options)
         new cls.InsertFieldValueBlock(options)
+        new cls.InsertFieldsFromQueryBlock(options)
         new cls.MysqlOnDuplicateKeyUpdateBlock(options)
       ]
 
@@ -88,13 +89,13 @@ squel.flavours['mysql'] = ->
   class cls.Delete extends cls.QueryBuilder
     constructor: (options, blocks = null) ->
       blocks or= [
-        new cls.StringBlock(options, 'DELETE'),
-        new cls.TargetTableBlock(options),
-        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
-        new cls.JoinBlock(options),
-        new cls.WhereBlock(options),
-        new cls.OrderByBlock(options),
-        new cls.LimitBlock(options),
+        new cls.StringBlock(options, 'DELETE')
+        new cls.TargetTableBlock(options)
+        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) )
+        new cls.JoinBlock(options)
+        new cls.WhereBlock(options)
+        new cls.OrderByBlock(options)
+        new cls.LimitBlock(options)
       ]
 
       super options, blocks

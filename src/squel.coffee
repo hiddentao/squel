@@ -919,12 +919,12 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
     params: params
 
   buildStr: (queryBuilder) ->
-    if 0 >= @fields.length then throw new Error "set() needs to be called"
+    return '' if 0 >= @fields.length
 
     "(#{@fields.join(', ')}) VALUES (#{@_buildVals().join('), (')})"
 
   buildParam: (queryBuilder) ->
-    if 0 >= @fields.length then throw new Error "set() needs to be called"
+    return { text: '', values: [] } if 0 >= @fields.length
 
     # fields
     str = ""
@@ -939,17 +939,22 @@ class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
 
 # (INSERT INTO) ... field ... (SELECT ... FROM ...)
 class cls.InsertFieldsFromQueryBlock extends cls.Block
+  constructor: (options) ->
+    super options
+    @_fields = []
+    @_query = null
+
   fromQuery: (fields, selectQuery) ->
     @_fields = fields.map ( (v) => @_sanitizeField(v) )
     @_query = @_sanitizeNestableQuery(selectQuery)
 
   buildStr: (queryBuilder) ->
-    if 0 >= @_fields.length then throw new Error "fromQuery() needs to be called"
+    return '' if 0 >= @_fields.length
 
     "(#{@_fields.join(', ')}) (#{@_query.toString()})"
 
   buildParam: (queryBuilder) ->
-    if 0 >= @_fields.length then throw new Error "fromQuery() needs to be called"
+    return { text: '', values: [] } if 0 >= @_fields.length
 
     qryParam = @_query.toParam()
 
@@ -1537,6 +1542,7 @@ class cls.Insert extends cls.QueryBuilder
       new cls.StringBlock(options, 'INSERT'),
       new cls.IntoTableBlock(options),
       new cls.InsertFieldValueBlock(options),
+      new cls.InsertFieldsFromQueryBlock(options),
     ]
 
     super options, blocks

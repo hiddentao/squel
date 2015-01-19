@@ -168,12 +168,6 @@ test['MySQL flavour'] =
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 
-    'has same blocks as default': ->
-      assert.ok @inst.blocks[0] instanceof squel.cls.StringBlock
-      assert.ok @inst.blocks[1] instanceof squel.cls.IntoTableBlock
-      assert.ok @inst.blocks[2] instanceof squel.cls.InsertFieldValueBlock
-      assert.ok @inst.blocks[3] instanceof squel.cls.MysqlOnDuplicateKeyUpdateBlock
-
     '>> into(table).set(field, 1).set(field1, 2).onDupUpdate(field, 5).onDupUpdate(field1, "str")':
       beforeEach: ->
         test.mocker.spy squel.cls.BaseBuilder.prototype, '_sanitizeValue'
