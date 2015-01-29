@@ -1605,6 +1605,16 @@ OTHER DEALINGS IN THE SOFTWARE.
       return this.join(table, alias, condition, 'FULL');
     };
 
+    JoinBlock.prototype.cross_join = function(table, alias, condition) {
+      if (alias == null) {
+        alias = null;
+      }
+      if (condition == null) {
+        condition = null;
+      }
+      return this.join(table, alias, condition, 'CROSS');
+    };
+
     JoinBlock.prototype.buildStr = function(queryBuilder) {
       var j, joins, _i, _len, _ref5;
       joins = "";
