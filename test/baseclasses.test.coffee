@@ -95,7 +95,7 @@ test['Register global custom value handler'] =
     squel.registerValueHandler('boolean', handler)
 
     assert.same 4, squel.cls.globalValueHandlers.length
-    assert.same squel.cls.FuncVal, squel.cls.globalValueHandlers[0].type
+    assert.same squel.cls.FuncVal, squel.cls.globalValueHandlers[0].type # built-in
     assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[1]
     assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[2]
     assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[3]
