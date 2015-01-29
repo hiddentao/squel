@@ -873,6 +873,22 @@
       <em>Note: When doing a multi-row insertion every row specified in the parameter to <code>setFieldsRows</code> should 
       have the same field names specified. Squel will throw an error if this is not the case.</em>
 
+        <h3>Other types</h3>
+
+      <p>Insert from a selection result:</p>
+
+      <pre class="brush: js">
+        alert(
+            squel.insert()
+                .into("students")
+                .fromQuery( 
+                    ['username'], 
+                    squel.select().field('name').from('candidates') 
+                )
+        );
+        /*  INSERT INTO students (username) (SELECT name FROM candidates) */
+      </pre>
+
     </section>
 
     <section id="parameters">
