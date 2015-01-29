@@ -94,10 +94,11 @@ test['Register global custom value handler'] =
     squel.registerValueHandler(Object, handler)
     squel.registerValueHandler('boolean', handler)
 
-    assert.same 3, squel.cls.globalValueHandlers.length
-    assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[0]
-    assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[1]
-    assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[2]
+    assert.same 4, squel.cls.globalValueHandlers.length
+    assert.same squel.cls.FuncVal, squel.cls.globalValueHandlers[0].type
+    assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[1]
+    assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[2]
+    assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[3]
 
   'type should be class constructor': ->
     assert.throws (-> squel.registerValueHandler 1, null), "type must be a class constructor or string denoting \'typeof\' result"

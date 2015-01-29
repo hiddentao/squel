@@ -194,6 +194,13 @@ test['UPDATE builder'] =
       toString: ->
         assert.same @inst.toString(), 'UPDATE table `t1` SET count = count + 1'
 
+  'Function values': ->
+    beforeEach: -> @inst.table('students').set('field = ?', squel.func('GETDATE(?, ?)', 2014, 2))
+    toString: ->
+      assert.same 'UPDATE students SET field = GETDATE(2014, 2)', @inst.toString()
+    toParam: ->  
+      assert.same { text: 'UPDATE students SET field = GETDATE(?)', values: [2014, 2] }, @inst.toParam()
+
   'fix for hiddentao/squel#63': ->
     newinst = @inst.table('students').set('field = field + 1')
     newinst.set('field2', 2).set('field3', true)

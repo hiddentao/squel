@@ -119,6 +119,47 @@ OTHER DEALINGS IN THE SOFTWARE.
     return registerValueHandler(cls.globalValueHandlers, type, handler);
   };
 
+  cls.FuncVal = (function() {
+    function FuncVal(str, values) {
+      this.str = str;
+      this.values = values;
+    }
+
+    return FuncVal;
+
+  })();
+
+  cls.func = function() {
+    var str, values;
+    str = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    return new cls.FuncVal(str, values);
+  };
+
+  cls.registerValueHandler(cls.FuncVal, function(value, asParam) {
+    var c, finalStr, idx, str, values, _i, _ref;
+    if (asParam == null) {
+      asParam = false;
+    }
+    if (asParam) {
+      return {
+        text: value.str,
+        values: value.values
+      };
+    } else {
+      str = value.str;
+      finalStr = '';
+      values = value.values;
+      for (idx = _i = 0, _ref = str.length; 0 <= _ref ? _i < _ref : _i > _ref; idx = 0 <= _ref ? ++_i : --_i) {
+        c = str.charAt(idx);
+        if ('?' === c && 0 < values.length) {
+          c = values.unshift();
+        }
+        finalStr += c;
+      }
+      return finalStr;
+    }
+  });
+
   cls.Cloneable = (function() {
     function Cloneable() {}
 
@@ -271,6 +312,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       } else if (item instanceof cls.QueryBuilder && item.isNestable()) {
 
+      } else if (item instanceof cls.FuncVal) {
+
       } else {
         typeIsValid = void 0 !== getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
         if (!typeIsValid) {
@@ -287,11 +330,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       return value.replace(/\'/g, this.options.singleQuoteReplacement);
     };
 
-    BaseBuilder.prototype._formatCustomValue = function(value) {
+    BaseBuilder.prototype._formatCustomValue = function(value, asParam) {
       var customHandler;
+      if (asParam == null) {
+        asParam = false;
+      }
       customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
       if (customHandler) {
-        value = customHandler(value);
+        value = customHandler(value, asParam);
       }
       return value;
     };
@@ -312,7 +358,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else if (value instanceof cls.Expression) {
           return p = value.toParam();
         } else {
-          return this._formatCustomValue(value);
+          return this._formatCustomValue(value, true);
         }
       }
     };

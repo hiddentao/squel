@@ -121,12 +121,12 @@ cls.registerValueHandler = (type, handler) ->
 
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
-# cls.Param
+# cls.FuncVal
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 
-# A parameter
-class cls.Param
+# A function value
+class cls.FuncVal
   # Constructor
   #
   # str - the string
@@ -136,11 +136,11 @@ class cls.Param
     @values = values
 
 # Construct a Param object
-cls.param = (str, values...) ->
-  new cls.Param(str, values)
+cls.func = (str, values...) ->
+  new cls.FuncVal(str, values)
 
-# Register default value handler for cls.Param
-cls.registerValueHandler cls.Param, (value, asParam = false) ->
+# Register default value handler for cls.FuncVal
+cls.registerValueHandler cls.FuncVal, (value, asParam = false) ->
   if asParam
     {
       text: value.str
@@ -298,8 +298,8 @@ class cls.BaseBuilder extends cls.Cloneable
       # primitives are allowed
     else if item instanceof cls.QueryBuilder and item.isNestable()
       # QueryBuilder instances allowed
-    else if item instanceof cls.Param
-      # Param instances allowed
+    else if item instanceof cls.FuncVal
+      # FuncVal instances allowed
     else
       typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
       unless typeIsValid
