@@ -78,6 +78,12 @@ cls.DefaultQueryBuilderOptions =
 cls.globalValueHandlers = []
 
 
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Custom value types
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
 # Register a value type handler
 #
 # Note: this will override any existing handler registered for this value type.
@@ -112,6 +118,54 @@ getValueHandler = (value, handlerLists...) ->
 cls.registerValueHandler = (type, handler) ->
   registerValueHandler cls.globalValueHandlers, type, handler
 
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# cls.Param
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+# A parameter
+class cls.Param
+  # Constructor
+  #
+  # str - the string
+  # values - the parameter values
+  constructor: (str, values) ->
+    @str = str
+    @values = values
+
+# Construct a Param object
+cls.param = (str, values...) ->
+  new cls.Param(str, values)
+
+# Register default value handler for cls.Param
+cls.registerValueHandler cls.Param, (value, asParam = false) ->
+  if asParam
+    {
+      text: value.str
+      values: value.values
+    }
+  else
+    str = value.str
+    finalStr = ''
+    values = value.values
+
+    for idx in [0...str.length]
+      c = str.charAt(idx)
+      if '?' is c and 0 < values.length
+        c = values.unshift();
+      finalStr += c
+
+    finalStr
+
+
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Base classes
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
 
 # Base class for cloneable builders
 class cls.Cloneable
@@ -244,6 +298,8 @@ class cls.BaseBuilder extends cls.Cloneable
       # primitives are allowed
     else if item instanceof cls.QueryBuilder and item.isNestable()
       # QueryBuilder instances allowed
+    else if item instanceof cls.Param
+      # Param instances allowed
     else
       typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
       unless typeIsValid
@@ -257,12 +313,12 @@ class cls.BaseBuilder extends cls.Cloneable
     value.replace /\'/g, @options.singleQuoteReplacement
 
   # Format the given custom value
-  _formatCustomValue: (value) ->
+  _formatCustomValue: (value, asParam = false) ->
     # user defined custom handlers takes precedence
     customHandler = getValueHandler(value, @options.valueHandlers, cls.globalValueHandlers)
     if customHandler
       # use the custom handler if available
-      value = customHandler(value)
+      value = customHandler(value, asParam)
 
     value
 
@@ -277,7 +333,7 @@ class cls.BaseBuilder extends cls.Cloneable
       else if value instanceof cls.Expression
         p = value.toParam()
       else
-        @_formatCustomValue(value)
+        @_formatCustomValue(value, true)
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value, formattingOptions = {}) ->
@@ -410,36 +466,36 @@ class cls.Expression extends cls.BaseBuilder
         str = ""
         params = []
         for child in node.nodes
-            if child.expr?
-                nodeStr = child.expr
-                # have param?
-                if undefined isnt child.para
-                  if not paramMode
-                    nodeStr = nodeStr.replace '?', @_formatValue(child.para)
+          if child.expr?
+              nodeStr = child.expr
+              # have param?
+              if undefined isnt child.para
+                if not paramMode
+                  nodeStr = nodeStr.replace '?', @_formatValue(child.para)
+                else
+                  cv = @_formatValueAsParam child.para
+                  if (cv?.text?)
+                    params = params.concat(cv.values)
+                    nodeStr = nodeStr.replace '?', "(#{cv.text})"
                   else
-                    cv = @_formatValueAsParam child.para
-                    if (cv?.text?)
-                      params = params.concat(cv.values)
-                      nodeStr = nodeStr.replace '?', "(#{cv.text})"
-                    else
-                      params = params.concat(cv)
-                    # IN ? -> IN (?, ?, ..., ?)
-                    if Array.isArray(child.para)
-                      inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
-                      nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
-            else
-                nodeStr = @_toString(child, paramMode)
-                if paramMode
-                  params = params.concat(nodeStr.values)
-                  nodeStr = nodeStr.text
-                # wrap nested expressions in brackets
-                if "" isnt nodeStr
-                  nodeStr = "(" + nodeStr + ")"
+                    params = params.concat(cv)
+                  # IN ? -> IN (?, ?, ..., ?)
+                  if Array.isArray(child.para)
+                    inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
+                    nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
+          else
+              nodeStr = @_toString(child, paramMode)
+              if paramMode
+                params = params.concat(nodeStr.values)
+                nodeStr = nodeStr.text
+              # wrap nested expressions in brackets
+              if "" isnt nodeStr
+                nodeStr = "(" + nodeStr + ")"
 
-            if "" isnt nodeStr
-              # if this isn't first expression then add the operator
-              if "" isnt str then str += " " + child.type + " "
-              str += nodeStr
+          if "" isnt nodeStr
+            # if this isn't first expression then add the operator
+            if "" isnt str then str += " " + child.type + " "
+            str += nodeStr
 
         if paramMode
           return {
