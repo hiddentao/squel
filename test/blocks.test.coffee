@@ -931,7 +931,7 @@ test['Blocks'] =
       'overwrites existing values': ->
         @inst._fields = 1
         @inst._query = 2
-        
+
         qry = squel.select()
         @inst.fromQuery(['test', 'one', 'two'], qry)
 
@@ -961,7 +961,7 @@ test['Blocks'] =
         }
 
         assert.same expected, @inst.buildParam()
-        
+
       'default': ->
         qry = squel.select().from('mega')
 
@@ -977,7 +977,7 @@ test['Blocks'] =
           text: '(test, one, two) (blah)',
           values: [1,2,3]
         }
-        
+
         assert.same expected, @inst.buildParam()
 
 
@@ -1450,6 +1450,7 @@ test['Blocks'] =
         @inst.join('table2', null, 'b = 1', 'LEFT')
         @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
         @inst.join('table4', 'alias4', 'd = 1', 'OUTER')
+        @inst.join('table5', 'alias5', null, 'CROSS')
 
         expected = [
           {
@@ -1475,6 +1476,12 @@ test['Blocks'] =
             table: 'table4',
             alias: '`alias4`',
             condition: 'd = 1'
+          },
+          {
+            type: 'CROSS',
+            table: 'table5',
+            alias: '`alias5`',
+            condition: null
           }
         ]
 
@@ -1508,11 +1515,13 @@ test['Blocks'] =
         inner3 = squel.select()
         inner4 = squel.select()
         inner5 = squel.select()
+        inner6 = squel.select()
         @inst.join(inner1)
         @inst.join(inner2, null, 'b = 1', 'LEFT')
         @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
         @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
         @inst.join(inner5, 'alias5', 'e = 1', 'FULL')
+        @inst.join(inner6, 'alias6', null, 'CROSS')
 
         expected = [
           {
@@ -1544,6 +1553,12 @@ test['Blocks'] =
             table: inner5,
             alias: '`alias5`',
             condition: 'e = 1'
+          },
+          {
+            type: 'CROSS',
+            table: inner6,
+            alias: '`alias6`',
+            condition: null
           }
         ]
 
@@ -1569,21 +1584,24 @@ test['Blocks'] =
         @inst.join('table2', null, 'b = 1', 'LEFT')
         @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
         @inst.join('table4', 'alias4', 'd = 1', 'FULL')
+        @inst.join('table5', 'alias5', null, 'CROSS')
 
-        assert.same 'INNER JOIN table1 LEFT JOIN table2 ON (b = 1) RIGHT JOIN table3 `alias3` ON (c = 1) FULL JOIN table4 `alias4` ON (d = 1)', @inst.buildStr()
+        assert.same 'INNER JOIN table1 LEFT JOIN table2 ON (b = 1) RIGHT JOIN table3 `alias3` ON (c = 1) FULL JOIN table4 `alias4` ON (d = 1) CROSS JOIN table5 `alias5`', @inst.buildStr()
 
       'output JOINs with nested query': ->
         inner1 = squel.select().from('1')
         inner2 = squel.select().from('2')
         inner3 = squel.select().from('3')
         inner4 = squel.select().from('4')
+        inner5 = squel.select().from('5')
 
         @inst.join(inner1)
         @inst.join(inner2, null, 'b = 1', 'LEFT')
         @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
         @inst.join(inner4, 'alias4', 'e = 1', 'FULL')
+        @inst.join(inner5, 'alias5', null, 'CROSS')
 
-        assert.same 'INNER JOIN (SELECT * FROM 1) LEFT JOIN (SELECT * FROM 2) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1)', @inst.buildStr()
+        assert.same 'INNER JOIN (SELECT * FROM 1) LEFT JOIN (SELECT * FROM 2) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1) CROSS JOIN (SELECT * FROM 5) `alias5`', @inst.buildStr()
 
       'QueryBuilder in ON condition expr()': ->
         inner1 = squel.select().from('1')

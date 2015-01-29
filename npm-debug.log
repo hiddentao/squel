@@ -1,0 +1,29 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/Users/pcothenet/.nvm/v0.10.35/bin/node',
+1 verbose cli   '/Users/pcothenet/.nvm/v0.10.35/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'build' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.35
+4 verbose run-script [ 'prebuild', 'build', 'postbuild' ]
+5 info prebuild squel@3.10.0
+6 info build squel@3.10.0
+7 verbose unsafe-perm in lifecycle true
+8 info squel@3.10.0 Failed to exec build script
+9 error squel@3.10.0 build: `grunt`
+9 error Exit status 3
+10 error Failed at the squel@3.10.0 build script.
+10 error This is most likely a problem with the squel package,
+10 error not with npm itself.
+10 error Tell the author that this fails on your system:
+10 error     grunt
+10 error You can get their info via:
+10 error     npm owner ls squel
+10 error There is likely additional logging output above.
+11 error System Darwin 14.0.0
+12 error command "/Users/pcothenet/.nvm/v0.10.35/bin/node" "/Users/pcothenet/.nvm/v0.10.35/bin/npm" "run" "build"
+13 error cwd /Users/pcothenet/Git/squel
+14 error node -v v0.10.35
+15 error npm -v 1.4.28
+16 error code ELIFECYCLE
+17 verbose exit [ 1, true ]
