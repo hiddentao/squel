@@ -117,6 +117,22 @@ test['Register global custom value handler'] =
     assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
 
 
+test['FuncVal'] = 
+  constructor: ->
+    f = squel.fval('GETDATE(?)', 12, 23)
+    assert.ok (f instanceof squel.cls.FuncVal)
+    assert.same 'GETDATE(?)', f.str
+    assert.same [12, 23], f.values
+
+  'custom value handler':
+    beforeEach: ->
+      @inst = squel.fval('G(?,?)', 12, 23, 65)
+      @handler = squel.cls.fval_handler
+    toString: ->
+      assert.same 'G(12,23)', @handler(@inst)
+    toParam: ->
+      assert.same { text: 'G(?,?)', values: [12, 23, 65] }, @handler(@inst, true)
+
 
 test['Load an SQL flavour'] =
   beforeEach: ->
@@ -493,6 +509,10 @@ test['Builder base class'] =
       s = squel.select()
       assert.same s, @inst._sanitizeValue(s)
 
+    'if FuncVal': ->
+      s = squel.fval()
+      assert.same s, @inst._sanitizeValue(s)
+
     'if undefined': ->
       assert.throws (=> @inst._sanitizeValue(undefined)), 'field value must be a string, number, boolean, null or one of the registered custom value types'
 
@@ -559,6 +579,15 @@ test['Builder base class'] =
           valueHandlers: []
         assert.same "goodbye", @inst._formatCustomValue(new Date)
 
+      'whether to format for parameterized output': ->
+        @inst.registerValueHandler Date, (d, asParam) ->
+          return if asParam then 'foo' else 'bar'
+
+        val = new Date()
+
+        assert.same 'foo', @inst._formatCustomValue(val, true)
+        assert.same 'bar', @inst._formatCustomValue(val)
+        
 
   '_formatValueAsParam':
     'QueryBuilder Select - nestable': ->
@@ -570,14 +599,15 @@ test['Builder base class'] =
       assert.same u, @inst._formatValueAsParam(u)
 
     'else calls _formatCustomValue': ->
-      spy = test.mocker.stub @inst, '_formatCustomValue', (v) -> 'test'
+      spy = test.mocker.stub @inst, '_formatCustomValue', (v, asParam) -> 
+        'test' + (if asParam then 'foo' else 'bar')
 
-      assert.same 'test', @inst._formatValueAsParam(null)
-      assert.same 'test', @inst._formatValueAsParam('abc')
-      assert.same 'test', @inst._formatValueAsParam(12)
-      assert.same 'test', @inst._formatValueAsParam(1.2)
-      assert.same 'test', @inst._formatValueAsParam(true)
-      assert.same 'test', @inst._formatValueAsParam(false)
+      assert.same 'testfoo', @inst._formatValueAsParam(null)
+      assert.same 'testfoo', @inst._formatValueAsParam('abc')
+      assert.same 'testfoo', @inst._formatValueAsParam(12)
+      assert.same 'testfoo', @inst._formatValueAsParam(1.2)
+      assert.same 'testfoo', @inst._formatValueAsParam(true)
+      assert.same 'testfoo', @inst._formatValueAsParam(false)
 
       assert.same 6, spy.callCount
 
@@ -658,8 +688,9 @@ test['Builder base class'] =
       assert.same "(s.name <> 'Fred' OR (s.id = 5 OR s.id = 6))", @inst._formatValue(s)
 
     'checks to see if it is custom value type first': ->
-      test.mocker.stub @inst, '_formatCustomValue', -> 'abc'
-      assert.same "'abc'", @inst._formatValue(123)
+      test.mocker.stub @inst, '_formatCustomValue', (val, asParam) -> 
+        'abc' + (if asParam then 'foo' else 'bar')
+      assert.same "'abcbar'", @inst._formatValue(123)
 
 
 

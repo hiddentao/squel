@@ -129,13 +129,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   })();
 
-  cls.func = function() {
+  cls.fval = function() {
     var str, values;
     str = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
     return new cls.FuncVal(str, values);
   };
 
-  cls.registerValueHandler(cls.FuncVal, function(value, asParam) {
+  cls.fval_handler = function(value, asParam) {
     var c, finalStr, idx, str, values, _i, _ref;
     if (asParam == null) {
       asParam = false;
@@ -152,13 +152,15 @@ OTHER DEALINGS IN THE SOFTWARE.
       for (idx = _i = 0, _ref = str.length; 0 <= _ref ? _i < _ref : _i > _ref; idx = 0 <= _ref ? ++_i : --_i) {
         c = str.charAt(idx);
         if ('?' === c && 0 < values.length) {
-          c = values.unshift();
+          c = values.shift();
         }
         finalStr += c;
       }
       return finalStr;
     }
-  });
+  };
+
+  cls.registerValueHandler(cls.FuncVal, cls.fval_handler);
 
   cls.Cloneable = (function() {
     function Cloneable() {}
@@ -2083,7 +2085,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     "delete": function(options, blocks) {
       return new cls.Delete(options, blocks);
     },
-    registerValueHandler: cls.registerValueHandler
+    registerValueHandler: cls.registerValueHandler,
+    fval: cls.fval
   };
 
   squel.remove = squel["delete"];

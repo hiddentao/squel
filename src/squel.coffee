@@ -89,7 +89,7 @@ cls.globalValueHandlers = []
 # Note: this will override any existing handler registered for this value type.
 registerValueHandler = (handlers, type, handler) ->
   if 'function' isnt typeof type and 'string' isnt typeof type
-   throw new Error "type must be a class constructor or string denoting 'typeof' result"
+    throw new Error "type must be a class constructor or string denoting 'typeof' result"
 
   if 'function' isnt typeof handler
     throw new Error "handler must be a function"
@@ -135,12 +135,12 @@ class cls.FuncVal
     @str = str
     @values = values
 
-# Construct a Param object
-cls.func = (str, values...) ->
+# Construct a FuncVal object
+cls.fval = (str, values...) ->
   new cls.FuncVal(str, values)
 
-# Register default value handler for cls.FuncVal
-cls.registerValueHandler cls.FuncVal, (value, asParam = false) ->
+# default value handler for cls.FuncVal
+cls.fval_handler = (value, asParam = false) ->
   if asParam
     {
       text: value.str
@@ -154,10 +154,12 @@ cls.registerValueHandler cls.FuncVal, (value, asParam = false) ->
     for idx in [0...str.length]
       c = str.charAt(idx)
       if '?' is c and 0 < values.length
-        c = values.unshift();
+        c = values.shift()
       finalStr += c
 
     finalStr
+
+cls.registerValueHandler cls.FuncVal, cls.fval_handler
 
 
 
@@ -1620,6 +1622,7 @@ squel =
   insert: (options, blocks) -> new cls.Insert(options, blocks)
   delete: (options, blocks) -> new cls.Delete(options, blocks)
   registerValueHandler: cls.registerValueHandler
+  fval: cls.fval
 
 # aliases
 squel.remove = squel.delete
