@@ -689,8 +689,8 @@ test['Builder base class'] =
 
     'checks to see if it is custom value type first': ->
       test.mocker.stub @inst, '_formatCustomValue', (val, asParam) -> 
-        'abc' + (if asParam then 'foo' else 'bar')
-      assert.same "'abcbar'", @inst._formatValue(123)
+        12 + (if asParam then 25 else 65)
+      assert.same '(77)', @inst._formatValue(123)
 
 
 

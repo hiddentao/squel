@@ -366,11 +366,15 @@ OTHER DEALINGS IN THE SOFTWARE.
     };
 
     BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
-      var _this = this;
+      var customFormattedValue,
+        _this = this;
       if (formattingOptions == null) {
         formattingOptions = {};
       }
-      value = this._formatCustomValue(value);
+      customFormattedValue = this._formatCustomValue(value);
+      if (customFormattedValue !== value) {
+        return "(" + customFormattedValue + ")";
+      }
       if (Array.isArray(value)) {
         value = value.map(function(v) {
           return _this._formatValue(v);

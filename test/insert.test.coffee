@@ -149,13 +149,13 @@ test['INSERT builder'] =
             @inst.registerValueHandler MyClass, -> 'abcd'
             @inst.setFields({ field: new MyClass() })
           toString: ->
-            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (\'abcd\')'
+            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((abcd))'
           toParam: ->
             parameterized = @inst.toParam()
             assert.same parameterized.text, 'INSERT INTO table (field) VALUES (?)'
             assert.same parameterized.values, ['abcd']
 
-        '>> setFieldsRows([{field2: \'value2\', field: true },{field: \'value3\', field2: 13 }]])':
+        '>> setFieldsRows([{field: \'value2\', field2: true },{field: \'value3\', field2: 13 }]])':
           beforeEach: -> @inst.setFieldsRows([{field: 'value2', field2: true },{field: 'value3', field2: 13 }])
           toString: ->
             assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (\'value2\', TRUE), (\'value3\', 13)'
@@ -163,6 +163,13 @@ test['INSERT builder'] =
             parameterized = @inst.toParam()
             assert.same parameterized.text, 'INSERT INTO table (field, field2) VALUES (?, ?), (?, ?)'
             assert.same parameterized.values, ['value2',true, 'value3',13]
+
+      'Function values':
+        beforeEach: -> @inst.set('field', squel.fval('GETDATE(?, ?)', 2014, 'feb'))
+        toString: ->
+          assert.same 'INSERT INTO table (field) VALUES ((GETDATE(2014, feb)))', @inst.toString()
+        toParam: ->  
+          assert.same { text: 'INSERT INTO table (field) VALUES (GETDATE(?, ?))', values: [2014, 'feb'] }, @inst.toParam()
 
       '>> fromQuery([field1, field2], select query)':
         beforeEach: -> @inst.fromQuery(

@@ -339,7 +339,11 @@ class cls.BaseBuilder extends cls.Cloneable
 
   # Format the given field value for inclusion into the query string
   _formatValue: (value, formattingOptions = {}) ->
-    value = @_formatCustomValue(value)
+    customFormattedValue = @_formatCustomValue(value)
+
+    # if formatting took place then return it directly
+    if customFormattedValue isnt value
+      return "(#{customFormattedValue})"
 
     # if it's an array then format each element separately
     if Array.isArray(value)

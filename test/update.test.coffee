@@ -124,7 +124,7 @@ test['UPDATE builder'] =
           @inst.registerValueHandler MyClass, (a) -> 'abcd'
           @inst.set( 'field',  new MyClass() )
         toString: ->
-          assert.same @inst.toString(), 'UPDATE table `t1` SET field = \'abcd\''
+          assert.same @inst.toString(), 'UPDATE table `t1` SET field = (abcd)'
         toParam: ->
           parameterized = @inst.toParam()
           assert.same parameterized.text, 'UPDATE table `t1` SET field = ?'
@@ -194,12 +194,12 @@ test['UPDATE builder'] =
       toString: ->
         assert.same @inst.toString(), 'UPDATE table `t1` SET count = count + 1'
 
-  'Function values': ->
-    beforeEach: -> @inst.table('students').set('field = ?', squel.func('GETDATE(?, ?)', 2014, 2))
+  'Function values':
+    beforeEach: -> @inst.table('students').set('field', squel.fval('GETDATE(?, ?)', 2014, '"feb"'))
     toString: ->
-      assert.same 'UPDATE students SET field = GETDATE(2014, 2)', @inst.toString()
+      assert.same 'UPDATE students SET field = (GETDATE(2014, "feb"))', @inst.toString()
     toParam: ->  
-      assert.same { text: 'UPDATE students SET field = GETDATE(?)', values: [2014, 2] }, @inst.toParam()
+      assert.same { text: 'UPDATE students SET field = (GETDATE(?, ?))', values: [2014, '"feb"'] }, @inst.toParam()
 
   'fix for hiddentao/squel#63': ->
     newinst = @inst.table('students').set('field = field + 1')
