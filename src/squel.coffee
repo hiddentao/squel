@@ -255,7 +255,7 @@ class cls.BaseBuilder extends cls.Cloneable
     if allowNested
       if "string" is typeof item
         sanitized = item
-      else 
+      else
         try
           sanitized = @_sanitizeNestableQuery(item)
         catch e
@@ -1284,11 +1284,9 @@ class cls.JoinBlock extends cls.Block
   left_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'LEFT'
 
-
   # Add a RIGHT JOIN with the given table.
   right_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'RIGHT'
-
 
   # Add an OUTER JOIN with the given table.
   outer_join: (table, alias = null, condition = null) ->
@@ -1301,6 +1299,10 @@ class cls.JoinBlock extends cls.Block
   # Add an FULL JOIN with the given table.
   full_join: (table, alias = null, condition = null) ->
     @join table, alias, condition, 'FULL'
+
+  # Add an CROSS JOIN with the given table.
+  cross_join: (table, alias = null, condition = null) ->
+    @join table, alias, condition, 'CROSS'
 
   buildStr: (queryBuilder) ->
     joins = ""
