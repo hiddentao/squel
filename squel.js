@@ -2409,7 +2409,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     cls.DefaultQueryBuilderOptions.replaceSingleQuotes = true;
     cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
     squel.registerValueHandler(Date, function(date) {
-      return "" + (date.getUTCFullYear()) + "-" + (date.getUTCMonth() + 1) + "-" + (date.getUTCDate()) + " " + (date.getUTCHours()) + ":" + (date.getUTCMinutes()) + ":" + (date.getUTCSeconds());
+      return "'" + (date.getUTCFullYear()) + "-" + (date.getUTCMonth() + 1) + "-" + (date.getUTCDate()) + " " + (date.getUTCHours()) + ":" + (date.getUTCMinutes()) + ":" + (date.getUTCSeconds()) + "'";
     });
     cls.MssqlLimitOffsetTopBlock = (function(_super) {
       var LimitBlock, OffsetBlock, ParentBlock, TopBlock, _limit, _ref5, _ref6, _ref7;

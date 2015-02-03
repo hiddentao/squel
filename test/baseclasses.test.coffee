@@ -85,20 +85,21 @@ test['Default query builder options'] =
 
 
 test['Register global custom value handler'] =
-  'afterEach': ->
+  'beforeEach': ->
+    @originalHandlers = [].concat(squel.cls.globalValueHandlers)
     squel.cls.globalValueHandlers = []
-
+  'afterEach': ->
+    squel.cls.globalValueHandlers = @originalHandlers
   'default': ->
     handler = -> 'test'
     squel.registerValueHandler(Date, handler)
     squel.registerValueHandler(Object, handler)
     squel.registerValueHandler('boolean', handler)
 
-    assert.same 4, squel.cls.globalValueHandlers.length
-    assert.same squel.cls.FuncVal, squel.cls.globalValueHandlers[0].type # built-in
-    assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[1]
-    assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[2]
-    assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[3]
+    assert.same 3, squel.cls.globalValueHandlers.length
+    assert.same { type: Date, handler: handler }, squel.cls.globalValueHandlers[0]
+    assert.same { type: Object, handler: handler }, squel.cls.globalValueHandlers[1]
+    assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[2]
 
   'type should be class constructor': ->
     assert.throws (-> squel.registerValueHandler 1, null), "type must be a class constructor or string denoting \'typeof\' result"
@@ -162,8 +163,10 @@ test['Builder base class'] =
     @cls = squel.cls.BaseBuilder
     @inst = new @cls
 
+    @originalHandlers = [].concat(squel.cls.globalValueHandlers)
+
   afterEach: ->
-    squel.cls.globalValueHandlers = []
+    squel.cls.globalValueHandlers = @originalHandlers
 
   'instanceof Cloneable': ->
     assert.instanceOf @inst, squel.cls.Cloneable
@@ -887,8 +890,10 @@ test['QueryBuilder base class'] =
       assert.same 'TEST', newinst.blocks[0].buildStr()
 
   'registerValueHandler':
+    'beforEach': ->
+      @originalHandlers = [].concat(squel.cls.globalValueHandlers)
     'afterEach': ->
-      squel.cls.globalValueHandlers = []
+      squel.cls.globalValueHandlers = @originalHandlers
 
     'calls through to base class method': ->
       baseBuilderSpy = test.mocker.spy(squel.cls.BaseBuilder.prototype, 'registerValueHandler')

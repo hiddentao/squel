@@ -42,7 +42,7 @@ squel.flavours['mssql'] = ->
 
 
   squel.registerValueHandler Date, (date) ->
-    "#{date.getUTCFullYear()}-#{date.getUTCMonth()+1}-#{date.getUTCDate()} #{date.getUTCHours()}:#{date.getUTCMinutes()}:#{date.getUTCSeconds()}"
+    "'#{date.getUTCFullYear()}-#{date.getUTCMonth()+1}-#{date.getUTCDate()} #{date.getUTCHours()}:#{date.getUTCMinutes()}:#{date.getUTCSeconds()}'"
 
 
   # LIMIT,  OFFSET x and TOP x
