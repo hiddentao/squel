@@ -33,7 +33,7 @@ test['Postgres flavour'] =
   beforeEach: ->
     delete require.cache[require.resolve('../squel')]
     squel = require "../squel"
-    squel.useFlavour 'postgres'
+    squel = squel.useFlavour 'postgres'
 
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()

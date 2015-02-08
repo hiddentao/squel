@@ -33,7 +33,7 @@ test['MySQL flavour'] =
   beforeEach: ->
     delete require.cache[require.resolve('../squel')]
     squel = require "../squel"
-    squel.useFlavour 'mysql'
+    squel = squel.useFlavour 'mysql'
 
   
   'TargetTableBlock':

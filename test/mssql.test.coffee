@@ -34,7 +34,7 @@ test['MSSQL flavour'] =
   beforeEach: ->
     delete require.cache[require.resolve('../squel')]
     squel = require "../squel"
-    squel.useFlavour 'mssql'
+    squel = squel.useFlavour 'mssql'
 
   'DATE Conversion':
     beforeEach: -> @inst = squel.insert()

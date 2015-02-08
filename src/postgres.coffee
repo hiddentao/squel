@@ -24,9 +24,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 # This file contains additional Squel commands for use with the Postgres DB engine
-squel.flavours['postgres'] = ->
-
-  cls = squel.cls
+squel.flavours['postgres'] = (_squel) ->
+  cls = _squel.cls
 
   # Numbered parameters on by default
   cls.DefaultQueryBuilderOptions.numberedParameters = true

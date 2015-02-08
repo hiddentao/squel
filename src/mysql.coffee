@@ -25,8 +25,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 # This file contains additional Squel commands for use with the Postgres DB engine
 
-squel.flavours['mysql'] = ->
-  cls = squel.cls
+squel.flavours['mysql'] = (_squel) ->
+  cls = _squel.cls
 
   # target <table> in DELETE <table> FROM ...
   class cls.TargetTableBlock extends cls.AbstractValueBlock

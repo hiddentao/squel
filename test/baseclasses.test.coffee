@@ -152,10 +152,27 @@ test['Load an SQL flavour'] =
 
   'flavour setup function gets executed': ->
     squel.flavours['test'] = test.mocker.spy()
-    squel.useFlavour 'test'
+    ret = squel.useFlavour 'test'
     assert.ok squel.flavours['test'].calledOnce
-    assert.ok squel.flavours['test'].calledWithExactly squel
+    assert.ok !!ret.select()
 
+  'can switch flavours': ->
+    squel.flavours['test'] = test.mocker.spy( (s) ->
+      s.cls.dummy = 1
+    )
+    squel.flavours['test2'] = test.mocker.spy( (s) ->
+      s.cls.dummy2 = 2
+    )
+    ret = squel.useFlavour 'test'
+    assert.same ret.cls.dummy, 1
+
+    ret = squel.useFlavour 'test2'
+    assert.same ret.cls.dummy, undefined
+    assert.same ret.cls.dummy2, 2
+
+    ret = squel.useFlavour()
+    assert.same ret.cls.dummy, undefined
+    assert.same ret.cls.dummy2, undefined
 
 
 test['Builder base class'] =

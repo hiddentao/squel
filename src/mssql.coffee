@@ -34,14 +34,14 @@ _extend = (dst, sources...) ->
 
 # This file contains additional Squel commands for use with the MSSQL DB engine
 
-squel.flavours['mssql'] = ->
-  cls = squel.cls
+squel.flavours['mssql'] = (_squel) ->
+  cls = _squel.cls
 
   cls.DefaultQueryBuilderOptions.replaceSingleQuotes = true
   cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false
 
 
-  squel.registerValueHandler Date, (date) ->
+  _squel.registerValueHandler Date, (date) ->
     "'#{date.getUTCFullYear()}-#{date.getUTCMonth()+1}-#{date.getUTCDate()} #{date.getUTCHours()}:#{date.getUTCMinutes()}:#{date.getUTCSeconds()}'"
 
 
