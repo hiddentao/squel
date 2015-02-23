@@ -219,7 +219,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           item = "(" + item + ")";
         } else {
           item = this._sanitizeName(item, "field name");
-          if (this.options.autoQuoteFieldNames) {
+          if (this.options.autoQuoteFieldNames && !formattingOptions.ignoreAutoQuote) {
             quoteChar = this.options.nameQuoteCharacter;
             if (formattingOptions.ignorePeriodsForFieldNameQuotes) {
               item = "" + quoteChar + item + quoteChar;

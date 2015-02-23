@@ -229,7 +229,7 @@ _buildSquel = ->
         item = "(#{item})"
       else
         item = @_sanitizeName item, "field name"
-        if @options.autoQuoteFieldNames
+        if @options.autoQuoteFieldNames and not formattingOptions.ignoreAutoQuote
           quoteChar = @options.nameQuoteCharacter
 
           if formattingOptions.ignorePeriodsForFieldNameQuotes
