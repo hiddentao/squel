@@ -1189,12 +1189,16 @@ _buildSquel = ->
     # Add an ORDER BY transformation for the given field in the given order.
     #
     # To specify descending order pass false for the 'asc' parameter.
-    order: (field, asc = true, values...) ->
+    order: (field, asc, values...) ->
       field = @_sanitizeField(field)
+      if asc is undefined
+        asc = true
+      if asc isnt null
+        asc = !!asc
       @_values = values
       @orders.push
         field: field
-        dir: if asc then true else false
+        dir: asc
 
     _buildStr: (toParam = false) ->
       if 0 < @orders.length
@@ -1215,7 +1219,10 @@ _buildSquel = ->
           else
             fstr = o.field
 
-          orders += "#{fstr} #{if o.dir then 'ASC' else 'DESC'}"
+          orders += "#{fstr}"
+
+          if o.dir isnt null
+            orders += " #{if o.dir then 'ASC' else 'DESC'}"
 
         "ORDER BY #{orders}"
       else

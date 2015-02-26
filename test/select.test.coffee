@@ -171,6 +171,17 @@ test['SELECT builder'] =
                       text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY DIST(?, ?) ASC'
                       values: [1, 2, false]
                     }
+
+                '>> order(a)':
+                  beforeEach: -> @inst.order('a')
+                  toString: ->
+                    assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC'
+
+                '>> order(b, null)':
+                  beforeEach: -> @inst.order('b', null)
+                  toString: ->
+                    assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY b'
+
               '>> join(other_table, condition = expr())':
                 beforeEach: ->
                   subQuery = squel.select().field('abc').from('table1').where('adf = ?', 'today1')
