@@ -26,12 +26,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 # Extend given object's with other objects' properties, overriding existing ones if necessary
 _extend = (dst, sources...) ->
-    if sources
-        for src in sources
-            if src
-                for own k,v of src
-                    dst[k] = v
-    dst
+  if sources
+    for src in sources
+      if src
+        for own k,v of src
+          dst[k] = v
+  dst
 
 # Get a copy of given object with given properties removed
 _without = (obj, properties...) ->
@@ -82,27 +82,27 @@ _buildSquel = ->
     # If true then table names will be rendered inside quotes. The quote character used is configurable via the
     # nameQuoteCharacter option.
     autoQuoteTableNames: false
-    # If true then field names will rendered inside quotes. The quote character used is configurable via the
-    # nameQuoteCharacter option.
+  # If true then field names will rendered inside quotes. The quote character used is configurable via the
+  # nameQuoteCharacter option.
     autoQuoteFieldNames: false
-    # If true then alias names will rendered inside quotes. The quote character used is configurable via the `tableAliasQuoteCharacter` and `fieldAliasQuoteCharacter` options.
+  # If true then alias names will rendered inside quotes. The quote character used is configurable via the `tableAliasQuoteCharacter` and `fieldAliasQuoteCharacter` options.
     autoQuoteAliasNames: true
-    # The quote character used for when quoting table and field names
+  # The quote character used for when quoting table and field names
     nameQuoteCharacter: '`'
-    # The quote character used for when quoting table alias names
+  # The quote character used for when quoting table alias names
     tableAliasQuoteCharacter: '`'
-    # The quote character used for when quoting table alias names
+  # The quote character used for when quoting table alias names
     fieldAliasQuoteCharacter: '"'
-    # Custom value handlers where key is the value type and the value is the handler function
+  # Custom value handlers where key is the value type and the value is the handler function
     valueHandlers: []
-    # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?', startAt 1 will give $1...
+  # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?', startAt 1 will give $1...
     numberedParameters: false
     numberedParametersStartAt: 1
-    # If true then replaces all single quotes within strings. The replacement string used is configurable via the `singleQuoteReplacement` option.
+  # If true then replaces all single quotes within strings. The replacement string used is configurable via the `singleQuoteReplacement` option.
     replaceSingleQuotes: false
-    # The string to replace single quotes with in query strings
+  # The string to replace single quotes with in query strings
     singleQuoteReplacement: '\'\''
-    # String used to join individual blocks in a query when it's stringified
+  # String used to join individual blocks in a query when it's stringified
     separator: ' '
 
   # Global custom value handlers for all instances of builder
@@ -145,8 +145,8 @@ _buildSquel = ->
   cls.fval_handler = (value, asParam = false) ->
     if asParam
       {
-        text: value.str
-        values: value.values
+      text: value.str
+      values: value.values
       }
     else
       str = value.str
@@ -229,7 +229,7 @@ _buildSquel = ->
         item = "(#{item})"
       else
         item = @_sanitizeName item, "field name"
-        if @options.autoQuoteFieldNames
+        if @options.autoQuoteFieldNames and not formattingOptions.ignoreAutoQuote
           quoteChar = @options.nameQuoteCharacter
 
           if formattingOptions.ignorePeriodsForFieldNameQuotes
@@ -238,12 +238,12 @@ _buildSquel = ->
           else
             # a.b.c -> `a`.`b`.`c`
             item = item
-              .split('.')
-              .map( (v) ->
-                # treat '*' as special case (#79)
-                return if '*' is v then v else "#{quoteChar}#{v}#{quoteChar}"
-              )
-              .join('.')
+            .split('.')
+            .map( (v) ->
+              # treat '*' as special case (#79)
+              return if '*' is v then v else "#{quoteChar}#{v}#{quoteChar}"
+            )
+            .join('.')
 
       item
 
@@ -253,7 +253,7 @@ _buildSquel = ->
       throw new Error "must be a nestable query, e.g. SELECT"
 
 
-    _sanitizeTable: (item, allowNested = false) ->
+    _sanitizeTable: (item, allowNested = false,_options = null) ->
       if allowNested
         if "string" is typeof item
           sanitized = item
@@ -265,7 +265,7 @@ _buildSquel = ->
       else
         sanitized = @_sanitizeName item, 'table name'
 
-      if @options.autoQuoteTableNames
+      if @options.autoQuoteTableNames and not (_options && _options.ignoreAutoQuote)
         "#{@options.nameQuoteCharacter}#{sanitized}#{@options.nameQuoteCharacter}"
       else
         sanitized
@@ -389,152 +389,152 @@ _buildSquel = ->
   # All the build methods in this object return the object instance for chained method calling purposes.
   class cls.Expression extends cls.BaseBuilder
 
-      # The expression tree.
-      tree: null
+    # The expression tree.
+    tree: null
 
-      # The part of the expression tree we're currently working on.
-      current: null
+    # The part of the expression tree we're currently working on.
+    current: null
 
-      # Initialise the expression.
-      constructor: ->
-          super()
-          @tree =
-              parent: null
-              nodes: []
-          @current = @tree
+    # Initialise the expression.
+    constructor: ->
+      super()
+      @tree =
+        parent: null
+        nodes: []
+      @current = @tree
 
-          # Begin a nested expression and combine it with the current expression using the given operator.
-          @_begin = (op) =>
-              new_tree =
-                  type: op
-                  parent: @current
-                  nodes: []
-              @current.nodes.push new_tree
-              @current = @current.nodes[@current.nodes.length-1]
-              @
-
-
-
-      # Begin a nested expression and combine it with the current expression using the intersection operator (AND).
-      and_begin: ->
-          @_begin 'AND'
-
-
-      # Begin a nested expression and combine it with the current expression using the union operator (OR).
-      or_begin: ->
-          @_begin 'OR'
+      # Begin a nested expression and combine it with the current expression using the given operator.
+      @_begin = (op) =>
+        new_tree =
+          type: op
+          parent: @current
+          nodes: []
+        @current.nodes.push new_tree
+        @current = @current.nodes[@current.nodes.length-1]
+        @
 
 
 
-      # End the current compound expression.
-      #
-      # This will throw an error if begin() hasn't been called yet.
-      end: ->
-          if not @current.parent
-              throw new Error "begin() needs to be called"
-          @current = @current.parent
-          @
+    # Begin a nested expression and combine it with the current expression using the intersection operator (AND).
+    and_begin: ->
+      @_begin 'AND'
 
 
-      # Combine the current expression with the given expression using the intersection operator (AND).
-      and: (expr, param) ->
-          if not expr or "string" isnt typeof expr
-              throw new Error "expr must be a string"
-          @current.nodes.push
-              type: 'AND'
-              expr: expr
-              para: param
-          @
-
-      # Combine the current expression with the given expression using the union operator (OR).
-      or: (expr, param) ->
-          if not expr or "string" isnt typeof expr
-              throw new Error "expr must be a string"
-          @current.nodes.push
-              type: 'OR'
-              expr: expr
-              para: param
-          @
+    # Begin a nested expression and combine it with the current expression using the union operator (OR).
+    or_begin: ->
+      @_begin 'OR'
 
 
-      # Get the final fully constructed expression string.
-      toString: ->
-          if null isnt @current.parent
-              throw new Error "end() needs to be called"
-          @_toString @tree
 
-      # Get the final fully constructed expression string.
-      toParam: ->
-          if null isnt @current.parent
-              throw new Error "end() needs to be called"
-          @_toString @tree, true
+    # End the current compound expression.
+    #
+    # This will throw an error if begin() hasn't been called yet.
+    end: ->
+      if not @current.parent
+        throw new Error "begin() needs to be called"
+      @current = @current.parent
+      @
 
-      # Get a string representation of the given expression tree node.
-      _toString: (node, paramMode = false) ->
-          str = ""
-          params = []
-          for child in node.nodes
-            if child.expr?
-                nodeStr = child.expr
-                # have param?
-                if undefined isnt child.para
-                  if not paramMode
-                    nodeStr = nodeStr.replace '?', @_formatValue(child.para)
-                  else
-                    cv = @_formatValueAsParam child.para
-                    if (cv?.text?)
-                      params = params.concat(cv.values)
-                      nodeStr = nodeStr.replace '?', "(#{cv.text})"
-                    else
-                      params = params.concat(cv)
-                    # IN ? -> IN (?, ?, ..., ?)
-                    if Array.isArray(child.para)
-                      inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
-                      nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
+
+    # Combine the current expression with the given expression using the intersection operator (AND).
+    and: (expr, param) ->
+      if not expr or "string" isnt typeof expr
+        throw new Error "expr must be a string"
+      @current.nodes.push
+        type: 'AND'
+        expr: expr
+        para: param
+      @
+
+    # Combine the current expression with the given expression using the union operator (OR).
+    or: (expr, param) ->
+      if not expr or "string" isnt typeof expr
+        throw new Error "expr must be a string"
+      @current.nodes.push
+        type: 'OR'
+        expr: expr
+        para: param
+      @
+
+
+    # Get the final fully constructed expression string.
+    toString: ->
+      if null isnt @current.parent
+        throw new Error "end() needs to be called"
+      @_toString @tree
+
+    # Get the final fully constructed expression string.
+    toParam: ->
+      if null isnt @current.parent
+        throw new Error "end() needs to be called"
+      @_toString @tree, true
+
+    # Get a string representation of the given expression tree node.
+    _toString: (node, paramMode = false) ->
+      str = ""
+      params = []
+      for child in node.nodes
+        if child.expr?
+          nodeStr = child.expr
+          # have param?
+          if undefined isnt child.para
+            if not paramMode
+              nodeStr = nodeStr.replace '?', @_formatValue(child.para)
             else
-                nodeStr = @_toString(child, paramMode)
-                if paramMode
-                  params = params.concat(nodeStr.values)
-                  nodeStr = nodeStr.text
-                # wrap nested expressions in brackets
-                if "" isnt nodeStr
-                  nodeStr = "(" + nodeStr + ")"
-
-            if "" isnt nodeStr
-              # if this isn't first expression then add the operator
-              if "" isnt str then str += " " + child.type + " "
-              str += nodeStr
-
+              cv = @_formatValueAsParam child.para
+              if (cv?.text?)
+                params = params.concat(cv.values)
+                nodeStr = nodeStr.replace '?', "(#{cv.text})"
+              else
+                params = params.concat(cv)
+              # IN ? -> IN (?, ?, ..., ?)
+              if Array.isArray(child.para)
+                inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
+                nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
+        else
+          nodeStr = @_toString(child, paramMode)
           if paramMode
-            return {
-              text: str
-              values: params
-            }
+            params = params.concat(nodeStr.values)
+            nodeStr = nodeStr.text
+          # wrap nested expressions in brackets
+          if "" isnt nodeStr
+            nodeStr = "(" + nodeStr + ")"
+
+        if "" isnt nodeStr
+          # if this isn't first expression then add the operator
+          if "" isnt str then str += " " + child.type + " "
+          str += nodeStr
+
+      if paramMode
+        return {
+        text: str
+        values: params
+        }
+      else
+        return str
+
+
+    ###
+    Clone this expression.
+
+    Note that the algorithm contained within this method is probably non-optimal, so please avoid cloning large
+    expression trees.
+    ###
+    clone: ->
+      newInstance = new @constructor;
+
+      (_cloneTree = (node) ->
+        for child in node.nodes
+          if child.expr?
+            newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
           else
-            return str
+            newInstance._begin child.type
+            _cloneTree child
+            if not @current is child
+              newInstance.end()
+      )(@tree)
 
-
-      ###
-      Clone this expression.
-
-      Note that the algorithm contained within this method is probably non-optimal, so please avoid cloning large
-      expression trees.
-      ###
-      clone: ->
-        newInstance = new @constructor;
-
-        (_cloneTree = (node) ->
-          for child in node.nodes
-            if child.expr?
-              newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
-            else
-              newInstance._begin child.type
-              _cloneTree child
-              if not @current is child
-                newInstance.end()
-        )(@tree)
-
-        newInstance
+      newInstance
 
 
 
@@ -629,9 +629,9 @@ _buildSquel = ->
     # An alias may also be specified for the table.
     #
     # Concrete subclasses should provide a method which calls this
-    _table: (table, alias = null) ->
+    _table: (table, alias = null,_options = null) ->
       alias = @_sanitizeTableAlias(alias) if alias
-      table = @_sanitizeTable(table, @options.allowNested or false)
+      table = @_sanitizeTable(table, @options.allowNested or false,_options)
 
       if @options.singleTable
         @tables = []
@@ -696,7 +696,7 @@ _buildSquel = ->
         else
           paramStr += "(#{p.text})"
 
-          # add the table alias, the AS keyword is optional
+        # add the table alias, the AS keyword is optional
         paramStr += " #{p.table.alias}" if p.table.alias?
 
         for v in p.values
@@ -716,8 +716,8 @@ _buildSquel = ->
 
   # FROM table
   class cls.FromTableBlock extends cls.AbstractTableBlock
-    from: (table, alias = null) ->
-      @_table(table, alias)
+    from: (table, alias = null,_options = null) ->
+      @_table(table, alias,_options)
 
     buildStr: (queryBuilder) ->
       if 0 >= @tables.length then throw new Error "from() needs to be called"
@@ -1023,8 +1023,8 @@ _buildSquel = ->
       qryParam = @_query.toParam()
 
       {
-        text: "(#{@_fields.join(', ')}) (#{qryParam.text})",
-        values: qryParam.values,
+      text: "(#{@_fields.join(', ')}) (#{qryParam.text})",
+      values: qryParam.values,
       }
 
 
@@ -1226,8 +1226,8 @@ _buildSquel = ->
 
     buildParam: (queryBuilder) ->
       {
-        text: @_buildStr(true)
-        values: @_values.map (v) => @_formatValueAsParam(v)
+      text: @_buildStr(true)
+      values: @_values.map (v) => @_formatValueAsParam(v)
       }
 
 
@@ -1540,25 +1540,25 @@ _buildSquel = ->
 
   # SELECT query builder.
   class cls.Select extends cls.QueryBuilder
-      constructor: (options, blocks = null) ->
-        blocks or= [
-          new cls.StringBlock(options, 'SELECT'),
-          new cls.DistinctBlock(options),
-          new cls.GetFieldBlock(options),
-          new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
-          new cls.JoinBlock(_extend({}, options, { allowNested: true })),
-          new cls.WhereBlock(options),
-          new cls.GroupByBlock(options),
-          new cls.OrderByBlock(options),
-          new cls.LimitBlock(options),
-          new cls.OffsetBlock(options),
-          new cls.UnionBlock(_extend({}, options, { allowNested: true }))
-        ]
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'SELECT'),
+        new cls.DistinctBlock(options),
+        new cls.GetFieldBlock(options),
+        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
+        new cls.JoinBlock(_extend({}, options, { allowNested: true })),
+        new cls.WhereBlock(options),
+        new cls.GroupByBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+        new cls.OffsetBlock(options),
+        new cls.UnionBlock(_extend({}, options, { allowNested: true }))
+      ]
 
-        super options, blocks
+      super options, blocks
 
-      isNestable: ->
-        true
+    isNestable: ->
+      true
 
 
 
@@ -1614,10 +1614,10 @@ _buildSquel = ->
       super options, blocks
 
 
-  _squel = 
+  _squel =
     VERSION: '<<VERSION_STRING>>'
     expr: -> new cls.Expression
-    # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
+  # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
     select: (options, blocks) -> new cls.Select(options, blocks)
     update: (options, blocks) -> new cls.Update(options, blocks)
     insert: (options, blocks) -> new cls.Insert(options, blocks)

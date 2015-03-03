@@ -347,6 +347,9 @@ test['Builder base class'] =
       'ignore periods when quoting': ->
         assert.same '`abc.def`', @inst._sanitizeField('abc.def', ignorePeriodsForFieldNameQuotes: true)
 
+      'ignore quotes when overriden in formatting_options': ->
+        assert.same 'MAX(score)', @inst._sanitizeField('MAX(score)', ignoreAutoQuote: true)
+
     'QueryBuilder': ->
       s = squel.select().from('scores').field('MAX(score)')
       assert.same '(SELECT MAX(score) FROM scores)', @inst._sanitizeField(s)
