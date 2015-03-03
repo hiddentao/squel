@@ -224,7 +224,7 @@ test['Blocks'] =
 
         @inst.options.allowNested = false
         @inst._table(innerTable)
-        assert.ok sanitizeTableSpy.calledWithExactly innerTable, false
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable, false, null
 
       'if allowing nested queries': ->
         sanitizeTableSpy = test.mocker.spy @cls.prototype, '_sanitizeTable'
@@ -236,8 +236,8 @@ test['Blocks'] =
         @inst._table(innerTable1)
         @inst._table(innerTable2, 'Inner2')
 
-        assert.ok sanitizeTableSpy.calledWithExactly innerTable1, true
-        assert.ok sanitizeTableSpy.calledWithExactly innerTable2, true
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable1, true, null
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable2, true, null
 
         expected = [
           {
@@ -305,8 +305,8 @@ test['Blocks'] =
         @inst.from('table2', 'alias2')
 
         assert.same 2, baseMethodSpy.callCount
-        assert.ok baseMethodSpy.calledWithExactly('table1', null)
-        assert.ok baseMethodSpy.calledWithExactly('table2', 'alias2')
+        assert.ok baseMethodSpy.calledWithExactly('table1', null, null)
+        assert.ok baseMethodSpy.calledWithExactly('table2', 'alias2',null)
 
     'buildStr()':
       'requires at least one table to have been provided': ->
@@ -320,9 +320,7 @@ test['Blocks'] =
         baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, 'buildStr', -> 'blah'
 
         @inst.from('table')
-
         assert.same 'FROM blah', @inst.buildStr()
-
 
 
   'UpdateTableBlock':

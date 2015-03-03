@@ -244,10 +244,13 @@ OTHER DEALINGS IN THE SOFTWARE.
         throw new Error("must be a nestable query, e.g. SELECT");
       };
 
-      BaseBuilder.prototype._sanitizeTable = function(item, allowNested) {
+      BaseBuilder.prototype._sanitizeTable = function(item, allowNested, _options) {
         var e, sanitized;
         if (allowNested == null) {
           allowNested = false;
+        }
+        if (_options == null) {
+          _options = null;
         }
         if (allowNested) {
           if ("string" === typeof item) {
@@ -263,7 +266,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else {
           sanitized = this._sanitizeName(item, 'table name');
         }
-        if (this.options.autoQuoteTableNames) {
+        if (this.options.autoQuoteTableNames && !(_options && _options.ignoreAutoQuote)) {
           return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
         } else {
           return sanitized;
@@ -650,14 +653,17 @@ OTHER DEALINGS IN THE SOFTWARE.
         this.tables = [];
       }
 
-      AbstractTableBlock.prototype._table = function(table, alias) {
+      AbstractTableBlock.prototype._table = function(table, alias, _options) {
         if (alias == null) {
           alias = null;
+        }
+        if (_options == null) {
+          _options = null;
         }
         if (alias) {
           alias = this._sanitizeTableAlias(alias);
         }
-        table = this._sanitizeTable(table, this.options.allowNested || false);
+        table = this._sanitizeTable(table, this.options.allowNested || false, _options);
         if (this.options.singleTable) {
           this.tables = [];
         }
@@ -788,11 +794,14 @@ OTHER DEALINGS IN THE SOFTWARE.
         return _ref2;
       }
 
-      FromTableBlock.prototype.from = function(table, alias) {
+      FromTableBlock.prototype.from = function(table, alias, _options) {
         if (alias == null) {
           alias = null;
         }
-        return this._table(table, alias);
+        if (_options == null) {
+          _options = null;
+        }
+        return this._table(table, alias, _options);
       };
 
       FromTableBlock.prototype.buildStr = function(queryBuilder) {
