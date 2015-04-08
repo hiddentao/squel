@@ -908,7 +908,7 @@ _buildSquel = ->
         if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
           str += field
         else
-          str += "#{field} = #{@_formatValue(value, fieldOptions)}"
+          str += "#{field} = #{if fieldOptions.dontQuote then value else @_formatValue(value, fieldOptions)}"
 
       "SET #{str}"
 
