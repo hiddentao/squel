@@ -206,6 +206,19 @@ test['UPDATE builder'] =
     newinst.set('field2', 2).set('field3', true)
     assert.same { text: 'UPDATE students SET field = field + 1, field2 = ?, field3 = ?', values: [2, true] }, @inst.toParam()
 
+  'dontQuote and replaceSingleQuotes set(field2, "ISNULL(\'str\', str)", { dontQuote: true })':
+    beforeEach: ->
+      @inst = squel.update replaceSingleQuotes: true
+      @inst.table('table', 't1').set('field', 1)
+      @inst.set('field2', "ISNULL('str', str)", dontQuote: true)
+    toString: ->
+      assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = ISNULL(\'str\', str)'
+    toParam: ->
+      assert.same @inst.toParam(), {
+        text: 'UPDATE table `t1` SET field = ?, field2 = ?'
+        values: [1, "ISNULL('str', str)"]
+      }
+
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)
