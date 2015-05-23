@@ -1531,10 +1531,10 @@
         The <code>postgres</code> flavor uses numbered query parameters by default. It also provides the <code>RETURNING</code> clause:
 
       <pre class="brush: js">
-        squel.useFlavour('postgres');
+        squelPostgres = squel.useFlavour('postgres');
 
         alert(JSON.stringify(
-          squel.insert()
+          squelPostgres.insert()
             .into('table')
             .set('field', 5)
             .returning('*')
@@ -1554,10 +1554,10 @@
         The <code>mysql</code> flavour provides the <code>ON DUPLICATE KEY UPDATE</code> clause:
 
       <pre class="brush: js">
-        squel.useFlavour('mysql');
+        squelMysql = squel.useFlavour('mysql');
 
         alert(JSON.stringify(
-          squel.insert()
+          squelMysql.insert()
             .into('table')
             .setFields({
                 field1: 'abc',
@@ -1580,10 +1580,10 @@
         <p>Default date formatting:</p>
 
       <pre class="brush: js">
-        squel.useFlavour('mssql');
+        squelMssql = squel.useFlavour('mssql');
 
         alert(
-          squel.insert()
+          squelMssql.insert()
             .into('table')
             .setFields({
                 field1: new Date('2012-12-12T04:30:00Z')
@@ -1599,10 +1599,10 @@
         <p>TOP:</p>
 
       <pre class="brush: js">
-        squel.useFlavour('mssql');
+        squelMysql squel.useFlavour('mssql');
 
         alert(
-          squel.select()
+          squelMysql.select()
             .from('table')
             .field('field')
             .top(10)
@@ -1617,10 +1617,10 @@
       <p>OFFSET and FETCH NEXT:</p>
 
       <pre class="brush: js">
-        squel.useFlavour('mssql');
+        squelMysql = squel.useFlavour('mssql');
 
         alert(
-          squel.select()
+          squelMysql.select()
             .from('table')
             .field('field')
             .limit(10)
@@ -1636,10 +1636,10 @@
         <p>OUTPUT INSERTED:</p>
 
       <pre class="brush: js">
-        squel.useFlavour('mssql');
+        squelMssql = squel.useFlavour('mssql');
 
         alert(
-          squel.update()
+          squelMssql.update()
             .table('table')
             .output('id', 'blah')
             .set('field', 1)
@@ -1652,10 +1652,10 @@
       </pre>
 
       <pre class="brush: js">
-        squel.useFlavour('mssql');
+        squelMssql = squel.useFlavour('mssql');
 
         alert(
-          squel.insert()
+          squelMssql.insert()
             .into('table')
             .output('id')
             .set('field', 1)

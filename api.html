@@ -216,6 +216,26 @@
             },
             returns: 'this'
           },
+          '.cross_join()': {
+            desc: 'Add a CROSS JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
           '.where()': {
             desc: 'Add a WHERE condition.',
             params: {
@@ -765,6 +785,20 @@
             },
             returns: 'this'
           },
+          '.fromQuery()': {
+            desc: 'Insert results of given <code>SELECT</code> query',
+            params: {
+              columns: {
+                desc: 'Names of columns to insert.',
+                type: 'Array'
+              },
+              selectQry: {
+                desc: 'The query to run.',
+                type: '[[cls.Select]]'
+              },
+            },
+            returns: 'this'
+          },
           '.onDupUpdate()': {
             desc: 'Add an <code>ON DUPLICATE KEY UPDATE</code> clause for given field',
             flavours: ['mysql'],
@@ -997,14 +1031,14 @@
             desc: 'INSERT query builder. Inherits from [[cls.QueryBuilder]].'
           },
           '.useFlavour()': {
-            desc: 'Load and use the given SQL flavour.',
+            desc: 'Get an instance of Squel for the given SQL flavour.',
             params: {
               'flavour': {
                 desc: 'The flavour of SQL to use. At the moment <code>postgres</code>, <code>mssql</code> and <code>mysql</code> are available.',
                 type: 'String'
               }
             },
-            returns: 'squel'
+            returns: 'Squel instance'
           }
         }
       }
