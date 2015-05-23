@@ -908,7 +908,7 @@ _buildSquel = ->
         if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
           str += field
         else
-          str += "#{field} = #{@_formatValue(value, fieldOptions)}"
+          str += "#{field} = #{if fieldOptions.dontQuote and typeof value is 'string' then value else @_formatValue(value, fieldOptions)}"
 
       "SET #{str}"
 
@@ -952,7 +952,7 @@ _buildSquel = ->
       vals = []
       for i in [0...@values.length]
         for j in [0...@values[i].length]
-          formattedValue = @_formatValue @values[i][j], @fieldOptions[i][j]
+          formattedValue = if @fieldOptions[i][j].dontQuote and typeof @values[i][j] is 'string' then @values[i][j] else @_formatValue @values[i][j], @fieldOptions[i][j]
           if 'string' is typeof vals[i]
             vals[i] += ', ' + formattedValue
           else

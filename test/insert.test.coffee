@@ -187,6 +187,20 @@ test['INSERT builder'] =
         assert.throws (=> @inst.setFieldsRows([{field1: 13, field2: 'value2'},{field1: true, field3: 'value4'}]).toString()), 'All fields in subsequent rows must match the fields in the first row'
 
 
+  'dontQuote and replaceSingleQuotes set(field2, "ISNULL(\'str\', str)", { dontQuote: true })':
+    beforeEach: ->
+      @inst = squel.insert replaceSingleQuotes: true
+      @inst.into('table').set('field', 1)
+      @inst.set('field2', "ISNULL('str', str)", dontQuote: true)
+    toString: ->
+      assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, ISNULL(\'str\', str))'
+    toParam: ->
+      assert.same @inst.toParam(), {
+        text: 'INSERT INTO table (field, field2) VALUES (?, ?)'
+        values: [1, "ISNULL('str', str)"]
+      }
+
+
   'cloning': ->
     newinst = @inst.into('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)
