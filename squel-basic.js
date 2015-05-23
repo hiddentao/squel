@@ -359,7 +359,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
-        var customFormattedValue,
+        var customFormattedValue, escapedValue,
           _this = this;
         if (formattingOptions == null) {
           formattingOptions = {};
@@ -383,8 +383,12 @@ OTHER DEALINGS IN THE SOFTWARE.
           } else if (value instanceof cls.Expression) {
             value = "(" + value + ")";
           } else if ("number" !== typeof value) {
-            value = this._escapeValue(value);
-            value = formattingOptions.dontQuote ? "" + value : "'" + value + "'";
+            if (formattingOptions.dontQuote) {
+              value = "" + value;
+            } else {
+              escapedValue = this._escapeValue(value);
+              value = "'" + escapedValue + "'";
+            }
           }
         }
         return value;
@@ -2049,7 +2053,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     })(cls.QueryBuilder);
     _squel = {
-      VERSION: '3.10.0',
+      VERSION: '3.11.0',
       expr: function() {
         return new cls.Expression;
       },

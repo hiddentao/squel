@@ -675,9 +675,7 @@ test['Builder base class'] =
 
       assert.same "test", @inst._formatValue('test', dontQuote: true )
 
-      assert.ok @inst._escapeValue.calledWithExactly('test')
-      escapedValue = 'blah'
-      assert.same "blah", @inst._formatValue('test', dontQuote: true )
+      assert.ok @inst._escapeValue.notCalled
 
     'Array - recursively calls itself on each element': ->
       spy = test.mocker.spy @inst, '_formatValue'

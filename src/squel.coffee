@@ -361,8 +361,11 @@ _buildSquel = ->
         else if value instanceof cls.Expression
           value = "(#{value})"
         else if "number" isnt typeof value
-          value = @_escapeValue(value)
-          value = if formattingOptions.dontQuote then "#{value}" else "'#{value}'"
+          if formattingOptions.dontQuote 
+            value = "#{value}"
+          else
+            escapedValue = @_escapeValue(value)
+            value = "'#{escapedValue}'"
 
       value
 
@@ -908,7 +911,7 @@ _buildSquel = ->
         if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
           str += field
         else
-          str += "#{field} = #{if fieldOptions.dontQuote and typeof value is 'string' then value else @_formatValue(value, fieldOptions)}"
+          str += "#{field} = #{@_formatValue(value, fieldOptions)}"
 
       "SET #{str}"
 
@@ -952,7 +955,7 @@ _buildSquel = ->
       vals = []
       for i in [0...@values.length]
         for j in [0...@values[i].length]
-          formattedValue = if @fieldOptions[i][j].dontQuote and typeof @values[i][j] is 'string' then @values[i][j] else @_formatValue @values[i][j], @fieldOptions[i][j]
+          formattedValue = @_formatValue(@values[i][j], @fieldOptions[i][j])
           if 'string' is typeof vals[i]
             vals[i] += ', ' + formattedValue
           else
