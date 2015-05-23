@@ -1050,6 +1050,52 @@
       <p>In general it is better to use <code>toParam()</code> rather than <code>toString()</code> when constructing the final query 
       as it gives you the opportunity to use your database engine methods to safely escape and interpolate your parameters.</p>
 
+      <h3>Functions as values</h3>
+
+      <p>Sometimes you may wish to use SQL functions as parameter values, e.g.:</p>
+
+      <pre class="brush: js">
+          alert(
+              squel.update()
+                .table('students')
+                .set('modified', 'NOW()')
+          );
+
+          /*   UPDATE students SET modified = 'NOW()'   */
+      </pre>
+
+      <p>As you can see Squel automatically adds quotes since it treats the value as a string. To workaround this you can use the 
+      <code>.fval()</code> method:</p>p>
+
+      <pre class="brush: js">
+          alert(
+              squel.update()
+                .table('students')
+                .set('modified', squel.fval('NOW()'))
+          );
+
+          /*  UPDATE students SET modified = (NOW())  */
+      </pre>
+
+      <p>You can pass parameters to the functions too:</p>
+
+      <pre class="brush: js">
+          alert(JSON.stringify(
+              squel.select()
+                  .from("students")
+                  .where("age IN ?", squel.fval('RANGE(?, ?)', 1, 10))
+                  .toParam()
+          ));
+
+          /*
+            {
+              text:  SELECT * FROM students WHERE (age IN (RANGE(?, ?))),
+              values: [ 1, 10 ]
+            }
+          */
+      </pre>
+
+
     </section>
 
     <section id="autoquotes">

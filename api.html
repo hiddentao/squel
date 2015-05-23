@@ -1006,11 +1006,28 @@
             },
             returns: 'this'
           },
+          '.fval()': {
+            desc: 'Construct a [[cls.FuncVal]] instance for inclusion within a query as a value.',
+            params: {
+              'func': {
+                desc: 'The database function, with parameter placeholders.',
+                type: 'String'
+              },
+              '...values': {
+                desc: 'The parameter values',
+                type: 'Array'
+              }
+            },
+            returns: '[[cls.FuncVal]]'
+          },
           '.globalValueHandlers': {
             desc: 'List of custom value type handlers registered via [[cls.registerValueHandler]].',
           },
           '.Expression': {
             desc: 'Expression builder class.'
+          },
+          '.FuncVal': {
+            desc: 'Object representing a function value, see [[cls.fval()]].',
           },
           '.Block': {
             desc: 'Base class for all query building blocks. Inherits from [[cls.BaseBuilder]].'
