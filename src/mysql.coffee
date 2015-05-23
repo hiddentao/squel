@@ -23,7 +23,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ###
 
-# This file contains additional Squel commands for use with the Postgres DB engine
+# This file contains additional Squel commands for use with MySQL
 
 squel.flavours['mysql'] = (_squel) ->
   cls = _squel.cls
