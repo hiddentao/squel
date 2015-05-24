@@ -2053,7 +2053,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     })(cls.QueryBuilder);
     _squel = {
-      VERSION: '3.11.0',
+      VERSION: '4.0.0',
       expr: function() {
         return new cls.Expression;
       },
