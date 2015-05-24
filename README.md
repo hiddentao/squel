@@ -312,7 +312,7 @@ For the browser:
 ```html
 <script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
 <script type="text/javascript">
-  squel.useFlavour('postgres');
+  squel = squel.useFlavour('postgres');
 </script>
 ```
 
