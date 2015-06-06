@@ -2141,6 +2141,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     cls = _squel.cls;
     cls.DefaultQueryBuilderOptions.numberedParameters = true;
     cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1;
+    cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
     cls.ReturningBlock = (function(_super) {
       __extends(ReturningBlock, _super);
 

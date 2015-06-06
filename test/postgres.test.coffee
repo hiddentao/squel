@@ -144,7 +144,7 @@ test['Postgres flavour'] =
       singleQuoteReplacement: '\'\''
       autoQuoteTableNames: false
       autoQuoteFieldNames: false
-      autoQuoteAliasNames: true
+      autoQuoteAliasNames: false
       nameQuoteCharacter: '`'
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
