@@ -1126,10 +1126,29 @@ test['Blocks'] =
 
 
 
-  'WhereBlock':
+  'AbstractConditionBlock':
     beforeEach: ->
-      @cls = squel.cls.WhereBlock
-      @inst = new @cls()
+      @cls = squel.cls.AbstractConditionBlock
+      @inst = new @cls 'MOCKVERB'
+
+      class squel.cls.MockConditionBlock extends squel.cls.AbstractConditionBlock
+        constructor: (options) ->
+          super 'MOCKVERB', options
+
+        mockCondition: (condition, values...) ->
+          @_condition condition, values...
+
+      class squel.cls.MockSelectWithCondition extends squel.cls.Select
+        constructor: (options, blocks = null) ->
+          blocks = [
+            new squel.cls.StringBlock(options, 'SELECT'),
+            new squel.cls.GetFieldBlock(options),
+            new squel.cls.FromTableBlock(options),
+            new squel.cls.MockConditionBlock(options)
+          ]
+
+          super options, blocks
+
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -1137,14 +1156,172 @@ test['Blocks'] =
     'calls base constructor': ->
       spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
 
-      @inst = new @cls
+      @inst = new @cls 'MOCKVERB',
         dummy: true
 
       assert.ok spy.calledWithExactly
         dummy: true
 
     'initial field values': ->
-      assert.same [], @inst.wheres
+      assert.same [], @inst.conditions
+
+    '_condition()':
+      'adds to list': ->
+        @inst._condition('a = 1')
+        @inst._condition('b = 2 OR c = 3')
+
+        assert.same [
+          {
+            text: 'a = 1'
+            values: []
+          }
+          {
+            text: 'b = 2 OR c = 3'
+            values: []
+          }
+        ], @inst.conditions
+
+      'sanitizes inputs': ->
+        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+
+        @inst._condition('a = 1')
+
+        assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
+
+        assert.same [{
+          text: '_c'
+          values: []
+        }], @inst.conditions
+
+      'handles variadic arguments': ->
+        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+
+        substitutes = ['hello', [1, 2, 3]]
+        @inst._condition.apply @inst, ['a = ? and b in ?'].concat(substitutes)
+
+        expectedValues = _.flatten substitutes
+        for expectedValue, index in expectedValues
+          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+
+        assert.same [
+          {
+            text: 'a = ? and b in (?, ?, ?)'
+            values: ['hello', 1, 2, 3]
+          }
+        ], @inst.conditions
+
+    'buildStr()':
+      'output QueryBuilder ': ->
+        subquery = new squel.cls.MockSelectWithCondition()
+        subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
+        @inst._condition('a in ?', subquery)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        assert.same 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'output nothing if no conditions set': ->
+        @inst.conditions = []
+        assert.same '', @inst.buildStr()
+
+      'output condition': ->
+        @inst._condition('a = ?', 1)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'Fix for hiddentao/squel#64': ->
+        @inst._condition('a = ?', 1)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        # second time it should still work
+        @inst.buildStr()
+        @inst.buildStr()
+        assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'formats values ': ->
+        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
+
+        @inst._condition('a = ?', 1)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        assert.same 'MOCKVERB (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
+
+    'buildParam()':
+      'output QueryBuilder ': ->
+        subquery = new squel.cls.MockSelectWithCondition()
+        subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
+        @inst._condition('a in ?', subquery)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        assert.same { text: 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
+      'output QueryBuilder expr': ->
+        subquery = new squel.cls.MockSelectWithCondition()
+        subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
+        expr = squel.expr().and('a in ?',subquery)
+          .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
+          .and('d in ?', [4, 5, 6]).end()
+        @inst._condition(expr)
+
+        #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+        assert.same { text: 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
+      'output nothing if no conditions set': ->
+        @inst.conditions = []
+        assert.same { text: '', values: [] }, @inst.buildParam()
+
+      'output condition': ->
+        @inst._condition('a = ?', 1)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        assert.same { text: 'MOCKVERB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
+      'formats value types as params': ->
+        formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
+        test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
+
+        @inst._condition('a = ?', 1)
+        @inst._condition('b = ? OR c = ?', 2, 3)
+        @inst._condition('d in ?', [4, 5, 6])
+
+        assert.same {
+          text: 'MOCKVERB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
+          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
+        }, @inst.buildParam()
+
+        assert.ok formatValueSpy.notCalled
+
+
+  'WhereBlock':
+    beforeEach: ->
+      @cls = squel.cls.WhereBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractConditionBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractConditionBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.AbstractConditionBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly 'WHERE',
+        dummy: true
+
+    'sets verb to WHERE': ->
+      @inst = new @cls
+
+      assert.same 'WHERE', @inst.conditionVerb
+
+    'initial field values': ->
+      assert.same [], @inst.conditions
 
     'where()':
       'adds to list': ->
@@ -1160,7 +1337,7 @@ test['Blocks'] =
             text: 'b = 2 OR c = 3'
             values: []
           }
-        ], @inst.wheres
+        ], @inst.conditions
 
       'sanitizes inputs': ->
         sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
@@ -1172,7 +1349,7 @@ test['Blocks'] =
         assert.same [{
           text: '_c'
           values: []
-        }], @inst.wheres
+        }], @inst.conditions
 
       'handles variadic arguments': ->
         sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
@@ -1189,11 +1366,11 @@ test['Blocks'] =
             text: 'a = ? and b in (?, ?, ?)'
             values: ['hello', 1, 2, 3]
           }
-        ], @inst.wheres
+        ], @inst.conditions
 
     'buildStr()':
       'output QueryBuilder ': ->
-        subquery = new squel.select()
+        subquery = new squel.cls.Select()
         subquery.field('col1').from('table1').where('field1 = ?', 10)
         @inst.where('a in ?', subquery)
         @inst.where('b = ? OR c = ?', 2, 3)
@@ -1202,10 +1379,10 @@ test['Blocks'] =
         assert.same 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
 
       'output nothing if no conditions set': ->
-        @inst.wheres = []
+        @inst.conditions = []
         assert.same '', @inst.buildStr()
 
-      'output WHERE ': ->
+      'output condition': ->
         @inst.where('a = ?', 1)
         @inst.where('b = ? OR c = ?', 2, 3)
         @inst.where('d in ?', [4, 5, 6])
@@ -1233,7 +1410,7 @@ test['Blocks'] =
 
     'buildParam()':
       'output QueryBuilder ': ->
-        subquery = new squel.select()
+        subquery = new squel.cls.Select()
         subquery.field('col1').from('table1').where('field1 = ?', 10)
         @inst.where('a in ?', subquery)
         @inst.where('b = ? OR c = ?', 2, 3)
@@ -1242,7 +1419,7 @@ test['Blocks'] =
         assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
 
       'output QueryBuilder expr': ->
-        subquery = new squel.select()
+        subquery = new squel.cls.Select()
         subquery.field('col1').from('table1').where('field1 = ?', 10)
         expr = squel.expr().and('a in ?',subquery)
           .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
@@ -1253,10 +1430,10 @@ test['Blocks'] =
         assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
 
       'output nothing if no conditions set': ->
-        @inst.wheres = []
+        @inst.conditions = []
         assert.same { text: '', values: [] }, @inst.buildParam()
 
-      'output WHERE ': ->
+      'output condition': ->
         @inst.where('a = ?', 1)
         @inst.where('b = ? OR c = ?', 2, 3)
         @inst.where('d in ?', [4, 5, 6])
@@ -1277,6 +1454,165 @@ test['Blocks'] =
         }, @inst.buildParam()
 
         assert.ok formatValueSpy.notCalled
+
+
+  'HavingBlock':
+    beforeEach: ->
+      @cls = squel.cls.HavingBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractConditionBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractConditionBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.AbstractConditionBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly 'HAVING',
+        dummy: true
+
+    'sets verb to HAVING': ->
+      @inst = new @cls
+
+      assert.same 'HAVING', @inst.conditionVerb
+
+    'initial field values': ->
+      assert.same [], @inst.conditions
+
+    'where()':
+      'adds to list': ->
+        @inst.having('a = 1')
+        @inst.having('b = 2 OR c = 3')
+
+        assert.same [
+          {
+            text: 'a = 1'
+            values: []
+          }
+          {
+            text: 'b = 2 OR c = 3'
+            values: []
+          }
+        ], @inst.conditions
+
+      'sanitizes inputs': ->
+        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+
+        @inst.having('a = 1')
+
+        assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
+
+        assert.same [{
+          text: '_c'
+          values: []
+        }], @inst.conditions
+
+      'handles variadic arguments': ->
+        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+
+        substitutes = ['hello', [1, 2, 3]]
+        @inst.having.apply @inst, ['a = ? and b in ?'].concat(substitutes)
+
+        expectedValues = _.flatten substitutes
+        for expectedValue, index in expectedValues
+          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+
+        assert.same [
+          {
+            text: 'a = ? and b in (?, ?, ?)'
+            values: ['hello', 1, 2, 3]
+          }
+        ], @inst.conditions
+
+    'buildStr()':
+      'output QueryBuilder ': ->
+        subquery = new squel.cls.Select()
+        subquery.field('col1').from('table1').where('field1 = ?', 10)
+        @inst.having('a in ?', subquery)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        assert.same 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'output nothing if no conditions set': ->
+        @inst.conditions = []
+        assert.same '', @inst.buildStr()
+
+      'output condition': ->
+        @inst.having('a = ?', 1)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'Fix for hiddentao/squel#64': ->
+        @inst.having('a = ?', 1)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        # second time it should still work
+        @inst.buildStr()
+        @inst.buildStr()
+        assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+
+      'formats values ': ->
+        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
+
+        @inst.having('a = ?', 1)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        assert.same 'HAVING (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
+
+    'buildParam()':
+      'output QueryBuilder ': ->
+        subquery = new squel.cls.Select()
+        subquery.field('col1').from('table1').where('field1 = ?', 10)
+        @inst.having('a in ?', subquery)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        assert.same { text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
+      'output QueryBuilder expr': ->
+        subquery = new squel.cls.Select()
+        subquery.field('col1').from('table1').where('field1 = ?', 10)
+        expr = squel.expr().and('a in ?',subquery)
+          .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
+          .and('d in ?', [4, 5, 6]).end()
+        @inst.having(expr)
+
+        #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+        assert.same { text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
+      'output nothing if no conditions set': ->
+        @inst.conditions = []
+        assert.same { text: '', values: [] }, @inst.buildParam()
+
+      'output condition': ->
+        @inst.having('a = ?', 1)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        assert.same { text: 'HAVING (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
+
+      'formats value types as params': ->
+        formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
+        test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
+
+        @inst.having('a = ?', 1)
+        @inst.having('b = ? OR c = ?', 2, 3)
+        @inst.having('d in ?', [4, 5, 6])
+
+        assert.same {
+          text: 'HAVING (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
+          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
+        }, @inst.buildParam()
+
+        assert.ok formatValueSpy.notCalled
+
 
 
   'OrderByBlock':
