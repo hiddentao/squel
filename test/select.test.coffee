@@ -131,6 +131,16 @@ test['SELECT builder'] =
                   text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
                   values: [null]
                 }
+
+            '>> having(a = ?, 48)':
+              beforeEach: -> @inst.having('a = ?', 48)
+              toString: ->
+                assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2 HAVING (a = 48)'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2 HAVING (a = ?)'
+                  values: [48]
+                }
                 
             '>> where(a = ?, 1)':
               beforeEach: -> @inst.where('a = ?', 1)
