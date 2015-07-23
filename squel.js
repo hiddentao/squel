@@ -1451,6 +1451,140 @@ OTHER DEALINGS IN THE SOFTWARE.
       return WhereBlock;
 
     })(cls.Block);
+    cls.HavingBlock = (function(_super) {
+      __extends(HavingBlock, _super);
+
+      function HavingBlock(options) {
+        HavingBlock.__super__.constructor.call(this, options);
+        this.havings = [];
+      }
+
+      HavingBlock.prototype.having = function() {
+        var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, t, values, _i, _j, _len, _ref5;
+        condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+        condition = this._sanitizeCondition(condition);
+        finalCondition = "";
+        finalValues = [];
+        if (condition instanceof cls.Expression) {
+          t = condition.toParam();
+          finalCondition = t.text;
+          finalValues = t.values;
+        } else {
+          for (idx = _i = 0, _ref5 = condition.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; idx = 0 <= _ref5 ? ++_i : --_i) {
+            c = condition.charAt(idx);
+            if ('?' === c && 0 < values.length) {
+              nextValue = values.shift();
+              if (Array.isArray(nextValue)) {
+                inValues = [];
+                for (_j = 0, _len = nextValue.length; _j < _len; _j++) {
+                  item = nextValue[_j];
+                  inValues.push(this._sanitizeValue(item));
+                }
+                finalValues = finalValues.concat(inValues);
+                finalCondition += "(" + (((function() {
+                  var _k, _len1, _results;
+                  _results = [];
+                  for (_k = 0, _len1 = inValues.length; _k < _len1; _k++) {
+                    item = inValues[_k];
+                    _results.push('?');
+                  }
+                  return _results;
+                })()).join(', ')) + ")";
+              } else {
+                finalCondition += '?';
+                finalValues.push(this._sanitizeValue(nextValue));
+              }
+            } else {
+              finalCondition += c;
+            }
+          }
+        }
+        if ("" !== finalCondition) {
+          return this.havings.push({
+            text: finalCondition,
+            values: finalValues
+          });
+        }
+      };
+
+      HavingBlock.prototype.buildStr = function(queryBuilder) {
+        var c, having, havingStr, idx, pIndex, _i, _j, _len, _ref5, _ref6;
+        if (0 >= this.havings.length) {
+          return "";
+        }
+        havingStr = "";
+        _ref5 = this.havings;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          having = _ref5[_i];
+          if ("" !== havingStr) {
+            havingStr += ") AND (";
+          }
+          if (0 < having.values.length) {
+            pIndex = 0;
+            for (idx = _j = 0, _ref6 = having.text.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
+              c = having.text.charAt(idx);
+              if ('?' === c) {
+                havingStr += this._formatValue(having.values[pIndex++]);
+              } else {
+                havingStr += c;
+              }
+            }
+          } else {
+            havingStr += having.text;
+          }
+        }
+        return "HAVING (" + havingStr + ")";
+      };
+
+      HavingBlock.prototype.buildParam = function(queryBuilder) {
+        var having, havingStr, i, p, qv, ret, str, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6, _ref7;
+        ret = {
+          text: "",
+          values: []
+        };
+        if (0 >= this.havings.length) {
+          return ret;
+        }
+        havingStr = "";
+        _ref5 = this.havings;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          having = _ref5[_i];
+          if ("" !== havingStr) {
+            havingStr += ") AND (";
+          }
+          str = having.text.split('?');
+          i = 0;
+          _ref6 = having.values;
+          for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
+            v = _ref6[_j];
+            if (str[i] != null) {
+              havingStr += "" + str[i];
+            }
+            p = this._formatValueAsParam(v);
+            if (((p != null ? p.text : void 0) != null)) {
+              havingStr += "(" + p.text + ")";
+              _ref7 = p.values;
+              for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
+                qv = _ref7[_k];
+                ret.values.push(qv);
+              }
+            } else {
+              havingStr += "?";
+              ret.values.push(p);
+            }
+            i = i + 1;
+          }
+          if (str[i] != null) {
+            havingStr += "" + str[i];
+          }
+        }
+        ret.text = "HAVING (" + havingStr + ")";
+        return ret;
+      };
+
+      return HavingBlock;
+
+    })(cls.Block);
     cls.OrderByBlock = (function(_super) {
       __extends(OrderByBlock, _super);
 
@@ -1992,7 +2126,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             allowNested: true
           })), new cls.JoinBlock(_extend({}, options, {
             allowNested: true
-          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
+          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
             allowNested: true
           }))
         ]);
