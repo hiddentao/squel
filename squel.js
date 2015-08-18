@@ -1317,15 +1317,16 @@ OTHER DEALINGS IN THE SOFTWARE.
       return OffsetBlock;
 
     })(cls.Block);
-    cls.WhereBlock = (function(_super) {
-      __extends(WhereBlock, _super);
+    cls.AbstractConditionBlock = (function(_super) {
+      __extends(AbstractConditionBlock, _super);
 
-      function WhereBlock(options) {
-        WhereBlock.__super__.constructor.call(this, options);
-        this.wheres = [];
+      function AbstractConditionBlock(conditionVerb, options) {
+        this.conditionVerb = conditionVerb;
+        AbstractConditionBlock.__super__.constructor.call(this, options);
+        this.conditions = [];
       }
 
-      WhereBlock.prototype.where = function() {
+      AbstractConditionBlock.prototype._condition = function() {
         var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, t, values, _i, _j, _len, _ref5;
         condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
         condition = this._sanitizeCondition(condition);
@@ -1366,91 +1367,123 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
         }
         if ("" !== finalCondition) {
-          return this.wheres.push({
+          return this.conditions.push({
             text: finalCondition,
             values: finalValues
           });
         }
       };
 
-      WhereBlock.prototype.buildStr = function(queryBuilder) {
-        var c, idx, pIndex, where, whereStr, _i, _j, _len, _ref5, _ref6;
-        if (0 >= this.wheres.length) {
+      AbstractConditionBlock.prototype.buildStr = function(queryBuilder) {
+        var c, cond, condStr, idx, pIndex, _i, _j, _len, _ref5, _ref6;
+        if (0 >= this.conditions.length) {
           return "";
         }
-        whereStr = "";
-        _ref5 = this.wheres;
+        condStr = "";
+        _ref5 = this.conditions;
         for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-          where = _ref5[_i];
-          if ("" !== whereStr) {
-            whereStr += ") AND (";
+          cond = _ref5[_i];
+          if ("" !== condStr) {
+            condStr += ") AND (";
           }
-          if (0 < where.values.length) {
+          if (0 < cond.values.length) {
             pIndex = 0;
-            for (idx = _j = 0, _ref6 = where.text.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
-              c = where.text.charAt(idx);
+            for (idx = _j = 0, _ref6 = cond.text.length; 0 <= _ref6 ? _j < _ref6 : _j > _ref6; idx = 0 <= _ref6 ? ++_j : --_j) {
+              c = cond.text.charAt(idx);
               if ('?' === c) {
-                whereStr += this._formatValue(where.values[pIndex++]);
+                condStr += this._formatValue(cond.values[pIndex++]);
               } else {
-                whereStr += c;
+                condStr += c;
               }
             }
           } else {
-            whereStr += where.text;
+            condStr += cond.text;
           }
         }
-        return "WHERE (" + whereStr + ")";
+        return "" + this.conditionVerb + " (" + condStr + ")";
       };
 
-      WhereBlock.prototype.buildParam = function(queryBuilder) {
-        var i, p, qv, ret, str, v, where, whereStr, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6, _ref7;
+      AbstractConditionBlock.prototype.buildParam = function(queryBuilder) {
+        var cond, condStr, i, p, qv, ret, str, v, _i, _j, _k, _len, _len1, _len2, _ref5, _ref6, _ref7;
         ret = {
           text: "",
           values: []
         };
-        if (0 >= this.wheres.length) {
+        if (0 >= this.conditions.length) {
           return ret;
         }
-        whereStr = "";
-        _ref5 = this.wheres;
+        condStr = "";
+        _ref5 = this.conditions;
         for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-          where = _ref5[_i];
-          if ("" !== whereStr) {
-            whereStr += ") AND (";
+          cond = _ref5[_i];
+          if ("" !== condStr) {
+            condStr += ") AND (";
           }
-          str = where.text.split('?');
+          str = cond.text.split('?');
           i = 0;
-          _ref6 = where.values;
+          _ref6 = cond.values;
           for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
             v = _ref6[_j];
             if (str[i] != null) {
-              whereStr += "" + str[i];
+              condStr += "" + str[i];
             }
             p = this._formatValueAsParam(v);
             if (((p != null ? p.text : void 0) != null)) {
-              whereStr += "(" + p.text + ")";
+              condStr += "(" + p.text + ")";
               _ref7 = p.values;
               for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
                 qv = _ref7[_k];
                 ret.values.push(qv);
               }
             } else {
-              whereStr += "?";
+              condStr += "?";
               ret.values.push(p);
             }
             i = i + 1;
           }
           if (str[i] != null) {
-            whereStr += "" + str[i];
+            condStr += "" + str[i];
           }
         }
-        ret.text = "WHERE (" + whereStr + ")";
+        ret.text = "" + this.conditionVerb + " (" + condStr + ")";
         return ret;
+      };
+
+      return AbstractConditionBlock;
+
+    })(cls.Block);
+    cls.WhereBlock = (function(_super) {
+      __extends(WhereBlock, _super);
+
+      function WhereBlock(options) {
+        WhereBlock.__super__.constructor.call(this, 'WHERE', options);
+      }
+
+      WhereBlock.prototype.where = function() {
+        var condition, values;
+        condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+        return this._condition.apply(this, [condition].concat(__slice.call(values)));
       };
 
       return WhereBlock;
 
-    })(cls.Block);
+    })(cls.AbstractConditionBlock);
+    cls.HavingBlock = (function(_super) {
+      __extends(HavingBlock, _super);
+
+      function HavingBlock(options) {
+        HavingBlock.__super__.constructor.call(this, 'HAVING', options);
+      }
+
+      HavingBlock.prototype.having = function() {
+        var condition, values;
+        condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+        return this._condition.apply(this, [condition].concat(__slice.call(values)));
+      };
+
+      return HavingBlock;
+
+    })(cls.AbstractConditionBlock);
     cls.OrderByBlock = (function(_super) {
       __extends(OrderByBlock, _super);
 
@@ -1992,7 +2025,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             allowNested: true
           })), new cls.JoinBlock(_extend({}, options, {
             allowNested: true
-          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
+          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
             allowNested: true
           }))
         ]);

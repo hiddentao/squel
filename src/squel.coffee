@@ -361,7 +361,7 @@ _buildSquel = ->
         else if value instanceof cls.Expression
           value = "(#{value})"
         else if "number" isnt typeof value
-          if formattingOptions.dontQuote 
+          if formattingOptions.dontQuote
             value = "#{value}"
           else
             escapedValue = @_escapeValue(value)
@@ -1088,16 +1088,18 @@ _buildSquel = ->
       if @offsets then "OFFSET #{@offsets}" else ""
 
 
-  # WHERE
-  class cls.WhereBlock extends cls.Block
-    constructor: (options) ->
+  # Abstract condition base class
+  class cls.AbstractConditionBlock extends cls.Block
+    constructor: (@conditionVerb, options) ->
       super options
-      @wheres = []
+      @conditions = []
 
-    # Add a WHERE condition.
+    # Add a condition.
     #
-    # When the final query is constructed all the WHERE conditions are combined using the intersection (AND) operator.
-    where: (condition, values...) ->
+    # When the final query is constructed all the conditions are combined using the intersection (AND) operator.
+    #
+    # Concrete subclasses should provide a method which calls this
+    _condition: (condition, values...) ->
       condition = @_sanitizeCondition(condition)
 
       finalCondition = ""
@@ -1126,31 +1128,31 @@ _buildSquel = ->
             finalCondition += c
 
       if "" isnt finalCondition
-        @wheres.push
+        @conditions.push
           text: finalCondition
           values: finalValues
 
 
     buildStr: (queryBuilder) ->
-      if 0 >= @wheres.length then return ""
+      if 0 >= @conditions.length then return ""
 
-      whereStr = ""
+      condStr = ""
 
-      for where in @wheres
-        if "" isnt whereStr then whereStr += ") AND ("
-        if 0 < where.values.length
+      for cond in @conditions
+        if "" isnt condStr then condStr += ") AND ("
+        if 0 < cond.values.length
           # replace placeholders with actual parameter values
           pIndex = 0
-          for idx in [0...where.text.length]
-            c = where.text.charAt(idx)
+          for idx in [0...cond.text.length]
+            c = cond.text.charAt(idx)
             if '?' is c
-              whereStr += @_formatValue( where.values[pIndex++] )
+              condStr += @_formatValue( cond.values[pIndex++] )
             else
-              whereStr += c
+              condStr += c
         else
-          whereStr += where.text
+          condStr += cond.text
 
-      "WHERE (#{whereStr})"
+      "#{@conditionVerb} (#{condStr})"
 
 
     buildParam: (queryBuilder) ->
@@ -1158,28 +1160,46 @@ _buildSquel = ->
         text: ""
         values: []
 
-      if 0 >= @wheres.length then return ret
+      if 0 >= @conditions.length then return ret
 
-      whereStr = ""
+      condStr = ""
 
-      for where in @wheres
-        if "" isnt whereStr then whereStr += ") AND ("
-        str = where.text.split('?')
+      for cond in @conditions
+        if "" isnt condStr then condStr += ") AND ("
+        str = cond.text.split('?')
         i = 0
-        for v in where.values
-          whereStr += "#{str[i]}" if str[i]?
+        for v in cond.values
+          condStr += "#{str[i]}" if str[i]?
           p = @_formatValueAsParam(v)
           if (p?.text?)
-            whereStr += "(#{p.text})"
+            condStr += "(#{p.text})"
             for qv in p.values
               ret.values.push( qv )
           else
-            whereStr += "?"
+            condStr += "?"
             ret.values.push( p )
           i = i+1
-        whereStr += "#{str[i]}" if str[i]?
-      ret.text = "WHERE (#{whereStr})"
+        condStr += "#{str[i]}" if str[i]?
+      ret.text = "#{@conditionVerb} (#{condStr})"
       ret
+
+
+  # WHERE
+  class cls.WhereBlock extends cls.AbstractConditionBlock
+    constructor: (options) ->
+      super 'WHERE', options
+
+    where: (condition, values...) ->
+      @_condition condition, values...
+
+
+  # HAVING
+  class cls.HavingBlock extends cls.AbstractConditionBlock
+    constructor: (options) ->
+      super 'HAVING', options
+
+    having: (condition, values...) ->
+      @_condition condition, values...
 
 
   # ORDER BY
@@ -1552,6 +1572,7 @@ _buildSquel = ->
           new cls.JoinBlock(_extend({}, options, { allowNested: true })),
           new cls.WhereBlock(options),
           new cls.GroupByBlock(options),
+          new cls.HavingBlock(options),
           new cls.OrderByBlock(options),
           new cls.LimitBlock(options),
           new cls.OffsetBlock(options),
@@ -1617,7 +1638,7 @@ _buildSquel = ->
       super options, blocks
 
 
-  _squel = 
+  _squel =
     VERSION: '<<VERSION_STRING>>'
     expr: -> new cls.Expression
     # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
@@ -1677,5 +1698,3 @@ squel.useFlavour = (flavour = null) ->
     return s
   else
     throw new Error "Flavour not available: #{flavour}"
-
-
