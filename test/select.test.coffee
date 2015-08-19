@@ -122,6 +122,18 @@ test['SELECT builder'] =
                   values: [10, 2, 3]
                 }
 
+            '>> having(squel.expr().and(a = ?, QueryBuilder).and_begin().or(b = ?, 2).or(c = ?, 3).end())':
+              beforeEach: ->
+                subQuery = squel.select().field('field1').from('table1').having('field2 = ?', 10)
+                @inst.having(squel.expr().and("a = ?", subQuery).and_begin().or("b = ?", 2).or("c = ?", 3).end())
+              toString: ->
+                assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2 HAVING (a = (SELECT field1 FROM table1 HAVING (field2 = 10)) AND (b = 2 OR c = 3))'
+              toParam: ->
+                assert.same @inst.toParam(), {
+                  text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2 HAVING (a = (SELECT field1 FROM table1 HAVING (field2 = ?)) AND (b = ? OR c = ?))'
+                  values: [10, 2, 3]
+                }
+
             '>> where(a = ?, null)':
               beforeEach: -> @inst.where('a = ?', null)
               toString: ->
