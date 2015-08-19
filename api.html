@@ -244,7 +244,7 @@
                 type: 'String or [[cls.Expression]]'
               },
               'args...': {
-                desc: 'Additional arguments for parameter substitution. See <a href="guide.html#filtering">guide</a> for examples.',
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
                 type: 'One or more parameter values',
                 defaultValue: null
               }
@@ -277,6 +277,21 @@
               field: {
                 desc: 'Name of field to group by.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.having()': {
+            desc: 'Add a HAVING condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
               }
             },
             returns: 'this'
@@ -424,7 +439,7 @@
                 type: 'String or [[cls.Expression]]'
               },
               'args...': {
-                desc: 'Additional arguments for parameter substitution. See <a href="guide.html#filtering">guide</a> for examples.',
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
                 type: 'One or more parameter values',
                 defaultValue: null
               }
@@ -622,7 +637,7 @@
                 type: 'String or [[cls.Expression]]'
               },
               'args...': {
-                desc: 'Additional arguments for parameter substitution. See <a href="guide.html#filtering">guide</a> for examples.',
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
                 type: 'One or more parameter values',
                 defaultValue: null
               }

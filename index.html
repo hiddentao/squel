@@ -538,6 +538,19 @@
             /*  SELECT id FROM students GR0UP BY id, students.name */
         </pre>
 
+    <h3>Having</h3>
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .group("id")
+                    .having("a = ?", 2)
+            );
+            /*  SELECT id FROM students GR0UP BY id HAVING (a = 2) */
+        </pre>
+
     <h3>Ranges</h3>
 
     <p>To <code>LIMIT</code> the number of results:</p>
