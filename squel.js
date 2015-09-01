@@ -2092,7 +2092,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     })(cls.QueryBuilder);
     _squel = {
-      VERSION: '4.1.0',
+      VERSION: '4.1.1',
       expr: function() {
         return new cls.Expression;
       },
@@ -2667,7 +2667,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           alias = this._sanitizeFieldAlias(alias);
         }
         return this._outputs.push({
-          name: "INSERTED." + output,
+          name: this.options.forDelete ? "DELETED." + output : "INSERTED." + output,
           alias: alias
         });
       };
@@ -2747,7 +2747,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         blocks || (blocks = [
           new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
             singleTable: true
-          })), new cls.JoinBlock(options), new cls.MssqlUpdateDeleteOutputBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
+          })), new cls.JoinBlock(options), new cls.MssqlUpdateDeleteOutputBlock(_extend({}, options, {
+            forDelete: true
+          })), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
         ]);
         Delete.__super__.constructor.call(this, options, blocks);
       }

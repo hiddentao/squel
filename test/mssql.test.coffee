@@ -130,7 +130,7 @@ test['MSSQL flavour'] =
     '>> from(table).output(id)':
       beforeEach: -> @upt.from('table').output('id')
       toString: ->
-        assert.same @upt.toString(), 'DELETE FROM table OUTPUT INSERTED.id'
+        assert.same @upt.toString(), 'DELETE FROM table OUTPUT DELETED.id'
 
     '>> from(table).outputs(id AS ident, name AS naming).where("a = 1")':
       beforeEach: -> @upt.from('table').outputs(
@@ -138,7 +138,7 @@ test['MSSQL flavour'] =
         name: 'naming'
       ).where('a = 1')
       toString: ->
-        assert.same @upt.toString(), 'DELETE FROM table OUTPUT INSERTED.id AS ident, INSERTED.name AS naming WHERE (a = 1)'
+        assert.same @upt.toString(), 'DELETE FROM table OUTPUT DELETED.id AS ident, DELETED.name AS naming WHERE (a = 1)'
 
   'Default query builder options': ->
     assert.same {

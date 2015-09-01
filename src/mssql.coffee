@@ -168,7 +168,7 @@ squel.flavours['mssql'] = (_squel) ->
       alias = @_sanitizeFieldAlias(alias) if alias
 
       @_outputs.push
-        name: "INSERTED.#{output}"
+        name: if @options.forDelete then "DELETED.#{output}" else "INSERTED.#{output}"
         alias: alias
 
 
@@ -237,7 +237,7 @@ squel.flavours['mssql'] = (_squel) ->
         new cls.StringBlock(options, 'DELETE'),
         new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
         new cls.JoinBlock(options),
-        new cls.MssqlUpdateDeleteOutputBlock(options),
+        new cls.MssqlUpdateDeleteOutputBlock(_extend({}, options, { forDelete: true })),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
