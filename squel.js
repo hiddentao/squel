@@ -1496,14 +1496,17 @@ OTHER DEALINGS IN THE SOFTWARE.
       OrderByBlock.prototype.order = function() {
         var asc, field, values;
         field = arguments[0], asc = arguments[1], values = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-        if (asc == null) {
+        field = this._sanitizeField(field);
+        if (asc === void 0) {
           asc = true;
         }
-        field = this._sanitizeField(field);
+        if (asc !== null) {
+          asc = !!asc;
+        }
         this._values = values;
         return this.orders.push({
           field: field,
-          dir: asc ? true : false
+          dir: asc
         });
       };
 
@@ -1534,7 +1537,10 @@ OTHER DEALINGS IN THE SOFTWARE.
             } else {
               fstr = o.field;
             }
-            orders += "" + fstr + " " + (o.dir ? 'ASC' : 'DESC');
+            orders += "" + fstr;
+            if (o.dir !== null) {
+              orders += " " + (o.dir ? 'ASC' : 'DESC');
+            }
           }
           return "ORDER BY " + orders;
         } else {
