@@ -945,6 +945,13 @@ test['QueryBuilder base class'] =
   'is nestable': ->
     assert.same false, @inst.isNestable()
 
+  'get block':
+    'valid': ->
+      block = new squel.cls.FunctionBlock()
+      @inst.blocks.push(block)
+      assert.same block, @inst.getBlock(squel.cls.FunctionBlock)
+    'invalid': ->
+      assert.throws (-> @inst.getBlock(squel.cls.FunctionBlock) )
 
 
 
