@@ -109,6 +109,8 @@ test['Blocks'] =
 
         assert.same { text: 'TAG', values: [] }, @inst.buildParam()
 
+
+
   'AbstractValueBlock':
     beforeEach: ->
       @cls = squel.cls.AbstractValueBlock
@@ -127,23 +129,67 @@ test['Blocks'] =
         dummy:true
 
     'initial member values': ->
-      assert.same null, @inst._val
+      assert.same [], @inst._values
+      assert.same '', @inst._str
+
+    'set value': ->
+      @inst._setValue('basd', 2, 5)
+      assert.same [2, 5], @inst._values
+      assert.same 'basd', @inst._str
 
     'buildStr()':
-      'when value not set': ->
+      'when not set': ->
         assert.same '', @inst.buildStr()
-      'when value set': ->
-        @inst._setValue 'bla'
-
+      'when set': ->
+        @inst._str  = 'bla'
         assert.same 'bla', @inst.buildStr()
+      'when set with params': ->
+        @inst._str  = 'bla ? ? ?'
+        @inst._values  = [1,2]
+        assert.same 'bla 1 2 ?', @inst.buildStr()
 
     'buildParam()':
-      'when value not set': ->
-        assert.same @inst.buildParam(), { text: '', values: [] }
-      'when value set': ->
-        @inst._setValue 'bla'
+      'when not set': ->
+        assert.same { text: '', values: [] }, @inst.buildParam()
+      'when set': ->
+        @inst._str  = 'bla'
+        assert.same { text: 'bla', values: [] }, @inst.buildParam()
+      'when set with params': ->
+        @inst._str  = 'bla ? ? ?'
+        @inst._values  = [1,2]
+        assert.same { text: 'bla ? ? ?', values: [1,2] }, @inst.buildParam()
 
-        assert.same @inst.buildParam(), { text: 'bla', values: [] }
+
+
+  'FunctionBlock':
+    beforeEach: ->
+      @cls = squel.cls.FunctionBlock
+      @inst = new @cls
+
+    'instanceof of AbstractValueBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractValueBlock
+
+    'calls base constructor': ->
+      spy = test.mocker.spy(squel.cls.AbstractValueBlock.prototype, 'constructor')
+
+      @inst = new @cls
+        dummy: true
+
+      assert.ok spy.calledWithExactly
+        dummy:true
+
+    'set function': ->
+      spy = test.mocker.spy(squel.cls.AbstractValueBlock.prototype, '_setValue')
+      @inst.function('basd', 2, 5)
+
+      assert.ok spy.calledWithExactly 'basd', 2, 5
+
+    'buildStr() same as base class': ->
+      assert.same @inst.buildStr, squel.cls.AbstractValueBlock.prototype.buildStr
+
+    'buildParam() same as base class': ->
+      assert.same @inst.buildParam, squel.cls.AbstractValueBlock.prototype.buildParam
+
 
 
   'AbstractTableBlock':

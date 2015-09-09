@@ -121,49 +121,6 @@ _buildSquel = ->
     registerValueHandler cls.globalValueHandlers, type, handler
 
 
-  # ---------------------------------------------------------------------------------------------------------
-  # ---------------------------------------------------------------------------------------------------------
-  # cls.FuncVal
-  # ---------------------------------------------------------------------------------------------------------
-  # ---------------------------------------------------------------------------------------------------------
-
-  # A function value
-  class cls.FuncVal
-    # Constructor
-    #
-    # str - the string
-    # values - the parameter values
-    constructor: (str, values) ->
-      @str = str
-      @values = values
-
-  # Construct a FuncVal object
-  cls.fval = (str, values...) ->
-    new cls.FuncVal(str, values)
-
-  # default value handler for cls.FuncVal
-  cls.fval_handler = (value, asParam = false) ->
-    if asParam
-      {
-        text: value.str
-        values: value.values
-      }
-    else
-      str = value.str
-      finalStr = ''
-      values = value.values
-
-      for idx in [0...str.length]
-        c = str.charAt(idx)
-        if '?' is c and 0 < values.length
-          c = values.shift()
-        finalStr += c
-
-      finalStr
-
-  cls.registerValueHandler cls.FuncVal, cls.fval_handler
-
-
 
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
@@ -302,8 +259,8 @@ _buildSquel = ->
         # primitives are allowed
       else if item instanceof cls.QueryBuilder and item.isNestable()
         # QueryBuilder instances allowed
-      else if item instanceof cls.FuncVal
-        # FuncVal instances allowed
+      else if item instanceof cls.FunctionBlock
+        # FunctionBlock instances allowed
       else
         typeIsValid = undefined isnt getValueHandler(item, @options.valueHandlers, cls.globalValueHandlers)
         unless typeIsValid
@@ -592,6 +549,7 @@ _buildSquel = ->
     buildParam: (queryBuilder) ->
       { text: @buildStr(queryBuilder), values: [] }
 
+
   # A String which always gets output
   class cls.StringBlock extends cls.Block
     constructor: (options, str) ->
@@ -602,18 +560,55 @@ _buildSquel = ->
       @str
 
 
-  # A values which gets output as is
+
+  # An arbitrary value or db function with parameters
   class cls.AbstractValueBlock extends cls.Block
+    # Constructor
     constructor: (options) ->
       super options
-      @_val = null
+      @_str = ''
+      @_values = []
 
-    _setValue: (val) ->
-      @_val = val
+    _setValue: (str, values...) ->
+      @_str = str
+      @_values = values
+      @
 
     buildStr: (queryBuilder) ->
-      if not @_val then "" else @_val
+      str = @_str
+      finalStr = ''
+      values = [].concat @_values
 
+      for idx in [0...str.length]
+        c = str.charAt(idx)
+        if '?' is c and 0 < values.length
+          c = values.shift()
+        finalStr += c
+
+      finalStr
+
+    buildParam: (queryBuilder) ->
+      { text: @_str, values: @_values }
+
+
+
+  # A function string block
+  class cls.FunctionBlock extends cls.AbstractValueBlock
+    function: (str, values...) ->
+      @_setValue.apply(@, [str].concat(values))
+
+
+  # Construct a FunctionValueBlock object for use as a value
+  cls.fval = (str, values...) ->
+    inst = new cls.FunctionBlock()
+    inst.function.apply(inst, [str].concat(values))
+
+  # value handler for FunctionValueBlock objects
+  cls.registerValueHandler cls.FunctionBlock, (value, asParam = false) ->
+    if asParam
+      value.buildParam()
+    else
+      value.buildStr()
 
 
 
@@ -1571,6 +1566,7 @@ _buildSquel = ->
       constructor: (options, blocks = null) ->
         blocks or= [
           new cls.StringBlock(options, 'SELECT'),
+          new cls.FunctionBlock(options),
           new cls.DistinctBlock(options),
           new cls.GetFieldBlock(options),
           new cls.FromTableBlock(_extend({}, options, { allowNested: true })),

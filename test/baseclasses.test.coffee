@@ -118,21 +118,26 @@ test['Register global custom value handler'] =
     assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
 
 
-test['FuncVal'] = 
+test['Function values'] = 
   constructor: ->
     f = squel.fval('GETDATE(?)', 12, 23)
-    assert.ok (f instanceof squel.cls.FuncVal)
-    assert.same 'GETDATE(?)', f.str
-    assert.same [12, 23], f.values
+    assert.ok (f instanceof squel.cls.FunctionBlock)
+    assert.same 'GETDATE(?)', f._str
+    assert.same [12, 23], f._values
 
   'custom value handler':
     beforeEach: ->
       @inst = squel.fval('G(?,?)', 12, 23, 65)
-      @handler = squel.cls.fval_handler
+      
+      handlerConfig = _.find squel.cls.globalValueHandlers, (hc) -> 
+        hc.type is squel.cls.FunctionBlock
+
+      @handler = handlerConfig.handler
+
     toString: ->
-      assert.same 'G(12,23)', @handler(@inst)
+      assert.same @inst.buildStr(), @handler(@inst)
     toParam: ->
-      assert.same { text: 'G(?,?)', values: [12, 23, 65] }, @handler(@inst, true)
+      assert.same @inst.buildParam(), @handler(@inst, true)
 
 
 test['Load an SQL flavour'] =
