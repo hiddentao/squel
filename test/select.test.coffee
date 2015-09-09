@@ -63,6 +63,20 @@ test['SELECT builder'] =
     'no need to call from() first': ->
       @inst.toString()
 
+    '>> function(1)':
+      beforeEach: -> @inst.function('1')
+      toString: ->
+        assert.same @inst.toString(), 'SELECT 1'
+      toParam: ->
+        assert.same @inst.toParam(), { text: 'SELECT 1', values: [] }
+
+    '>> function(MAX(?,?), 3, 5)':
+      beforeEach: -> @inst.function('MAX(?, ?)', 3, 5)
+      toString: ->
+        assert.same @inst.toString(), 'SELECT MAX(3, 5)'
+      toParam: ->
+        assert.same @inst.toParam(), { text: 'SELECT MAX(?, ?)', values: [3, 5] }
+
     '>> from(table).from(table2, alias2)':
       beforeEach: -> @inst.from('table').from('table2', 'alias2')
       toString: ->
