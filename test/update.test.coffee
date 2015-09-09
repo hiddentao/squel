@@ -58,9 +58,6 @@ test['UPDATE builder'] =
 
 
   'build query':
-    'need to call table() first': ->
-      assert.throws (=> @inst.toString()), 'table() needs to be called'
-
     'need to call set() first': ->
       @inst.table('table')
       assert.throws (=> @inst.toString()), 'set() needs to be called'

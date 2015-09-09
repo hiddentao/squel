@@ -674,7 +674,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       AbstractTableBlock.prototype.buildStr = function(queryBuilder) {
         var table, tables, _i, _len, _ref1;
         if (0 >= this.tables.length) {
-          throw new Error("_table() needs to be called");
+          return "";
         }
         tables = "";
         _ref1 = this.tables;
@@ -801,17 +801,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       FromTableBlock.prototype.buildStr = function(queryBuilder) {
         var tables;
-        if (0 >= this.tables.length) {
-          throw new Error("from() needs to be called");
-        }
         tables = FromTableBlock.__super__.buildStr.call(this, queryBuilder);
         return "FROM " + tables;
       };
 
       FromTableBlock.prototype.buildParam = function(queryBuilder) {
-        if (0 >= this.tables.length) {
-          throw new Error("from() needs to be called");
-        }
         return this._buildParam(queryBuilder, "FROM");
       };
 

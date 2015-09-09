@@ -57,8 +57,8 @@ test['DELETE builder'] =
       assert.same [block], @inst.blocks
 
   'build query':
-    'need to call from() first': ->
-      assert.throws (=> @inst.toString()), 'from() needs to be called'
+    'no need to call from()': ->
+      @inst.toString()
 
     '>> from(table)':
       beforeEach: -> @inst.from('table')

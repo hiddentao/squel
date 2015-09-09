@@ -644,7 +644,7 @@ _buildSquel = ->
         alias: alias
 
     buildStr: (queryBuilder) ->
-      if 0 >= @tables.length then throw new Error "_table() needs to be called"
+      return "" if 0 >= @tables.length
 
       tables = ""
       for table in @tables
@@ -723,14 +723,11 @@ _buildSquel = ->
       @_table(table, alias)
 
     buildStr: (queryBuilder) ->
-      if 0 >= @tables.length then throw new Error "from() needs to be called"
-
       tables = super queryBuilder
 
       "FROM #{tables}"
 
     buildParam: (queryBuilder) ->
-      if 0 >= @tables.length then throw new Error "from() needs to be called"
       @_buildParam(queryBuilder, "FROM")
 
 
