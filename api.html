@@ -72,6 +72,10 @@
           }
         },
         children: {
+          '.function()': {
+            desc: 'Insert a function value, see [[cls.fval]].',
+            returns: 'this'
+          },
           '.distinct()': {
             desc: 'Insert the DISTINCT keyword.',
             returns: 'this'
@@ -1022,7 +1026,7 @@
             returns: 'this'
           },
           '.fval()': {
-            desc: 'Construct a [[cls.FuncVal]] instance for inclusion within a query as a value.',
+            desc: 'Construct a [[cls.FunctionBlock]] instance for inclusion within a query as a value.',
             params: {
               'func': {
                 desc: 'The database function, with parameter placeholders.',
@@ -1033,7 +1037,7 @@
                 type: 'Array'
               }
             },
-            returns: '[[cls.FuncVal]]'
+            returns: '[[cls.FunctionBlock]]'
           },
           '.globalValueHandlers': {
             desc: 'List of custom value type handlers registered via [[cls.registerValueHandler]].',
@@ -1041,7 +1045,7 @@
           '.Expression': {
             desc: 'Expression builder class.'
           },
-          '.FuncVal': {
+          '.FunctionBlock': {
             desc: 'Object representing a function value, see [[cls.fval()]].',
           },
           '.Block': {

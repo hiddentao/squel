@@ -621,6 +621,29 @@
         </pre>
 
 
+
+    <h3>Scalar values and functions</h3>
+
+    You can select a single string:
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .function('1')
+            );
+            /*  SELECT 1 */
+        </pre>
+
+    And this applies to database functions too:
+
+        <pre class="brush: js">
+            alert(
+                squel.select()
+                    .function('MAX(?, ?)', 45, 87)
+            );
+            /*  SELECT MAX(45, 87) */
+        </pre>
+
     </section>
 
     <section id="update">
