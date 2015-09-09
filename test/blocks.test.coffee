@@ -212,6 +212,13 @@ test['Blocks'] =
     'initial field values': ->
       assert.same [], @inst.tables
 
+    'has table':
+      'no': ->
+        assert.same false, @inst._hasTable()
+      'yes': ->
+        @inst._table('blah')
+        assert.same true, @inst._hasTable()
+
     '_table()':
       'saves inputs': ->
         @inst._table('table1')
@@ -587,16 +594,32 @@ test['Blocks'] =
         assert.same [ { name: '_f', alias: '_a' } ], @inst._fields
 
     'buildStr()':
+      beforeEach: ->
+        @queryBuilder = squel.select()
+        @fromTableBlock = @queryBuilder.getBlock(squel.cls.FromTableBlock)
+
       'returns all fields when none provided': ->
+        @fromTableBlock._hasTable = -> true
+
         @inst._fields = []
-        assert.same '*', @inst.buildStr()
+
+        assert.same '*', @inst.buildStr(@queryBuilder)
+
+      'but returns nothing if no table set': ->
+        @fromTableBlock._hasTable = -> false
+
+        @inst._fields = []
+
+        assert.same '', @inst.buildStr(@queryBuilder)
 
       'returns formatted query phrase': ->
+        @fromTableBlock._hasTable = -> true
+
         @inst.field('field1')
         @inst.field('field2', 'alias2')
         @inst.field('field3')
 
-        assert.same 'field1, field2 AS "alias2", field3', @inst.buildStr()
+        assert.same 'field1, field2 AS "alias2", field3', @inst.buildStr(@queryBuilder)
 
 
 

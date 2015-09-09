@@ -684,9 +684,13 @@ OTHER DEALINGS IN THE SOFTWARE.
         });
       };
 
+      AbstractTableBlock.prototype._hasTable = function() {
+        return 0 < this.tables.length;
+      };
+
       AbstractTableBlock.prototype.buildStr = function(queryBuilder) {
         var table, tables, _i, _len, _ref2;
-        if (0 >= this.tables.length) {
+        if (!this._hasTable()) {
           return "";
         }
         tables = "";
@@ -719,7 +723,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         };
         params = [];
         paramStr = "";
-        if (0 >= this.tables.length) {
+        if (!this._hasTable()) {
           return ret;
         }
         _ref2 = this.tables;
@@ -815,7 +819,11 @@ OTHER DEALINGS IN THE SOFTWARE.
       FromTableBlock.prototype.buildStr = function(queryBuilder) {
         var tables;
         tables = FromTableBlock.__super__.buildStr.call(this, queryBuilder);
-        return "FROM " + tables;
+        if (tables.length) {
+          return "FROM " + tables;
+        } else {
+          return "";
+        }
       };
 
       FromTableBlock.prototype.buildParam = function(queryBuilder) {
@@ -901,6 +909,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       GetFieldBlock.prototype.buildStr = function(queryBuilder) {
         var field, fields, _i, _len, _ref4;
+        if (!queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
+          return "";
+        }
         fields = "";
         _ref4 = this._fields;
         for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
@@ -2021,6 +2032,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       QueryBuilder.prototype.isNestable = function() {
         return false;
+      };
+
+      QueryBuilder.prototype.getBlock = function(blockType) {
+        return this.blocks.filter(function(b) {
+          return b instanceof blockType;
+        })[0];
       };
 
       return QueryBuilder;

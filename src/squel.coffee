@@ -638,8 +638,12 @@ _buildSquel = ->
         table: table
         alias: alias
 
+    # get whether a table has been set
+    _hasTable: ->
+      return 0 < @tables.length
+
     buildStr: (queryBuilder) ->
-      return "" if 0 >= @tables.length
+      return "" if not @_hasTable()
 
       tables = ""
       for table in @tables
@@ -664,7 +668,7 @@ _buildSquel = ->
       params = []
       paramStr = ""
 
-      if 0 >= @tables.length then return ret
+      if not @_hasTable() then return ret
 
       # retrieve the parameterised queries
       for blk in @tables
@@ -720,7 +724,10 @@ _buildSquel = ->
     buildStr: (queryBuilder) ->
       tables = super queryBuilder
 
-      "FROM #{tables}"
+      if tables.length
+        return "FROM #{tables}"
+      else
+        return ""
 
     buildParam: (queryBuilder) ->
       @_buildParam(queryBuilder, "FROM")
@@ -790,6 +797,8 @@ _buildSquel = ->
         alias: alias
 
     buildStr: (queryBuilder) ->
+      return "" if not queryBuilder.getBlock(cls.FromTableBlock)._hasTable()
+
       fields = ""
       for field in @_fields
         fields += ", " if "" isnt fields
@@ -1560,6 +1569,11 @@ _buildSquel = ->
     isNestable: ->
       false
 
+    # Get a specific block
+    getBlock: (blockType) ->
+      @blocks.filter( (b) -> b instanceof blockType )[0]
+
+
 
   # SELECT query builder.
   class cls.Select extends cls.QueryBuilder
@@ -1584,8 +1598,6 @@ _buildSquel = ->
 
       isNestable: ->
         true
-
-
 
 
 
