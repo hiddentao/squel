@@ -1,6 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
 ## ??? (4.3.0)
+* Placeholder parameter character is now configurable
+* Guide docs now print results below code
 * Re-instituted CHANGELOG.md
 
 ## 30 Aug 2014 (3.8.1)
