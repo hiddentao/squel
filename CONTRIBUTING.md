@@ -21,3 +21,16 @@ We will only accept a merge requests which meets the following criteria:
 * Contains functionality we think other users will benefit from too
 * Doesn't add unnessecary configuration options since they complicate future changes
 
+
+## Release process
+
+To publish a new release:
+
+* Update version in `package.json` and `bower.json`.
+* Run `npm build` to rebuild the final JS output and run the tests.
+* Update `CHANGELOG.md` with the changes.
+* Git commit and push to Github.
+* Wait for [Travis CI build]() to succeed.
+* Create a git tag for the version number
+* Git push the tag to github.
+* Run `npm publish`.
