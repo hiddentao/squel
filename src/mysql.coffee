@@ -63,7 +63,7 @@ squel.flavours['mysql'] = (_squel) ->
         if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
           str += field
         else
-          str += "#{field} = ?"
+          str += "#{field} = #{@options.parameterCharacter}"
           vals.push @_formatValueAsParam( value )
 
       {

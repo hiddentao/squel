@@ -149,7 +149,9 @@ test['Postgres flavour'] =
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
+      parameterCharacter: '?'
       numberedParameters: true
+      numberedParametersPrefix: '$'
       numberedParametersStartAt: 1
       separator: ' '
     }, squel.cls.DefaultQueryBuilderOptions

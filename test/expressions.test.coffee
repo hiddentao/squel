@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 squel = require "../squel-basic"
-{testCreator, assert, expect, should} = require './testbase'
+{_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 
 
@@ -42,6 +42,20 @@ test['Expression builder base class'] =
 
   'end() throws error': ->
     assert.throws (=> @inst.end()), 'begin() needs to be called'
+
+  'options':
+    'default options': ->
+      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
+    'custom options': ->
+      e = squel.expr({
+        separator: ',asdf'
+      })
+
+      expected = _.extend({}, squel.cls.DefaultQueryBuilderOptions, {
+        separator: ',asdf'  
+      })
+
+      assert.same expected, e.options
 
   'when and_begin() gets called':
     beforeEach: ->
@@ -203,6 +217,18 @@ test['Expression builder base class'] =
             values: [3, '4', false, 2, null, 'str']
           }
 
+      '>> or("dummy IN @", [false, 2, null, "str"])':
+        beforeEach: ->
+          @inst.or("dummy IN ?", [false,2,null,"str"])
+
+        '>> toString()': ->
+          assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (FALSE, 2, NULL, 'str')"
+
+        '>> toParam()': ->
+          assert.same @inst.toParam(), {
+            text: "test = ? AND flight = ? OR dummy IN (?, ?, ?, ?)"
+            values: [3, '4', false, 2, null, 'str']
+          }
 
 
   'or("test = 3")':
@@ -333,6 +359,27 @@ test['Expression builder base class'] =
                               text: "test = ? AND (inner = ? OR inner = ?) OR (inner = 3 AND inner = ? OR (inner = 5))"
                               values: [4, 1, 2, 4]
                             }
+
+  'custom parameter character: @@':
+    beforeEach: ->
+      @inst.options.parameterCharacter = '@@'
+
+    'and("test = @@", 3).and("flight = @@", "4").or("dummy IN @@", [false, 2, null, "str"])':
+      beforeEach: ->
+        @inst
+          .and("test = @@", 3)
+          .and("flight = @@", '4')
+          .or("dummy IN @@", [false,2,null,"str"])
+
+      '>> toString()': ->
+        assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (FALSE, 2, NULL, 'str')"
+
+      '>> toParam()': ->
+        assert.same @inst.toParam(), {
+          text: "test = @@ AND flight = @@ OR dummy IN (@@, @@, @@, @@)"
+          values: [3, '4', false, 2, null, 'str']
+        }
+
 
   'cloning': ->
     newinst = @inst.or("test = 4").and_begin().or("inner = 1").or("inner = 2").clone()

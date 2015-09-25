@@ -95,8 +95,13 @@ _buildSquel = ->
     fieldAliasQuoteCharacter: '"'
     # Custom value handlers where key is the value type and the value is the handler function
     valueHandlers: []
-    # Number parameters returned from toParam() as $1, $2, etc. Default is to use '?', startAt 1 will give $1...
+    # Character used to represent a parameter value
+    parameterCharacter: '?'
+    # Numbered parameters returned from toParam() as $1, $2, etc.
     numberedParameters: false
+    # Numbered parameters prefix character(s)
+    numberedParametersPrefix: '$'
+    # Numbered parameters start at this number.
     numberedParametersStartAt: 1
     # If true then replaces all single quotes within strings. The replacement string used is configurable via the `singleQuoteReplacement` option.
     replaceSingleQuotes: false
@@ -356,8 +361,12 @@ _buildSquel = ->
       current: null
 
       # Initialise the expression.
-      constructor: ->
+      constructor: (options) ->
           super()
+
+          defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
+          @options = _extend {}, defaults, options
+
           @tree =
               parent: null
               nodes: []
@@ -439,18 +448,18 @@ _buildSquel = ->
                 # have param?
                 if undefined isnt child.para
                   if not paramMode
-                    nodeStr = nodeStr.replace '?', @_formatValue(child.para)
+                    nodeStr = nodeStr.replace @options.parameterCharacter, @_formatValue(child.para)
                   else
                     cv = @_formatValueAsParam child.para
                     if (cv?.text?)
                       params = params.concat(cv.values)
-                      nodeStr = nodeStr.replace '?', "(#{cv.text})"
+                      nodeStr = nodeStr.replace @options.parameterCharacter, "(#{cv.text})"
                     else
                       params = params.concat(cv)
                     # IN ? -> IN (?, ?, ..., ?)
                     if Array.isArray(child.para)
-                      inStr = Array.apply(null, new Array(child.para.length)).map () -> '?'
-                      nodeStr = nodeStr.replace '?', "(#{inStr.join(', ')})"
+                      inStr = Array.apply(null, new Array(child.para.length)).map () => @options.parameterCharacter
+                      nodeStr = nodeStr.replace @options.parameterCharacter, "(#{inStr.join(', ')})"
             else
                 nodeStr = @_toString(child, paramMode)
                 if paramMode
@@ -581,7 +590,7 @@ _buildSquel = ->
 
       for idx in [0...str.length]
         c = str.charAt(idx)
-        if '?' is c and 0 < values.length
+        if @options.parameterCharacter is c and 0 < values.length
           c = values.shift()
         finalStr += c
 
@@ -934,7 +943,7 @@ _buildSquel = ->
             for v in p.values
               vals.push v
           else
-            str += "#{field} = ?"
+            str += "#{field} = #{@options.parameterCharacter}"
             vals.push p
 
       { text: "SET #{str}", values: vals }
@@ -975,7 +984,7 @@ _buildSquel = ->
             for v in p.values
               params.push v
           else
-            str = '?'
+            str = @options.parameterCharacter
             params.push p
           if 'string' is typeof vals[i]
             vals[i] += ", #{str}"
@@ -1114,16 +1123,16 @@ _buildSquel = ->
       else
         for idx in [0...condition.length]
           c = condition.charAt(idx)
-          if '?' is c and 0 < values.length
+          if @options.parameterCharacter is c and 0 < values.length
             nextValue = values.shift()
             if Array.isArray(nextValue) # where b in (?, ? ?)
               inValues = []
               for item in nextValue
                 inValues.push @_sanitizeValue(item)
               finalValues = finalValues.concat(inValues)
-              finalCondition += "(#{('?' for item in inValues).join ', '})"
+              finalCondition += "(#{(@options.parameterCharacter for item in inValues).join ', '})"
             else
-              finalCondition += '?'
+              finalCondition += @options.parameterCharacter
               finalValues.push @_sanitizeValue(nextValue)
           else
             finalCondition += c
@@ -1146,7 +1155,7 @@ _buildSquel = ->
           pIndex = 0
           for idx in [0...cond.text.length]
             c = cond.text.charAt(idx)
-            if '?' is c
+            if @options.parameterCharacter is c
               condStr += @_formatValue( cond.values[pIndex++] )
             else
               condStr += c
@@ -1167,7 +1176,7 @@ _buildSquel = ->
 
       for cond in @conditions
         if "" isnt condStr then condStr += ") AND ("
-        str = cond.text.split('?')
+        str = cond.text.split(@options.parameterCharacter)
         i = 0
         for v in cond.values
           condStr += "#{str[i]}" if str[i]?
@@ -1177,7 +1186,7 @@ _buildSquel = ->
             for qv in p.values
               ret.values.push( qv )
           else
-            condStr += "?"
+            condStr += @options.parameterCharacter
             ret.values.push( p )
           i = i+1
         condStr += "#{str[i]}" if str[i]?
@@ -1237,7 +1246,7 @@ _buildSquel = ->
           if not toParam
             for idx in [0...o.field.length]
               c = o.field.charAt(idx)
-              if '?' is c
+              if @options.parameterCharacter is c
                 fstr += @_formatValue( @_values[pIndex++] )
               else
                 fstr += c
@@ -1557,7 +1566,8 @@ _buildSquel = ->
         if @options.numberedParameters || options?.numberedParametersStartAt?
           i = 1
           i = @options.numberedParametersStartAt if @options.numberedParametersStartAt?
-          result.text = result.text.replace /\?/g, () -> return "$#{i++}"
+          regex = new RegExp("\\" + @options.parameterCharacter, 'g')
+          result.text = result.text.replace regex, () -> return "$#{i++}"
       @options = old
       result
 
@@ -1653,7 +1663,7 @@ _buildSquel = ->
 
   _squel =
     VERSION: '<<VERSION_STRING>>'
-    expr: -> new cls.Expression
+    expr: (options) -> new cls.Expression(options)
     # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
     select: (options, blocks) -> new cls.Select(options, blocks)
     update: (options, blocks) -> new cls.Update(options, blocks)

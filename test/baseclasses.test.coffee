@@ -75,7 +75,9 @@ test['Default query builder options'] =
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
+      parameterCharacter: '?'
       numberedParameters: false
+      numberedParametersPrefix: '$'
       numberedParametersStartAt: 1
       replaceSingleQuotes: false
       singleQuoteReplacement: '\'\''

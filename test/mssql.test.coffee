@@ -149,7 +149,9 @@ test['MSSQL flavour'] =
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
+      parameterCharacter: '?'
       numberedParameters: false
+      numberedParametersPrefix: '$'
       numberedParametersStartAt: 1
       replaceSingleQuotes: true
       singleQuoteReplacement: '\'\''

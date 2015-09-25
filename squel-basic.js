@@ -107,7 +107,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       tableAliasQuoteCharacter: '`',
       fieldAliasQuoteCharacter: '"',
       valueHandlers: [],
+      parameterCharacter: '?',
       numberedParameters: false,
+      numberedParametersPrefix: '$',
       numberedParametersStartAt: 1,
       replaceSingleQuotes: false,
       singleQuoteReplacement: '\'\'',
@@ -365,9 +367,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       Expression.prototype.current = null;
 
-      function Expression() {
-        var _this = this;
+      function Expression(options) {
+        var defaults,
+          _this = this;
         Expression.__super__.constructor.call(this);
+        defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+        this.options = _extend({}, defaults, options);
         this.tree = {
           parent: null,
           nodes: []
@@ -441,7 +446,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       Expression.prototype._toString = function(node, paramMode) {
-        var child, cv, inStr, nodeStr, params, str, _i, _len, _ref;
+        var child, cv, inStr, nodeStr, params, str, _i, _len, _ref,
+          _this = this;
         if (paramMode == null) {
           paramMode = false;
         }
@@ -454,20 +460,20 @@ OTHER DEALINGS IN THE SOFTWARE.
             nodeStr = child.expr;
             if (void 0 !== child.para) {
               if (!paramMode) {
-                nodeStr = nodeStr.replace('?', this._formatValue(child.para));
+                nodeStr = nodeStr.replace(this.options.parameterCharacter, this._formatValue(child.para));
               } else {
                 cv = this._formatValueAsParam(child.para);
                 if (((cv != null ? cv.text : void 0) != null)) {
                   params = params.concat(cv.values);
-                  nodeStr = nodeStr.replace('?', "(" + cv.text + ")");
+                  nodeStr = nodeStr.replace(this.options.parameterCharacter, "(" + cv.text + ")");
                 } else {
                   params = params.concat(cv);
                 }
                 if (Array.isArray(child.para)) {
                   inStr = Array.apply(null, new Array(child.para.length)).map(function() {
-                    return '?';
+                    return _this.options.parameterCharacter;
                   });
-                  nodeStr = nodeStr.replace('?', "(" + (inStr.join(', ')) + ")");
+                  nodeStr = nodeStr.replace(this.options.parameterCharacter, "(" + (inStr.join(', ')) + ")");
                 }
               }
             }
@@ -608,7 +614,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         values = [].concat(this._values);
         for (idx = _i = 0, _ref1 = str.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; idx = 0 <= _ref1 ? ++_i : --_i) {
           c = str.charAt(idx);
-          if ('?' === c && 0 < values.length) {
+          if (this.options.parameterCharacter === c && 0 < values.length) {
             c = values.shift();
           }
           finalStr += c;
@@ -1097,7 +1103,7 @@ OTHER DEALINGS IN THE SOFTWARE.
                 vals.push(v);
               }
             } else {
-              str += "" + field + " = ?";
+              str += "" + field + " = " + this.options.parameterCharacter;
               vals.push(p);
             }
           }
@@ -1165,7 +1171,7 @@ OTHER DEALINGS IN THE SOFTWARE.
                 params.push(v);
               }
             } else {
-              str = '?';
+              str = this.options.parameterCharacter;
               params.push(p);
             }
             if ('string' === typeof vals[i]) {
@@ -1357,7 +1363,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else {
           for (idx = _i = 0, _ref6 = condition.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; idx = 0 <= _ref6 ? ++_i : --_i) {
             c = condition.charAt(idx);
-            if ('?' === c && 0 < values.length) {
+            if (this.options.parameterCharacter === c && 0 < values.length) {
               nextValue = values.shift();
               if (Array.isArray(nextValue)) {
                 inValues = [];
@@ -1371,12 +1377,12 @@ OTHER DEALINGS IN THE SOFTWARE.
                   _results = [];
                   for (_k = 0, _len1 = inValues.length; _k < _len1; _k++) {
                     item = inValues[_k];
-                    _results.push('?');
+                    _results.push(this.options.parameterCharacter);
                   }
                   return _results;
-                })()).join(', ')) + ")";
+                }).call(this)).join(', ')) + ")";
               } else {
-                finalCondition += '?';
+                finalCondition += this.options.parameterCharacter;
                 finalValues.push(this._sanitizeValue(nextValue));
               }
             } else {
@@ -1408,7 +1414,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             pIndex = 0;
             for (idx = _j = 0, _ref7 = cond.text.length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; idx = 0 <= _ref7 ? ++_j : --_j) {
               c = cond.text.charAt(idx);
-              if ('?' === c) {
+              if (this.options.parameterCharacter === c) {
                 condStr += this._formatValue(cond.values[pIndex++]);
               } else {
                 condStr += c;
@@ -1437,7 +1443,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           if ("" !== condStr) {
             condStr += ") AND (";
           }
-          str = cond.text.split('?');
+          str = cond.text.split(this.options.parameterCharacter);
           i = 0;
           _ref7 = cond.values;
           for (_j = 0, _len1 = _ref7.length; _j < _len1; _j++) {
@@ -1454,7 +1460,7 @@ OTHER DEALINGS IN THE SOFTWARE.
                 ret.values.push(qv);
               }
             } else {
-              condStr += "?";
+              condStr += this.options.parameterCharacter;
               ret.values.push(p);
             }
             i = i + 1;
@@ -1546,7 +1552,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             if (!toParam) {
               for (idx = _j = 0, _ref7 = o.field.length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; idx = 0 <= _ref7 ? ++_j : --_j) {
                 c = o.field.charAt(idx);
-                if ('?' === c) {
+                if (this.options.parameterCharacter === c) {
                   fstr += this._formatValue(this._values[pIndex++]);
                 } else {
                   fstr += c;
@@ -1959,7 +1965,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       QueryBuilder.prototype.toParam = function(options) {
-        var block, blocks, i, old, result, _ref6;
+        var block, blocks, i, old, regex, result, _ref6;
         if (options == null) {
           options = void 0;
         }
@@ -2007,7 +2013,8 @@ OTHER DEALINGS IN THE SOFTWARE.
             if (this.options.numberedParametersStartAt != null) {
               i = this.options.numberedParametersStartAt;
             }
-            result.text = result.text.replace(/\?/g, function() {
+            regex = new RegExp("\\" + this.options.parameterCharacter, 'g');
+            result.text = result.text.replace(regex, function() {
               return "$" + (i++);
             });
           }
@@ -2117,8 +2124,8 @@ OTHER DEALINGS IN THE SOFTWARE.
     })(cls.QueryBuilder);
     _squel = {
       VERSION: '4.2.1',
-      expr: function() {
-        return new cls.Expression;
+      expr: function(options) {
+        return new cls.Expression(options);
       },
       select: function(options, blocks) {
         return new cls.Select(options, blocks);
