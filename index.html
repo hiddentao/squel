@@ -1317,10 +1317,10 @@
             alert(
                 squel.update()
                     .table("students")
-                    .set("start_date", myDate.getFullYear() + '-' + myDate.getMonth() + '-' + myDate.getDate())
-                    .set("end_date", myDate2.getFullYear() + '-' + myDate2.getMonth() + '-' + myDate2.getDate())
+                    .set("start_date", myDate.getFullYear() + '-' + (myDate.getMonth()+1) + '-' + myDate.getDate())
+                    .set("end_date", myDate2.getFullYear() + '-' + (myDate2.getMonth()+1) + '-' + myDate2.getDate())
             );
-            /*  UPDATE students SET start_date = '2012-4-22', end_date = '2013-5-30' */
+            /*  UPDATE students SET start_date = '2012-5-22', end_date = '2013-6-30' */
       </pre>
 
       <p>Functional but no so elegant. A better approach is to register the <code>Date</code> object type
@@ -1333,7 +1333,7 @@
 
             /* Tell Squel how to handle Date objects */
             squel.registerValueHandler(Date, function(date) {
-              return date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
+              return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
             });
 
             alert(
@@ -1342,7 +1342,7 @@
                     .set("start_date", myDate)
                     .set("end_date", myDate2)
             );
-            /*  UPDATE students SET start_date = '2012-4-22', end_date = '2013-5-30' */
+            /*  UPDATE students SET start_date = '2012-5-22', end_date = '2013-6-30' */
       </pre>
 
       <p>We can register any type of object as a custom value type, not just <code>Date</code>. Squel checks to see if
@@ -1420,7 +1420,7 @@
 
             /* Tell Squel how to handle Date objects */
             squel.registerValueHandler(Date, function(date) {
-              return date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
+              return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
             });
 
             alert(JSON.stringify(
@@ -1434,7 +1434,7 @@
             /*  
             {
               text:  SELECT * FROM students WHERE (start_date >= ?) AND (end_date <= ?),
-              values: [ '2012-4-22', '2013-5-30' ]
+              values: [ '2012-5-22', '2013-6-30' ]
             }
             */                
       </pre>
