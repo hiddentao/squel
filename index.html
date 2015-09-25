@@ -103,7 +103,7 @@
 
       <p>Once loaded the <code>squel</code> API will be available in the global object:</p>
 
-      <pre class="brush: js">alert( squel.VERSION );    // version string</pre>
+      <pre class="brush: js">log( squel.VERSION );    /* version string */</pre>
 
       <p class="warning">NOTE: It is recommended that you do NOT create queries browser-side to run on the
         server as this massively increases your exposure to <a href="http://en.wikipedia.org/wiki/SQL_injection" target="_blank">SQL Injection</a> attacks.</p>
@@ -132,7 +132,7 @@
         <pre class="brush: js">
             var s = squel.select();
             s.from("student");
-            alert( s.toString() );    /* SELECT * FROM student */
+            log( s.toString() );    /* SELECT * FROM student */
         </pre>
 
       <p><em>Hint: You can run the example above by clicking it!</em></p>
@@ -140,14 +140,14 @@
       <p>You can simply write:</p>
 
         <pre class="brush: js">
-            alert( squel.select().from("students").toString() );  // SELECT * FROM students
+            log( squel.select().from("students").toString() );  /* SELECT * FROM students */
         </pre>
 
       What's even better, the <code>toString()</code> method gets called automatically by the Javascript interpreter
       whenever a string representation of an object is needed. So we can actually simplify the previous statement to:
 
         <pre class="brush: js">
-            alert( squel.select().from("students") );  /* SELECT * FROM students */
+            log( '' + squel.select().from("students") );  /* SELECT * FROM students */
         </pre>
 
       <p><em>Note: All of Squel's builders provide the <code>toString()</code> method. It is this
@@ -158,7 +158,7 @@
         to use proprietary database functions and other complex constructs:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .field("name")
@@ -166,6 +166,7 @@
                     .field("MAX(test_score)")
                     .field("GROUP_CONCAT(DISTINCT test_score ORDER BY test_score DESC SEPARATOR ' ')")
                     .group("name")
+                    .toString()
             );
             /*
                 SELECT
@@ -195,22 +196,13 @@
             var q = squel.select();
         </pre>
 
-    <p>Calling <code>toString()</code> on it now will throw an exception:</p>
+    <p>The name of a table to fetch data from is provided:</p>
 
         <pre class="brush: js">
-            try {
-                alert( squel.select() );  /* remember that toString() is implicitly called here */
-            } catch (error) {
-                alert( error ); /* from() needs to be called */
-            }
-        </pre>
-
-    <p>Thus, at a minimum the name of a table to fetch data from must be provided:</p>
-
-        <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
+                    .toString()
             );
             /* SELECT * FROM students */
         </pre>
@@ -218,9 +210,10 @@
     <p>Squel usually outputs a single line string, but you can use a different <code>separator</code> to change this look:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select({ separator: "\n" })
                     .from("students")
+                    .toString()
             );
             /*
                 SELECT
@@ -234,11 +227,12 @@
     <p>You can select data from multiple tables and provide aliases where needed:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .from("lecturers", "l")
                     .from("admins")
+                    .toString()
             );
             /* SELECT * FROM students, lecturers `l`, admins */
         </pre>
@@ -248,10 +242,11 @@
     <p>Instead of explicitly naming tables you can use SQL sub-queries as such:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from( squel.select().from('students'), 's' )
                     .field('s.id')
+                    .toString()
             );
             /*  SELECT s.id FROM (SELECT * FROM students) `s` */
         </pre>
@@ -261,11 +256,12 @@
     <p>You can specify field names on their own or by the table they belong to:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .field("id")
                     .field("students.name")
+                    .toString()
             );
             /* SELECT id, students.name FROM students */
         </pre>
@@ -273,11 +269,12 @@
     <p>Field names can be given aliases in order to customize the column names in the query results :</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .field("id", "Id")
                     .field("students.name", "Student Name")
+                    .toString()
             );
             /* SELECT id AS "Id", students.name AS "Student Name" FROM students */
         </pre>
@@ -285,12 +282,13 @@
     <p>Database functions can be used in place of field names for more complex results:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students", "s")
                     .field("s.id")
                     .field("s.test_score", "Test score")
                     .field("DATE_FORMAT(s.date_taken, '%M %Y')", "Taken on")
+                    .toString()
             );
             /*
                 SELECT
@@ -305,10 +303,11 @@
     <p>You can even use a sub-query as a field specifier:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students", "s")
                     .field(squel.select().field("MAX(score)").from("scores"), 'score')
+                    .toString()
             );
             /*
                 SELECT
@@ -321,11 +320,12 @@
     <p>If you wish to obtain <code>DISTINCT</code> results you can do so:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .field("id")
                     .distinct()
+                    .toString()
             );
             /*  SELECT DISTINCT id FROM students    */
         </pre>
@@ -336,10 +336,11 @@
     <code>INNER</code> join:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .join("teachers")
+                    .toString()
             );
             /*  SELECT * FROM students INNER JOIN teachers */
         </pre>
@@ -347,11 +348,12 @@
     <p>You can specify table aliases:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .join("teachers", "t")
                     .outer_join("expelled")
+                    .toString()
             );
             /*  SELECT * FROM students
                     INNER JOIN teachers `t`
@@ -362,7 +364,7 @@
     <p>You can specify sub-queries:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .join(
@@ -370,6 +372,7 @@
                         't'
                     )
                     .outer_join("expelled")
+                    .toString()
             );
             /*  SELECT * FROM students
                     INNER JOIN (SELECT score FROM results) `t`
@@ -380,12 +383,13 @@
     <p>And you can specify JOIN-ing conditions:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("students.id")
                     .from("students")
                     .left_join("teachers", null, "students.id = teachers.student_id")
                     .right_join("jailed", "j", "j.student_id = students.id")
+                    .toString()
             );
             /*  SELECT students.id FROM students
                     LEFT JOIN teachers ON (students.id = teachers.student_id)
@@ -398,10 +402,11 @@
     <p>You can also specify sub-queries in joins:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from('marks', 'm')
                     .join( squel.select().from('students'), 's', 's.id = m.id' )
+                    .toString()
             );
             /*  SELECT * FROM marks `m` INNER JOIN (SELECT * FROM students) `s` ON (s.id = m.id) */
         </pre>
@@ -412,11 +417,12 @@
     <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .where("name = 'Thomas'")
+                    .toString()
             );
             /*  SELECT id FROM students WHERE (name = 'Thomas')  */
         </pre>
@@ -424,11 +430,12 @@
     <p>Parameters substitution is supported:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .where("score = ?", squel.select().field('MAX(score)').from('scores'))
+                    .toString()
             );
             /*  SELECT id FROM students WHERE (score = (SELECT MAX(score) FROM scores))  */
         </pre>
@@ -438,12 +445,13 @@
     <p>Multiple filters are automatically combined using <code>AND</code>:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .where("name = 'Thomas'")
                     .where("age > 18")
+                    .toString()
             );
             /*  SELECT id FROM students WHERE (name = 'Thomas') AND (age > 18) */
         </pre>
@@ -451,12 +459,13 @@
     <p>Also filter using <code>OR</code> or any other operator you like:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .where("name = 'Thomas' OR age > 18")
                     .where("id BETWEEN 200 and 300")
+                    .toString()
             );
             /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) AND (id BETWEEN 200 and 300) */
         </pre>
@@ -464,13 +473,14 @@
     <p>You can also pass in <a href="#expressions">Expressions</a>:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .where(
                         squel.expr().and("name = 'Thomas'").or("age > 18")
                     )
+                    .toString()
             );
             /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) */
         </pre>
@@ -478,12 +488,13 @@
     <h3>Sorting</h3>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .order("id")
                     .order("name")
+                    .toString()
             );
             /*  SELECT id FROM students ORDER BY id ASC, name ASC */
         </pre>
@@ -491,12 +502,13 @@
     <p>Use the second argument of <code>order()</code> to change the direction of a sort:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .order("id")
                     .order("name", false)  /* using TRUE instead would be the same as omitting it. */
+                    .toString()
             );
             /*  SELECT id FROM students ORDER BY id ASC, name DESC */
         </pre>
@@ -504,11 +516,12 @@
     <p>Additional arguments count as parameter values, e.g. for custom sort functions::</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .order("DIST(?, ?)", true, 1, 2)
+                    .toString()
             );
             /*  SELECT id FROM students ORDER BY DIST(1, 2) ASC */
         </pre>
@@ -516,11 +529,12 @@
     <h3>Grouping</h3>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .group("id")
+                    .toString()
             );
             /*  SELECT id FROM students GR0UP BY id */
         </pre>
@@ -528,12 +542,13 @@
     <p>Grouping on multiple fields is supported:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .group("id")
                     .group("students.name")
+                    .toString()
             );
             /*  SELECT id FROM students GR0UP BY id, students.name */
         </pre>
@@ -541,12 +556,13 @@
     <h3>Having</h3>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("id")
                     .from("students")
                     .group("id")
                     .having("a = ?", 2)
+                    .toString()
             );
             /*  SELECT id FROM students GR0UP BY id HAVING (a = 2) */
         </pre>
@@ -556,10 +572,11 @@
     <p>To <code>LIMIT</code> the number of results:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .limit(10)
+                    .toString()
             );
             /*  SELECT * FROM students LIMIT 10 */
         </pre>
@@ -567,11 +584,12 @@
     <p>To remove the previously set limit:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .limit(10)
                     .limit(0)
+                    .toString()
             );
             /*  SELECT * FROM students */
         </pre>
@@ -579,10 +597,11 @@
     <p>To specify the <code>OFFSET</code> of the first row to return:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .offset(102)
+                    .toString()
             );
             /*  SELECT * FROM students OFFSET 102 */
         </pre>
@@ -590,11 +609,12 @@
     <p>Same as for <code>limit()</code>, you can remove a previously set offset:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .offset(1)
                     .offset(0)
+                    .toString()
             );
             /*  SELECT * FROM students */
         </pre>
@@ -605,7 +625,7 @@
     A simple <code>UNION</code> query:
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .union( 
@@ -616,6 +636,7 @@
                         squel.select()
                             .from('batches') 
                     )
+                    .toString()
             );
             /*  SELECT * FROM students UNION (SELECT * FROM scores) UNION (SELECT * FROM batches) */
         </pre>
@@ -627,9 +648,10 @@
     You can select a single string:
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .function('1')
+                    .toString()
             );
             /*  SELECT 1 */
         </pre>
@@ -637,9 +659,10 @@
     And this applies to database functions too:
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .function('MAX(?, ?)', 45, 87)
+                    .toString()
             );
             /*  SELECT MAX(45, 87) */
         </pre>
@@ -658,10 +681,11 @@
       <p>You need to supply at least one table name and one field to update:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("name", "Thomas")
+                    .toString()
             );
             /*  UPDATE students SET name = "Thomas" */
         </pre>
@@ -669,11 +693,12 @@
       <p>Multiple table names can be supplied along with aliases:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .table("teachers", "t")
                     .set("t.name", "Fred")
+                    .toString()
             );
             /*  UPDATE students, teachers `t` SET t.name = "Fred" */
         </pre>
@@ -684,7 +709,7 @@
         field value based on its runtime type:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("name", "Fred")
@@ -692,6 +717,7 @@
                     .set("score", 1.2)
                     .set("graduate", false)
                     .set("level", squel.select().field('MAX(level)').from('levels'))
+                    .toString()
             );
             /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE, level = (SELECT MAX(level) FROM levels) */
         </pre>
@@ -699,13 +725,14 @@
         <p>You can turn off automatic quoting on a per-field basis:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("time", "GETDATE()", {
                         dontQuote: true
                     })
                     .set("city", "London")
+                    .toString()
             );
             /*  UPDATE students SET time = GETDATE(), city = "London" */
         </pre>
@@ -713,12 +740,13 @@
       <p>You can even use <code>NULL</code> values:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("name", "Fred")
                     .set("age", 29)
                     .set("nickname", null)
+                    .toString()
             );
             /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
         </pre>
@@ -728,10 +756,11 @@
       <p>If the second parameter to <code>set()</code> is not provided then the field name is assumed to be an operation:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("age = age + 1")
+                    .toString()
             );
             /*  UPDATE students SET age = age + 1 */
         </pre>
@@ -739,10 +768,11 @@
         <p>You can also set multiple fields in a single call:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .setFields({ age: 23, name: 'Fred' })
+                    .toString()
             );
             /*  UPDATE students SET age = 23, name = 'Fred' */
         </pre>
@@ -755,7 +785,7 @@
         way they are by the <a href="#select">SELECT</a> builder:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("name", "Fred")
@@ -764,6 +794,7 @@
                     .where("id < 102")
                     .order("id", false)
                     .limit(5)
+                    .toString()
             );
             /*  UPDATE students SET name = "Fred", age = 29 WHERE (id > 5) AND (id < 102) ORDER BY id DESC LIMIT 5 */
         </pre>
@@ -788,9 +819,10 @@
       <p>You need to supply at least the table name:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.delete()
                     .from("students")
+                    .toString()
             );
             /*  DELETE FROM students */
         </pre>
@@ -801,10 +833,11 @@
         they are by the <a href="#select">SELECT</a> builder:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.delete()
                     .from("students", "s")
                     .outer_join("marks", "m", "m.student_id = s.id")
+                    .toString()
             );
             /*  DELETE FROM students `s` OUTER JOIN marks `m` ON (m.student_id = s.id) */
         </pre>
@@ -815,13 +848,14 @@
         they are by the <a href="#select">SELECT</a> builder:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.delete()
                     .from("students")
                     .where("id > 5")
                     .where("id < 102")
                     .order("id", false)
                     .limit(5)
+                    .toString()
             );
             /*  DELETE FROM students WHERE (id > 5) AND (id < 102) ORDER BY id DESC LIMIT 5 */
         </pre>
@@ -840,10 +874,11 @@
       <p>At least the table name and one field must be supplied:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.insert()
                     .into("students")
                     .set("name", "Thomas")
+                    .toString()
             );
             /*  INSERT INTO students (name) VALUES ("Thomas") */
         </pre>
@@ -851,7 +886,7 @@
       <p>Squel out how to treat each field value based on its runtime type:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.insert()
                     .into("students")
                     .set("name", "Thomas")
@@ -860,6 +895,7 @@
                     .set("graduate", true)
                     .set("nickname", null)
                     .set("level", squel.select().field('MAX(level)').from('levels'))
+                    .toString()
             );
             /*  INSERT INTO students (name, age, score, graduate, nickname, level) 
                 VALUES ('Thomas', 29, 90.2, TRUE, NULL, (SELECT MAX(level) FROM levels)) */
@@ -868,13 +904,14 @@
         <p>You can turn off automatic quoting on a per-field basis:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.insert()
                     .into("students")
                     .set("time", "GETDATE()", {
                         dontQuote: true
                     })
                     .set("city", "London")
+                    .toString()
             );
             /*  INSERT INTO students (time, city) VALUES(GETDATE(), "London") */
         </pre>
@@ -884,10 +921,11 @@
         <p>You can set multiple fields in a single call:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.insert()
                     .into("students")
                     .setFields({ name: "Thomas", age: 29 })
+                    .toString()
             );
             /*  INSERT INTO students (name, age) VALUES ('Thomas', 29) */
         </pre>
@@ -895,13 +933,14 @@
         <p>You can even do a multi-row insert:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.insert()
                     .into("students")
                     .setFieldsRows([
                       { name: "Thomas", age: 29 },
                       { name: "Jane", age: 31 }
                     ])
+                    .toString()
             );
             /*  INSERT INTO students (name, age) VALUES ('Thomas', 29), ('Jane', 31) */
         </pre>
@@ -914,13 +953,14 @@
       <p>Insert from a selection result:</p>
 
       <pre class="brush: js">
-        alert(
+        log(
             squel.insert()
                 .into("students")
                 .fromQuery( 
                     ['username'], 
                     squel.select().field('name').from('candidates') 
                 )
+                .toString()
         );
         /*  INSERT INTO students (username) (SELECT name FROM candidates) */
       </pre>
@@ -941,13 +981,13 @@
 
 
       <pre class="brush: js">
-        alert(JSON.stringify(
+        log(
           squel.select()
             .from("students")
             .where("a = ? AND b = ?", "test", true)
             .order("CALC(?, ?)", true, 1.2, false)
             .toParam()
-        ));
+        );
 
         /*
           {
@@ -960,12 +1000,12 @@
       <p>Using sub-queries as parameter values:</p>
 
         <pre class="brush: js">
-            alert(JSON.stringify(
+            log(
               squel.select()
                 .from("students")
                 .where("a = ? AND b IN ?", "test", squel.select().field('score').from('results').where('c = ?', 5))
                 .toParam()
-            ));
+            );
 
             /*
               {
@@ -978,7 +1018,7 @@
       <p>A more complex example involving sub-queries and unions:</p>
 
         <pre class="brush: js">
-            alert(JSON.stringify(
+            log(
               squel.select()
                 .from("students")
                 .where("a IN ?", squel.select().field('score').from('results').where('c = ?', 5))
@@ -988,7 +1028,7 @@
                     )
                 )
                 .toParam()
-            ));
+            );
 
             /*
               {
@@ -1003,14 +1043,14 @@
       <code>numberedParameters</code> option:</p>
 
       <pre class="brush: js">
-        alert(JSON.stringify(
+        log(
           squel.insert({ numberedParameters: true })
             .into("students")
             .set("a", "test")
             .set("b", 1)
             .set("c", null)
             .toParam()
-        ));
+        );
 
         /*
           {
@@ -1025,14 +1065,14 @@
       <p>You can both turn on numbered parameters and change the start number in one go:</p>
 
       <pre class="brush: js">
-        alert(JSON.stringify(
+        log(
           squel.insert()
             .into("students")
             .set("a", "test")
             .set("b", 1)
             .set("c", null)
             .toParam({ numberedParametersStartAt: 3 })
-        ));
+        );
 
         /*
           {
@@ -1046,7 +1086,7 @@
       <p>The <code>values</code> array returned is always flat, even for multi-row inserts:</p>
 
         <pre class="brush: js">
-            alert(JSON.stringify(
+            log(
                 squel.insert()
                     .into("students")
                     .setFieldsRows([
@@ -1054,7 +1094,7 @@
                       { name: "Jane", age: 31 }
                     ])
                     .toParam()
-            ));
+            );
             /*
               {
                 text:  INSERT INTO students (name, age) VALUES (?, ?), (?, ?)
@@ -1067,13 +1107,13 @@
       <p>Array values can be used to create <code>IN</code> clauses:</p>
 
       <pre class="brush: js">
-          alert(JSON.stringify(
+          log(
               squel.select()
                   .field("id")
                   .from("students")
                   .where("age IN ?", [18, 19, 20])
                   .toParam()
-          ));
+          );
 
           /*
             {
@@ -1091,10 +1131,11 @@
       <p>Sometimes you may wish to use SQL functions as parameter values, e.g.:</p>
 
       <pre class="brush: js">
-          alert(
+          log(
               squel.update()
                 .table('students')
                 .set('modified', 'NOW()')
+                .toString()
           );
 
           /*   UPDATE students SET modified = 'NOW()'   */
@@ -1104,10 +1145,11 @@
       <code>.fval()</code> method:</p>p>
 
       <pre class="brush: js">
-          alert(
+          log(
               squel.update()
                 .table('students')
                 .set('modified', squel.fval('NOW()'))
+                .toString()
           );
 
           /*  UPDATE students SET modified = (NOW())  */
@@ -1116,12 +1158,12 @@
       <p>You can pass parameters to the functions too:</p>
 
       <pre class="brush: js">
-          alert(JSON.stringify(
+          log(
               squel.select()
                   .from("students")
                   .where("age IN ?", squel.fval('RANGE(?, ?)', 1, 10))
                   .toParam()
-          ));
+          );
 
           /*
             {
@@ -1141,10 +1183,11 @@
         <code>autoQuoteTableNames</code> and <code>autoQuoteFieldNames</code> options:</p>
 
       <pre class="brush: js">
-        alert(
+        log(
           squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
             .from("students", "s")
             .field("s.name", "Student name")
+            .toString()
         );
 
         /*   SELECT `s`.`name` AS "Student name" FROM `students` `s`  */
@@ -1154,10 +1197,11 @@
       You can turn off this behaviour if you wish:</p>
 
       <pre class="brush: js">
-        alert(
+        log(
           squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
             .from("students", "s")
             .field("s.name", "Student name", { ignorePeriodsForFieldNameQuotes: true })
+            .toString()
         );
 
         /*   SELECT `s.name` AS "Student name" FROM `students` `s`  */
@@ -1167,10 +1211,11 @@
 
 
       <pre class="brush: js">
-        alert(
+        log(
           squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true, nameQuoteCharacter: '|' })
             .from("students")
             .field("name", "Student name")
+            .toString()
         );
 
         /*   SELECT |name| AS "Student name" FROM |students|  */
@@ -1179,10 +1224,11 @@
       <p>As you can see above, Squel does however automatically add quotes to alias names. These too can be customized:</p>
 
       <pre class="brush: js">
-        alert(
+        log(
           squel.select({ tableAliasQuoteCharacter: '|', fieldAliasQuoteCharacter: '~' })
             .from("students", "s")
             .field("name", "Student name")
+            .toString()
         );
 
         /*   SELECT name AS ~Student name~ FROM students |s|  */
@@ -1191,10 +1237,11 @@
       <p>And you can turn off automatic alias quoting if you so desire:</p>
 
       <pre class="brush: js">
-        alert(
+        log(
           squel.select({ autoQuoteAliasNames: false })
             .from("students", "s")
             .field("name", "Student_name")
+            .toString()
         );
 
         /*   SELECT name AS Student_name FROM students s  */
@@ -1209,11 +1256,12 @@
         example:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .from("students")
                     .where("(id < 500 AND (id > 100 OR name <> 'Thomas') AND "
                             + "(age BETWEEN 20 AND 25 OR (name <> 'Fred'))) OR (nickname = 'Hardy')")
+                    .toString()
             );
             /*  SELECT * FROM students WHERE
                     ((id < 500 AND (id > 100 OR name <> 'Thomas') AND (age BETWEEN 20 AND 25 OR (name <> 'Fred')))
@@ -1231,7 +1279,7 @@
       <p>To build the above expression string these are the calls you would make:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.expr()
                     .and("id < 500")
                     .and_begin()
@@ -1243,6 +1291,7 @@
                         .or("name <> 'Fred'")
                     .end()
                     .or("nickname = 'Hardy'")
+                    .toString()
             );
             /*  id < 500 AND (id > 100 OR name <> 'Thomas') AND (age BETWEEN 20 AND 25 OR name <> 'Fred')
                     OR nickname = 'Hardy'
@@ -1258,7 +1307,7 @@
         <code>join()</code> when using the query builders:</p>
 
         <pre class="brush: js">
-            alert(
+            log(
                 squel.select()
                     .field("s.id")
                     .from("students", "s")
@@ -1275,6 +1324,7 @@
                             .and("s.id = t.sid")
                             .and("t.name = 'Frances'")
                     )
+                    .toString()
             );
             /*
                 SELECT s.id FROM students `s`
@@ -1286,15 +1336,15 @@
       <p>Expressions can be parameterized too:</p>
 
         <pre class="brush: js">
-            alert(JSON.stringify(
+            log(
                 squel.expr()
                     .and("s.name <> ?", 'Fred')
                     .or_begin()
                         .or("s.id = ?", 5)
                         .or("s.id = ?", 6)
                     .end()
-                    .toParam()
-            ));
+                    .toParam()                    
+            );
             /*
                 { 
                     "text": "s.name <> ? AND (s.id = ? OR s.id = ?))", 
@@ -1314,11 +1364,12 @@
             var myDate = new Date(2012, 4, 22),
                 myDate2 = new Date(2013, 5, 30);
 
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("start_date", myDate.getFullYear() + '-' + (myDate.getMonth()+1) + '-' + myDate.getDate())
                     .set("end_date", myDate2.getFullYear() + '-' + (myDate2.getMonth()+1) + '-' + myDate2.getDate())
+                    .toString()
             );
             /*  UPDATE students SET start_date = '2012-5-22', end_date = '2013-6-30' */
       </pre>
@@ -1333,16 +1384,17 @@
 
             /* Tell Squel how to handle Date objects */
             squel.registerValueHandler(Date, function(date) {
-              return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
+              return '"' + date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + '"';
             });
 
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("start_date", myDate)
                     .set("end_date", myDate2)
+                    .toString()
             );
-            /*  UPDATE students SET start_date = '2012-5-22', end_date = '2013-6-30' */
+            /*  UPDATE students SET start_date = ("2012-5-22"), end_date = ("2013-6-30") */
       </pre>
 
       <p>We can register any type of object as a custom value type, not just <code>Date</code>. Squel checks to see if
@@ -1369,12 +1421,13 @@
               return obj.a;
             });
 
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("value", new ClassB())
+                    .toString()
             );
-            /*  UPDATE students SET value = 2 */
+            /*  UPDATE students SET value = (2) */
       </pre>
 
       <p>We can even register handlers for primitive types such as strings and booleans. Simply pass in the 
@@ -1385,12 +1438,13 @@
               return v ? 'YES': 'NO';
             });
 
-            alert(
+            log(
                 squel.update()
                     .table("students")
                     .set("value", true)
+                    .toString()
             );
-            /*  UPDATE students SET value = 'YES' */
+            /*  UPDATE students SET value = (YES) */
       </pre>
 
       <p>We can even override the registered handler for a value type on a per-instance basis.</p>
@@ -1401,15 +1455,16 @@
               return date.getFullYear();
             });
 
-            alert(
+            log(
               squel.update()
                 .registerValueHandler(Date, function(date) {
-                  return '[' + date.getFullYear() + ']';
+                  return '"[' + date.getFullYear() + ']"';
                 })
                 .table('students')
                 .set('value', new Date(2013,5,1))
+                .toString()
             );
-            /*  UPDATE students SET value = '[2013]' */
+            /*  UPDATE students SET value = ("[2013]") */
       </pre>
 
       <p>Custom value types are processed correctly for parameterised queries:</p>
@@ -1423,13 +1478,13 @@
               return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
             });
 
-            alert(JSON.stringify(
+            log(
                 squel.select()
                     .from("students")
                     .where("start_date >= ?", myDate)
                     .where("end_date <= ?", myDate2)
                     .toParam()
-            ));
+            );
 
             /*  
             {
@@ -1461,12 +1516,13 @@
           ]);
         };
 
-        alert(
+        log(
           squel.myupdate()
             .table('students')
             .set('status', 'active')
             .limit(10)
             .offset(2)
+            .toString()
         );
 
         /* UPDATE students SET status = 'active' OFFSET 2 LIMIT 10 */
@@ -1545,10 +1601,11 @@
 
         /* Try it out! */
 
-        alert(
+        log(
           squel.pragma()
             .flush()
             .param('students')
+            .toString()
         );
 
         /* 'PRAGMA FLUSH students' */
@@ -1567,11 +1624,11 @@
 
           var select2 = select1.clone().field('id').where('name = "david"');
 
-          alert( select1 );
+          log( select1.toString() );
 
           /* SELECT * FROM students */
 
-          alert( select2 );
+          log( select2.toString() );
 
           /* SELECT id FROM students WHERE (name = "david") */
       </pre>
@@ -1585,11 +1642,11 @@
 
           var insMark = insMathew.clone().set('name', 'Mark');
 
-          alert( insMathew );
+          log( insMathew.toString() );
 
           /* INSERT INTO students (name) VALUES('Mathew') */
 
-          alert( insMark );
+          log( insMark.toString() );
 
           /* INSERT INTO students (name) VALUES('Mark') */
       </pre>
@@ -1615,13 +1672,13 @@
       <pre class="brush: js">
         squelPostgres = squel.useFlavour('postgres');
 
-        alert(JSON.stringify(
+        log(
           squelPostgres.insert()
             .into('table')
             .set('field', 5)
             .returning('*')
             .toParam()
-        ));
+        );
 
         /*  
             {
@@ -1638,7 +1695,7 @@
       <pre class="brush: js">
         squelMysql = squel.useFlavour('mysql');
 
-        alert(JSON.stringify(
+        log(
           squelMysql.insert()
             .into('table')
             .setFields({
@@ -1647,7 +1704,7 @@
             })
             .onDupUpdate('field1', 'upd')
             .toParam()
-        ));
+        );
 
         /*  
             {
@@ -1664,7 +1721,7 @@
       <pre class="brush: js">
         squelMssql = squel.useFlavour('mssql');
 
-        alert(
+        log(
           squelMssql.insert()
             .into('table')
             .setFields({
@@ -1674,16 +1731,16 @@
         );
 
         /*  
-            INSERT INTO table (field1) VALUES('2012-12-12 4:30:0')
+            INSERT INTO table (field1) VALUES(('2012-12-12 4:30:0'))
         */
       </pre>
 
         <p>TOP:</p>
 
       <pre class="brush: js">
-        squelMysql squel.useFlavour('mssql');
+        squelMysql = squel.useFlavour('mssql');
 
-        alert(
+        log(
           squelMysql.select()
             .from('table')
             .field('field')
@@ -1701,7 +1758,7 @@
       <pre class="brush: js">
         squelMysql = squel.useFlavour('mssql');
 
-        alert(
+        log(
           squelMysql.select()
             .from('table')
             .field('field')
@@ -1720,10 +1777,10 @@
       <pre class="brush: js">
         squelMssql = squel.useFlavour('mssql');
 
-        alert(
+        log(
           squelMssql.update()
             .table('table')
-            .output('id', 'blah')
+            .log('id', 'blah')
             .set('field', 1)
             .toString()
         );
@@ -1736,10 +1793,10 @@
       <pre class="brush: js">
         squelMssql = squel.useFlavour('mssql');
 
-        alert(
+        log(
           squelMssql.insert()
             .into('table')
-            .output('id')
+            .log('id')
             .set('field', 1)
             .toString()
         );

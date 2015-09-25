@@ -2,13 +2,43 @@
 
 function enableRunnableSections() {
   $(".syntaxhighlighter").each(function(){
-    var elem = $(this);
-    var code = $("table", elem).text();
-    if (elem.hasClass("js") && 0 <= code.indexOf("alert")) {
-      elem.addClass("executable").attr("title", "Click to run");
-      elem.click(function(e) {
+    var $elem = $(this),
+      $codeContainer = $("table", $elem);
+
+    var code = $codeContainer.text();
+    if ($elem.hasClass("js") && 0 <= code.indexOf("log(")) {
+      $elem.addClass("executable").attr("title", "Click to run");
+      $elem.click(function(e) {
         e.preventDefault();
-        eval(code);
+
+        // remove previous result
+        $('.result', $elem).remove();
+
+        // capture output
+        var loggedCode = '(function(){ var __log = []; var log = function(obj) { __log.push(obj); };'
+          + code
+          + '; return __log;})();';
+
+        var result = eval(loggedCode);
+
+        // build result view
+        var $result = $("<div class='result'><h5>Result</h5></div>");
+        result.forEach(function(res) {
+          if ('string' !== typeof res) {
+            if (res.text && res.values) {
+              res = "{\n text: " + JSON.stringify(res.text) + ",\n values: " + JSON.stringify(res.values) + "\n}";
+            } else {
+              res = JSON.stringify(res, null, 2);
+            }
+          }
+
+          res = res.replace(/\n/g, '<br />');
+
+          $result.append("<p>" + res + "</p>");
+        });
+
+        // show result view
+        $codeContainer.after($result);
       });
     }
   });

@@ -131,6 +131,22 @@ div.executable:hover {
   outline: 2px solid #65cdfa;
 }
 
+div.executable > .result {
+  background-color: #fff !important;
+  padding: 0.2em 0.5em !important;
+  margin-top: 0.5em !important;
+  -webkit-border-radius: 5px !important;
+  -moz-border-radius: 5px !important;
+  -ms-border-radius: 5px !important;
+  -o-border-radius: 5px !important;
+  border-radius: 5px !important;
+}
+
+div.executable > .result h5 {
+  font-weight: bold;
+  margin: 0.2em 0;
+}
+
 .white_text {
   color: #fff;
 }
