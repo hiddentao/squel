@@ -204,7 +204,7 @@ specific object types to be handled:
 ```javascript
 // handler for objects of type Date
 squel.registerValueHandler(Date, function(date) {
-  return date.getFullYear() + '/' + date.getMonth() + '/' + date.getDate();
+  return date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
 });
 
 squel.update().
@@ -212,7 +212,7 @@ squel.update().
   .set('start_date', new Date(2013, 5, 1))
   .toString()
 
-// UPDATE students SET start_date = '2013/5/1'
+// UPDATE students SET start_date = '2013/6/1'
 ```
 
 
