@@ -1780,7 +1780,7 @@
         log(
           squelMssql.update()
             .table('table')
-            .log('id', 'blah')
+            .output('id', 'blah')
             .set('field', 1)
             .toString()
         );
@@ -1796,7 +1796,7 @@
         log(
           squelMssql.insert()
             .into('table')
-            .log('id')
+            .output('id')
             .set('field', 1)
             .toString()
         );
