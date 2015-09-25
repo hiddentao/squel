@@ -1965,7 +1965,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       QueryBuilder.prototype.toParam = function(options) {
-        var block, blocks, i, old, regex, result, _ref6;
+        var block, blocks, i, old, regex, result, _ref6,
+          _this = this;
         if (options == null) {
           options = void 0;
         }
@@ -2015,7 +2016,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             }
             regex = new RegExp("\\" + this.options.parameterCharacter, 'g');
             result.text = result.text.replace(regex, function() {
-              return "$" + (i++);
+              return "" + _this.options.numberedParametersPrefix + (i++);
             });
           }
         }

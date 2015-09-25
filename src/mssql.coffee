@@ -39,6 +39,7 @@ squel.flavours['mssql'] = (_squel) ->
 
   cls.DefaultQueryBuilderOptions.replaceSingleQuotes = true
   cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false
+  cls.DefaultQueryBuilderOptions.numberedParametersPrefix = '@'
 
 
   _squel.registerValueHandler Date, (date) ->

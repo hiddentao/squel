@@ -151,7 +151,7 @@ test['MSSQL flavour'] =
       valueHandlers: []
       parameterCharacter: '?'
       numberedParameters: false
-      numberedParametersPrefix: '$'
+      numberedParametersPrefix: '@'
       numberedParametersStartAt: 1
       replaceSingleQuotes: true
       singleQuoteReplacement: '\'\''

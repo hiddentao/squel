@@ -1567,7 +1567,7 @@ _buildSquel = ->
           i = 1
           i = @options.numberedParametersStartAt if @options.numberedParametersStartAt?
           regex = new RegExp("\\" + @options.parameterCharacter, 'g')
-          result.text = result.text.replace regex, () -> return "$#{i++}"
+          result.text = result.text.replace regex, () => "#{@options.numberedParametersPrefix}#{i++}"
       @options = old
       result
 

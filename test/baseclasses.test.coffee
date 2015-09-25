@@ -897,6 +897,19 @@ test['QueryBuilder base class'] =
 
       assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
 
+    'returns query with numbered parameters and custom prefix': ->
+      @inst = new @cls
+        numberedParameters: true
+        numberedParametersPrefix: '&%'
+
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
+
+      test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+
+      assert.same { text: 'a = &%1 AND b in (&%2, &%3)', values: [1, 2, 3]}, @inst.toParam()
+
 
   'cloning':
     'blocks get cloned properly': ->
