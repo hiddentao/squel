@@ -41,6 +41,20 @@ _without = (obj, properties...) ->
   dst
 
 
+# Clone given item
+_clone = (src) ->  
+  if 'function' is typeof src.clone
+    src.clone()
+  else if 'object' is typeof src
+    ret = {}
+    for key in src
+      if 'function' isnt typeof src[key]
+        ret[key] = _clone(src[key])
+    ret
+  else
+    JSON.parse(JSON.stringify(src))
+
+
 # Register a value type handler
 #
 # Note: this will override any existing handler registered for this value type.
@@ -137,9 +151,9 @@ _buildSquel = ->
   class cls.Cloneable
     # Clone this builder
     clone: ->
-      newInstance = new @constructor;
+      newInstance = new @constructor
       # Fast deep copy using JSON conversion, see http://stackoverflow.com/a/5344074
-      _extend newInstance, JSON.parse(JSON.stringify(@))
+      _extend newInstance, _clone(@)
 
 
 
@@ -495,7 +509,7 @@ _buildSquel = ->
         (_cloneTree = (node) ->
           for child in node.nodes
             if child.expr?
-              newInstance.current.nodes.push JSON.parse(JSON.stringify(child))
+              newInstance.current.nodes.push _clone(child)
             else
               newInstance._begin child.type
               _cloneTree child

@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var getValueHandler, registerValueHandler, squel, _buildSquel, _extend, _without,
+  var getValueHandler, registerValueHandler, squel, _buildSquel, _clone, _extend, _without,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -58,6 +58,24 @@ OTHER DEALINGS IN THE SOFTWARE.
       delete dst[p];
     }
     return dst;
+  };
+
+  _clone = function(src) {
+    var key, ret, _i, _len;
+    if ('function' === typeof src.clone) {
+      return src.clone();
+    } else if ('object' === typeof src) {
+      ret = {};
+      for (_i = 0, _len = src.length; _i < _len; _i++) {
+        key = src[_i];
+        if ('function' !== typeof src[key]) {
+          ret[key] = _clone(src[key]);
+        }
+      }
+      return ret;
+    } else {
+      return JSON.parse(JSON.stringify(src));
+    }
   };
 
   registerValueHandler = function(handlers, type, handler) {
@@ -125,7 +143,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       Cloneable.prototype.clone = function() {
         var newInstance;
         newInstance = new this.constructor;
-        return _extend(newInstance, JSON.parse(JSON.stringify(this)));
+        return _extend(newInstance, _clone(this));
       };
 
       return Cloneable;
@@ -522,7 +540,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             child = _ref[_i];
             if (child.expr != null) {
-              _results.push(newInstance.current.nodes.push(JSON.parse(JSON.stringify(child))));
+              _results.push(newInstance.current.nodes.push(_clone(child)));
             } else {
               newInstance._begin(child.type);
               _cloneTree(child);
