@@ -265,12 +265,34 @@ test['SELECT builder'] =
         assert.same @inst.toParam(), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = ?))) `meh` ON (meh.ID = ID) WHERE (school_type = ?)", "values": [6,'junior'] }
         assert.same @inst.toParam({ "numberedParametersStartAt": 1}), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = $1))) `meh` ON (meh.ID = ID) WHERE (school_type = $2)", "values": [6,'junior'] }
 
-  'cloning': ->
-    newinst = @inst.from('students').limit(10).clone()
-    newinst.limit(20)
+  'cloning':
+    'basic': ->
+      newinst = @inst.from('students').limit(10).clone()
+      newinst.limit(20)
 
-    assert.same 'SELECT * FROM students LIMIT 10', @inst.toString()
-    assert.same 'SELECT * FROM students LIMIT 20', newinst.toString()
+      assert.same 'SELECT * FROM students LIMIT 10', @inst.toString()
+      assert.same 'SELECT * FROM students LIMIT 20', newinst.toString()
+
+    'with expressions (ticket #120)': ->
+      expr = squel.expr().and('a = 1')
+      newinst = @inst.from('table').left_join('table_2', 't', expr)
+        .clone()
+        .where('c = 1')
+      
+      expr.and('b = 2')
+
+      assert.same 'SELECT * FROM table LEFT JOIN table_2 `t` ON (a = 1 AND b = 2)', @inst.toString()
+      assert.same 'SELECT * FROM table LEFT JOIN table_2 `t` ON (a = 1) WHERE (c = 1)', newinst.toString()
+
+    'with sub-queries (ticket #120)': ->
+      newinst = @inst.from(squel.select().from('students')).limit(30)
+        .clone()
+        .where('c = 1')
+        .limit(35)
+      
+      assert.same 'SELECT * FROM (SELECT * FROM students) LIMIT 30', @inst.toString()
+      assert.same 'SELECT * FROM (SELECT * FROM students) WHERE (c = 1) LIMIT 35', newinst.toString()
+
 
   'is nestable': ->
     assert.same true, @inst.isNestable()
