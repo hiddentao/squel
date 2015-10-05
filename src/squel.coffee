@@ -40,7 +40,6 @@ _without = (obj, properties...) ->
     delete dst[p]
   dst
 
-
 # Clone given item
 _clone = (src) ->  
   if 'function' is typeof src.clone
@@ -153,7 +152,7 @@ _buildSquel = ->
     clone: ->
       newInstance = new @constructor
       # Fast deep copy using JSON conversion, see http://stackoverflow.com/a/5344074
-      _extend newInstance, _clone(@)
+      _extend newInstance, _clone(_extend({}, @))
 
 
 

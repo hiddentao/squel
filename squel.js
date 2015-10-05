@@ -143,7 +143,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       Cloneable.prototype.clone = function() {
         var newInstance;
         newInstance = new this.constructor;
-        return _extend(newInstance, _clone(this));
+        return _extend(newInstance, _clone(_extend({}, this)));
       };
 
       return Cloneable;

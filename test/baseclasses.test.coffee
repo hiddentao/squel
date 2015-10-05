@@ -64,7 +64,6 @@ test['Cloneable base class'] =
     assert.same copy.f, { a: 1 }
 
 
-
 test['Default query builder options'] =
   'default options': ->
     assert.same {
