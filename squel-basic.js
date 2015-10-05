@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 (function() {
-  var getValueHandler, registerValueHandler, squel, _buildSquel, _clone, _extend, _without,
+  var getValueHandler, registerValueHandler, squel, _buildSquel, _clone, _extend, _isArray, _isPlainObject,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -49,27 +49,28 @@ OTHER DEALINGS IN THE SOFTWARE.
     return dst;
   };
 
-  _without = function() {
-    var dst, obj, p, properties, _i, _len;
-    obj = arguments[0], properties = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    dst = _extend({}, obj);
-    for (_i = 0, _len = properties.length; _i < _len; _i++) {
-      p = properties[_i];
-      delete dst[p];
-    }
-    return dst;
+  _isPlainObject = function(obj) {
+    return obj.constructor.prototype === Object.prototype;
+  };
+
+  _isArray = function(obj) {
+    return obj.constructor.prototype === Array.prototype;
   };
 
   _clone = function(src) {
-    var key, ret, _i, _len;
+    var k, ret, v;
+    if (!src) {
+      return src;
+    }
     if ('function' === typeof src.clone) {
       return src.clone();
-    } else if ('object' === typeof src) {
-      ret = {};
-      for (_i = 0, _len = src.length; _i < _len; _i++) {
-        key = src[_i];
-        if ('function' !== typeof src[key]) {
-          ret[key] = _clone(src[key]);
+    } else if (_isPlainObject(src) || _isArray(src)) {
+      ret = new src.constructor;
+      for (k in src) {
+        if (!__hasProp.call(src, k)) continue;
+        v = src[k];
+        if ('function' !== typeof v) {
+          ret[k] = _clone(v);
         }
       }
       return ret;

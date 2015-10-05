@@ -26,29 +26,35 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 # Extend given object's with other objects' properties, overriding existing ones if necessary
 _extend = (dst, sources...) ->
-    if sources
-        for src in sources
-            if src
-                for own k,v of src
-                    dst[k] = v
-    dst
-
-# Get a copy of given object with given properties removed
-_without = (obj, properties...) ->
-  dst = _extend {}, obj
-  for p in properties
-    delete dst[p]
+  if sources
+    for src in sources
+        if src
+          for own k,v of src
+            dst[k] = v
   dst
+
+
+# get whether object is a plain object
+_isPlainObject = (obj) ->
+  (obj.constructor.prototype is Object.prototype)
+
+# get whether object is an array
+_isArray = (obj) ->
+  (obj.constructor.prototype is Array.prototype)
+
 
 # Clone given item
 _clone = (src) ->  
+  # guard
+  return src if not src
+
   if 'function' is typeof src.clone
     src.clone()
-  else if 'object' is typeof src
-    ret = {}
-    for key in src
-      if 'function' isnt typeof src[key]
-        ret[key] = _clone(src[key])
+  else if _isPlainObject(src) or _isArray(src)
+    ret = new (src.constructor)
+    for own k, v of src
+      if 'function' isnt typeof v
+        ret[k] = _clone(v)
     ret
   else
     JSON.parse(JSON.stringify(src))
