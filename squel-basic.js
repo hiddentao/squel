@@ -1622,7 +1622,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       LimitBlock.prototype.buildStr = function(queryBuilder) {
-        if (this.limits) {
+        if (this.limits || this.limits === 0) {
           return "LIMIT " + this.limits;
         } else {
           return "";

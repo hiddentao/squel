@@ -44,7 +44,7 @@ _isArray = (obj) ->
 
 
 # Clone given item
-_clone = (src) ->  
+_clone = (src) ->
   # guard
   return src if not src
 
@@ -1307,7 +1307,7 @@ _buildSquel = ->
 
 
     buildStr: (queryBuilder) ->
-      if @limits then "LIMIT #{@limits}" else ""
+      if @limits || @limits == 0 then "LIMIT #{@limits}" else ""
 
 
 
