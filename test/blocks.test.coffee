@@ -1810,9 +1810,9 @@ test['Blocks'] =
         @inst.limits = null
         assert.same '', @inst.buildStr()
 
-      'output nothing if set to 0': ->
+      'output LIMIT if set to 0': ->
         @inst.limit(0)
-        assert.same '', @inst.buildStr()
+        assert.same 'LIMIT 0', @inst.buildStr()
 
       'output LIMIT': ->
         @inst.limit(12)
