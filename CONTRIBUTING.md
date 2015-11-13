@@ -22,7 +22,7 @@ We will only accept a merge requests which meets the following criteria:
 * Doesn't add unnessecary configuration options since they complicate future changes
 
 
-## Release process
+## Release process (for core contributors)
 
 To publish a new release:
 
