@@ -1307,7 +1307,7 @@ _buildSquel = ->
 
 
     buildStr: (queryBuilder) ->
-      if @limits then "LIMIT #{@limits}" else ""
+      if @limits || @limits == 0 then "LIMIT #{@limits}" else ""
 
 
 
