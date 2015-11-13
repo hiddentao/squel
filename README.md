@@ -1,6 +1,6 @@
 # squel - SQL query string builder
 
-[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png?branch=master)](http://travis-ci.org/hiddentao/squel) [![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel)
+[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png?branch=master)](http://travis-ci.org/hiddentao/squel) [![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel) [![Join the chat at https://gitter.im/hiddentao/squel](https://img.shields.io/badge/gitter-join%20chat-blue.svg)](https://gitter.im/hiddentao/squel)
 
 A flexible and powerful SQL query string builder for Javascript.
 
