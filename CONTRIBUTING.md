@@ -30,7 +30,7 @@ To publish a new release:
 * Run `npm build` to rebuild the final JS output and run the tests.
 * Update `CHANGELOG.md` with the changes.
 * Git commit and push to Github.
-* Wait for [Travis CI build]() to succeed.
+* Wait for [Travis CI build](http://travis-ci.org/hiddentao/squel) to succeed.
 * Create a git tag for the version number
 * Git push the tag to github.
 * Run `npm publish`.
