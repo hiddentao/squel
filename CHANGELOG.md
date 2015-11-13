@@ -5,6 +5,9 @@
 * Guide docs now print results below code
 * Re-instituted CHANGELOG.md
 
+## 13 Nov 2015 (4.2.2)
+* Merged #191
+
 ## 30 Aug 2014 (3.8.1)
 * #90 - custom value handlers with primitives
 * #87 - OrderBlock not compatible by values

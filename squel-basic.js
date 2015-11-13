@@ -2143,7 +2143,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     })(cls.QueryBuilder);
     _squel = {
-      VERSION: '4.2.1',
+      VERSION: '4.2.2',
       expr: function(options) {
         return new cls.Expression(options);
       },
