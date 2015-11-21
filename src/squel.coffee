@@ -92,7 +92,7 @@ getValueHandler = (value, handlerLists...) ->
 
 
 # Build base squel classes and methods
-_buildSquel = ->
+_buildSquel = (flavour = null) ->
   # Holds classes
   cls = {}
 
@@ -1682,6 +1682,7 @@ _buildSquel = ->
 
   _squel =
     VERSION: '<<VERSION_STRING>>'
+    flavour: flavour
     expr: (options) -> new cls.Expression(options)
     # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
     select: (options, blocks) -> new cls.Select(options, blocks)
@@ -1735,7 +1736,7 @@ squel.useFlavour = (flavour = null) ->
   return squel if not flavour
 
   if squel.flavours[flavour] instanceof Function
-    s = _buildSquel()
+    s = _buildSquel(flavour)
     squel.flavours[flavour].call null, s
     return s
   else
