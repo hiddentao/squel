@@ -1,9 +1,10 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## ??? (4.3.0)
+## 20 Jan 2016 (4.2.3)
 * Placeholder parameter character is now configurable
 * Guide docs now print results below code
 * Re-instituted CHANGELOG.md
+* Can now get current flavour of Squel using `flavour` prop
 
 ## 13 Nov 2015 (4.2.2)
 * Merged #191
