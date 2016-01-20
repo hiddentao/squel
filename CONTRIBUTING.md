@@ -20,17 +20,9 @@ We will only accept a merge requests which meets the following criteria:
 * Keeps the Squel code base clean and well structured
 * Contains functionality we think other users will benefit from too
 * Doesn't add unnessecary configuration options since they complicate future changes
+* Update the docs in the `gh-pages` branch and in the master `README.md` if necessary
 
 
 ## Release process (for core contributors)
 
-To publish a new release:
-
-* Update version in `package.json` and `bower.json`.
-* Run `npm build` to rebuild the final JS output and run the tests.
-* Update `CHANGELOG.md` with the changes.
-* Git commit and push to Github.
-* Wait for [Travis CI build](http://travis-ci.org/hiddentao/squel) to succeed.
-* Create a git tag for the version number
-* Git push the tag to github.
-* Run `npm publish`.
+See `RELEASE.md`.

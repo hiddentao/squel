@@ -329,10 +329,14 @@ To build the code and run the tests:
     $ npm install
     $ grunt <-- this will build the code and run the tests
 
+## Releasing it
+
+Instructions for creating a new release of squel are in `RELEASE.md`.
+
 
 ## Contributing
 
-Contributions are welcome! Please see CONTRIBUTING.md.
+Contributions are welcome! Please see `CONTRIBUTING.md`.
 
 
 ## Ports to other languages
