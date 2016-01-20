@@ -31,6 +31,8 @@ test = testCreator()
 test['Version number'] =
   assert.same squel.VERSION, require('../package.json').version
 
+test['Default flavour'] =
+  assert.isNull squel.flavour
 
 test['Cloneable base class'] =
   '>> clone()': ->
@@ -180,6 +182,12 @@ test['Load an SQL flavour'] =
     assert.same ret.cls.dummy, undefined
     assert.same ret.cls.dummy2, undefined
 
+  'can get current flavour': ->
+    flavour = 'test'
+    squel.flavours[flavour] = test.mocker.spy()
+
+    ret = squel.useFlavour flavour
+    assert.same ret.flavour, flavour
 
 test['Builder base class'] =
   beforeEach: ->

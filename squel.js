@@ -115,8 +115,11 @@ OTHER DEALINGS IN THE SOFTWARE.
     return void 0;
   };
 
-  _buildSquel = function() {
+  _buildSquel = function(flavour) {
     var cls, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _squel;
+    if (flavour == null) {
+      flavour = null;
+    }
     cls = {};
     cls.DefaultQueryBuilderOptions = {
       autoQuoteTableNames: false,
@@ -2144,6 +2147,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     })(cls.QueryBuilder);
     _squel = {
       VERSION: '4.2.2',
+      flavour: flavour,
       expr: function(options) {
         return new cls.Expression(options);
       },
@@ -2192,7 +2196,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return squel;
     }
     if (squel.flavours[flavour] instanceof Function) {
-      s = _buildSquel();
+      s = _buildSquel(flavour);
       squel.flavours[flavour].call(null, s);
       return s;
     } else {
