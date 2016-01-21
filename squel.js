@@ -2280,7 +2280,11 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (blocks == null) {
           blocks = null;
         }
-        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)]);
+        blocks || (blocks = [
+          new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
+            allowNested: true
+          })), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)
+        ]);
         Update.__super__.constructor.call(this, options, blocks);
       }
 

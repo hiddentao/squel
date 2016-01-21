@@ -63,6 +63,7 @@ squel.flavours['postgres'] = (_squel) ->
         new cls.StringBlock(options, 'UPDATE')
         new cls.UpdateTableBlock(options)
         new cls.SetFieldBlock(options)
+        new cls.FromTableBlock(_extend({}, options, { allowNested: true }))
         new cls.WhereBlock(options)
         new cls.OrderByBlock(options)
         new cls.LimitBlock(options)
