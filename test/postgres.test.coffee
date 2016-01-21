@@ -61,6 +61,11 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING field'
 
+    '>> table(table).set(field, 1).from(table2)':
+      beforeEach: -> @upd.table('table').set('field', 1).from('table2')
+      toString: ->
+        assert.same @upd.toString(), 'UPDATE table SET field = 1 FROM table2'
+
   'DELETE builder':
     beforeEach: -> @del = squel.delete()
 
