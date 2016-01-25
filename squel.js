@@ -2291,7 +2291,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       return Update;
 
     })(cls.QueryBuilder);
-    return cls.Delete = (function(_super) {
+    cls.Delete = (function(_super) {
       __extends(Delete, _super);
 
       function Delete(options, blocks) {
@@ -2309,6 +2309,78 @@ OTHER DEALINGS IN THE SOFTWARE.
       return Delete;
 
     })(cls.QueryBuilder);
+    return cls.OrderByBlock = (function(_super) {
+      __extends(OrderByBlock, _super);
+
+      function OrderByBlock(options) {
+        OrderByBlock.__super__.constructor.call(this, options);
+        this.orders = [];
+        this._values = [];
+      }
+
+      OrderByBlock.prototype.order = function() {
+        var asc, field, nullsOrder, values;
+        field = arguments[0], asc = arguments[1], nullsOrder = arguments[2], values = 4 <= arguments.length ? __slice.call(arguments, 3) : [];
+        field = this._sanitizeField(field);
+        if (asc === void 0) {
+          asc = true;
+        }
+        if (asc !== null) {
+          asc = !!asc;
+        }
+        nullsOrder = nullsOrder || null;
+        this._values = values;
+        return this.orders.push({
+          field: field,
+          dir: asc,
+          nullsOrder: nullsOrder
+        });
+      };
+
+      OrderByBlock.prototype._buildStr = function(toParam) {
+        var c, fstr, idx, o, orders, pIndex, _i, _j, _len, _ref, _ref1;
+        if (toParam == null) {
+          toParam = false;
+        }
+        if (0 < this.orders.length) {
+          pIndex = 0;
+          orders = "";
+          _ref = this.orders;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            o = _ref[_i];
+            if ("" !== orders) {
+              orders += ", ";
+            }
+            fstr = "";
+            if (!toParam) {
+              for (idx = _j = 0, _ref1 = o.field.length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; idx = 0 <= _ref1 ? ++_j : --_j) {
+                c = o.field.charAt(idx);
+                if (this.options.parameterCharacter === c) {
+                  fstr += this._formatValue(this._values[pIndex++]);
+                } else {
+                  fstr += c;
+                }
+              }
+            } else {
+              fstr = o.field;
+            }
+            orders += "" + fstr;
+            if (o.nullsOrder !== null && typeof o.nullsOrder === 'string') {
+              orders += " NULLS " + o.nullsOrder;
+            }
+            if (o.dir !== null) {
+              orders += " " + (o.dir ? 'ASC' : 'DESC');
+            }
+          }
+          return "ORDER BY " + orders;
+        } else {
+          return "";
+        }
+      };
+
+      return OrderByBlock;
+
+    })(cls.Block);
   };
 
   /*
