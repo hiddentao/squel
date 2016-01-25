@@ -84,3 +84,59 @@ squel.flavours['postgres'] = (_squel) ->
         new cls.ReturningBlock(options)
       ]
       super options, blocks
+
+  # ORDER BY
+  class cls.OrderByBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @orders = []
+      @_values = []
+
+    # Add an ORDER BY transformation for the given field in the given order.
+    #
+    # To specify descending order pass false for the 'asc' parameter.
+    order: (field, asc, nullsOrder, values...) ->
+      field = @_sanitizeField(field)
+
+      asc = true if asc is undefined
+      asc = !!asc if asc isnt null
+
+      nullsOrder = nullsOrder or null
+
+      @_values = values
+
+      @orders.push
+        field: field
+        dir: asc
+        nullsOrder: nullsOrder
+
+    _buildStr: (toParam = false) ->
+      if 0 < @orders.length
+        pIndex = 0
+        orders = ""
+        for o in @orders
+          orders += ", " if "" isnt orders
+
+          fstr = ""
+
+          if not toParam
+            for idx in [0...o.field.length]
+              c = o.field.charAt(idx)
+              if @options.parameterCharacter is c
+                fstr += @_formatValue( @_values[pIndex++] )
+              else
+                fstr += c
+          else
+            fstr = o.field
+
+          orders += "#{fstr}"
+
+          if o.nullsOrder isnt null and typeof o.nullsOrder == 'string'
+            orders += " NULLS #{o.nullsOrder}"
+
+          if o.dir isnt null
+            orders += " #{if o.dir then 'ASC' else 'DESC'}"
+
+        "ORDER BY #{orders}"
+      else
+        ""
