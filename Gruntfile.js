@@ -66,6 +66,7 @@ module.exports = function (grunt) {
         src: [
           'test/baseclasses.test.coffee',
           'test/blocks.test.coffee',
+          'test/case.test.coffee',
           'test/custom.test.coffee',
           'test/delete.test.coffee',
           'test/expressions.test.coffee',

@@ -50,6 +50,9 @@ OTHER DEALINGS IN THE SOFTWARE.
   };
 
   _isPlainObject = function(obj) {
+    if (!obj) {
+      return false;
+    }
     return obj.constructor.prototype === Object.prototype;
   };
 
@@ -563,6 +566,104 @@ OTHER DEALINGS IN THE SOFTWARE.
       return Expression;
 
     })(cls.BaseBuilder);
+    cls.Case = (function(_super) {
+      __extends(Case, _super);
+
+      Case.prototype.cases = null;
+
+      Case.prototype.elseValue = null;
+
+      function Case(fieldName, options) {
+        var defaults;
+        if (options == null) {
+          options = {};
+        }
+        Case.__super__.constructor.call(this);
+        if (_isPlainObject(fieldName)) {
+          options = fieldName;
+          fieldName = null;
+        }
+        if (fieldName) {
+          this.fieldName = this._sanitizeField(fieldName);
+        }
+        defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+        this.options = _extend({}, defaults, options);
+        this.cases = [];
+      }
+
+      Case.prototype['when'] = function() {
+        var expression, values;
+        expression = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+        this.cases.unshift({
+          expression: expression,
+          values: values
+        });
+        return this;
+      };
+
+      Case.prototype['then'] = function(result) {
+        if (this.cases.length === 0) {
+          throw new Error("when() needs to be called first");
+        }
+        this.cases[0].result = result;
+        return this;
+      };
+
+      Case.prototype['else'] = function(elseValue) {
+        this.elseValue = elseValue;
+        return this;
+      };
+
+      Case.prototype.toString = function() {
+        return this._toString(this.cases, this.elseValue);
+      };
+
+      Case.prototype.toParam = function() {
+        return this._toString(this.cases, this.elseValue, true);
+      };
+
+      Case.prototype._toString = function(cases, elseValue, paramMode) {
+        var str, values,
+          _this = this;
+        if (paramMode == null) {
+          paramMode = false;
+        }
+        if (cases.length === 0) {
+          return this._formatValue(elseValue);
+        }
+        values = [];
+        cases = cases.map(function(part) {
+          var condition, str;
+          condition = new cls.AbstractConditionBlock("WHEN");
+          condition._condition.apply(condition, [part.expression].concat(part.values));
+          str = '';
+          if (!paramMode) {
+            str = condition.buildStr();
+          } else {
+            condition = condition.buildParam();
+            str = condition.text;
+            values = values.concat(condition.values);
+          }
+          return str + ' THEN ' + _this._formatValue(part.result);
+        });
+        str = cases.join(" ") + ' ELSE ' + this._formatValue(elseValue) + ' END';
+        if (this.fieldName) {
+          str = this.fieldName + " " + str;
+        }
+        str = "CASE " + str;
+        if (paramMode) {
+          return {
+            text: str,
+            values: values
+          };
+        } else {
+          return str;
+        }
+      };
+
+      return Case;
+
+    })(cls.BaseBuilder);
     cls.Block = (function(_super) {
       __extends(Block, _super);
 
@@ -915,45 +1016,94 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       GetFieldBlock.prototype.field = function(field, alias, options) {
+        var fieldRec;
         if (alias == null) {
           alias = null;
         }
         if (options == null) {
           options = {};
         }
-        field = this._sanitizeField(field, options);
         if (alias) {
           alias = this._sanitizeFieldAlias(alias);
         }
         if (this._fieldAliases[field] === alias) {
           return;
         }
-        this._fieldAliases[field] = alias;
-        return this._fields.push({
-          name: field,
+        fieldRec = {
           alias: alias
-        });
+        };
+        if (field instanceof cls.Case) {
+          fieldRec.func = field;
+        } else {
+          fieldRec.name = this._sanitizeField(field, options);
+        }
+        if (options.aggreagtion) {
+          fieldRec.aggreagtion = options.aggreagtion;
+        }
+        this._fieldAliases[field] = alias;
+        return this._fields.push(fieldRec);
       };
 
       GetFieldBlock.prototype.buildStr = function(queryBuilder) {
-        var field, fields, _i, _len, _ref4;
+        return this._build(queryBuilder);
+      };
+
+      GetFieldBlock.prototype.buildParam = function(queryBuilder) {
+        return this._build(queryBuilder, true);
+      };
+
+      GetFieldBlock.prototype._build = function(queryBuilder, paramMode) {
+        var caseExpr, field, fields, values, _i, _len, _ref4;
+        if (paramMode == null) {
+          paramMode = false;
+        }
         if (!queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
-          return "";
+          if (paramMode) {
+            return {
+              text: "",
+              values: []
+            };
+          } else {
+            return "";
+          }
         }
         fields = "";
+        values = [];
         _ref4 = this._fields;
         for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
           field = _ref4[_i];
           if ("" !== fields) {
             fields += ", ";
           }
-          fields += field.name;
+          if (field.aggreagtion) {
+            fields += field.aggreagtion + "(";
+          }
+          if (field.func) {
+            if (paramMode) {
+              caseExpr = field.func.toParam();
+              fields += caseExpr.text;
+              values = values.concat(caseExpr.values);
+            } else {
+              fields += field.func.toString();
+            }
+          } else {
+            fields += field.name;
+          }
+          if (field.aggreagtion) {
+            fields += ")";
+          }
           if (field.alias) {
             fields += " AS " + field.alias;
           }
         }
-        if ("" === fields) {
-          return "*";
+        if (fields === "") {
+          fields = "*";
+        }
+        if (paramMode) {
+          return {
+            text: fields,
+            values: values
+          };
         } else {
           return fields;
         }
@@ -2150,6 +2300,9 @@ OTHER DEALINGS IN THE SOFTWARE.
       flavour: flavour,
       expr: function(options) {
         return new cls.Expression(options);
+      },
+      'case': function(name, options) {
+        return new cls.Case(name, options);
       },
       select: function(options, blocks) {
         return new cls.Select(options, blocks);

@@ -87,6 +87,20 @@ test['SELECT builder'] =
         toString: ->
           assert.same @inst.toString(), 'SELECT (SELECT MAX(score) FROM scores) AS "fa1" FROM table, table2 `alias2`'
 
+      '>> field(squel.case().when(score > ?, 1).then(1), fa1)':
+        beforeEach: -> @inst.field(squel.case().when("score > ?", 1).then(1), 'fa1')
+        toString: ->
+          assert.same @inst.toString(), 'SELECT CASE WHEN (score > 1) THEN 1 ELSE NULL END AS "fa1" FROM table, table2 `alias2`'
+        toParam: ->
+          assert.same @inst.toParam(), { text: 'SELECT CASE WHEN (score > ?) THEN 1 ELSE NULL END AS "fa1" FROM table, table2 `alias2`', values: [1] }
+
+      '>> field(squel.case().when(score > ?, 1).then(1), fa1, { aggreagtion : SUM })':
+        beforeEach: -> @inst.field(squel.case().when("score > ?", 1).then(1), 'fa1', { aggreagtion : 'SUM' })
+        toString: ->
+          assert.same @inst.toString(), 'SELECT SUM(CASE WHEN (score > 1) THEN 1 ELSE NULL END) AS "fa1" FROM table, table2 `alias2`'
+        toParam: ->
+          assert.same @inst.toParam(), { text: 'SELECT SUM(CASE WHEN (score > ?) THEN 1 ELSE NULL END) AS "fa1" FROM table, table2 `alias2`', values: [1] }
+
       '>> field(field1, fa1) >> field(field2)':
         beforeEach: -> @inst.field('field1', 'fa1').field('field2')
         toString: ->

@@ -36,6 +36,8 @@ _extend = (dst, sources...) ->
 
 # get whether object is a plain object
 _isPlainObject = (obj) ->
+  if not obj 
+    return false
   (obj.constructor.prototype is Object.prototype)
 
 # get whether object is an array
@@ -527,6 +529,99 @@ _buildSquel = (flavour = null) ->
 
 
 
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # cls.Case
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+
+
+
+  # An SQL CASE expression builder.
+  #
+  # SQL cases are used to select proper values based on specific criteria.
+  #
+  class cls.Case extends cls.BaseBuilder
+
+    # Cases
+    cases: null
+
+    # Else value
+    elseValue: null
+
+    constructor: (fieldName, options = {}) ->
+      super()
+
+      if _isPlainObject(fieldName)
+        options = fieldName
+        fieldName = null
+
+      if fieldName
+        @fieldName = @_sanitizeField( fieldName )
+
+      defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
+      @options = _extend {}, defaults, options
+
+      @cases = []
+
+    'when': (expression, values...) ->
+      @cases.unshift
+        expression: expression,
+        values: values
+      @
+
+    'then': (result) ->
+      if @cases.length == 0
+        throw new Error "when() needs to be called first"
+
+      @cases[0].result = result;
+      @
+
+    'else': (@elseValue) ->
+      @
+
+    # Get the final fully constructed expression string.
+    toString: ->
+      @_toString @cases, @elseValue
+
+    # Get the final fully constructed expression string.
+    toParam: ->
+      @_toString @cases, @elseValue, true
+
+    # Get a string representation of the given expression tree node.
+    _toString: (cases, elseValue, paramMode = false) ->
+      if cases.length == 0 
+        return @_formatValue(elseValue)
+
+      values = []
+      cases = cases.map (part) =>
+        condition = new cls.AbstractConditionBlock("WHEN")
+        condition._condition.apply(condition, [part.expression].concat(part.values))
+        str = ''
+        if not paramMode
+          str = condition.buildStr()
+        else
+          condition = condition.buildParam()
+          str = condition.text
+          values = values.concat(condition.values)
+
+        str + ' THEN ' + @_formatValue(part.result)
+
+      str = cases.join(" ") + ' ELSE ' + @_formatValue(elseValue) + ' END'
+      if @fieldName
+        str = @fieldName + " " + str
+      str = "CASE " + str
+
+      if paramMode
+        return {
+          text: str
+          values: values
+        }
+      else
+        return str
+
+
+
 
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
@@ -812,28 +907,69 @@ _buildSquel = (flavour = null) ->
     #
     # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
     field: (field, alias = null, options = {}) ->
-      field = @_sanitizeField(field, options)
       alias = @_sanitizeFieldAlias(alias) if alias
 
       # if field-alias already present then don't add
       return if @_fieldAliases[field] is alias
 
-      @_fieldAliases[field] = alias
+      fieldRec = {
+        alias : alias
+      }
 
-      @_fields.push
-        name: field
-        alias: alias
+      if field instanceof cls.Case
+        fieldRec.func = field
+      else
+        fieldRec.name = @_sanitizeField(field, options)
+
+      if options.aggreagtion
+        fieldRec.aggreagtion = options.aggreagtion
+
+      @_fieldAliases[field] = alias
+      @_fields.push(fieldRec)
 
     buildStr: (queryBuilder) ->
-      return "" if not queryBuilder.getBlock(cls.FromTableBlock)._hasTable()
+      @_build(queryBuilder)
+
+    buildParam: (queryBuilder) ->
+      @_build(queryBuilder, true)
+
+    _build: (queryBuilder, paramMode = false) ->
+      if not queryBuilder.getBlock(cls.FromTableBlock)._hasTable()
+        if paramMode
+          return {
+            text : "", 
+            values : []
+          }
+        else 
+          return "" 
 
       fields = ""
+      values = []
+
       for field in @_fields
         fields += ", " if "" isnt fields
-        fields += field.name
+        if field.aggreagtion
+          fields += field.aggreagtion + "(";
+        if field.func
+          if paramMode
+            caseExpr = field.func.toParam()
+            fields += caseExpr.text
+            values = values.concat(caseExpr.values)
+          else
+            fields += field.func.toString()
+        else 
+          fields += field.name
+        if field.aggreagtion
+          fields += ")";
         fields += " AS #{field.alias}" if field.alias
 
-      if "" is fields then "*" else fields
+      if fields == ""
+        fields = "*"
+
+      if paramMode 
+        return {text : fields, values : values}
+      else 
+        return fields
 
 
 
@@ -1684,6 +1820,7 @@ _buildSquel = (flavour = null) ->
     VERSION: '<<VERSION_STRING>>'
     flavour: flavour
     expr: (options) -> new cls.Expression(options)
+    'case': (name, options) -> new cls.Case(name, options)
     # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
     select: (options, blocks) -> new cls.Select(options, blocks)
     update: (options, blocks) -> new cls.Update(options, blocks)
