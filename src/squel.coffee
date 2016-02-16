@@ -108,6 +108,8 @@ _buildSquel = (flavour = null) ->
     autoQuoteFieldNames: false
     # If true then alias names will rendered inside quotes. The quote character used is configurable via the `tableAliasQuoteCharacter` and `fieldAliasQuoteCharacter` options.
     autoQuoteAliasNames: true
+    # If true then table alias names will rendered after AS keyword.
+    useAsForTableAliasNames: false
     # The quote character used for when quoting table and field names
     nameQuoteCharacter: '`'
     # The quote character used for when quoting table alias names
@@ -257,7 +259,10 @@ _buildSquel = (flavour = null) ->
       sanitized = @_sanitizeName item, "table alias"
 
       if @options.autoQuoteAliasNames
-        "#{@options.tableAliasQuoteCharacter}#{sanitized}#{@options.tableAliasQuoteCharacter}"
+        sanitized = "#{@options.tableAliasQuoteCharacter}#{sanitized}#{@options.tableAliasQuoteCharacter}"
+
+      if @options.useAsForTableAliasNames
+        "AS #{sanitized}"
       else
         sanitized
 

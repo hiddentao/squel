@@ -128,6 +128,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       autoQuoteTableNames: false,
       autoQuoteFieldNames: false,
       autoQuoteAliasNames: true,
+      useAsForTableAliasNames: false,
       nameQuoteCharacter: '`',
       tableAliasQuoteCharacter: '`',
       fieldAliasQuoteCharacter: '"',
@@ -262,7 +263,10 @@ OTHER DEALINGS IN THE SOFTWARE.
         var sanitized;
         sanitized = this._sanitizeName(item, "table alias");
         if (this.options.autoQuoteAliasNames) {
-          return "" + this.options.tableAliasQuoteCharacter + sanitized + this.options.tableAliasQuoteCharacter;
+          sanitized = "" + this.options.tableAliasQuoteCharacter + sanitized + this.options.tableAliasQuoteCharacter;
+        }
+        if (this.options.useAsForTableAliasNames) {
+          return "AS " + sanitized;
         } else {
           return sanitized;
         }
@@ -2389,6 +2393,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     cls.DefaultQueryBuilderOptions.numberedParameters = true;
     cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1;
     cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
+    cls.DefaultQueryBuilderOptions.useAsForTableAliasNames = true;
     cls.ReturningBlock = (function(_super) {
       __extends(ReturningBlock, _super);
 

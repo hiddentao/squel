@@ -128,6 +128,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       autoQuoteTableNames: false,
       autoQuoteFieldNames: false,
       autoQuoteAliasNames: true,
+      useAsForTableAliasNames: false,
       nameQuoteCharacter: '`',
       tableAliasQuoteCharacter: '`',
       fieldAliasQuoteCharacter: '"',
@@ -262,7 +263,10 @@ OTHER DEALINGS IN THE SOFTWARE.
         var sanitized;
         sanitized = this._sanitizeName(item, "table alias");
         if (this.options.autoQuoteAliasNames) {
-          return "" + this.options.tableAliasQuoteCharacter + sanitized + this.options.tableAliasQuoteCharacter;
+          sanitized = "" + this.options.tableAliasQuoteCharacter + sanitized + this.options.tableAliasQuoteCharacter;
+        }
+        if (this.options.useAsForTableAliasNames) {
+          return "AS " + sanitized;
         } else {
           return sanitized;
         }
