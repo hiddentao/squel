@@ -94,8 +94,8 @@ test['SELECT builder'] =
         toParam: ->
           assert.same @inst.toParam(), { text: 'SELECT CASE WHEN (score > ?) THEN 1 ELSE NULL END AS "fa1" FROM table, table2 `alias2`', values: [1] }
 
-      '>> field(squel.case().when(score > ?, 1).then(1), fa1, { aggreagtion : SUM })':
-        beforeEach: -> @inst.field(squel.case().when("score > ?", 1).then(1), 'fa1', { aggreagtion : 'SUM' })
+      '>> field(squel.case().when(score > ?, 1).then(1), fa1, { aggregation : SUM })':
+        beforeEach: -> @inst.field(squel.case().when("score > ?", 1).then(1), 'fa1', { aggregation : 'SUM' })
         toString: ->
           assert.same @inst.toString(), 'SELECT SUM(CASE WHEN (score > 1) THEN 1 ELSE NULL END) AS "fa1" FROM table, table2 `alias2`'
         toParam: ->

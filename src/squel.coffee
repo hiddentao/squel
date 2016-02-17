@@ -564,8 +564,7 @@ _buildSquel = (flavour = null) ->
       if fieldName
         @fieldName = @_sanitizeField( fieldName )
 
-      defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
-      @options = _extend {}, defaults, options
+      @options = _extend {}, cls.DefaultQueryBuilderOptions, options
 
       @cases = []
 
@@ -926,8 +925,8 @@ _buildSquel = (flavour = null) ->
       else
         fieldRec.name = @_sanitizeField(field, options)
 
-      if options.aggreagtion
-        fieldRec.aggreagtion = options.aggreagtion
+      if options.aggregation
+        fieldRec.aggregation = options.aggregation
 
       @_fieldAliases[field] = alias
       @_fields.push(fieldRec)
@@ -953,8 +952,8 @@ _buildSquel = (flavour = null) ->
 
       for field in @_fields
         fields += ", " if "" isnt fields
-        if field.aggreagtion
-          fields += field.aggreagtion + "(";
+        if field.aggregation
+          fields += field.aggregation + "(";
         if field.func
           if paramMode
             caseExpr = field.func.toParam()
@@ -964,7 +963,7 @@ _buildSquel = (flavour = null) ->
             fields += field.func.toString()
         else 
           fields += field.name
-        if field.aggreagtion
+        if field.aggregation
           fields += ")";
         fields += " AS #{field.alias}" if field.alias
 

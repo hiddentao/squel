@@ -578,7 +578,6 @@ OTHER DEALINGS IN THE SOFTWARE.
       Case.prototype.elseValue = null;
 
       function Case(fieldName, options) {
-        var defaults;
         if (options == null) {
           options = {};
         }
@@ -590,8 +589,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (fieldName) {
           this.fieldName = this._sanitizeField(fieldName);
         }
-        defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
-        this.options = _extend({}, defaults, options);
+        this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
         this.cases = [];
       }
 
@@ -1041,8 +1039,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else {
           fieldRec.name = this._sanitizeField(field, options);
         }
-        if (options.aggreagtion) {
-          fieldRec.aggreagtion = options.aggreagtion;
+        if (options.aggregation) {
+          fieldRec.aggregation = options.aggregation;
         }
         this._fieldAliases[field] = alias;
         return this._fields.push(fieldRec);
@@ -1079,8 +1077,8 @@ OTHER DEALINGS IN THE SOFTWARE.
           if ("" !== fields) {
             fields += ", ";
           }
-          if (field.aggreagtion) {
-            fields += field.aggreagtion + "(";
+          if (field.aggregation) {
+            fields += field.aggregation + "(";
           }
           if (field.func) {
             if (paramMode) {
@@ -1093,7 +1091,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           } else {
             fields += field.name;
           }
-          if (field.aggreagtion) {
+          if (field.aggregation) {
             fields += ")";
           }
           if (field.alias) {
