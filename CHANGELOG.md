@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 17 Feb 2016 (4.2.4)
+* #199 - Added `FROM` to `UPDATE` for postgres flavour
+
 ## 20 Jan 2016 (4.2.3)
 * Placeholder parameter character is now configurable
 * Guide docs now print results below code
