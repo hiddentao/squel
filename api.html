@@ -435,6 +435,22 @@
             },
             returns: 'this'
           },
+          '.from()': {
+            flavours: ['postgres'],
+            desc: 'A table to get the update data from.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
           '.where()': {
             desc: 'Add a WHERE condition.',
             params: {
