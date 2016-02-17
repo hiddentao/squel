@@ -293,6 +293,18 @@ test['SELECT builder'] =
       assert.same 'SELECT * FROM (SELECT * FROM students) LIMIT 30', @inst.toString()
       assert.same 'SELECT * FROM (SELECT * FROM students) WHERE (c = 1) LIMIT 35', newinst.toString()
 
+    'with complex expressions': ->
+      expr = squel.expr().and_begin().or('b = 2').or_begin().and('c = 3').and('d = 4').end().end().and('a = 1')
+      console.log(expr.tree.nodes);
+      newinst = @inst.from('table').left_join('table_2', 't', expr)
+        .clone()
+        .where('c = 1')
+      
+      expr.and('e = 5')
+
+      assert.same @inst.toString(), 'SELECT * FROM table LEFT JOIN table_2 `t` ON ((b = 2 OR (c = 3 AND d = 4)) AND a = 1 AND e = 5)'
+      assert.same newinst.toString(), 'SELECT * FROM table LEFT JOIN table_2 `t` ON ((b = 2 OR (c = 3 AND d = 4)) AND a = 1) WHERE (c = 1)'
+
 
   'is nestable': ->
     assert.same true, @inst.isNestable()

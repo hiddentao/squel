@@ -377,7 +377,7 @@ _buildSquel = (flavour = null) ->
       tree: null
 
       # The part of the expression tree we're currently working on.
-      current: null
+      stack: null
 
       # Initialise the expression.
       constructor: (options) ->
@@ -386,21 +386,27 @@ _buildSquel = (flavour = null) ->
           defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions))
           @options = _extend {}, defaults, options
 
-          @tree =
-              parent: null
-              nodes: []
+          @tree = nodes: []
           @current = @tree
+          @stack = []
 
           # Begin a nested expression and combine it with the current expression using the given operator.
           @_begin = (op) =>
-              new_tree =
+              newNode =
                   type: op
-                  parent: @current
                   nodes: []
-              @current.nodes.push new_tree
-              @current = @current.nodes[@current.nodes.length-1]
+              current = @_current()
+              @stack.push( current.nodes.length )
+              current.nodes.push newNode
+
               @
 
+          # Getting current node from tree
+          @_current = () =>
+              current = @tree
+              for i, index of @stack
+                  current = current.nodes[index]
+              current
 
 
       # Begin a nested expression and combine it with the current expression using the intersection operator (AND).
@@ -418,9 +424,9 @@ _buildSquel = (flavour = null) ->
       #
       # This will throw an error if begin() hasn't been called yet.
       end: ->
-          if not @current.parent
+          if not @stack.length
               throw new Error "begin() needs to be called"
-          @current = @current.parent
+          @stack.pop()
           @
 
 
@@ -428,7 +434,7 @@ _buildSquel = (flavour = null) ->
       and: (expr, param) ->
           if not expr or "string" isnt typeof expr
               throw new Error "expr must be a string"
-          @current.nodes.push
+          @_current().nodes.push
               type: 'AND'
               expr: expr
               para: param
@@ -438,7 +444,7 @@ _buildSquel = (flavour = null) ->
       or: (expr, param) ->
           if not expr or "string" isnt typeof expr
               throw new Error "expr must be a string"
-          @current.nodes.push
+          @_current().nodes.push
               type: 'OR'
               expr: expr
               para: param
@@ -447,13 +453,13 @@ _buildSquel = (flavour = null) ->
 
       # Get the final fully constructed expression string.
       toString: ->
-          if null isnt @current.parent
+          if @stack.length
               throw new Error "end() needs to be called"
           @_toString @tree
 
       # Get the final fully constructed expression string.
       toParam: ->
-          if null isnt @current.parent
+          if @stack.length
               throw new Error "end() needs to be called"
           @_toString @tree, true
 
@@ -500,30 +506,6 @@ _buildSquel = (flavour = null) ->
             }
           else
             return str
-
-
-      ###
-      Clone this expression.
-
-      Note that the algorithm contained within this method is probably non-optimal, so please avoid cloning large
-      expression trees.
-      ###
-      clone: ->
-        newInstance = new @constructor;
-
-        (_cloneTree = (node) ->
-          for child in node.nodes
-            if child.expr?
-              newInstance.current.nodes.push _clone(child)
-            else
-              newInstance._begin child.type
-              _cloneTree child
-              if not @current is child
-                newInstance.end()
-        )(@tree)
-
-        newInstance
-
 
 
 
