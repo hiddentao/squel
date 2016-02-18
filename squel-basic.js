@@ -394,7 +394,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       Expression.prototype.tree = null;
 
-      Expression.prototype.current = null;
+      Expression.prototype.stack = null;
 
       function Expression(options) {
         var defaults,
@@ -403,20 +403,30 @@ OTHER DEALINGS IN THE SOFTWARE.
         defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
         this.options = _extend({}, defaults, options);
         this.tree = {
-          parent: null,
           nodes: []
         };
         this.current = this.tree;
+        this.stack = [];
         this._begin = function(op) {
-          var new_tree;
-          new_tree = {
+          var current, newNode;
+          newNode = {
             type: op,
-            parent: _this.current,
             nodes: []
           };
-          _this.current.nodes.push(new_tree);
-          _this.current = _this.current.nodes[_this.current.nodes.length - 1];
+          current = _this._current();
+          _this.stack.push(current.nodes.length);
+          current.nodes.push(newNode);
           return _this;
+        };
+        this._current = function() {
+          var current, i, index, _ref;
+          current = _this.tree;
+          _ref = _this.stack;
+          for (i in _ref) {
+            index = _ref[i];
+            current = current.nodes[index];
+          }
+          return current;
         };
       }
 
@@ -429,10 +439,10 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       Expression.prototype.end = function() {
-        if (!this.current.parent) {
+        if (!this.stack.length) {
           throw new Error("begin() needs to be called");
         }
-        this.current = this.current.parent;
+        this.stack.pop();
         return this;
       };
 
@@ -440,7 +450,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (!expr || "string" !== typeof expr) {
           throw new Error("expr must be a string");
         }
-        this.current.nodes.push({
+        this._current().nodes.push({
           type: 'AND',
           expr: expr,
           para: param
@@ -452,7 +462,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         if (!expr || "string" !== typeof expr) {
           throw new Error("expr must be a string");
         }
-        this.current.nodes.push({
+        this._current().nodes.push({
           type: 'OR',
           expr: expr,
           para: param
@@ -461,14 +471,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       };
 
       Expression.prototype.toString = function() {
-        if (null !== this.current.parent) {
+        if (this.stack.length) {
           throw new Error("end() needs to be called");
         }
         return this._toString(this.tree);
       };
 
       Expression.prototype.toParam = function() {
-        if (null !== this.current.parent) {
+        if (this.stack.length) {
           throw new Error("end() needs to be called");
         }
         return this._toString(this.tree, true);
@@ -531,40 +541,6 @@ OTHER DEALINGS IN THE SOFTWARE.
         } else {
           return str;
         }
-      };
-
-      /*
-      Clone this expression.
-      
-      Note that the algorithm contained within this method is probably non-optimal, so please avoid cloning large
-      expression trees.
-      */
-
-
-      Expression.prototype.clone = function() {
-        var newInstance, _cloneTree;
-        newInstance = new this.constructor;
-        (_cloneTree = function(node) {
-          var child, _i, _len, _ref, _results;
-          _ref = node.nodes;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            child = _ref[_i];
-            if (child.expr != null) {
-              _results.push(newInstance.current.nodes.push(_clone(child)));
-            } else {
-              newInstance._begin(child.type);
-              _cloneTree(child);
-              if (!this.current === child) {
-                _results.push(newInstance.end());
-              } else {
-                _results.push(void 0);
-              }
-            }
-          }
-          return _results;
-        })(this.tree);
-        return newInstance;
       };
 
       return Expression;
