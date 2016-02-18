@@ -353,7 +353,6 @@
           },
         }
       }, // select
-
       'update()': {
         desc: 'Create an UPDATE query builder instance.',
         returns: '[[cls.Update]]',
@@ -887,7 +886,71 @@
           }
         }
       }, // insert
-
+      'case()' : {
+        desc: 'Create a <code>CASE</code> clause builder instance.',
+        returns: '[[cls.Case]]',
+        params: {
+          name: {
+            desc: 'Name of field.',
+            type: 'String',
+            defaultValue: 'null',
+          },
+          options: {
+            desc: 'Options for configuring this builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+        },
+        children: {
+          '.when()': {
+            desc: 'A <code>WHEN</code> clause',
+            params: {
+              expression: {
+                desc: 'The expression for the current case.',
+                type: 'String',
+              },
+              'values...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: 'this',
+          },
+          '.then()': {
+            desc: 'A <code>THEN</code> clause',
+            params: {
+              result: {
+                desc: 'The result for the current case.',
+                type: 'Any',
+              },
+            },
+            returns: 'this',
+          },
+          '.else()': {
+            desc: 'An <code>ELSE</code> clause',
+            params: {
+              elseValue: {
+                desc: 'The else value for the current case.',
+                type: 'Any',
+              },
+            },
+            returns: 'this',
+          },
+          '.clone()': {
+            desc: 'Clone this object instance.',
+            returns: '[[cls.Case]]'
+          },
+          '.toString()': {
+            desc: 'Build and return the final case expression string.',
+            returns: 'String'
+          },
+          '.toParam()': {
+            desc: 'Build and return the final parameterized case expression string.',
+            returns: 'Object (text: String, values: Array)'
+          }
+        }
+      }, // case
       'expr()': {
         desc: 'Create an SQL expression query builder instance.',
         returns: '[[cls.Expression]]',
@@ -980,6 +1043,11 @@
                 type: 'String',
                 defaultValue: '"'
               },
+              useAsForTableAliasNames: {
+                desc: 'Use <code>AS</code> clause when outputting table aliases.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
               nameQuoteCharacter: {
                 desc: 'The quote character used when quoting table and field names.',
                 type: 'String',
@@ -1063,6 +1131,9 @@
           },
           '.Expression': {
             desc: 'Expression builder class.'
+          },
+          '.Case': {
+            desc: 'CASE expression builder class.'
           },
           '.FunctionBlock': {
             desc: 'Object representing a function value, see [[cls.fval()]].',
