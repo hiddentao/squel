@@ -72,6 +72,7 @@ test['Default query builder options'] =
       autoQuoteTableNames: false
       autoQuoteFieldNames: false
       autoQuoteAliasNames: true
+      useAsForTableAliasNames: false
       nameQuoteCharacter: '`'
       tableAliasQuoteCharacter: '`'
       fieldAliasQuoteCharacter: '"'
@@ -472,6 +473,16 @@ test['Builder base class'] =
 
     'auto quote alias names is OFF': ->
       @inst.options.autoQuoteAliasNames = false
+      assert.same 'abc', @inst._sanitizeTableAlias('abc')
+
+    'auto quote alias names is ON': ->
+      @inst.options.autoQuoteAliasNames = false
+      @inst.options.useAsForTableAliasNames = true
+      assert.same 'AS abc', @inst._sanitizeTableAlias('abc')
+
+    'auto quote alias names is OFF': ->
+      @inst.options.autoQuoteAliasNames = false
+      @inst.options.useAsForTableAliasNames = false
       assert.same 'abc', @inst._sanitizeTableAlias('abc')
 
 
