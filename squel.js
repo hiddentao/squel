@@ -2298,12 +2298,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
     })(cls.QueryBuilder);
     _squel = {
-      VERSION: '4.2.4',
+      VERSION: '4.3.0',
       flavour: flavour,
       expr: function(options) {
         return new cls.Expression(options);
       },
-      'case': function(name, options) {
+      "case": function(name, options) {
         return new cls.Case(name, options);
       },
       select: function(options, blocks) {

@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 18 Feb 2016 (4.3.0)
+* #207 - Added `CASE` clauses and `useAsForTableAliasNames` option.
+
 ## 17 Feb 2016 (4.2.4)
 * #199 - Added `FROM` to `UPDATE` for postgres flavour
 

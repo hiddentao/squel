@@ -1824,8 +1824,7 @@ _buildSquel = (flavour = null) ->
     VERSION: '<<VERSION_STRING>>'
     flavour: flavour
     expr: (options) -> new cls.Expression(options)
-    'case': (name, options) -> new cls.Case(name, options)
-    # Don't have a space-efficient elegant-way of .apply()-ing to constructors, so we specify the args
+    case: (name, options) -> new cls.Case(name, options)
     select: (options, blocks) -> new cls.Select(options, blocks)
     update: (options, blocks) -> new cls.Update(options, blocks)
     insert: (options, blocks) -> new cls.Insert(options, blocks)
