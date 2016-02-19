@@ -309,7 +309,7 @@ test['SELECT builder'] =
 
     'with complex expressions': ->
       expr = squel.expr().and_begin().or('b = 2').or_begin().and('c = 3').and('d = 4').end().end().and('a = 1')
-      console.log(expr.tree.nodes);
+
       newinst = @inst.from('table').left_join('table_2', 't', expr)
         .clone()
         .where('c = 1')

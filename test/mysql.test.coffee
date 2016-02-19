@@ -57,7 +57,7 @@ test['MySQL flavour'] =
       setSpy = test.mocker.stub @inst, '_setValue'
       sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', (v) -> return "[#{v}]"
 
-      console.log @inst.target('bla')
+      @inst.target('bla')
 
       assert.ok sanitizeSpy.calledWithExactly('bla')
       assert.ok setSpy.calledWithExactly('[bla]')

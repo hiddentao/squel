@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 18 Feb 2016 (4.3.1)
+* #208 - Rework expressions to allow for easier cloning.
+
 ## 18 Feb 2016 (4.3.0)
 * #207 - Added `CASE` clauses and `useAsForTableAliasNames` option.
 
