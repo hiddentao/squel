@@ -385,8 +385,8 @@ test['Expression builder base class'] =
     newinst = @inst.or("test = 4").and_begin().or("inner = 1").or("inner = 2").clone()
     newinst.or('inner = 3')
 
-    assert.same 'test = 4 AND (inner = 1 OR inner = 2)', @inst.end().toString()
-    assert.same 'test = 4 AND (inner = 1 OR inner = 2 OR inner = 3)', newinst.end().toString()
+    assert.same @inst.end().toString(), 'test = 4 AND (inner = 1 OR inner = 2)'
+    assert.same newinst.end().toString(), 'test = 4 AND (inner = 1 OR inner = 2 OR inner = 3)'
 
 
 
