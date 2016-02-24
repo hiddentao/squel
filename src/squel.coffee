@@ -411,8 +411,8 @@ _buildSquel = (flavour = null) ->
           # Getting current node from tree
           @_current = () =>
               current = @tree
-              for i, index of @stack
-                  current = current.nodes[index]
+              for i in [0 ... @stack.length]
+                current = current.nodes[@stack[i]]
               current
 
 

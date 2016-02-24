@@ -419,12 +419,10 @@ OTHER DEALINGS IN THE SOFTWARE.
           return _this;
         };
         this._current = function() {
-          var current, i, index, _ref;
+          var current, i, _i, _ref;
           current = _this.tree;
-          _ref = _this.stack;
-          for (i in _ref) {
-            index = _ref[i];
-            current = current.nodes[index];
+          for (i = _i = 0, _ref = _this.stack.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+            current = current.nodes[_this.stack[i]];
           }
           return current;
         };
