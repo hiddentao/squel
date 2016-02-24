@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 24 Feb 2016 (4.3.2)
+* Fix for #210
+
 ## 18 Feb 2016 (4.3.1)
 * #208 - Rework expressions to allow for easier cloning.
 

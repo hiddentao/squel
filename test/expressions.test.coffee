@@ -388,6 +388,13 @@ test['Expression builder base class'] =
     assert.same @inst.end().toString(), 'test = 4 AND (inner = 1 OR inner = 2)'
     assert.same newinst.end().toString(), 'test = 4 AND (inner = 1 OR inner = 2 OR inner = 3)'
 
+  'custom array prototype methods (Issue #210)': ->
+    Array.prototype.last = () -> 
+      this[this.length - 1]
+
+    @inst.or("foo = ?", "bar")
+
+    delete Array.prototype.last
 
 
 
