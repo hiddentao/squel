@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 29 Feb 2016 (4.3.3)
+* Fix for #216
+
 ## 24 Feb 2016 (4.3.2)
 * Fix for #210
 
