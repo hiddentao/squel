@@ -177,8 +177,8 @@ test['INSERT builder'] =
             squel.select().from('students').where('a = ?', 2)
           )
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE a = 2)'
-        toString: ->
+          assert.same @inst.toString(), 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE (a = 2))'
+        toParam: ->
           parameterized = @inst.toParam()
           assert.same parameterized.text, 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE (a = ?))'
           assert.same parameterized.values, [ 2 ]

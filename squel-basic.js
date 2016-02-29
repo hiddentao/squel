@@ -1399,6 +1399,9 @@ OTHER DEALINGS IN THE SOFTWARE.
             values: []
           };
         }
+        this._query.updateOptions({
+          "nestedBuilder": true
+        });
         qryParam = this._query.toParam();
         return {
           text: "(" + (this._fields.join(', ')) + ") (" + qryParam.text + ")",

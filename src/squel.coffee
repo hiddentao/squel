@@ -1174,6 +1174,7 @@ _buildSquel = (flavour = null) ->
     buildParam: (queryBuilder) ->
       return { text: '', values: [] } if 0 >= @_fields.length
 
+      @_query.updateOptions( { "nestedBuilder": true } )
       qryParam = @_query.toParam()
 
       {
