@@ -2,7 +2,7 @@
 
 
 // Extend given object's with other objects' properties, overriding existing ones if necessary
-const function _extend (dst, sources...) {
+const function _extend (dst, ...sources) {
   if (sources) {
     for (let src of sources) {
       if (src) {
@@ -107,7 +107,7 @@ const function registerValueHandler (handlers, type, handler) {
 /**
  * Get value type handler for given type
  */
-const function getValueHandler (value, handlerLists...) {
+const function getValueHandler (value, ...handlerLists) {
   for (let handlers in handlerLists) {
     for (let typeHandler in handlers) {
       // if type is a string then use `typeof` or else use `instanceof`
@@ -205,7 +205,7 @@ const function _buildSquel(flavour = null) {
   class cls.BaseBuilder extends cls.Cloneable {
     /**
      * Constructor.
-     * @param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
+     * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
     constructor (options) {
       let defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
@@ -718,111 +718,131 @@ const function _buildSquel(flavour = null) {
 
 
  
-
-
-
-
+  /*
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
   # cls.Case
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
+  */
 
 
+  /**
+   * An SQL CASE expression builder.
+   *
+   * SQL cases are used to select proper values based on specific criteria.
+   */
+  class cls.Case extends cls.BaseBuilder {
+    constructor (fieldName, options = {}) {
+      super();
 
-  # An SQL CASE expression builder.
-  #
-  # SQL cases are used to select proper values based on specific criteria.
-  #
-  class cls.Case extends cls.BaseBuilder
+      if (_isPlainObject(fieldName)) {
+        options = fieldName;
 
-    # Cases
-    cases: null
+        fieldName = null;
+      }
 
-    # Else value
-    elseValue: null
+      if (fieldName) {
+        this.fieldName = this._sanitizeField( fieldName );
+      }
 
-    constructor: (fieldName, options = {}) ->
-      super()
+      this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
 
-      if _isPlainObject(fieldName)
-        options = fieldName
-        fieldName = null
+      this.cases = [];
+      this.elseValue = null;      
+    }
 
-      if fieldName
-        @fieldName = @_sanitizeField( fieldName )
-
-      @options = _extend {}, cls.DefaultQueryBuilderOptions, options
-
-      @cases = []
-
-    'when': (expression, values...) ->
-      @cases.unshift
+    when (expression, ...values) {
+      this.cases.unshift({
         expression: expression,
-        values: values
-      @
+        values: values,
+      });
 
-    'then': (result) ->
-      if @cases.length == 0
+      return this;
+    }
+
+    then (result) {
+      if (this.cases.length == 0) {
         throw new Error "when() needs to be called first"
+      }
 
-      @cases[0].result = result;
-      @
+      this.cases[0].result = result;
+      
+      return this;
+    }
 
-    'else': (@elseValue) ->
-      @
+    else (elseValue) {
+      this.elseValue = elseValue;
 
-    # Get the final fully constructed expression string.
-    toString: ->
-      @_toString @cases, @elseValue
+      return this;
+    }
 
-    # Get the final fully constructed expression string.
-    toParam: ->
-      @_toString @cases, @elseValue, true
+    // Get the final fully constructed expression string.
+    toString () {
+      return this._toString(this.cases, this.elseValue);
+    }
 
-    # Get a string representation of the given expression tree node.
-    _toString: (cases, elseValue, paramMode = false) ->
-      if cases.length == 0 
-        return @_formatValue(elseValue)
+    // Get the final fully constructed expression string.
+    toParam () {
+      return this._toString(this.cases, this.elseValue, true);
+    }
 
-      values = []
-      cases = cases.map (part) =>
-        condition = new cls.AbstractConditionBlock("WHEN")
-        condition._condition.apply(condition, [part.expression].concat(part.values))
-        str = ''
-        if not paramMode
-          str = condition.buildStr()
-        else
-          condition = condition.buildParam()
-          str = condition.text
-          values = values.concat(condition.values)
+    // Get a string representation of the given expression tree node.
+    _toString (cases, elseValue, paramMode = false) {
+      if (cases.length == 0) {
+        return this._formatValue(elseValue);
+      }
 
-        str + ' THEN ' + @_formatValue(part.result)
+      let values = [];
 
-      str = cases.join(" ") + ' ELSE ' + @_formatValue(elseValue) + ' END'
-      if @fieldName
-        str = @fieldName + " " + str
-      str = "CASE " + str
+      cases = cases.map((part) => {
+        let condition = new cls.AbstractConditionBlock("WHEN");
 
-      if paramMode
-        return {
-          text: str
-          values: values
+        condition._condition.apply(condition, [part.expression].concat(part.values));
+
+        let str = '';
+
+        if (!paramMode) {
+          str = condition.buildStr();
         }
-      else
-        return str
+        else {
+          condition = condition.buildParam();
+          str = condition.text;
+          values = values.concat(condition.values);
+        }
+
+        return `${str} THEN ${this._formatValue(part.result)}`;
+      }
+
+      let str = cases.join(" ") + ' ELSE ' + this._formatValue(elseValue) + ' END';
+
+      if (this.fieldName) {
+        str = this.fieldName + " " + str;
+      }
+
+      str = "CASE " + str;
+
+      if (paramMode) {
+        return {
+          text: str,
+          values: values,
+        };        
+      }
+      else {
+        return str;
+      }
+    }
 
 
-
-
+  /*
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
   # Building blocks
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
+  */
 
-
-
+  /*
   # A building block represents a single build-step within a query building process.
   #
   # Query builders consist of one or more building blocks which get run in a particular order. Building blocks can
@@ -833,7 +853,9 @@ const function _buildSquel(flavour = null) {
   # that you do so using one or more custom building blocks.
   #
   # Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427
-  class cls.Block extends cls.BaseBuilder
+  */
+  class cls.Block extends cls.BaseBuilder {
+    /**
     # Get input methods to expose within the query builder.
     #
     # By default all methods except the following get returned:
@@ -841,139 +863,197 @@ const function _buildSquel(flavour = null) {
     #   constructor and buildStr()
     #
     # @return Object key -> function pairs
-    exposedMethods: ->
-      ret = {}
+    */
+    exposedMethods () {
+      let ret = {};
 
-      for attr, value of @
-        # only want functions from this class
-        if typeof value is "function" and attr.charAt(0) isnt '_' and !cls.Block::[attr]
-          ret[attr] = value
+      for (let [attr, value] of this) {
+        // only want functions from this class
+        if (typeof value === "function" and attr.charAt(0) isnt '_' and !cls.Block.prototype[attr]) {
+          ret[attr] = value;
+        }
+      }
+      
+      return ret;
+    }
 
-      ret
-
-    # Build this block.
-    #
-    # Subclasses may override this method.
-    #
-    # @param queryBuilder cls.QueryBuilder a reference to the query builder that owns this block.
-    #
-    # @return String the string representing this block
-    buildStr: (queryBuilder) ->
-      ''
-
-    buildParam: (queryBuilder) ->
-      { text: @buildStr(queryBuilder), values: [] }
-
-
-  # A String which always gets output
-  class cls.StringBlock extends cls.Block
-    constructor: (options, str) ->
-      super options
-      @str = str
-
-    buildStr: (queryBuilder) ->
-      @str
+    /**
+     # Build this block.
+     #
+     # Subclasses may override this method.
+     #
+     # @param queryBuilder cls.QueryBuilder a reference to the query builder that owns this block.
+     #
+     # @return String the string representing this block
+     */
+    buildStr (queryBuilder) {
+      return '';
+    }
 
 
-
-  # An arbitrary value or db function with parameters
-  class cls.AbstractValueBlock extends cls.Block
-    # Constructor
-    constructor: (options) ->
-      super options
-      @_str = ''
-      @_values = []
-
-    _setValue: (str, values...) ->
-      @_str = str
-      @_values = values
-      @
-
-    buildStr: (queryBuilder) ->
-      str = @_str
-      finalStr = ''
-      values = [].concat @_values
-
-      for idx in [0...str.length]
-        c = str.charAt(idx)
-        if @options.parameterCharacter is c and 0 < values.length
-          c = values.shift()
-        finalStr += c
-
-      finalStr
-
-    buildParam: (queryBuilder) ->
-      { text: @_str, values: @_values }
+    buildParam (queryBuilder) {
+      return { text: this.buildStr(queryBuilder), values: [] };
+    }
+  }
 
 
 
-  # A function string block
-  class cls.FunctionBlock extends cls.AbstractValueBlock
-    function: (str, values...) ->
-      @_setValue.apply(@, [str].concat(values))
+  // A String which always gets output
+  class cls.StringBlock extends cls.Block {
+    constructor (options, str) {
+      super(options);
 
+      this.str = str;
+    }
 
-  # Construct a FunctionValueBlock object for use as a value
-  cls.fval = (str, values...) ->
-    inst = new cls.FunctionBlock()
-    inst.function.apply(inst, [str].concat(values))
-
-  # value handler for FunctionValueBlock objects
-  cls.registerValueHandler cls.FunctionBlock, (value, asParam = false) ->
-    if asParam
-      value.buildParam()
-    else
-      value.buildStr()
+    buildStr (queryBuilder) {
+      return this.str;
+    }
+  }
 
 
 
+  // An arbitrary value or db function with parameters
+  class cls.AbstractValueBlock extends cls.Block {
+    // Constructor
+    constructor (options) {
+      super(options);
+
+      this._str = '';
+      this._values = [];
+    }
+
+    _setValue (str, ...values) {
+      this._str = str;
+      this._values = values;
+
+      return this;
+    }
+
+    buildStr (queryBuilder) {
+      let str = this._str;
+      let finalStr = '';
+      let values = [].concat(this._values);
+
+      for (let c of str) {
+        if (this.options.parameterCharacter === c and 0 < values.length) {
+          c = values.shift();
+        }
+
+        finalStr += c;
+      }
+
+      return finalStr;
+    }
+
+    buildParam (queryBuilder) {
+      return { text: this._str, values: this._values };
+    }
+  }
+
+
+
+  // A function string block
+  class cls.FunctionBlock extends cls.AbstractValueBlock {
+    function (str, ...values) {
+      return this._setValue.apply(this, [str].concat(values));
+    }
+  }
+
+
+  // Construct a FunctionValueBlock object for use as a value
+  cls.fval = function(str, ...values) {
+    let inst = new cls.FunctionBlock();
+
+    inst.function.apply(inst, [str].concat(values));
+  }
+
+  // value handler for FunctionValueBlock objects
+  cls.registerValueHandler(cls.FunctionBlock, function(value, asParam = false) {
+    return asParam ? value.buildParam() : value.buildStr();
+  });
+
+
+  /*
   # Table specifier base class
   #
   # Additional options
   #  - singleTable - only allow one table to be specified  (default: false)
   #  - allowNested - allow nested query to be specified as a table    (default: false)
-  class cls.AbstractTableBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      @tables = []
+  */
+  class cls.AbstractTableBlock extends cls.Block {
+    constructor (options) {
+      super(options);
 
+      this.tables = [];
+    }
+
+    /**
     # Update given table.
     #
     # An alias may also be specified for the table.
     #
     # Concrete subclasses should provide a method which calls this
-    _table: (table, alias = null) ->
-      alias = @_sanitizeTableAlias(alias) if alias
-      table = @_sanitizeTable(table, @options.allowNested or false)
+    */
+    _table (table, alias = null) {
+      if (alias) {
+        alias = this._sanitizeTableAlias(alias);
+      }
 
-      if @options.singleTable
-        @tables = []
+      table = this._sanitizeTable(table, !!this.options.allowNested);
 
-      @tables.push
+      if (this.options.singleTable) {
+        this.tables = [];
+      }
+
+      this.tables.push({
         table: table
-        alias: alias
+        alias: alias        
+      });
+    }
 
-    # get whether a table has been set
-    _hasTable: ->
-      return 0 < @tables.length
+    // get whether a table has been set
+    _hasTable () {
+      return 0 < this.tables.length;
+    }
 
-    buildStr: (queryBuilder) ->
-      return "" if not @_hasTable()
 
-      tables = ""
-      for table in @tables
-        tables += ", " if "" isnt tables
-        if "string" is typeof table.table
-          tables += table.table
-        else
-          # building a nested query
-          tables += "(#{table.table})"
+    buildStr (queryBuilder) {
+      if (!this._hasTable()) {
+        return "";
+      }
 
-        if table.alias
-          # add the table alias, the AS keyword is optional
-          tables += " #{table.alias}"
+      let tables = "";
 
-      tables
+      for (let table of this.tables) {
+        if (tables.length) {
+          tables += ", ";  
+        }
+
+        if ("string" === typeof table.table) {
+          tables += table.table;
+        }
+        else {
+          // building a nested query
+          tables += `(${table.table})`;
+        }
+
+        if (table.alias) {
+          # add the table alias
+          tables += ` ${table.alias}`;
+        }
+      }
+
+      return tables;
+    }
+
+    
+  }
+
+
+
+
+
 
     _buildParam: (queryBuilder, prefix = null) ->
       ret =
@@ -983,10 +1063,10 @@ const function _buildSquel(flavour = null) {
       params = []
       paramStr = ""
 
-      if not @_hasTable() then return ret
+      if not this._hasTable() then return ret
 
       # retrieve the parameterised queries
-      for blk in @tables
+      for blk in this.tables
         if "string" is typeof blk.table
           p = { "text": "#{blk.table}", "values": [] }
         else if blk.table instanceof cls.QueryBuilder
@@ -1017,24 +1097,24 @@ const function _buildSquel(flavour = null) {
         paramStr += " #{p.table.alias}" if p.table.alias?
 
         for v in p.values
-          ret.values.push( @_formatCustomValue v )
+          ret.values.push( this._formatCustomValue v )
       ret.text += paramStr
 
       ret
 
     buildParam: (queryBuilder) ->
-      @_buildParam(queryBuilder)
+      this._buildParam(queryBuilder)
 
 
   # Update Table
   class cls.UpdateTableBlock extends cls.AbstractTableBlock
     table: (table, alias = null) ->
-      @_table(table, alias)
+      this._table(table, alias)
 
   # FROM table
   class cls.FromTableBlock extends cls.AbstractTableBlock
     from: (table, alias = null) ->
-      @_table(table, alias)
+      this._table(table, alias)
 
     buildStr: (queryBuilder) ->
       tables = super queryBuilder
@@ -1045,23 +1125,23 @@ const function _buildSquel(flavour = null) {
         return ""
 
     buildParam: (queryBuilder) ->
-      @_buildParam(queryBuilder, "FROM")
+      this._buildParam(queryBuilder, "FROM")
 
 
   # INTO table
   class cls.IntoTableBlock extends cls.Block
     constructor: (options) ->
       super options
-      @table = null
+      this.table = null
 
     # Into given table.
     into: (table) ->
       # do not allow nested table to be the target
-      @table = @_sanitizeTable(table, false)
+      this.table = this._sanitizeTable(table, false)
 
     buildStr: (queryBuilder) ->
-      if not @table then throw new Error "into() needs to be called"
-      "INTO #{@table}"
+      if not this.table then throw new Error "into() needs to be called"
+      "INTO #{this.table}"
 
 
 
@@ -1069,8 +1149,8 @@ const function _buildSquel(flavour = null) {
   class cls.GetFieldBlock extends cls.Block
     constructor: (options) ->
       super options
-      @_fieldAliases = {}
-      @_fields = []
+      this._fieldAliases = {}
+      this._fields = []
 
 
     # Add the given fields to the final result set.
@@ -1084,10 +1164,10 @@ const function _buildSquel(flavour = null) {
     fields: (_fields, options = {}) ->
       if Array.isArray(_fields)
         for field in _fields
-          @field field, null, options
+          this.field field, null, options
       else
         for field, alias of _fields
-          @field(field, alias, options)
+          this.field(field, alias, options)
 
 
     # Add the given field to the final result set.
@@ -1099,10 +1179,10 @@ const function _buildSquel(flavour = null) {
     #
     # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
     field: (field, alias = null, options = {}) ->
-      alias = @_sanitizeFieldAlias(alias) if alias
+      alias = this._sanitizeFieldAlias(alias) if alias
 
       # if field-alias already present then don't add
-      return if @_fieldAliases[field] is alias
+      return if this._fieldAliases[field] is alias
 
       fieldRec = {
         alias : alias
@@ -1111,19 +1191,19 @@ const function _buildSquel(flavour = null) {
       if field instanceof cls.Case
         fieldRec.func = field
       else
-        fieldRec.name = @_sanitizeField(field, options)
+        fieldRec.name = this._sanitizeField(field, options)
 
       if options.aggregation
         fieldRec.aggregation = options.aggregation
 
-      @_fieldAliases[field] = alias
-      @_fields.push(fieldRec)
+      this._fieldAliases[field] = alias
+      this._fields.push(fieldRec)
 
     buildStr: (queryBuilder) ->
-      @_build(queryBuilder)
+      this._build(queryBuilder)
 
     buildParam: (queryBuilder) ->
-      @_build(queryBuilder, true)
+      this._build(queryBuilder, true)
 
     _build: (queryBuilder, paramMode = false) ->
       if not queryBuilder.getBlock(cls.FromTableBlock)._hasTable()
@@ -1138,7 +1218,7 @@ const function _buildSquel(flavour = null) {
       fields = ""
       values = []
 
-      for field in @_fields
+      for field in this._fields
         fields += ", " if "" isnt fields
         if field.aggregation
           fields += field.aggregation + "(";
@@ -1169,35 +1249,35 @@ const function _buildSquel(flavour = null) {
   class cls.AbstractSetFieldBlock extends cls.Block
     constructor: (options) ->
       super options
-      @fieldOptions = []
-      @fields = []
-      @values = []
+      this.fieldOptions = []
+      this.fields = []
+      this.values = []
 
     # Update the given field with the given value.
     # This will override any previously set value for the given field.
     _set: (field, value, options = {}) ->
-      throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
+      throw new Error "Cannot call set or setFields on multiple rows of fields."  if this.values.length > 1
 
-      value = @_sanitizeValue(value) if undefined isnt value
+      value = this._sanitizeValue(value) if undefined isnt value
 
       # Explicity overwrite existing fields
-      index = @fields.indexOf(@_sanitizeField(field, options))
+      index = this.fields.indexOf(this._sanitizeField(field, options))
       if index isnt -1
-        @values[0][index] = value
-        @fieldOptions[0][index] = options
+        this.values[0][index] = value
+        this.fieldOptions[0][index] = options
       else
-        @fields.push @_sanitizeField(field, options)
-        index = @fields.length - 1
+        this.fields.push this._sanitizeField(field, options)
+        index = this.fields.length - 1
 
         # The first value added needs to create the array of values for the row
-        if Array.isArray(@values[0])
-          @values[0][index] = value
-          @fieldOptions[0][index] = options
+        if Array.isArray(this.values[0])
+          this.values[0][index] = value
+          this.fieldOptions[0][index] = options
         else
-          @values.push [value]
-          @fieldOptions.push [options]
+          this.values.push [value]
+          this.fieldOptions.push [options]
 
-      @
+      this.
 
 
     # Insert fields based on the key/value pairs in the given object
@@ -1205,8 +1285,8 @@ const function _buildSquel(flavour = null) {
       throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
 
       for own field of fields
-        @_set field, fields[field], options
-      @
+        this._set field, fields[field], options
+      this.
 
 
     # Insert multiple rows for the given fields. Accepts an array of objects.
@@ -1215,29 +1295,29 @@ const function _buildSquel(flavour = null) {
       throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
 
       # Reset the objects stored fields and values
-      @fields = []
-      @values = []
+      this.fields = []
+      this.values = []
       for i in [0...fieldsRows.length]
         for own field of fieldsRows[i]
 
-          index = @fields.indexOf(@_sanitizeField(field, options))
+          index = this.fields.indexOf(this._sanitizeField(field, options))
           throw new Error 'All fields in subsequent rows must match the fields in the first row' if 0 < i and -1 is index
 
           # Add field only if it hasn't been added before
           if -1 is index
-            @fields.push @_sanitizeField(field, options)
-            index = @fields.length - 1
+            this.fields.push this._sanitizeField(field, options)
+            index = this.fields.length - 1
 
-          value = @_sanitizeValue(fieldsRows[i][field])
+          value = this._sanitizeValue(fieldsRows[i][field])
 
           # The first value added needs to add the array
-          if Array.isArray(@values[i])
-            @values[i][index] = value
-            @fieldOptions[i][index] = options
+          if Array.isArray(this.values[i])
+            this.values[i][index] = value
+            this.fieldOptions[i][index] = options
           else
-            @values[i] = [value]
-            @fieldOptions[i] = [options]
-      @
+            this.values[i] = [value]
+            this.fieldOptions[i] = [options]
+      this.
 
     buildStr: ->
       throw new Error('Not yet implemented')
@@ -1251,46 +1331,46 @@ const function _buildSquel(flavour = null) {
   class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
 
     set: (field, value, options) ->
-      @_set field, value, options
+      this._set field, value, options
 
     setFields: (fields, options) ->
-      @_setFields fields, options
+      this._setFields fields, options
 
     buildStr: (queryBuilder) ->
-      if 0 >= @fields.length then throw new Error "set() needs to be called"
+      if 0 >= this.fields.length then throw new Error "set() needs to be called"
 
       str = ""
-      for i in [0...@fields.length]
-        field = @fields[i]
+      for i in [0...this.fields.length]
+        field = this.fields[i]
         str += ", " if "" isnt str
-        value = @values[0][i]
-        fieldOptions = @fieldOptions[0][i]
+        value = this.values[0][i]
+        fieldOptions = this.fieldOptions[0][i]
         if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
           str += field
         else
-          str += "#{field} = #{@_formatValue(value, fieldOptions)}"
+          str += "#{field} = #{this._formatValue(value, fieldOptions)}"
 
       "SET #{str}"
 
     buildParam: (queryBuilder) ->
-      if 0 >= @fields.length then throw new Error "set() needs to be called"
+      if 0 >= this.fields.length then throw new Error "set() needs to be called"
 
       str = ""
       vals = []
-      for i in [0...@fields.length]
-        field = @fields[i]
+      for i in [0...this.fields.length]
+        field = this.fields[i]
         str += ", " if "" isnt str
-        value = @values[0][i]
+        value = this.values[0][i]
         if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
           str += field
         else
-          p = @_formatValueAsParam( value )
+          p = this._formatValueAsParam( value )
           if p?.text?
             str += "#{field} = (#{p.text})"
             for v in p.values
               vals.push v
           else
-            str += "#{field} = #{@options.parameterCharacter}"
+            str += "#{field} = #{this.options.parameterCharacter}"
             vals.push p
 
       { text: "SET #{str}", values: vals }
@@ -1300,19 +1380,19 @@ const function _buildSquel(flavour = null) {
   # (INSERT INTO) ... field ... value
   class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
     set: (field, value, options = {}) ->
-      @_set field, value, options
+      this._set field, value, options
 
     setFields: (fields, options) ->
-      @_setFields fields, options
+      this._setFields fields, options
 
     setFieldsRows: (fieldsRows, options) ->
-      @_setFieldsRows fieldsRows, options
+      this._setFieldsRows fieldsRows, options
 
     _buildVals: ->
       vals = []
-      for i in [0...@values.length]
-        for j in [0...@values[i].length]
-          formattedValue = @_formatValue(@values[i][j], @fieldOptions[i][j])
+      for i in [0...this.values.length]
+        for j in [0...this.values[i].length]
+          formattedValue = this._formatValue(this.values[i][j], this.fieldOptions[i][j])
           if 'string' is typeof vals[i]
             vals[i] += ', ' + formattedValue
           else
@@ -1323,15 +1403,15 @@ const function _buildSquel(flavour = null) {
       vals = []
       params = []
 
-      for i in [0...@values.length]
-        for j in [0...@values[i].length]
-          p = @_formatValueAsParam( @values[i][j] )
+      for i in [0...this.values.length]
+        for j in [0...this.values[i].length]
+          p = this._formatValueAsParam( this.values[i][j] )
           if p?.text?
             str = p.text
             for v in p.values
               params.push v
           else
-            str = @options.parameterCharacter
+            str = this.options.parameterCharacter
             params.push p
           if 'string' is typeof vals[i]
             vals[i] += ", #{str}"
@@ -1343,19 +1423,19 @@ const function _buildSquel(flavour = null) {
       params: params
 
     buildStr: (queryBuilder) ->
-      return '' if 0 >= @fields.length
+      return '' if 0 >= this.fields.length
 
-      "(#{@fields.join(', ')}) VALUES (#{@_buildVals().join('), (')})"
+      "(#{this.fields.join(', ')}) VALUES (#{this._buildVals().join('), (')})"
 
     buildParam: (queryBuilder) ->
-      return { text: '', values: [] } if 0 >= @fields.length
+      return { text: '', values: [] } if 0 >= this.fields.length
 
       # fields
       str = ""
-      {vals, params} = @_buildValParams()
-      for i in [0...@fields.length]
+      {vals, params} = this._buildValParams()
+      for i in [0...this.fields.length]
         str += ", " if "" isnt str
-        str += @fields[i]
+        str += this.fields[i]
 
       { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
 
@@ -1365,26 +1445,26 @@ const function _buildSquel(flavour = null) {
   class cls.InsertFieldsFromQueryBlock extends cls.Block
     constructor: (options) ->
       super options
-      @_fields = []
-      @_query = null
+      this._fields = []
+      this._query = null
 
     fromQuery: (fields, selectQuery) ->
-      @_fields = fields.map ( (v) => @_sanitizeField(v) )
-      @_query = @_sanitizeNestableQuery(selectQuery)
+      this._fields = fields.map ( (v) => this._sanitizeField(v) )
+      this._query = this._sanitizeNestableQuery(selectQuery)
 
     buildStr: (queryBuilder) ->
-      return '' if 0 >= @_fields.length
+      return '' if 0 >= this._fields.length
 
-      "(#{@_fields.join(', ')}) (#{@_query.toString()})"
+      "(#{this._fields.join(', ')}) (#{this._query.toString()})"
 
     buildParam: (queryBuilder) ->
-      return { text: '', values: [] } if 0 >= @_fields.length
+      return { text: '', values: [] } if 0 >= this._fields.length
 
-      @_query.updateOptions( { "nestedBuilder": true } )
-      qryParam = @_query.toParam()
+      this._query.updateOptions( { "nestedBuilder": true } )
+      qryParam = this._query.toParam()
 
       {
-        text: "(#{@_fields.join(', ')}) (#{qryParam.text})",
+        text: "(#{this._fields.join(', ')}) (#{qryParam.text})",
         values: qryParam.values,
       }
 
@@ -1394,14 +1474,14 @@ const function _buildSquel(flavour = null) {
   class cls.DistinctBlock extends cls.Block
     constructor: (options) ->
       super options
-      @useDistinct = false
+      this.useDistinct = false
 
     # Add the DISTINCT keyword to the query.
     distinct: ->
-      @useDistinct = true
+      this.useDistinct = true
 
     buildStr: (queryBuilder) ->
-      if @useDistinct then "DISTINCT" else ""
+      if this.useDistinct then "DISTINCT" else ""
 
 
 
@@ -1409,18 +1489,18 @@ const function _buildSquel(flavour = null) {
   class cls.GroupByBlock extends cls.Block
     constructor: (options) ->
       super options
-      @groups = []
+      this.groups = []
 
     # Add a GROUP BY transformation for the given field.
     group: (field) ->
-      field = @_sanitizeField(field)
-      @groups.push field
+      field = this._sanitizeField(field)
+      this.groups.push field
 
     buildStr: (queryBuilder) ->
       groups = ""
 
-      if 0 < @groups.length
-        for f in @groups
+      if 0 < this.groups.length
+        for f in this.groups
           groups += ", " if "" isnt groups
           groups += f
         groups = "GROUP BY #{groups}"
@@ -1432,25 +1512,25 @@ const function _buildSquel(flavour = null) {
   class cls.OffsetBlock extends cls.Block
     constructor: (options) ->
       super options
-      @offsets = null
+      this.offsets = null
 
     # Set the OFFSET transformation.
     #
     # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
     # the offset.
     offset: (start) ->
-      start = @_sanitizeLimitOffset(start)
-      @offsets = start
+      start = this._sanitizeLimitOffset(start)
+      this.offsets = start
 
     buildStr: (queryBuilder) ->
-      if @offsets then "OFFSET #{@offsets}" else ""
+      if this.offsets then "OFFSET #{this.offsets}" else ""
 
 
   # Abstract condition base class
   class cls.AbstractConditionBlock extends cls.Block
-    constructor: (@conditionVerb, options) ->
+    constructor: (this.conditionVerb, options) ->
       super options
-      @conditions = []
+      this.conditions = []
 
     # Add a condition.
     #
@@ -1458,7 +1538,7 @@ const function _buildSquel(flavour = null) {
     #
     # Concrete subclasses should provide a method which calls this
     _condition: (condition, values...) ->
-      condition = @_sanitizeCondition(condition)
+      condition = this._sanitizeCondition(condition)
 
       finalCondition = ""
       finalValues = []
@@ -1471,46 +1551,46 @@ const function _buildSquel(flavour = null) {
       else
         for idx in [0...condition.length]
           c = condition.charAt(idx)
-          if @options.parameterCharacter is c and 0 < values.length
+          if this.options.parameterCharacter is c and 0 < values.length
             nextValue = values.shift()
             if Array.isArray(nextValue) # where b in (?, ? ?)
               inValues = []
               for item in nextValue
-                inValues.push @_sanitizeValue(item)
+                inValues.push this._sanitizeValue(item)
               finalValues = finalValues.concat(inValues)
-              finalCondition += "(#{(@options.parameterCharacter for item in inValues).join ', '})"
+              finalCondition += "(#{(this.options.parameterCharacter for item in inValues).join ', '})"
             else
-              finalCondition += @options.parameterCharacter
-              finalValues.push @_sanitizeValue(nextValue)
+              finalCondition += this.options.parameterCharacter
+              finalValues.push this._sanitizeValue(nextValue)
           else
             finalCondition += c
 
       if "" isnt finalCondition
-        @conditions.push
+        this.conditions.push
           text: finalCondition
           values: finalValues
 
 
     buildStr: (queryBuilder) ->
-      if 0 >= @conditions.length then return ""
+      if 0 >= this.conditions.length then return ""
 
       condStr = ""
 
-      for cond in @conditions
+      for cond in this.conditions
         if "" isnt condStr then condStr += ") AND ("
         if 0 < cond.values.length
           # replace placeholders with actual parameter values
           pIndex = 0
           for idx in [0...cond.text.length]
             c = cond.text.charAt(idx)
-            if @options.parameterCharacter is c
-              condStr += @_formatValue( cond.values[pIndex++] )
+            if this.options.parameterCharacter is c
+              condStr += this._formatValue( cond.values[pIndex++] )
             else
               condStr += c
         else
           condStr += cond.text
 
-      "#{@conditionVerb} (#{condStr})"
+      "#{this.conditionVerb} (#{condStr})"
 
 
     buildParam: (queryBuilder) ->
@@ -1518,27 +1598,27 @@ const function _buildSquel(flavour = null) {
         text: ""
         values: []
 
-      if 0 >= @conditions.length then return ret
+      if 0 >= this.conditions.length then return ret
 
       condStr = ""
 
-      for cond in @conditions
+      for cond in this.conditions
         if "" isnt condStr then condStr += ") AND ("
-        str = cond.text.split(@options.parameterCharacter)
+        str = cond.text.split(this.options.parameterCharacter)
         i = 0
         for v in cond.values
           condStr += "#{str[i]}" if str[i]?
-          p = @_formatValueAsParam(v)
+          p = this._formatValueAsParam(v)
           if (p?.text?)
             condStr += "(#{p.text})"
             for qv in p.values
               ret.values.push( qv )
           else
-            condStr += @options.parameterCharacter
+            condStr += this.options.parameterCharacter
             ret.values.push( p )
           i = i+1
         condStr += "#{str[i]}" if str[i]?
-      ret.text = "#{@conditionVerb} (#{condStr})"
+      ret.text = "#{this.conditionVerb} (#{condStr})"
       ret
 
 
@@ -1548,7 +1628,7 @@ const function _buildSquel(flavour = null) {
       super 'WHERE', options
 
     where: (condition, values...) ->
-      @_condition condition, values...
+      this._condition condition, values...
 
 
   # HAVING
@@ -1557,36 +1637,36 @@ const function _buildSquel(flavour = null) {
       super 'HAVING', options
 
     having: (condition, values...) ->
-      @_condition condition, values...
+      this._condition condition, values...
 
 
   # ORDER BY
   class cls.OrderByBlock extends cls.Block
     constructor: (options) ->
       super options
-      @orders = []
-      @_values = []
+      this.orders = []
+      this._values = []
 
     # Add an ORDER BY transformation for the given field in the given order.
     #
     # To specify descending order pass false for the 'asc' parameter.
     order: (field, asc, values...) ->
-      field = @_sanitizeField(field)
+      field = this._sanitizeField(field)
 
       asc = true if asc is undefined
       asc = !!asc if asc isnt null
 
-      @_values = values
+      this._values = values
 
-      @orders.push
+      this.orders.push
         field: field
         dir: asc
 
     _buildStr: (toParam = false) ->
-      if 0 < @orders.length
+      if 0 < this.orders.length
         pIndex = 0
         orders = ""
-        for o in @orders
+        for o in this.orders
           orders += ", " if "" isnt orders
 
           fstr = ""
@@ -1594,8 +1674,8 @@ const function _buildSquel(flavour = null) {
           if not toParam
             for idx in [0...o.field.length]
               c = o.field.charAt(idx)
-              if @options.parameterCharacter is c
-                fstr += @_formatValue( @_values[pIndex++] )
+              if this.options.parameterCharacter is c
+                fstr += this._formatValue( this._values[pIndex++] )
               else
                 fstr += c
           else
@@ -1611,12 +1691,12 @@ const function _buildSquel(flavour = null) {
         ""
 
     buildStr: (queryBuilder) ->
-      @_buildStr()
+      this._buildStr()
 
     buildParam: (queryBuilder) ->
       {
-        text: @_buildStr(true)
-        values: @_values.map (v) => @_formatValueAsParam(v)
+        text: this._buildStr(true)
+        values: this._values.map (v) => this._formatValueAsParam(v)
       }
 
 
@@ -1624,19 +1704,19 @@ const function _buildSquel(flavour = null) {
   class cls.LimitBlock extends cls.Block
     constructor: (options) ->
       super options
-      @limits = null
+      this.limits = null
 
     # Set the LIMIT transformation.
     #
     # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
     # the limit.
     limit: (max) ->
-      max = @_sanitizeLimitOffset(max)
-      @limits = max
+      max = this._sanitizeLimitOffset(max)
+      this.limits = max
 
 
     buildStr: (queryBuilder) ->
-      if @limits || @limits == 0 then "LIMIT #{@limits}" else ""
+      if this.limits || this.limits == 0 then "LIMIT #{this.limits}" else ""
 
 
 
@@ -1644,7 +1724,7 @@ const function _buildSquel(flavour = null) {
   class cls.JoinBlock extends cls.Block
     constructor: (options) ->
       super options
-      @joins = []
+      this.joins = []
 
 
     # Add a JOIN with the given table.
@@ -1659,46 +1739,46 @@ const function _buildSquel(flavour = null) {
     # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
     #
     join: (table, alias = null, condition = null, type = 'INNER') ->
-      table = @_sanitizeTable(table, true)
-      alias = @_sanitizeTableAlias(alias) if alias
-      condition = @_sanitizeCondition(condition) if condition
+      table = this._sanitizeTable(table, true)
+      alias = this._sanitizeTableAlias(alias) if alias
+      condition = this._sanitizeCondition(condition) if condition
 
-      @joins.push
+      this.joins.push
         type: type
         table: table
         alias: alias
         condition: condition
-      @
+      this.
 
 
     # Add a LEFT JOIN with the given table.
     left_join: (table, alias = null, condition = null) ->
-      @join table, alias, condition, 'LEFT'
+      this.join table, alias, condition, 'LEFT'
 
     # Add a RIGHT JOIN with the given table.
     right_join: (table, alias = null, condition = null) ->
-      @join table, alias, condition, 'RIGHT'
+      this.join table, alias, condition, 'RIGHT'
 
     # Add an OUTER JOIN with the given table.
     outer_join: (table, alias = null, condition = null) ->
-      @join table, alias, condition, 'OUTER'
+      this.join table, alias, condition, 'OUTER'
 
     # Add a LEFT JOIN with the given table.
     left_outer_join: (table, alias = null, condition = null) ->
-      @join table, alias, condition, 'LEFT OUTER'
+      this.join table, alias, condition, 'LEFT OUTER'
 
     # Add an FULL JOIN with the given table.
     full_join: (table, alias = null, condition = null) ->
-      @join table, alias, condition, 'FULL'
+      this.join table, alias, condition, 'FULL'
 
     # Add an CROSS JOIN with the given table.
     cross_join: (table, alias = null, condition = null) ->
-      @join table, alias, condition, 'CROSS'
+      this.join table, alias, condition, 'CROSS'
 
     buildStr: (queryBuilder) ->
       joins = ""
 
-      for j in (@joins or [])
+      for j in (this.joins or [])
         if joins isnt "" then joins += " "
         joins += "#{j.type} JOIN "
         if "string" is typeof j.table
@@ -1718,10 +1798,10 @@ const function _buildSquel(flavour = null) {
       params = []
       joinStr = ""
 
-      if 0 >= @joins.length then return ret
+      if 0 >= this.joins.length then return ret
 
       # retrieve the parameterised queries
-      for blk in @joins
+      for blk in this.joins
 
         if "string" is typeof blk.table
           p = { "text": "#{blk.table}", "values": [] }
@@ -1757,7 +1837,7 @@ const function _buildSquel(flavour = null) {
         joinStr += " ON (#{p.condition})" if p.condition
 
         for v in p.values
-          ret.values.push( @_formatCustomValue v )
+          ret.values.push( this._formatCustomValue v )
       ret.text += joinStr
 
       ret
@@ -1767,7 +1847,7 @@ const function _buildSquel(flavour = null) {
   class cls.UnionBlock extends cls.Block
     constructor: (options) ->
       super options
-      @unions = []
+      this.unions = []
 
 
     # Add a UNION with the given table/query.
@@ -1778,21 +1858,21 @@ const function _buildSquel(flavour = null) {
     # 'type' must be either one of UNION or UNION ALL.... Default is 'UNION'.
     #
     union: (table, type = 'UNION') ->
-      table = @_sanitizeTable(table, true)
+      table = this._sanitizeTable(table, true)
 
-      @unions.push
+      this.unions.push
         type: type
         table: table
-      @
+      this.
 
     # Add a UNION ALL with the given table/query.
     union_all: (table) ->
-      @union table, 'UNION ALL'
+      this.union table, 'UNION ALL'
 
     buildStr: (queryBuilder) ->
       unionStr = ""
 
-      for j in (@unions or [])
+      for j in (this.unions or [])
         if unionStr isnt "" then unionStr += " "
         unionStr += "#{j.type} "
         if "string" is typeof j.table
@@ -1810,10 +1890,10 @@ const function _buildSquel(flavour = null) {
       params = []
       unionStr = ""
 
-      if 0 >= @unions.length then return ret
+      if 0 >= this.unions.length then return ret
 
       # retrieve the parameterised queries
-      for blk in (@unions or [])
+      for blk in (this.unions or [])
         if "string" is typeof blk.table
           p = { "text": "#{blk.table}", "values": [] }
         else if blk.table instanceof cls.QueryBuilder
@@ -1833,7 +1913,7 @@ const function _buildSquel(flavour = null) {
         unionStr += " " if unionStr isnt ""
         unionStr += "#{p.type} (#{p.text})"
         for v in p.values
-          ret.values.push( @_formatCustomValue v )
+          ret.values.push( this._formatCustomValue v )
       ret.text += unionStr
 
       ret
@@ -1859,18 +1939,18 @@ const function _buildSquel(flavour = null) {
     constructor: (options, blocks) ->
       super options
 
-      @blocks = blocks or []
+      this.blocks = blocks or []
 
       # Copy exposed methods into myself
-      for block in @blocks
+      for block in this.blocks
         for methodName, methodBody of block.exposedMethods()
-          if @[methodName]?
-            throw new Error "#{@_getObjectClassName(@)} already has a builder method called: #{methodName}"
+          if this.[methodName]?
+            throw new Error "#{this._getObjectClassName(this.)} already has a builder method called: #{methodName}"
 
           ( (block, name, body) =>
-            @[name] = =>
+            this.[name] = =>
               body.apply(block, arguments)
-              @
+              this.
           )(block, methodName, methodBody)
 
 
@@ -1878,50 +1958,50 @@ const function _buildSquel(flavour = null) {
     #
     # Note: This will override any globally registered handler for this value type.
     registerValueHandler: (type, handler) ->
-      for block in @blocks
+      for block in this.blocks
         block.registerValueHandler type, handler
       super type, handler
-      @
+      this.
 
     # Update query builder options
     #
     # This will update the options for all blocks too. Use this method with caution as it allows you to change the
     # behaviour of your query builder mid-build.
     updateOptions: (options) ->
-      @options = _extend({}, @options, options)
-      for block in @blocks
+      this.options = _extend({}, this.options, options)
+      for block in this.blocks
         block.options = _extend({}, block.options, options)
 
 
     # Get the final fully constructed query string.
     toString: ->
-      (block.buildStr(@) for block in @blocks).filter (v) ->
+      (block.buildStr(this.) for block in this.blocks).filter (v) ->
         0 < v.length
-      .join(@options.separator)
+      .join(this.options.separator)
 
     # Get the final fully constructed query param obj.
     toParam: (options = undefined)->
-      old = @options
-      @options = _extend({}, @options, options) if options?
+      old = this.options
+      this.options = _extend({}, this.options, options) if options?
       result = { text: '', values: [] }
-      blocks = (block.buildParam(@) for block in @blocks)
+      blocks = (block.buildParam(this.) for block in this.blocks)
       result.text = (block.text for block in blocks).filter (v) ->
         0 < v.length
-      .join(@options.separator)
+      .join(this.options.separator)
 
       result.values = [].concat (block.values for block in blocks)...
-      if not @options.nestedBuilder?
-        if @options.numberedParameters || options?.numberedParametersStartAt?
+      if not this.options.nestedBuilder?
+        if this.options.numberedParameters || options?.numberedParametersStartAt?
           i = 1
-          i = @options.numberedParametersStartAt if @options.numberedParametersStartAt?
-          regex = new RegExp("\\" + @options.parameterCharacter, 'g')
-          result.text = result.text.replace regex, () => "#{@options.numberedParametersPrefix}#{i++}"
-      @options = old
+          i = this.options.numberedParametersStartAt if this.options.numberedParametersStartAt?
+          regex = new RegExp("\\" + this.options.parameterCharacter, 'g')
+          result.text = result.text.replace regex, () => "#{this.options.numberedParametersPrefix}#{i++}"
+      this.options = old
       result
 
     # Deep clone
     clone: ->
-      new @constructor @options, (block.clone() for block in @blocks)
+      new this.constructor this.options, (block.clone() for block in this.blocks)
 
     # Get whether queries built with this builder can be nested within other queries
     isNestable: ->
@@ -1929,7 +2009,7 @@ const function _buildSquel(flavour = null) {
 
     # Get a specific block
     getBlock: (blockType) ->
-      @blocks.filter( (b) -> b instanceof blockType )[0]
+      this.blocks.filter( (b) -> b instanceof blockType )[0]
 
 
 
