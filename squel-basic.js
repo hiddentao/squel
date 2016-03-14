@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014 Ramesh Nair (hiddentao.com)
+Copyright (c) [Ramesh Nair](http://www.hiddentao.com/)
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -22,2318 +22,2096 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
-
-
-(function() {
-  var getValueHandler, registerValueHandler, squel, _buildSquel, _clone, _extend, _isArray, _isPlainObject,
-    __slice = [].slice,
-    __hasProp = {}.hasOwnProperty,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  _extend = function() {
-    var dst, k, sources, src, v, _i, _len;
-    dst = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    if (sources) {
-      for (_i = 0, _len = sources.length; _i < _len; _i++) {
-        src = sources[_i];
-        if (src) {
-          for (k in src) {
-            if (!__hasProp.call(src, k)) continue;
-            v = src[k];
-            dst[k] = v;
-          }
-        }
-      }
-    }
-    return dst;
-  };
-
-  _isPlainObject = function(obj) {
-    if (!obj) {
-      return false;
-    }
-    return obj.constructor.prototype === Object.prototype;
-  };
-
-  _isArray = function(obj) {
-    return obj.constructor.prototype === Array.prototype;
-  };
-
-  _clone = function(src) {
-    var k, ret, v;
-    if (!src) {
-      return src;
-    }
-    if ('function' === typeof src.clone) {
-      return src.clone();
-    } else if (_isPlainObject(src) || _isArray(src)) {
-      ret = new src.constructor;
-      for (k in src) {
-        if (!__hasProp.call(src, k)) continue;
-        v = src[k];
-        if ('function' !== typeof v) {
-          ret[k] = _clone(v);
-        }
-      }
-      return ret;
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], function () {
+            return (root.returnExportsGlobal = factory());
+        });
+    } else if (typeof module === 'object' && module.exports) {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like enviroments that support module.exports,
+        // like Node.
+        module.exports = factory();
     } else {
-      return JSON.parse(JSON.stringify(src));
+        // Browser globals
+        root.squel = factory();
     }
-  };
+}(this, function () {
 
-  registerValueHandler = function(handlers, type, handler) {
-    var typeHandler, _i, _len;
-    if ('function' !== typeof type && 'string' !== typeof type) {
-      throw new Error("type must be a class constructor or string denoting 'typeof' result");
-    }
-    if ('function' !== typeof handler) {
-      throw new Error("handler must be a function");
-    }
-    for (_i = 0, _len = handlers.length; _i < _len; _i++) {
-      typeHandler = handlers[_i];
-      if (typeHandler.type === type) {
-        typeHandler.handler = handler;
-        return;
+
+
+
+
+
+// Extend given object's with other objects' properties, overriding existing ones if necessary
+const function _extend (dst, sources...) {
+  if (sources) {
+    for (let src of sources) {
+      if (src) {
+        Object.keys(src).forEach(function (key) {
+          if (src.hasOwnProperty(key)) {
+            dst[key] = src[key];
+          }
+        });
       }
     }
-    return handlers.push({
-      type: type,
-      handler: handler
+  }
+
+  return dst;
+};
+
+
+
+
+// get whether object is a plain object
+const function _isPlainObject(obj) {
+  if (!obj) {
+    return false;
+  }
+
+  return (obj.constructor.prototype === Object.prototype);
+};
+
+
+// get whether object is an array
+const function _isArray(obj) {
+  return (obj.constructor.prototype === Array.prototype);
+};
+
+
+// get class name of given object
+const _getObjectClassName (obj) {
+  if (obj && obj.constructor && obj.constructor.toString) {
+    let arr = obj.constructor.toString().match(/function\s*(\w+)/);
+    
+    if (arr && 2 === arr.length) {
+      return arr[1]
+    }
+  }
+}
+
+
+// clone given item
+const function _clone(src) {
+  if (!src) {
+    return src;
+  }
+
+  if (typeof src.clone === 'function') {
+    return src.clone();
+  } else if (_isPlainObject(src) || _isArray(src)) {
+    let ret = new (src.constructor);
+
+    Object.keys(src).forEach(function(key) {
+      if (src.hasOwnProperty(key) && typeof src[key] !== 'function') {
+        ret[key] = _clone(src[key]);
+      }
     });
-  };
+  } else {
+    return JSON.parse(JSON.stringify(src));
+  }
+};
 
-  getValueHandler = function() {
-    var handlerLists, handlers, typeHandler, value, _i, _j, _len, _len1;
-    value = arguments[0], handlerLists = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    for (_i = 0, _len = handlerLists.length; _i < _len; _i++) {
-      handlers = handlerLists[_i];
-      for (_j = 0, _len1 = handlers.length; _j < _len1; _j++) {
-        typeHandler = handlers[_j];
-        if (typeHandler.type === typeof value || (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type)) {
-          return typeHandler.handler;
-        }
+
+/**
+ * Register a value type handler
+ *
+ * Note: this will override any existing handler registered for this value type.
+ */
+const function registerValueHandler (handlers, type, handler) {
+  let typeofType = typeof type;
+
+  if (typeofType !== 'function' && typeofType !== 'string') {
+    throw new Error("type must be a class constructor or string");
+  }
+
+  if (typeof handler !== 'function') {
+    throw new Error("handler must be a function");
+  }
+
+  for (let typeHandler of handlers) {
+    if (typeHandler.type === type) {
+      typeHandler.handler = handler;
+
+      return;
+    }
+  }
+
+  handlers.push({
+    type: type
+    handler: handler  
+  });
+};
+
+
+
+
+/**
+ * Get value type handler for given type
+ */
+const function getValueHandler (value, handlerLists...) {
+  for (let handlers in handlerLists) {
+    for (let typeHandler in handlers) {
+      // if type is a string then use `typeof` or else use `instanceof`
+      if (typeof value === typeHandler.type || 
+          (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
+        return typeHandler.handler;
       }
     }
-    return void 0;
+  }
+};
+
+
+/**
+ * Build base squel classes and methods
+ */
+const function _buildSquel(flavour = null) {
+  let cls = {};
+
+  // default query builder options
+  cls.DefaultQueryBuilderOptions = {
+    // If true then table names will be rendered inside quotes. The quote character used is configurable via the nameQuoteCharacter option.
+    autoQuoteTableNames: false,
+    // If true then field names will rendered inside quotes. The quote character used is configurable via the nameQuoteCharacter option.
+    autoQuoteFieldNames: false,
+    // If true then alias names will rendered inside quotes. The quote character used is configurable via the `tableAliasQuoteCharacter` and `fieldAliasQuoteCharacter` options.
+    autoQuoteAliasNames: true,
+    // If true then table alias names will rendered after AS keyword.
+    useAsForTableAliasNames: false,
+    // The quote character used for when quoting table and field names
+    nameQuoteCharacter: '`',
+    // The quote character used for when quoting table alias names
+    tableAliasQuoteCharacter: '`',
+    // The quote character used for when quoting table alias names
+    fieldAliasQuoteCharacter: '"',
+    // Custom value handlers where key is the value type and the value is the handler function
+    valueHandlers: [],
+    // Character used to represent a parameter value
+    parameterCharacter: '?',
+    // Numbered parameters returned from toParam() as $1, $2, etc.
+    numberedParameters: false,
+    // Numbered parameters prefix character(s)
+    numberedParametersPrefix: '$',
+    // Numbered parameters start at this number.
+    numberedParametersStartAt: 1,
+    // If true then replaces all single quotes within strings. The replacement string used is configurable via the `singleQuoteReplacement` option.
+    replaceSingleQuotes: false,
+    // The string to replace single quotes with in query strings
+    singleQuoteReplacement: '\'\'',
+    // String used to join individual blocks in a query when it's stringified
+    separator: ' ',
   };
 
-  _buildSquel = function(flavour) {
-    var cls, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _squel;
-    if (flavour == null) {
-      flavour = null;
+  // Global custom value handlers for all instances of builder
+  cls.globalValueHandlers = [];
+
+
+  /*
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # Custom value types
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+   */
+
+
+  // Register a new value handler
+  cls.registerValueHandler = function(type, handler) {
+    registerValueHandler(cls.globalValueHandlers, type, handler);
+  };
+
+
+  /*
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # Base classes
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  */
+
+  // Base class for cloneable builders
+  class cls.Cloneable {
+    /**
+     * Clone this builder
+     */
+    clone () {
+      let newInstance = new this.constructor;
+
+      return _extend(newInstance, _clone(_extend({}, this)));
     }
-    cls = {};
-    cls.DefaultQueryBuilderOptions = {
-      autoQuoteTableNames: false,
-      autoQuoteFieldNames: false,
-      autoQuoteAliasNames: true,
-      useAsForTableAliasNames: false,
-      nameQuoteCharacter: '`',
-      tableAliasQuoteCharacter: '`',
-      fieldAliasQuoteCharacter: '"',
-      valueHandlers: [],
-      parameterCharacter: '?',
-      numberedParameters: false,
-      numberedParametersPrefix: '$',
-      numberedParametersStartAt: 1,
-      replaceSingleQuotes: false,
-      singleQuoteReplacement: '\'\'',
-      separator: ' '
-    };
-    cls.globalValueHandlers = [];
-    cls.registerValueHandler = function(type, handler) {
-      return registerValueHandler(cls.globalValueHandlers, type, handler);
-    };
-    cls.Cloneable = (function() {
-      function Cloneable() {}
+  }
 
-      Cloneable.prototype.clone = function() {
-        var newInstance;
-        newInstance = new this.constructor;
-        return _extend(newInstance, _clone(_extend({}, this)));
-      };
 
-      return Cloneable;
 
-    })();
-    cls.BaseBuilder = (function(_super) {
-      __extends(BaseBuilder, _super);
+  // Base class for all builders
+  class cls.BaseBuilder extends cls.Cloneable {
+    /**
+     * Constructor.
+     * @param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
+     */
+    constructor (options) {
+      let defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
 
-      function BaseBuilder(options) {
-        this._sanitizeNestableQuery = __bind(this._sanitizeNestableQuery, this);
-        var defaults;
-        defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
-        this.options = _extend({}, defaults, options);
+      this.options = _extend({}, defaults, options);
+    }
+
+    /**
+     * Register a custom value handler for this builder instance.
+     *
+     * Note: this will override any globally registered handler for this value type.
+     */
+    registerValueHandler (type, handler) {
+      registerValueHandler(this.options.valueHandlers, type, handler);
+
+      return this;
+    }
+
+
+    /**
+     * Sanitize the given condition. 
+     */
+    _sanitizeCondition (condition) {
+      // If it's not an Expression builder instance
+      if (!(condition instanceof cls.Expression)) {
+        // It must then be a string
+        if (typeof condition !== "string") {
+          throw new Error("condition must be a string or Expression instance");
+        }
       }
 
-      BaseBuilder.prototype.registerValueHandler = function(type, handler) {
-        registerValueHandler(this.options.valueHandlers, type, handler);
-        return this;
-      };
+      return condition;
+    }
 
-      BaseBuilder.prototype._getObjectClassName = function(obj) {
-        var arr;
-        if (obj && obj.constructor && obj.constructor.toString) {
-          arr = obj.constructor.toString().match(/function\s*(\w+)/);
-          if (arr && arr.length === 2) {
-            return arr[1];
-          }
-        }
-        return void 0;
-      };
+    /**
+     * Sanitize the given name.
+     *
+     * The 'type' parameter is used to construct a meaningful error message in case validation fails.
+     */
+    _sanitizeName (value, type) {
+      if (typeof value !== "string") {
+        throw new Error(`${type} must be a string`);
+      }
 
-      BaseBuilder.prototype._sanitizeCondition = function(condition) {
-        if (!(condition instanceof cls.Expression)) {
-          if ("string" !== typeof condition) {
-            throw new Error("condition must be a string or Expression instance");
-          }
-        }
-        return condition;
-      };
+      return value;
+    }
 
-      BaseBuilder.prototype._sanitizeName = function(value, type) {
-        if ("string" !== typeof value) {
-          throw new Error("" + type + " must be a string");
-        }
-        return value;
-      };
 
-      BaseBuilder.prototype._sanitizeField = function(item, formattingOptions) {
-        var quoteChar;
-        if (formattingOptions == null) {
-          formattingOptions = {};
-        }
-        if (item instanceof cls.QueryBuilder) {
-          item = "(" + item + ")";
-        } else {
-          item = this._sanitizeName(item, "field name");
-          if (this.options.autoQuoteFieldNames) {
-            quoteChar = this.options.nameQuoteCharacter;
-            if (formattingOptions.ignorePeriodsForFieldNameQuotes) {
-              item = "" + quoteChar + item + quoteChar;
-            } else {
-              item = item.split('.').map(function(v) {
-                if ('*' === v) {
-                  return v;
-                } else {
-                  return "" + quoteChar + v + quoteChar;
-                }
-              }).join('.');
-            }
-          }
-        }
-        return item;
-      };
+    _sanitizeField (item, formattingOptions = {}) {
+      if (item instanceof cls.QueryBuilder) {
+        item = `(${item})`;
+      } else {
+        item = this._sanitizeName(item, "field name");
 
-      BaseBuilder.prototype._sanitizeNestableQuery = function(item) {
-        if (item instanceof cls.QueryBuilder && item.isNestable()) {
-          return item;
-        }
-        throw new Error("must be a nestable query, e.g. SELECT");
-      };
+        if (this.options.autoQuoteFieldNames) {
+          let quoteChar = this.options.nameQuoteCharacter;
 
-      BaseBuilder.prototype._sanitizeTable = function(item, allowNested) {
-        var e, sanitized;
-        if (allowNested == null) {
-          allowNested = false;
-        }
-        if (allowNested) {
-          if ("string" === typeof item) {
-            sanitized = item;
+          if (formattingOptions.ignorePeriodsForFieldNameQuotes) {
+            // a.b.c -> `a.b.c`
+            item = `${quoteChar}${item}${quoteChar}`;
           } else {
-            try {
-              sanitized = this._sanitizeNestableQuery(item);
-            } catch (_error) {
-              e = _error;
-              throw new Error("table name must be a string or a nestable query instance");
-            }
+            // a.b.c -> `a`.`b`.`c`
+            item = item
+              .split('.')
+              .map(function(v) {
+                // treat '*' as special case (#79)
+                return ('*' === v ? v : `${quoteChar}${v}${quoteChar}`);
+              })
+              .join('.')
           }
-        } else {
-          sanitized = this._sanitizeName(item, 'table name');
         }
-        if (this.options.autoQuoteTableNames) {
-          return "" + this.options.nameQuoteCharacter + sanitized + this.options.nameQuoteCharacter;
-        } else {
-          return sanitized;
-        }
-      };
+      }
 
-      BaseBuilder.prototype._sanitizeTableAlias = function(item) {
-        var sanitized;
-        sanitized = this._sanitizeName(item, "table alias");
-        if (this.options.autoQuoteAliasNames) {
-          sanitized = "" + this.options.tableAliasQuoteCharacter + sanitized + this.options.tableAliasQuoteCharacter;
+      return item;
+    }
+
+
+    _sanitizeNestableQuery (item) {
+      if (item instanceof cls.QueryBuilder && item.isNestable()) {
+        return item;
+      }
+
+      throw new Error("must be a nestable query, e.g. SELECT");
+    }
+
+
+    _sanitizeTable (item, allowNested = false) {
+      if (allowNested)
+        if (typeof item !== "string") {
+          try {
+            item = this._sanitizeNestableQuery(item);
+          } catch (e) {
+            throw new Error("table name must be a string or a nestable query instance");
+          }
         }
+      } else {
+        item = this._sanitizeName(item, 'table name');
+      }
+
+      if (this.options.autoQuoteTableNames) {
+        let quoteChar = this.options.nameQuoteCharacter;
+
+        return `${quoteChar}${item}${quoteChar}`;
+      } else {
+        return item;
+      }
+
+
+      _sanitizeTableAlias (item) {
+        let sanitized = this._sanitizeName(item, "table alias");
+        
+        if (this.options.autoQuoteAliasNames) {
+          let quoteChar = this.options.tableAliasQuoteCharacter;
+
+          sanitized = `${quoteChar}${sanitized}${quoteChar}`;
+        }
+
         if (this.options.useAsForTableAliasNames) {
-          return "AS " + sanitized;
+          return `AS ${sanitized}`;
         } else {
           return sanitized;
         }
-      };
+      }
 
-      BaseBuilder.prototype._sanitizeFieldAlias = function(item) {
-        var sanitized;
-        sanitized = this._sanitizeName(item, "field alias");
+
+      _sanitizeFieldAlias (item) {
+        let sanitized = this._sanitizeName(item, "field alias");
+        
         if (this.options.autoQuoteAliasNames) {
-          return "" + this.options.fieldAliasQuoteCharacter + sanitized + this.options.fieldAliasQuoteCharacter;
+          let quoteChar = this.options.fieldAliasQuoteCharacter;
+
+          `${quoteChar}${sanitized}${quoteChar}`;
         } else {
           return sanitized;
         }
-      };
+      }
 
-      BaseBuilder.prototype._sanitizeLimitOffset = function(value) {
-        value = parseInt(value);
-        if (0 > value || isNaN(value)) {
+
+      // Sanitize the given limit/offset value.
+      _sanitizeLimitOffset (value) {
+        let value = parseInt(value);
+
+        if (0 > value or isNaN(value)) {
           throw new Error("limit/offset must be >= 0");
         }
-        return value;
-      };
 
-      BaseBuilder.prototype._sanitizeValue = function(item) {
-        var itemType, typeIsValid;
-        itemType = typeof item;
+        return value
+      }
+
+
+
+      // Santize the given field value
+      _sanitizeValue (item) {
+        let itemType = typeof item;
+
         if (null === item) {
+          // null is allowed
+        }
+        else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
+          // primitives are allowed
+        }
+        else if (item instanceof cls.QueryBuilder && item.isNestable()) {
+          // QueryBuilder instances allowed
+        }
+        else if (item instanceof cls.FunctionBlock) {
+          // FunctionBlock instances allowed
+        }
+        else {
+          let typeIsValid = 
+            !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-        } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-
-        } else if (item instanceof cls.QueryBuilder && item.isNestable()) {
-
-        } else if (item instanceof cls.FunctionBlock) {
-
-        } else {
-          typeIsValid = void 0 !== getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
           if (!typeIsValid) {
             throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
           }
         }
+
         return item;
-      };
+      }
 
-      BaseBuilder.prototype._escapeValue = function(value) {
-        if (true !== this.options.replaceSingleQuotes) {
-          return value;
-        }
-        return value.replace(/\'/g, this.options.singleQuoteReplacement);
-      };
 
-      BaseBuilder.prototype._formatCustomValue = function(value, asParam) {
-        var customHandler;
-        if (asParam == null) {
-          asParam = false;
-        }
-        customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
+      // Escape a string value, e.g. escape quotes and other characters within it.
+      _escapeValue (value) {
+        return (!this.options.replaceSingleQuotes) ? value : (
+          value.replace(/\'/g, this.options.singleQuoteReplacement)
+        );
+      }
+
+
+      // Format the given custom value
+      _formatCustomValue (value, asParam = false) {
+        // user defined custom handlers takes precedence
+        let customHandler = 
+          getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
+
+        // use the custom handler if available
         if (customHandler) {
           value = customHandler(value, asParam);
         }
-        return value;
-      };
 
-      BaseBuilder.prototype._formatValueAsParam = function(value) {
-        var p,
-          _this = this;
-        if (Array.isArray(value)) {
-          return value.map(function(v) {
-            return _this._formatValueAsParam(v);
+        return value;
+      }
+
+
+
+      // Format the given field value for inclusion into query parameter array
+      _formatValueAsParam (value) {
+        if (_.isArray(value)) {
+          return value.map((v) => {
+            return this._formatValueAsParam(v)
           });
         } else {
           if (value instanceof cls.QueryBuilder && value.isNestable()) {
-            value.updateOptions({
-              "nestedBuilder": true
+            value.updateOptions({ 
+              "nestedBuilder": true 
             });
-            return p = value.toParam();
-          } else if (value instanceof cls.Expression) {
-            return p = value.toParam();
-          } else {
+
+            return value.toParam();
+          }
+          else if (value instanceof cls.Expression) {
+            return value.toParam();
+          }
+          else {
             return this._formatCustomValue(value, true);
           }
         }
-      };
+      }
 
-      BaseBuilder.prototype._formatValue = function(value, formattingOptions) {
-        var customFormattedValue, escapedValue,
-          _this = this;
-        if (formattingOptions == null) {
-          formattingOptions = {};
-        }
-        customFormattedValue = this._formatCustomValue(value);
+
+
+      // Format the given field value for inclusion into the query string
+      _formatValue (value, formattingOptions = {}) {
+        let customFormattedValue = this._formatCustomValue(value);
+        
+        // if formatting took place then return it directly
         if (customFormattedValue !== value) {
-          return "(" + customFormattedValue + ")";
+          return `(${customFormattedValue})`;
         }
-        if (Array.isArray(value)) {
-          value = value.map(function(v) {
-            return _this._formatValue(v);
+
+        // if it's an array then format each element separately
+        if _isArray(value) {
+          value = value.map((v) => {
+            return this._formatValue(v);
           });
-          value = "(" + (value.join(', ')) + ")";
-        } else {
+
+          value = `(${value.join(', ')})`;
+        }
+        else {
+          let typeofValue = typeof value;
+
           if (null === value) {
             value = "NULL";
-          } else if ("boolean" === typeof value) {
+          }
+          else if (typeofValue === "boolean") {
             value = value ? "TRUE" : "FALSE";
-          } else if (value instanceof cls.QueryBuilder) {
-            value = "(" + value + ")";
-          } else if (value instanceof cls.Expression) {
-            value = "(" + value + ")";
-          } else if ("number" !== typeof value) {
+          }
+          else if (value instanceof cls.QueryBuilder) {
+            value = `(${value})`;
+          }
+          else if (value instanceof cls.Expression) {
+            value = `(${value})`;
+          }
+          else if (typeofValue !== "number") {
             if (formattingOptions.dontQuote) {
-              value = "" + value;
-            } else {
-              escapedValue = this._escapeValue(value);
-              value = "'" + escapedValue + "'";
+              value = `${value}`;
+            } 
+            else {
+              let escapedValue = this._escapeValue(value);
+
+              value = `'${escapedValue}'`;
             }
           }
         }
+
         return value;
+      }
+  }
+
+
+
+  /*
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # cls.Expressions
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  */
+
+  /*
+  # An SQL expression builder.
+  #
+  # SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
+  #
+  # This builder works by building up the expression as a hierarchical tree of nodes. The toString() method then
+  # traverses this tree in order to build the final expression string.
+  #
+  # cls.Expressions can be nested. Nested expression contains can themselves contain nested expressions.
+  # When rendered a nested expression will be fully contained within brackets.
+  #
+  # All the build methods in this object return the object instance for chained method calling purposes.
+   */
+  class cls.Expression extends cls.BaseBuilder {
+    // Initialise the expression.
+    constructor (options) {
+      super()
+        
+      let defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+
+      this.options = _extend({}, defaults, options);
+
+      this.tree = {
+        nodes: []
       };
 
-      return BaseBuilder;
+      this.stack = [];
+    }
 
-    })(cls.Cloneable);
-    cls.Expression = (function(_super) {
-      __extends(Expression, _super);
 
-      Expression.prototype.tree = null;
+    // Begin a nested expression and combine it with the current expression using the given operator.
+    _begin (op) {
+      let newNode = {
+        type: op,
+        nodes: [],
+      };
 
-      Expression.prototype.stack = null;
+      let current = this._current();
 
-      function Expression(options) {
-        var defaults,
-          _this = this;
-        Expression.__super__.constructor.call(this);
-        defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
-        this.options = _extend({}, defaults, options);
-        this.tree = {
-          nodes: []
-        };
-        this.current = this.tree;
-        this.stack = [];
-        this._begin = function(op) {
-          var current, newNode;
-          newNode = {
-            type: op,
-            nodes: []
-          };
-          current = _this._current();
-          _this.stack.push(current.nodes.length);
-          current.nodes.push(newNode);
-          return _this;
-        };
-        this._current = function() {
-          var current, i, _i, _ref;
-          current = _this.tree;
-          for (i = _i = 0, _ref = _this.stack.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            current = current.nodes[_this.stack[i]];
-          }
-          return current;
-        };
+      this.stack.push( current.nodes.length );
+
+      current.nodes.push(newNode);
+
+      return this;
+    }
+
+    // Getting current node from tree
+    _current ()) {
+      let current = this.tree;
+
+      for (let num of this.stack) {
+        current = current.nodes[num];
       }
 
-      Expression.prototype.and_begin = function() {
-        return this._begin('AND');
-      };
+      return current;
+    }
 
-      Expression.prototype.or_begin = function() {
-        return this._begin('OR');
-      };
 
-      Expression.prototype.end = function() {
-        if (!this.stack.length) {
-          throw new Error("begin() needs to be called");
-        }
-        this.stack.pop();
-        return this;
-      };
+    // Begin a nested expression and combine it with the current expression using the intersection operator (AND).
+    and_begin () {
+      return this._begin('AND');
+    }
 
-      Expression.prototype.and = function(expr, param) {
-        if (!expr || "string" !== typeof expr) {
-          throw new Error("expr must be a string");
-        }
+
+    // Begin a nested expression and combine it with the current expression using the union operator (OR).
+    or_begin () {
+      return this._begin('OR');
+    }
+
+
+    /**
+     * End the current compound expression. 
+     *
+     * This will throw an error if begin() hasn't been called yet.
+     */
+    end () {
+      if (!this.stack.length) {
+        throw new Error("begin() needs to be called");
+      }
+
+      this.stack.pop();
+
+      return this;
+    }
+
+
+
+    // Combine the current expression with the given expression using the intersection operator (AND).
+    and (expr, param) {
+      if (!expr || typeof expr !== "string") {
+        throw new Error("expr must be a string");
+      } else {
         this._current().nodes.push({
           type: 'AND',
           expr: expr,
-          para: param
+          para: param,
         });
-        return this;
-      };
+      }
 
-      Expression.prototype.or = function(expr, param) {
-        if (!expr || "string" !== typeof expr) {
-          throw new Error("expr must be a string");
-        }
+      return this;
+    }
+
+
+
+    // Combine the current expression with the given expression using the union operator (OR).
+    or (expr, param) {
+      if (!expr || typeof expr !== "string") {
+        throw new Error("expr must be a string");
+      } else {
         this._current().nodes.push({
           type: 'OR',
           expr: expr,
-          para: param
+          para: param,
         });
-        return this;
-      };
-
-      Expression.prototype.toString = function() {
-        if (this.stack.length) {
-          throw new Error("end() needs to be called");
-        }
-        return this._toString(this.tree);
-      };
-
-      Expression.prototype.toParam = function() {
-        if (this.stack.length) {
-          throw new Error("end() needs to be called");
-        }
-        return this._toString(this.tree, true);
-      };
-
-      Expression.prototype._toString = function(node, paramMode) {
-        var child, cv, inStr, nodeStr, params, str, _i, _len, _ref,
-          _this = this;
-        if (paramMode == null) {
-          paramMode = false;
-        }
-        str = "";
-        params = [];
-        _ref = node.nodes;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          child = _ref[_i];
-          if (child.expr != null) {
-            nodeStr = child.expr;
-            if (void 0 !== child.para) {
-              if (!paramMode) {
-                nodeStr = nodeStr.replace(this.options.parameterCharacter, this._formatValue(child.para));
-              } else {
-                cv = this._formatValueAsParam(child.para);
-                if (((cv != null ? cv.text : void 0) != null)) {
-                  params = params.concat(cv.values);
-                  nodeStr = nodeStr.replace(this.options.parameterCharacter, "(" + cv.text + ")");
-                } else {
-                  params = params.concat(cv);
-                }
-                if (Array.isArray(child.para)) {
-                  inStr = Array.apply(null, new Array(child.para.length)).map(function() {
-                    return _this.options.parameterCharacter;
-                  });
-                  nodeStr = nodeStr.replace(this.options.parameterCharacter, "(" + (inStr.join(', ')) + ")");
-                }
-              }
-            }
-          } else {
-            nodeStr = this._toString(child, paramMode);
-            if (paramMode) {
-              params = params.concat(nodeStr.values);
-              nodeStr = nodeStr.text;
-            }
-            if ("" !== nodeStr) {
-              nodeStr = "(" + nodeStr + ")";
-            }
-          }
-          if ("" !== nodeStr) {
-            if ("" !== str) {
-              str += " " + child.type + " ";
-            }
-            str += nodeStr;
-          }
-        }
-        if (paramMode) {
-          return {
-            text: str,
-            values: params
-          };
-        } else {
-          return str;
-        }
-      };
-
-      return Expression;
-
-    })(cls.BaseBuilder);
-    cls.Case = (function(_super) {
-      __extends(Case, _super);
-
-      Case.prototype.cases = null;
-
-      Case.prototype.elseValue = null;
-
-      function Case(fieldName, options) {
-        if (options == null) {
-          options = {};
-        }
-        Case.__super__.constructor.call(this);
-        if (_isPlainObject(fieldName)) {
-          options = fieldName;
-          fieldName = null;
-        }
-        if (fieldName) {
-          this.fieldName = this._sanitizeField(fieldName);
-        }
-        this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
-        this.cases = [];
       }
 
-      Case.prototype['when'] = function() {
-        var expression, values;
-        expression = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        this.cases.unshift({
-          expression: expression,
-          values: values
-        });
-        return this;
-      };
-
-      Case.prototype['then'] = function(result) {
-        if (this.cases.length === 0) {
-          throw new Error("when() needs to be called first");
-        }
-        this.cases[0].result = result;
-        return this;
-      };
-
-      Case.prototype['else'] = function(elseValue) {
-        this.elseValue = elseValue;
-        return this;
-      };
-
-      Case.prototype.toString = function() {
-        return this._toString(this.cases, this.elseValue);
-      };
-
-      Case.prototype.toParam = function() {
-        return this._toString(this.cases, this.elseValue, true);
-      };
-
-      Case.prototype._toString = function(cases, elseValue, paramMode) {
-        var str, values,
-          _this = this;
-        if (paramMode == null) {
-          paramMode = false;
-        }
-        if (cases.length === 0) {
-          return this._formatValue(elseValue);
-        }
-        values = [];
-        cases = cases.map(function(part) {
-          var condition, str;
-          condition = new cls.AbstractConditionBlock("WHEN");
-          condition._condition.apply(condition, [part.expression].concat(part.values));
-          str = '';
-          if (!paramMode) {
-            str = condition.buildStr();
-          } else {
-            condition = condition.buildParam();
-            str = condition.text;
-            values = values.concat(condition.values);
-          }
-          return str + ' THEN ' + _this._formatValue(part.result);
-        });
-        str = cases.join(" ") + ' ELSE ' + this._formatValue(elseValue) + ' END';
-        if (this.fieldName) {
-          str = this.fieldName + " " + str;
-        }
-        str = "CASE " + str;
-        if (paramMode) {
-          return {
-            text: str,
-            values: values
-          };
-        } else {
-          return str;
-        }
-      };
-
-      return Case;
-
-    })(cls.BaseBuilder);
-    cls.Block = (function(_super) {
-      __extends(Block, _super);
-
-      function Block() {
-        _ref = Block.__super__.constructor.apply(this, arguments);
-        return _ref;
-      }
-
-      Block.prototype.exposedMethods = function() {
-        var attr, ret, value;
-        ret = {};
-        for (attr in this) {
-          value = this[attr];
-          if (typeof value === "function" && attr.charAt(0) !== '_' && !cls.Block.prototype[attr]) {
-            ret[attr] = value;
-          }
-        }
-        return ret;
-      };
-
-      Block.prototype.buildStr = function(queryBuilder) {
-        return '';
-      };
-
-      Block.prototype.buildParam = function(queryBuilder) {
-        return {
-          text: this.buildStr(queryBuilder),
-          values: []
-        };
-      };
-
-      return Block;
-
-    })(cls.BaseBuilder);
-    cls.StringBlock = (function(_super) {
-      __extends(StringBlock, _super);
-
-      function StringBlock(options, str) {
-        StringBlock.__super__.constructor.call(this, options);
-        this.str = str;
-      }
-
-      StringBlock.prototype.buildStr = function(queryBuilder) {
-        return this.str;
-      };
-
-      return StringBlock;
-
-    })(cls.Block);
-    cls.AbstractValueBlock = (function(_super) {
-      __extends(AbstractValueBlock, _super);
-
-      function AbstractValueBlock(options) {
-        AbstractValueBlock.__super__.constructor.call(this, options);
-        this._str = '';
-        this._values = [];
-      }
-
-      AbstractValueBlock.prototype._setValue = function() {
-        var str, values;
-        str = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        this._str = str;
-        this._values = values;
-        return this;
-      };
-
-      AbstractValueBlock.prototype.buildStr = function(queryBuilder) {
-        var c, finalStr, idx, str, values, _i, _ref1;
-        str = this._str;
-        finalStr = '';
-        values = [].concat(this._values);
-        for (idx = _i = 0, _ref1 = str.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; idx = 0 <= _ref1 ? ++_i : --_i) {
-          c = str.charAt(idx);
-          if (this.options.parameterCharacter === c && 0 < values.length) {
-            c = values.shift();
-          }
-          finalStr += c;
-        }
-        return finalStr;
-      };
-
-      AbstractValueBlock.prototype.buildParam = function(queryBuilder) {
-        return {
-          text: this._str,
-          values: this._values
-        };
-      };
-
-      return AbstractValueBlock;
-
-    })(cls.Block);
-    cls.FunctionBlock = (function(_super) {
-      __extends(FunctionBlock, _super);
-
-      function FunctionBlock() {
-        _ref1 = FunctionBlock.__super__.constructor.apply(this, arguments);
-        return _ref1;
-      }
-
-      FunctionBlock.prototype["function"] = function() {
-        var str, values;
-        str = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        return this._setValue.apply(this, [str].concat(values));
-      };
-
-      return FunctionBlock;
-
-    })(cls.AbstractValueBlock);
-    cls.fval = function() {
-      var inst, str, values;
-      str = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      inst = new cls.FunctionBlock();
-      return inst["function"].apply(inst, [str].concat(values));
-    };
-    cls.registerValueHandler(cls.FunctionBlock, function(value, asParam) {
-      if (asParam == null) {
-        asParam = false;
-      }
-      if (asParam) {
-        return value.buildParam();
-      } else {
-        return value.buildStr();
-      }
-    });
-    cls.AbstractTableBlock = (function(_super) {
-      __extends(AbstractTableBlock, _super);
-
-      function AbstractTableBlock(options) {
-        AbstractTableBlock.__super__.constructor.call(this, options);
-        this.tables = [];
-      }
-
-      AbstractTableBlock.prototype._table = function(table, alias) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (alias) {
-          alias = this._sanitizeTableAlias(alias);
-        }
-        table = this._sanitizeTable(table, this.options.allowNested || false);
-        if (this.options.singleTable) {
-          this.tables = [];
-        }
-        return this.tables.push({
-          table: table,
-          alias: alias
-        });
-      };
-
-      AbstractTableBlock.prototype._hasTable = function() {
-        return 0 < this.tables.length;
-      };
-
-      AbstractTableBlock.prototype.buildStr = function(queryBuilder) {
-        var table, tables, _i, _len, _ref2;
-        if (!this._hasTable()) {
-          return "";
-        }
-        tables = "";
-        _ref2 = this.tables;
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          table = _ref2[_i];
-          if ("" !== tables) {
-            tables += ", ";
-          }
-          if ("string" === typeof table.table) {
-            tables += table.table;
-          } else {
-            tables += "(" + table.table + ")";
-          }
-          if (table.alias) {
-            tables += " " + table.alias;
-          }
-        }
-        return tables;
-      };
-
-      AbstractTableBlock.prototype._buildParam = function(queryBuilder, prefix) {
-        var blk, p, paramStr, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref2, _ref3;
-        if (prefix == null) {
-          prefix = null;
-        }
-        ret = {
-          text: "",
-          values: []
-        };
-        params = [];
-        paramStr = "";
-        if (!this._hasTable()) {
-          return ret;
-        }
-        _ref2 = this.tables;
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          blk = _ref2[_i];
-          if ("string" === typeof blk.table) {
-            p = {
-              "text": "" + blk.table,
-              "values": []
-            };
-          } else if (blk.table instanceof cls.QueryBuilder) {
-            blk.table.updateOptions({
-              "nestedBuilder": true
-            });
-            p = blk.table.toParam();
-          } else {
-            blk.updateOptions({
-              "nestedBuilder": true
-            });
-            p = blk.buildParam(queryBuilder);
-          }
-          p.table = blk;
-          params.push(p);
-        }
-        for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
-          p = params[_j];
-          if (paramStr !== "") {
-            paramStr += ", ";
-          } else {
-            if ((prefix != null) && prefix !== "") {
-              paramStr += "" + prefix + " " + paramStr;
-            }
-            paramStr;
-          }
-          if ("string" === typeof p.table.table) {
-            paramStr += "" + p.text;
-          } else {
-            paramStr += "(" + p.text + ")";
-          }
-          if (p.table.alias != null) {
-            paramStr += " " + p.table.alias;
-          }
-          _ref3 = p.values;
-          for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
-            v = _ref3[_k];
-            ret.values.push(this._formatCustomValue(v));
-          }
-        }
-        ret.text += paramStr;
-        return ret;
-      };
-
-      AbstractTableBlock.prototype.buildParam = function(queryBuilder) {
-        return this._buildParam(queryBuilder);
-      };
-
-      return AbstractTableBlock;
-
-    })(cls.Block);
-    cls.UpdateTableBlock = (function(_super) {
-      __extends(UpdateTableBlock, _super);
-
-      function UpdateTableBlock() {
-        _ref2 = UpdateTableBlock.__super__.constructor.apply(this, arguments);
-        return _ref2;
-      }
-
-      UpdateTableBlock.prototype.table = function(table, alias) {
-        if (alias == null) {
-          alias = null;
-        }
-        return this._table(table, alias);
-      };
-
-      return UpdateTableBlock;
-
-    })(cls.AbstractTableBlock);
-    cls.FromTableBlock = (function(_super) {
-      __extends(FromTableBlock, _super);
-
-      function FromTableBlock() {
-        _ref3 = FromTableBlock.__super__.constructor.apply(this, arguments);
-        return _ref3;
-      }
-
-      FromTableBlock.prototype.from = function(table, alias) {
-        if (alias == null) {
-          alias = null;
-        }
-        return this._table(table, alias);
-      };
-
-      FromTableBlock.prototype.buildStr = function(queryBuilder) {
-        var tables;
-        tables = FromTableBlock.__super__.buildStr.call(this, queryBuilder);
-        if (tables.length) {
-          return "FROM " + tables;
-        } else {
-          return "";
-        }
-      };
-
-      FromTableBlock.prototype.buildParam = function(queryBuilder) {
-        return this._buildParam(queryBuilder, "FROM");
-      };
-
-      return FromTableBlock;
-
-    })(cls.AbstractTableBlock);
-    cls.IntoTableBlock = (function(_super) {
-      __extends(IntoTableBlock, _super);
-
-      function IntoTableBlock(options) {
-        IntoTableBlock.__super__.constructor.call(this, options);
-        this.table = null;
-      }
-
-      IntoTableBlock.prototype.into = function(table) {
-        return this.table = this._sanitizeTable(table, false);
-      };
-
-      IntoTableBlock.prototype.buildStr = function(queryBuilder) {
-        if (!this.table) {
-          throw new Error("into() needs to be called");
-        }
-        return "INTO " + this.table;
-      };
-
-      return IntoTableBlock;
-
-    })(cls.Block);
-    cls.GetFieldBlock = (function(_super) {
-      __extends(GetFieldBlock, _super);
-
-      function GetFieldBlock(options) {
-        GetFieldBlock.__super__.constructor.call(this, options);
-        this._fieldAliases = {};
-        this._fields = [];
-      }
-
-      GetFieldBlock.prototype.fields = function(_fields, options) {
-        var alias, field, _i, _len, _results, _results1;
-        if (options == null) {
-          options = {};
-        }
-        if (Array.isArray(_fields)) {
-          _results = [];
-          for (_i = 0, _len = _fields.length; _i < _len; _i++) {
-            field = _fields[_i];
-            _results.push(this.field(field, null, options));
-          }
-          return _results;
-        } else {
-          _results1 = [];
-          for (field in _fields) {
-            alias = _fields[field];
-            _results1.push(this.field(field, alias, options));
-          }
-          return _results1;
-        }
-      };
-
-      GetFieldBlock.prototype.field = function(field, alias, options) {
-        var fieldRec;
-        if (alias == null) {
-          alias = null;
-        }
-        if (options == null) {
-          options = {};
-        }
-        if (alias) {
-          alias = this._sanitizeFieldAlias(alias);
-        }
-        if (this._fieldAliases[field] === alias) {
-          return;
-        }
-        fieldRec = {
-          alias: alias
-        };
-        if (field instanceof cls.Case) {
-          fieldRec.func = field;
-        } else {
-          fieldRec.name = this._sanitizeField(field, options);
-        }
-        if (options.aggregation) {
-          fieldRec.aggregation = options.aggregation;
-        }
-        this._fieldAliases[field] = alias;
-        return this._fields.push(fieldRec);
-      };
-
-      GetFieldBlock.prototype.buildStr = function(queryBuilder) {
-        return this._build(queryBuilder);
-      };
-
-      GetFieldBlock.prototype.buildParam = function(queryBuilder) {
-        return this._build(queryBuilder, true);
-      };
-
-      GetFieldBlock.prototype._build = function(queryBuilder, paramMode) {
-        var caseExpr, field, fields, values, _i, _len, _ref4;
-        if (paramMode == null) {
-          paramMode = false;
-        }
-        if (!queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
-          if (paramMode) {
-            return {
-              text: "",
-              values: []
-            };
-          } else {
-            return "";
-          }
-        }
-        fields = "";
-        values = [];
-        _ref4 = this._fields;
-        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-          field = _ref4[_i];
-          if ("" !== fields) {
-            fields += ", ";
-          }
-          if (field.aggregation) {
-            fields += field.aggregation + "(";
-          }
-          if (field.func) {
-            if (paramMode) {
-              caseExpr = field.func.toParam();
-              fields += caseExpr.text;
-              values = values.concat(caseExpr.values);
-            } else {
-              fields += field.func.toString();
-            }
-          } else {
-            fields += field.name;
-          }
-          if (field.aggregation) {
-            fields += ")";
-          }
-          if (field.alias) {
-            fields += " AS " + field.alias;
-          }
-        }
-        if (fields === "") {
-          fields = "*";
-        }
-        if (paramMode) {
-          return {
-            text: fields,
-            values: values
-          };
-        } else {
-          return fields;
-        }
-      };
-
-      return GetFieldBlock;
-
-    })(cls.Block);
-    cls.AbstractSetFieldBlock = (function(_super) {
-      __extends(AbstractSetFieldBlock, _super);
-
-      function AbstractSetFieldBlock(options) {
-        AbstractSetFieldBlock.__super__.constructor.call(this, options);
-        this.fieldOptions = [];
-        this.fields = [];
-        this.values = [];
-      }
-
-      AbstractSetFieldBlock.prototype._set = function(field, value, options) {
-        var index;
-        if (options == null) {
-          options = {};
-        }
-        if (this.values.length > 1) {
-          throw new Error("Cannot call set or setFields on multiple rows of fields.");
-        }
-        if (void 0 !== value) {
-          value = this._sanitizeValue(value);
-        }
-        index = this.fields.indexOf(this._sanitizeField(field, options));
-        if (index !== -1) {
-          this.values[0][index] = value;
-          this.fieldOptions[0][index] = options;
-        } else {
-          this.fields.push(this._sanitizeField(field, options));
-          index = this.fields.length - 1;
-          if (Array.isArray(this.values[0])) {
-            this.values[0][index] = value;
-            this.fieldOptions[0][index] = options;
-          } else {
-            this.values.push([value]);
-            this.fieldOptions.push([options]);
-          }
-        }
-        return this;
-      };
-
-      AbstractSetFieldBlock.prototype._setFields = function(fields, options) {
-        var field;
-        if (options == null) {
-          options = {};
-        }
-        if (typeof fields !== 'object') {
-          throw new Error("Expected an object but got " + typeof fields);
-        }
-        for (field in fields) {
-          if (!__hasProp.call(fields, field)) continue;
-          this._set(field, fields[field], options);
-        }
-        return this;
-      };
-
-      AbstractSetFieldBlock.prototype._setFieldsRows = function(fieldsRows, options) {
-        var field, i, index, value, _i, _ref4, _ref5;
-        if (options == null) {
-          options = {};
-        }
-        if (!Array.isArray(fieldsRows)) {
-          throw new Error("Expected an array of objects but got " + typeof fieldsRows);
-        }
-        this.fields = [];
-        this.values = [];
-        for (i = _i = 0, _ref4 = fieldsRows.length; 0 <= _ref4 ? _i < _ref4 : _i > _ref4; i = 0 <= _ref4 ? ++_i : --_i) {
-          _ref5 = fieldsRows[i];
-          for (field in _ref5) {
-            if (!__hasProp.call(_ref5, field)) continue;
-            index = this.fields.indexOf(this._sanitizeField(field, options));
-            if (0 < i && -1 === index) {
-              throw new Error('All fields in subsequent rows must match the fields in the first row');
-            }
-            if (-1 === index) {
-              this.fields.push(this._sanitizeField(field, options));
-              index = this.fields.length - 1;
-            }
-            value = this._sanitizeValue(fieldsRows[i][field]);
-            if (Array.isArray(this.values[i])) {
-              this.values[i][index] = value;
-              this.fieldOptions[i][index] = options;
-            } else {
-              this.values[i] = [value];
-              this.fieldOptions[i] = [options];
-            }
-          }
-        }
-        return this;
-      };
-
-      AbstractSetFieldBlock.prototype.buildStr = function() {
-        throw new Error('Not yet implemented');
-      };
-
-      AbstractSetFieldBlock.prototype.buildParam = function() {
-        throw new Error('Not yet implemented');
-      };
-
-      return AbstractSetFieldBlock;
-
-    })(cls.Block);
-    cls.SetFieldBlock = (function(_super) {
-      __extends(SetFieldBlock, _super);
-
-      function SetFieldBlock() {
-        _ref4 = SetFieldBlock.__super__.constructor.apply(this, arguments);
-        return _ref4;
-      }
-
-      SetFieldBlock.prototype.set = function(field, value, options) {
-        return this._set(field, value, options);
-      };
-
-      SetFieldBlock.prototype.setFields = function(fields, options) {
-        return this._setFields(fields, options);
-      };
-
-      SetFieldBlock.prototype.buildStr = function(queryBuilder) {
-        var field, fieldOptions, i, str, value, _i, _ref5;
-        if (0 >= this.fields.length) {
-          throw new Error("set() needs to be called");
-        }
-        str = "";
-        for (i = _i = 0, _ref5 = this.fields.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
-          field = this.fields[i];
-          if ("" !== str) {
-            str += ", ";
-          }
-          value = this.values[0][i];
-          fieldOptions = this.fieldOptions[0][i];
-          if (typeof value === 'undefined') {
-            str += field;
-          } else {
-            str += "" + field + " = " + (this._formatValue(value, fieldOptions));
-          }
-        }
-        return "SET " + str;
-      };
-
-      SetFieldBlock.prototype.buildParam = function(queryBuilder) {
-        var field, i, p, str, v, vals, value, _i, _j, _len, _ref5, _ref6;
-        if (0 >= this.fields.length) {
-          throw new Error("set() needs to be called");
-        }
-        str = "";
-        vals = [];
-        for (i = _i = 0, _ref5 = this.fields.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; i = 0 <= _ref5 ? ++_i : --_i) {
-          field = this.fields[i];
-          if ("" !== str) {
-            str += ", ";
-          }
-          value = this.values[0][i];
-          if (typeof value === 'undefined') {
-            str += field;
-          } else {
-            p = this._formatValueAsParam(value);
-            if ((p != null ? p.text : void 0) != null) {
-              str += "" + field + " = (" + p.text + ")";
-              _ref6 = p.values;
-              for (_j = 0, _len = _ref6.length; _j < _len; _j++) {
-                v = _ref6[_j];
-                vals.push(v);
-              }
-            } else {
-              str += "" + field + " = " + this.options.parameterCharacter;
-              vals.push(p);
-            }
-          }
-        }
-        return {
-          text: "SET " + str,
-          values: vals
-        };
-      };
-
-      return SetFieldBlock;
-
-    })(cls.AbstractSetFieldBlock);
-    cls.InsertFieldValueBlock = (function(_super) {
-      __extends(InsertFieldValueBlock, _super);
-
-      function InsertFieldValueBlock() {
-        _ref5 = InsertFieldValueBlock.__super__.constructor.apply(this, arguments);
-        return _ref5;
-      }
-
-      InsertFieldValueBlock.prototype.set = function(field, value, options) {
-        if (options == null) {
-          options = {};
-        }
-        return this._set(field, value, options);
-      };
-
-      InsertFieldValueBlock.prototype.setFields = function(fields, options) {
-        return this._setFields(fields, options);
-      };
-
-      InsertFieldValueBlock.prototype.setFieldsRows = function(fieldsRows, options) {
-        return this._setFieldsRows(fieldsRows, options);
-      };
-
-      InsertFieldValueBlock.prototype._buildVals = function() {
-        var formattedValue, i, j, vals, _i, _j, _ref6, _ref7;
-        vals = [];
-        for (i = _i = 0, _ref6 = this.values.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
-          for (j = _j = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; j = 0 <= _ref7 ? ++_j : --_j) {
-            formattedValue = this._formatValue(this.values[i][j], this.fieldOptions[i][j]);
-            if ('string' === typeof vals[i]) {
-              vals[i] += ', ' + formattedValue;
-            } else {
-              vals[i] = '' + formattedValue;
-            }
-          }
-        }
-        return vals;
-      };
-
-      InsertFieldValueBlock.prototype._buildValParams = function() {
-        var i, j, p, params, str, v, vals, _i, _j, _k, _len, _ref6, _ref7, _ref8;
-        vals = [];
-        params = [];
-        for (i = _i = 0, _ref6 = this.values.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; i = 0 <= _ref6 ? ++_i : --_i) {
-          for (j = _j = 0, _ref7 = this.values[i].length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; j = 0 <= _ref7 ? ++_j : --_j) {
-            p = this._formatValueAsParam(this.values[i][j]);
-            if ((p != null ? p.text : void 0) != null) {
-              str = p.text;
-              _ref8 = p.values;
-              for (_k = 0, _len = _ref8.length; _k < _len; _k++) {
-                v = _ref8[_k];
-                params.push(v);
-              }
-            } else {
-              str = this.options.parameterCharacter;
-              params.push(p);
-            }
-            if ('string' === typeof vals[i]) {
-              vals[i] += ", " + str;
-            } else {
-              vals[i] = "" + str;
-            }
-          }
-        }
-        return {
-          vals: vals,
-          params: params
-        };
-      };
-
-      InsertFieldValueBlock.prototype.buildStr = function(queryBuilder) {
-        if (0 >= this.fields.length) {
-          return '';
-        }
-        return "(" + (this.fields.join(', ')) + ") VALUES (" + (this._buildVals().join('), (')) + ")";
-      };
-
-      InsertFieldValueBlock.prototype.buildParam = function(queryBuilder) {
-        var i, params, str, vals, _i, _ref6, _ref7;
-        if (0 >= this.fields.length) {
-          return {
-            text: '',
-            values: []
-          };
-        }
-        str = "";
-        _ref6 = this._buildValParams(), vals = _ref6.vals, params = _ref6.params;
-        for (i = _i = 0, _ref7 = this.fields.length; 0 <= _ref7 ? _i < _ref7 : _i > _ref7; i = 0 <= _ref7 ? ++_i : --_i) {
-          if ("" !== str) {
-            str += ", ";
-          }
-          str += this.fields[i];
-        }
-        return {
-          text: "(" + str + ") VALUES (" + (vals.join('), (')) + ")",
-          values: params
-        };
-      };
-
-      return InsertFieldValueBlock;
-
-    })(cls.AbstractSetFieldBlock);
-    cls.InsertFieldsFromQueryBlock = (function(_super) {
-      __extends(InsertFieldsFromQueryBlock, _super);
-
-      function InsertFieldsFromQueryBlock(options) {
-        InsertFieldsFromQueryBlock.__super__.constructor.call(this, options);
-        this._fields = [];
-        this._query = null;
-      }
-
-      InsertFieldsFromQueryBlock.prototype.fromQuery = function(fields, selectQuery) {
-        var _this = this;
-        this._fields = fields.map((function(v) {
-          return _this._sanitizeField(v);
-        }));
-        return this._query = this._sanitizeNestableQuery(selectQuery);
-      };
-
-      InsertFieldsFromQueryBlock.prototype.buildStr = function(queryBuilder) {
-        if (0 >= this._fields.length) {
-          return '';
-        }
-        return "(" + (this._fields.join(', ')) + ") (" + (this._query.toString()) + ")";
-      };
-
-      InsertFieldsFromQueryBlock.prototype.buildParam = function(queryBuilder) {
-        var qryParam;
-        if (0 >= this._fields.length) {
-          return {
-            text: '',
-            values: []
-          };
-        }
-        this._query.updateOptions({
-          "nestedBuilder": true
-        });
-        qryParam = this._query.toParam();
-        return {
-          text: "(" + (this._fields.join(', ')) + ") (" + qryParam.text + ")",
-          values: qryParam.values
-        };
-      };
-
-      return InsertFieldsFromQueryBlock;
-
-    })(cls.Block);
-    cls.DistinctBlock = (function(_super) {
-      __extends(DistinctBlock, _super);
-
-      function DistinctBlock(options) {
-        DistinctBlock.__super__.constructor.call(this, options);
-        this.useDistinct = false;
-      }
-
-      DistinctBlock.prototype.distinct = function() {
-        return this.useDistinct = true;
-      };
-
-      DistinctBlock.prototype.buildStr = function(queryBuilder) {
-        if (this.useDistinct) {
-          return "DISTINCT";
-        } else {
-          return "";
-        }
-      };
-
-      return DistinctBlock;
-
-    })(cls.Block);
-    cls.GroupByBlock = (function(_super) {
-      __extends(GroupByBlock, _super);
-
-      function GroupByBlock(options) {
-        GroupByBlock.__super__.constructor.call(this, options);
-        this.groups = [];
-      }
-
-      GroupByBlock.prototype.group = function(field) {
-        field = this._sanitizeField(field);
-        return this.groups.push(field);
-      };
-
-      GroupByBlock.prototype.buildStr = function(queryBuilder) {
-        var f, groups, _i, _len, _ref6;
-        groups = "";
-        if (0 < this.groups.length) {
-          _ref6 = this.groups;
-          for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-            f = _ref6[_i];
-            if ("" !== groups) {
-              groups += ", ";
-            }
-            groups += f;
-          }
-          groups = "GROUP BY " + groups;
-        }
-        return groups;
-      };
-
-      return GroupByBlock;
-
-    })(cls.Block);
-    cls.OffsetBlock = (function(_super) {
-      __extends(OffsetBlock, _super);
-
-      function OffsetBlock(options) {
-        OffsetBlock.__super__.constructor.call(this, options);
-        this.offsets = null;
-      }
-
-      OffsetBlock.prototype.offset = function(start) {
-        start = this._sanitizeLimitOffset(start);
-        return this.offsets = start;
-      };
-
-      OffsetBlock.prototype.buildStr = function(queryBuilder) {
-        if (this.offsets) {
-          return "OFFSET " + this.offsets;
-        } else {
-          return "";
-        }
-      };
-
-      return OffsetBlock;
-
-    })(cls.Block);
-    cls.AbstractConditionBlock = (function(_super) {
-      __extends(AbstractConditionBlock, _super);
-
-      function AbstractConditionBlock(conditionVerb, options) {
-        this.conditionVerb = conditionVerb;
-        AbstractConditionBlock.__super__.constructor.call(this, options);
-        this.conditions = [];
-      }
-
-      AbstractConditionBlock.prototype._condition = function() {
-        var c, condition, finalCondition, finalValues, idx, inValues, item, nextValue, t, values, _i, _j, _len, _ref6;
-        condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        condition = this._sanitizeCondition(condition);
-        finalCondition = "";
-        finalValues = [];
-        if (condition instanceof cls.Expression) {
-          t = condition.toParam();
-          finalCondition = t.text;
-          finalValues = t.values;
-        } else {
-          for (idx = _i = 0, _ref6 = condition.length; 0 <= _ref6 ? _i < _ref6 : _i > _ref6; idx = 0 <= _ref6 ? ++_i : --_i) {
-            c = condition.charAt(idx);
-            if (this.options.parameterCharacter === c && 0 < values.length) {
-              nextValue = values.shift();
-              if (Array.isArray(nextValue)) {
-                inValues = [];
-                for (_j = 0, _len = nextValue.length; _j < _len; _j++) {
-                  item = nextValue[_j];
-                  inValues.push(this._sanitizeValue(item));
-                }
-                finalValues = finalValues.concat(inValues);
-                finalCondition += "(" + (((function() {
-                  var _k, _len1, _results;
-                  _results = [];
-                  for (_k = 0, _len1 = inValues.length; _k < _len1; _k++) {
-                    item = inValues[_k];
-                    _results.push(this.options.parameterCharacter);
-                  }
-                  return _results;
-                }).call(this)).join(', ')) + ")";
-              } else {
-                finalCondition += this.options.parameterCharacter;
-                finalValues.push(this._sanitizeValue(nextValue));
-              }
-            } else {
-              finalCondition += c;
-            }
-          }
-        }
-        if ("" !== finalCondition) {
-          return this.conditions.push({
-            text: finalCondition,
-            values: finalValues
-          });
-        }
-      };
-
-      AbstractConditionBlock.prototype.buildStr = function(queryBuilder) {
-        var c, cond, condStr, idx, pIndex, _i, _j, _len, _ref6, _ref7;
-        if (0 >= this.conditions.length) {
-          return "";
-        }
-        condStr = "";
-        _ref6 = this.conditions;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          cond = _ref6[_i];
-          if ("" !== condStr) {
-            condStr += ") AND (";
-          }
-          if (0 < cond.values.length) {
-            pIndex = 0;
-            for (idx = _j = 0, _ref7 = cond.text.length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; idx = 0 <= _ref7 ? ++_j : --_j) {
-              c = cond.text.charAt(idx);
-              if (this.options.parameterCharacter === c) {
-                condStr += this._formatValue(cond.values[pIndex++]);
-              } else {
-                condStr += c;
-              }
-            }
-          } else {
-            condStr += cond.text;
-          }
-        }
-        return "" + this.conditionVerb + " (" + condStr + ")";
-      };
-
-      AbstractConditionBlock.prototype.buildParam = function(queryBuilder) {
-        var cond, condStr, i, p, qv, ret, str, v, _i, _j, _k, _len, _len1, _len2, _ref6, _ref7, _ref8;
-        ret = {
-          text: "",
-          values: []
-        };
-        if (0 >= this.conditions.length) {
-          return ret;
-        }
-        condStr = "";
-        _ref6 = this.conditions;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          cond = _ref6[_i];
-          if ("" !== condStr) {
-            condStr += ") AND (";
-          }
-          str = cond.text.split(this.options.parameterCharacter);
-          i = 0;
-          _ref7 = cond.values;
-          for (_j = 0, _len1 = _ref7.length; _j < _len1; _j++) {
-            v = _ref7[_j];
-            if (str[i] != null) {
-              condStr += "" + str[i];
-            }
-            p = this._formatValueAsParam(v);
-            if (((p != null ? p.text : void 0) != null)) {
-              condStr += "(" + p.text + ")";
-              _ref8 = p.values;
-              for (_k = 0, _len2 = _ref8.length; _k < _len2; _k++) {
-                qv = _ref8[_k];
-                ret.values.push(qv);
-              }
-            } else {
-              condStr += this.options.parameterCharacter;
-              ret.values.push(p);
-            }
-            i = i + 1;
-          }
-          if (str[i] != null) {
-            condStr += "" + str[i];
-          }
-        }
-        ret.text = "" + this.conditionVerb + " (" + condStr + ")";
-        return ret;
-      };
-
-      return AbstractConditionBlock;
-
-    })(cls.Block);
-    cls.WhereBlock = (function(_super) {
-      __extends(WhereBlock, _super);
-
-      function WhereBlock(options) {
-        WhereBlock.__super__.constructor.call(this, 'WHERE', options);
-      }
-
-      WhereBlock.prototype.where = function() {
-        var condition, values;
-        condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        return this._condition.apply(this, [condition].concat(__slice.call(values)));
-      };
-
-      return WhereBlock;
-
-    })(cls.AbstractConditionBlock);
-    cls.HavingBlock = (function(_super) {
-      __extends(HavingBlock, _super);
-
-      function HavingBlock(options) {
-        HavingBlock.__super__.constructor.call(this, 'HAVING', options);
-      }
-
-      HavingBlock.prototype.having = function() {
-        var condition, values;
-        condition = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        return this._condition.apply(this, [condition].concat(__slice.call(values)));
-      };
-
-      return HavingBlock;
-
-    })(cls.AbstractConditionBlock);
-    cls.OrderByBlock = (function(_super) {
-      __extends(OrderByBlock, _super);
-
-      function OrderByBlock(options) {
-        OrderByBlock.__super__.constructor.call(this, options);
-        this.orders = [];
-        this._values = [];
-      }
-
-      OrderByBlock.prototype.order = function() {
-        var asc, field, values;
-        field = arguments[0], asc = arguments[1], values = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-        field = this._sanitizeField(field);
-        if (asc === void 0) {
-          asc = true;
-        }
-        if (asc !== null) {
-          asc = !!asc;
-        }
-        this._values = values;
-        return this.orders.push({
-          field: field,
-          dir: asc
-        });
-      };
-
-      OrderByBlock.prototype._buildStr = function(toParam) {
-        var c, fstr, idx, o, orders, pIndex, _i, _j, _len, _ref6, _ref7;
-        if (toParam == null) {
-          toParam = false;
-        }
-        if (0 < this.orders.length) {
-          pIndex = 0;
-          orders = "";
-          _ref6 = this.orders;
-          for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-            o = _ref6[_i];
-            if ("" !== orders) {
-              orders += ", ";
-            }
-            fstr = "";
-            if (!toParam) {
-              for (idx = _j = 0, _ref7 = o.field.length; 0 <= _ref7 ? _j < _ref7 : _j > _ref7; idx = 0 <= _ref7 ? ++_j : --_j) {
-                c = o.field.charAt(idx);
-                if (this.options.parameterCharacter === c) {
-                  fstr += this._formatValue(this._values[pIndex++]);
-                } else {
-                  fstr += c;
-                }
-              }
-            } else {
-              fstr = o.field;
-            }
-            orders += "" + fstr;
-            if (o.dir !== null) {
-              orders += " " + (o.dir ? 'ASC' : 'DESC');
-            }
-          }
-          return "ORDER BY " + orders;
-        } else {
-          return "";
-        }
-      };
-
-      OrderByBlock.prototype.buildStr = function(queryBuilder) {
-        return this._buildStr();
-      };
-
-      OrderByBlock.prototype.buildParam = function(queryBuilder) {
-        var _this = this;
-        return {
-          text: this._buildStr(true),
-          values: this._values.map(function(v) {
-            return _this._formatValueAsParam(v);
-          })
-        };
-      };
-
-      return OrderByBlock;
-
-    })(cls.Block);
-    cls.LimitBlock = (function(_super) {
-      __extends(LimitBlock, _super);
-
-      function LimitBlock(options) {
-        LimitBlock.__super__.constructor.call(this, options);
-        this.limits = null;
-      }
-
-      LimitBlock.prototype.limit = function(max) {
-        max = this._sanitizeLimitOffset(max);
-        return this.limits = max;
-      };
-
-      LimitBlock.prototype.buildStr = function(queryBuilder) {
-        if (this.limits || this.limits === 0) {
-          return "LIMIT " + this.limits;
-        } else {
-          return "";
-        }
-      };
-
-      return LimitBlock;
-
-    })(cls.Block);
-    cls.JoinBlock = (function(_super) {
-      __extends(JoinBlock, _super);
-
-      function JoinBlock(options) {
-        JoinBlock.__super__.constructor.call(this, options);
-        this.joins = [];
-      }
-
-      JoinBlock.prototype.join = function(table, alias, condition, type) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        if (type == null) {
-          type = 'INNER';
-        }
-        table = this._sanitizeTable(table, true);
-        if (alias) {
-          alias = this._sanitizeTableAlias(alias);
-        }
-        if (condition) {
-          condition = this._sanitizeCondition(condition);
-        }
-        this.joins.push({
-          type: type,
-          table: table,
-          alias: alias,
-          condition: condition
-        });
-        return this;
-      };
-
-      JoinBlock.prototype.left_join = function(table, alias, condition) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        return this.join(table, alias, condition, 'LEFT');
-      };
-
-      JoinBlock.prototype.right_join = function(table, alias, condition) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        return this.join(table, alias, condition, 'RIGHT');
-      };
-
-      JoinBlock.prototype.outer_join = function(table, alias, condition) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        return this.join(table, alias, condition, 'OUTER');
-      };
-
-      JoinBlock.prototype.left_outer_join = function(table, alias, condition) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        return this.join(table, alias, condition, 'LEFT OUTER');
-      };
-
-      JoinBlock.prototype.full_join = function(table, alias, condition) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        return this.join(table, alias, condition, 'FULL');
-      };
-
-      JoinBlock.prototype.cross_join = function(table, alias, condition) {
-        if (alias == null) {
-          alias = null;
-        }
-        if (condition == null) {
-          condition = null;
-        }
-        return this.join(table, alias, condition, 'CROSS');
-      };
-
-      JoinBlock.prototype.buildStr = function(queryBuilder) {
-        var j, joins, _i, _len, _ref6;
-        joins = "";
-        _ref6 = this.joins || [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          j = _ref6[_i];
-          if (joins !== "") {
-            joins += " ";
-          }
-          joins += "" + j.type + " JOIN ";
-          if ("string" === typeof j.table) {
-            joins += j.table;
-          } else {
-            joins += "(" + j.table + ")";
-          }
-          if (j.alias) {
-            joins += " " + j.alias;
-          }
-          if (j.condition) {
-            joins += " ON (" + j.condition + ")";
-          }
-        }
-        return joins;
-      };
-
-      JoinBlock.prototype.buildParam = function(queryBuilder) {
-        var blk, cp, joinStr, p, params, ret, v, _i, _j, _k, _len, _len1, _len2, _ref6, _ref7;
-        ret = {
-          text: "",
-          values: []
-        };
-        params = [];
-        joinStr = "";
-        if (0 >= this.joins.length) {
-          return ret;
-        }
-        _ref6 = this.joins;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          blk = _ref6[_i];
-          if ("string" === typeof blk.table) {
-            p = {
-              "text": "" + blk.table,
-              "values": []
-            };
-          } else if (blk.table instanceof cls.QueryBuilder) {
-            blk.table.updateOptions({
-              "nestedBuilder": true
-            });
-            p = blk.table.toParam();
-          } else {
-            blk.updateOptions({
-              "nestedBuilder": true
-            });
-            p = blk.buildParam(queryBuilder);
-          }
-          if (blk.condition instanceof cls.Expression) {
-            cp = blk.condition.toParam();
-            p.condition = cp.text;
-            p.values = p.values.concat(cp.values);
-          } else {
-            p.condition = blk.condition;
-          }
-          p.join = blk;
-          params.push(p);
-        }
-        for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
-          p = params[_j];
-          if (joinStr !== "") {
-            joinStr += " ";
-          }
-          joinStr += "" + p.join.type + " JOIN ";
-          if ("string" === typeof p.join.table) {
-            joinStr += p.text;
-          } else {
-            joinStr += "(" + p.text + ")";
-          }
-          if (p.join.alias) {
-            joinStr += " " + p.join.alias;
-          }
-          if (p.condition) {
-            joinStr += " ON (" + p.condition + ")";
-          }
-          _ref7 = p.values;
-          for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
-            v = _ref7[_k];
-            ret.values.push(this._formatCustomValue(v));
-          }
-        }
-        ret.text += joinStr;
-        return ret;
-      };
-
-      return JoinBlock;
-
-    })(cls.Block);
-    cls.UnionBlock = (function(_super) {
-      __extends(UnionBlock, _super);
-
-      function UnionBlock(options) {
-        UnionBlock.__super__.constructor.call(this, options);
-        this.unions = [];
-      }
-
-      UnionBlock.prototype.union = function(table, type) {
-        if (type == null) {
-          type = 'UNION';
-        }
-        table = this._sanitizeTable(table, true);
-        this.unions.push({
-          type: type,
-          table: table
-        });
-        return this;
-      };
-
-      UnionBlock.prototype.union_all = function(table) {
-        return this.union(table, 'UNION ALL');
-      };
-
-      UnionBlock.prototype.buildStr = function(queryBuilder) {
-        var j, unionStr, _i, _len, _ref6;
-        unionStr = "";
-        _ref6 = this.unions || [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          j = _ref6[_i];
-          if (unionStr !== "") {
-            unionStr += " ";
-          }
-          unionStr += "" + j.type + " ";
-          if ("string" === typeof j.table) {
-            unionStr += j.table;
-          } else {
-            unionStr += "(" + j.table + ")";
-          }
-        }
-        return unionStr;
-      };
-
-      UnionBlock.prototype.buildParam = function(queryBuilder) {
-        var blk, p, params, ret, unionStr, v, _i, _j, _k, _len, _len1, _len2, _ref6, _ref7;
-        ret = {
-          text: "",
-          values: []
-        };
-        params = [];
-        unionStr = "";
-        if (0 >= this.unions.length) {
-          return ret;
-        }
-        _ref6 = this.unions || [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          blk = _ref6[_i];
-          if ("string" === typeof blk.table) {
-            p = {
-              "text": "" + blk.table,
-              "values": []
-            };
-          } else if (blk.table instanceof cls.QueryBuilder) {
-            blk.table.updateOptions({
-              "nestedBuilder": true
-            });
-            p = blk.table.toParam();
-          } else {
-            blk.updateOptions({
-              "nestedBuilder": true
-            });
-            p = blk.buildParam(queryBuilder);
-          }
-          p.type = blk.type;
-          params.push(p);
-        }
-        for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
-          p = params[_j];
-          if (unionStr !== "") {
-            unionStr += " ";
-          }
-          unionStr += "" + p.type + " (" + p.text + ")";
-          _ref7 = p.values;
-          for (_k = 0, _len2 = _ref7.length; _k < _len2; _k++) {
-            v = _ref7[_k];
-            ret.values.push(this._formatCustomValue(v));
-          }
-        }
-        ret.text += unionStr;
-        return ret;
-      };
-
-      return UnionBlock;
-
-    })(cls.Block);
-    cls.QueryBuilder = (function(_super) {
-      __extends(QueryBuilder, _super);
-
-      function QueryBuilder(options, blocks) {
-        var block, methodBody, methodName, _fn, _i, _len, _ref6, _ref7,
-          _this = this;
-        QueryBuilder.__super__.constructor.call(this, options);
-        this.blocks = blocks || [];
-        _ref6 = this.blocks;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          block = _ref6[_i];
-          _ref7 = block.exposedMethods();
-          _fn = function(block, name, body) {
-            return _this[name] = function() {
-              body.apply(block, arguments);
-              return _this;
-            };
-          };
-          for (methodName in _ref7) {
-            methodBody = _ref7[methodName];
-            if (this[methodName] != null) {
-              throw new Error("" + (this._getObjectClassName(this)) + " already has a builder method called: " + methodName);
-            }
-            _fn(block, methodName, methodBody);
-          }
-        }
-      }
-
-      QueryBuilder.prototype.registerValueHandler = function(type, handler) {
-        var block, _i, _len, _ref6;
-        _ref6 = this.blocks;
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          block = _ref6[_i];
-          block.registerValueHandler(type, handler);
-        }
-        QueryBuilder.__super__.registerValueHandler.call(this, type, handler);
-        return this;
-      };
-
-      QueryBuilder.prototype.updateOptions = function(options) {
-        var block, _i, _len, _ref6, _results;
-        this.options = _extend({}, this.options, options);
-        _ref6 = this.blocks;
-        _results = [];
-        for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-          block = _ref6[_i];
-          _results.push(block.options = _extend({}, block.options, options));
-        }
-        return _results;
-      };
-
-      QueryBuilder.prototype.toString = function() {
-        var block;
-        return ((function() {
-          var _i, _len, _ref6, _results;
-          _ref6 = this.blocks;
-          _results = [];
-          for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-            block = _ref6[_i];
-            _results.push(block.buildStr(this));
-          }
-          return _results;
-        }).call(this)).filter(function(v) {
-          return 0 < v.length;
-        }).join(this.options.separator);
-      };
-
-      QueryBuilder.prototype.toParam = function(options) {
-        var block, blocks, i, old, regex, result, _ref6,
-          _this = this;
-        if (options == null) {
-          options = void 0;
-        }
-        old = this.options;
-        if (options != null) {
-          this.options = _extend({}, this.options, options);
-        }
-        result = {
-          text: '',
-          values: []
-        };
-        blocks = (function() {
-          var _i, _len, _ref6, _results;
-          _ref6 = this.blocks;
-          _results = [];
-          for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-            block = _ref6[_i];
-            _results.push(block.buildParam(this));
-          }
-          return _results;
-        }).call(this);
-        result.text = ((function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = blocks.length; _i < _len; _i++) {
-            block = blocks[_i];
-            _results.push(block.text);
-          }
-          return _results;
-        })()).filter(function(v) {
-          return 0 < v.length;
-        }).join(this.options.separator);
-        result.values = (_ref6 = []).concat.apply(_ref6, (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = blocks.length; _i < _len; _i++) {
-            block = blocks[_i];
-            _results.push(block.values);
-          }
-          return _results;
-        })());
-        if (this.options.nestedBuilder == null) {
-          if (this.options.numberedParameters || ((options != null ? options.numberedParametersStartAt : void 0) != null)) {
-            i = 1;
-            if (this.options.numberedParametersStartAt != null) {
-              i = this.options.numberedParametersStartAt;
-            }
-            regex = new RegExp("\\" + this.options.parameterCharacter, 'g');
-            result.text = result.text.replace(regex, function() {
-              return "" + _this.options.numberedParametersPrefix + (i++);
-            });
-          }
-        }
-        this.options = old;
-        return result;
-      };
-
-      QueryBuilder.prototype.clone = function() {
-        var block;
-        return new this.constructor(this.options, (function() {
-          var _i, _len, _ref6, _results;
-          _ref6 = this.blocks;
-          _results = [];
-          for (_i = 0, _len = _ref6.length; _i < _len; _i++) {
-            block = _ref6[_i];
-            _results.push(block.clone());
-          }
-          return _results;
-        }).call(this));
-      };
-
-      QueryBuilder.prototype.isNestable = function() {
-        return false;
-      };
-
-      QueryBuilder.prototype.getBlock = function(blockType) {
-        return this.blocks.filter(function(b) {
-          return b instanceof blockType;
-        })[0];
-      };
-
-      return QueryBuilder;
-
-    })(cls.BaseBuilder);
-    cls.Select = (function(_super) {
-      __extends(Select, _super);
-
-      function Select(options, blocks) {
-        if (blocks == null) {
-          blocks = null;
-        }
-        blocks || (blocks = [
-          new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, {
-            allowNested: true
-          })), new cls.JoinBlock(_extend({}, options, {
-            allowNested: true
-          })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, {
-            allowNested: true
-          }))
-        ]);
-        Select.__super__.constructor.call(this, options, blocks);
-      }
-
-      Select.prototype.isNestable = function() {
-        return true;
-      };
-
-      return Select;
-
-    })(cls.QueryBuilder);
-    cls.Update = (function(_super) {
-      __extends(Update, _super);
-
-      function Update(options, blocks) {
-        if (blocks == null) {
-          blocks = null;
-        }
-        blocks || (blocks = [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)]);
-        Update.__super__.constructor.call(this, options, blocks);
-      }
-
-      return Update;
-
-    })(cls.QueryBuilder);
-    cls.Delete = (function(_super) {
-      __extends(Delete, _super);
-
-      function Delete(options, blocks) {
-        if (blocks == null) {
-          blocks = null;
-        }
-        blocks || (blocks = [
-          new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
-            singleTable: true
-          })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)
-        ]);
-        Delete.__super__.constructor.call(this, options, blocks);
-      }
-
-      return Delete;
-
-    })(cls.QueryBuilder);
-    cls.Insert = (function(_super) {
-      __extends(Insert, _super);
-
-      function Insert(options, blocks) {
-        if (blocks == null) {
-          blocks = null;
-        }
-        blocks || (blocks = [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)]);
-        Insert.__super__.constructor.call(this, options, blocks);
-      }
-
-      return Insert;
-
-    })(cls.QueryBuilder);
-    _squel = {
-      VERSION: '4.3.3',
-      flavour: flavour,
-      expr: function(options) {
-        return new cls.Expression(options);
-      },
-      "case": function(name, options) {
-        return new cls.Case(name, options);
-      },
-      select: function(options, blocks) {
-        return new cls.Select(options, blocks);
-      },
-      update: function(options, blocks) {
-        return new cls.Update(options, blocks);
-      },
-      insert: function(options, blocks) {
-        return new cls.Insert(options, blocks);
-      },
-      "delete": function(options, blocks) {
-        return new cls.Delete(options, blocks);
-      },
-      registerValueHandler: cls.registerValueHandler,
-      fval: cls.fval
-    };
-    _squel.remove = _squel["delete"];
-    _squel.cls = cls;
-    return _squel;
-  };
-
-  squel = _buildSquel();
-
-  if (typeof define !== "undefined" && define !== null ? define.amd : void 0) {
-    define(function() {
-      return squel;
-    });
-  } else if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
-    module.exports = squel;
-  } else {
-    if (typeof window !== "undefined" && window !== null) {
-      window.squel = squel;
+      return this;
     }
+
+
+    // Get the final fully constructed expression string.
+    toString () {
+      if (this.stack.length) {
+        throw new Error("end() needs to be called");
+      }
+
+      return this._toString(this.tree);
+    }
+
+
+    // Get the final fully constructed expression string.
+    toParam () {
+      if (this.stack.length) {
+        throw new Error("end() needs to be called");
+      }
+
+      return this._toString(this.tree, true);
+    }
+
+
+
+    // Get a string representation of the given expression tree node.
+    _toString (node, paramMode = false) {
+      let str = "";
+      let params = [];
+
+      for (child of node.nodes) {
+        if (undefined !== child.expr) {
+          let nodeStr = child.expr;
+
+          // have param
+          if (undefined !== child.para) {
+            if (!paramMode) {
+              nodeStr = nodeStr.replace(
+                this.options.parameterCharacter, this._formatValue(child.para)
+              );
+            }
+            else {
+              let cv = this._formatValueAsParam(child.para);
+
+              if (undefined !== cv && undefined !== cv.text) {
+                params = params.concat(cv.values);
+
+                nodeStr = nodeStr.replace(
+                  this.options.parameterCharacter, `(${cv.text})`
+                );
+              }
+              else {
+                params = params.concat(cv);
+              }
+
+              // IN ? -> IN (?, ?, ..., ?)
+              if _isArray(child.para) {
+                let arr = Array.apply(null, new Array(child.para.length));
+
+                let inStr = arr.map(() => {
+                  return this.options.parameterCharacter;
+                });
+
+                nodeStr = nodeStr.replace(
+                  this.options.parameterCharacter, `(${inStr.join(', ')})`
+                );
+              }
+            }
+          }
+        }
+        else {
+          let nodeStr = this._toString(child, paramMode);
+
+          if (paramMode) {
+            params = params.concat(nodeStr.values);
+
+            nodeStr = nodeStr.text;
+          }
+
+          // wrap nested expressions in brackets
+          if (nodeStr.length) {
+            nodeStr = `(${nodeStr})`;
+          }
+        }
+
+        if (nodeStr.length) {
+          // if this isn't first expression then add the operator
+          if (str.length) {
+            str += " " + child.type + " ";
+          }
+
+          str += nodeStr;
+        }
+      } // for-each child
+
+      if (paramMode)
+        return {
+          text: str,
+          values: params,
+        };
+      else {
+        return str;
+      }
+    }
+
   }
 
-  squel.flavours = {};
 
-  squel.useFlavour = function(flavour) {
-    var s;
-    if (flavour == null) {
-      flavour = null;
-    }
-    if (!flavour) {
-      return squel;
-    }
-    if (squel.flavours[flavour] instanceof Function) {
-      s = _buildSquel(flavour);
-      squel.flavours[flavour].call(null, s);
-      return s;
-    } else {
-      throw new Error("Flavour not available: " + flavour);
-    }
-  };
+ 
 
-}).call(this);
+
+
+
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # cls.Case
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+
+
+
+  # An SQL CASE expression builder.
+  #
+  # SQL cases are used to select proper values based on specific criteria.
+  #
+  class cls.Case extends cls.BaseBuilder
+
+    # Cases
+    cases: null
+
+    # Else value
+    elseValue: null
+
+    constructor: (fieldName, options = {}) ->
+      super()
+
+      if _isPlainObject(fieldName)
+        options = fieldName
+        fieldName = null
+
+      if fieldName
+        @fieldName = @_sanitizeField( fieldName )
+
+      @options = _extend {}, cls.DefaultQueryBuilderOptions, options
+
+      @cases = []
+
+    'when': (expression, values...) ->
+      @cases.unshift
+        expression: expression,
+        values: values
+      @
+
+    'then': (result) ->
+      if @cases.length == 0
+        throw new Error "when() needs to be called first"
+
+      @cases[0].result = result;
+      @
+
+    'else': (@elseValue) ->
+      @
+
+    # Get the final fully constructed expression string.
+    toString: ->
+      @_toString @cases, @elseValue
+
+    # Get the final fully constructed expression string.
+    toParam: ->
+      @_toString @cases, @elseValue, true
+
+    # Get a string representation of the given expression tree node.
+    _toString: (cases, elseValue, paramMode = false) ->
+      if cases.length == 0 
+        return @_formatValue(elseValue)
+
+      values = []
+      cases = cases.map (part) =>
+        condition = new cls.AbstractConditionBlock("WHEN")
+        condition._condition.apply(condition, [part.expression].concat(part.values))
+        str = ''
+        if not paramMode
+          str = condition.buildStr()
+        else
+          condition = condition.buildParam()
+          str = condition.text
+          values = values.concat(condition.values)
+
+        str + ' THEN ' + @_formatValue(part.result)
+
+      str = cases.join(" ") + ' ELSE ' + @_formatValue(elseValue) + ' END'
+      if @fieldName
+        str = @fieldName + " " + str
+      str = "CASE " + str
+
+      if paramMode
+        return {
+          text: str
+          values: values
+        }
+      else
+        return str
+
+
+
+
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # Building blocks
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+
+
+
+  # A building block represents a single build-step within a query building process.
+  #
+  # Query builders consist of one or more building blocks which get run in a particular order. Building blocks can
+  # optionally specify methods to expose through the query builder interface. They can access all the input data for
+  # the query builder and manipulate it as necessary, as well as append to the final query string output.
+  #
+  # If you wish to customize how queries get built or add proprietary query phrases and content then it is recommended
+  # that you do so using one or more custom building blocks.
+  #
+  # Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427
+  class cls.Block extends cls.BaseBuilder
+    # Get input methods to expose within the query builder.
+    #
+    # By default all methods except the following get returned:
+    #   methods prefixed with _
+    #   constructor and buildStr()
+    #
+    # @return Object key -> function pairs
+    exposedMethods: ->
+      ret = {}
+
+      for attr, value of @
+        # only want functions from this class
+        if typeof value is "function" and attr.charAt(0) isnt '_' and !cls.Block::[attr]
+          ret[attr] = value
+
+      ret
+
+    # Build this block.
+    #
+    # Subclasses may override this method.
+    #
+    # @param queryBuilder cls.QueryBuilder a reference to the query builder that owns this block.
+    #
+    # @return String the string representing this block
+    buildStr: (queryBuilder) ->
+      ''
+
+    buildParam: (queryBuilder) ->
+      { text: @buildStr(queryBuilder), values: [] }
+
+
+  # A String which always gets output
+  class cls.StringBlock extends cls.Block
+    constructor: (options, str) ->
+      super options
+      @str = str
+
+    buildStr: (queryBuilder) ->
+      @str
+
+
+
+  # An arbitrary value or db function with parameters
+  class cls.AbstractValueBlock extends cls.Block
+    # Constructor
+    constructor: (options) ->
+      super options
+      @_str = ''
+      @_values = []
+
+    _setValue: (str, values...) ->
+      @_str = str
+      @_values = values
+      @
+
+    buildStr: (queryBuilder) ->
+      str = @_str
+      finalStr = ''
+      values = [].concat @_values
+
+      for idx in [0...str.length]
+        c = str.charAt(idx)
+        if @options.parameterCharacter is c and 0 < values.length
+          c = values.shift()
+        finalStr += c
+
+      finalStr
+
+    buildParam: (queryBuilder) ->
+      { text: @_str, values: @_values }
+
+
+
+  # A function string block
+  class cls.FunctionBlock extends cls.AbstractValueBlock
+    function: (str, values...) ->
+      @_setValue.apply(@, [str].concat(values))
+
+
+  # Construct a FunctionValueBlock object for use as a value
+  cls.fval = (str, values...) ->
+    inst = new cls.FunctionBlock()
+    inst.function.apply(inst, [str].concat(values))
+
+  # value handler for FunctionValueBlock objects
+  cls.registerValueHandler cls.FunctionBlock, (value, asParam = false) ->
+    if asParam
+      value.buildParam()
+    else
+      value.buildStr()
+
+
+
+  # Table specifier base class
+  #
+  # Additional options
+  #  - singleTable - only allow one table to be specified  (default: false)
+  #  - allowNested - allow nested query to be specified as a table    (default: false)
+  class cls.AbstractTableBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @tables = []
+
+    # Update given table.
+    #
+    # An alias may also be specified for the table.
+    #
+    # Concrete subclasses should provide a method which calls this
+    _table: (table, alias = null) ->
+      alias = @_sanitizeTableAlias(alias) if alias
+      table = @_sanitizeTable(table, @options.allowNested or false)
+
+      if @options.singleTable
+        @tables = []
+
+      @tables.push
+        table: table
+        alias: alias
+
+    # get whether a table has been set
+    _hasTable: ->
+      return 0 < @tables.length
+
+    buildStr: (queryBuilder) ->
+      return "" if not @_hasTable()
+
+      tables = ""
+      for table in @tables
+        tables += ", " if "" isnt tables
+        if "string" is typeof table.table
+          tables += table.table
+        else
+          # building a nested query
+          tables += "(#{table.table})"
+
+        if table.alias
+          # add the table alias, the AS keyword is optional
+          tables += " #{table.alias}"
+
+      tables
+
+    _buildParam: (queryBuilder, prefix = null) ->
+      ret =
+        text: ""
+        values: []
+
+      params = []
+      paramStr = ""
+
+      if not @_hasTable() then return ret
+
+      # retrieve the parameterised queries
+      for blk in @tables
+        if "string" is typeof blk.table
+          p = { "text": "#{blk.table}", "values": [] }
+        else if blk.table instanceof cls.QueryBuilder
+          # building a nested query
+          blk.table.updateOptions( { "nestedBuilder": true } )
+          p = blk.table.toParam()
+        else
+          # building a nested query
+          blk.updateOptions( { "nestedBuilder": true } )
+          p = blk.buildParam(queryBuilder)
+        p.table = blk
+        params.push( p )
+
+      # join the queries and their parameters
+      # this is the last building block processed so always add UNION if there are any UNION blocks
+      for p in params
+        if paramStr isnt ""
+          paramStr += ", "
+        else
+          paramStr += "#{prefix} #{paramStr}" if prefix? and prefix isnt ""
+          paramStr
+        if "string" is typeof p.table.table
+          paramStr += "#{p.text}"
+        else
+          paramStr += "(#{p.text})"
+
+          # add the table alias, the AS keyword is optional
+        paramStr += " #{p.table.alias}" if p.table.alias?
+
+        for v in p.values
+          ret.values.push( @_formatCustomValue v )
+      ret.text += paramStr
+
+      ret
+
+    buildParam: (queryBuilder) ->
+      @_buildParam(queryBuilder)
+
+
+  # Update Table
+  class cls.UpdateTableBlock extends cls.AbstractTableBlock
+    table: (table, alias = null) ->
+      @_table(table, alias)
+
+  # FROM table
+  class cls.FromTableBlock extends cls.AbstractTableBlock
+    from: (table, alias = null) ->
+      @_table(table, alias)
+
+    buildStr: (queryBuilder) ->
+      tables = super queryBuilder
+
+      if tables.length
+        return "FROM #{tables}"
+      else
+        return ""
+
+    buildParam: (queryBuilder) ->
+      @_buildParam(queryBuilder, "FROM")
+
+
+  # INTO table
+  class cls.IntoTableBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @table = null
+
+    # Into given table.
+    into: (table) ->
+      # do not allow nested table to be the target
+      @table = @_sanitizeTable(table, false)
+
+    buildStr: (queryBuilder) ->
+      if not @table then throw new Error "into() needs to be called"
+      "INTO #{@table}"
+
+
+
+  # (SELECT) Get field
+  class cls.GetFieldBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @_fieldAliases = {}
+      @_fields = []
+
+
+    # Add the given fields to the final result set.
+    #
+    # The parameter is an Object containing field names (or database functions) as the keys and aliases for the fields
+    # as the values. If the value for a key is null then no alias is set for that field.
+    #
+    # Internally this method simply calls the field() method of this block to add each individual field.
+    #
+    # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
+    fields: (_fields, options = {}) ->
+      if Array.isArray(_fields)
+        for field in _fields
+          @field field, null, options
+      else
+        for field, alias of _fields
+          @field(field, alias, options)
+
+
+    # Add the given field to the final result set.
+    #
+    # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
+    # e.g. DATE_FORMAT(a.started, "%H")
+    #
+    # An alias may also be specified for this field.
+    #
+    # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
+    field: (field, alias = null, options = {}) ->
+      alias = @_sanitizeFieldAlias(alias) if alias
+
+      # if field-alias already present then don't add
+      return if @_fieldAliases[field] is alias
+
+      fieldRec = {
+        alias : alias
+      }
+
+      if field instanceof cls.Case
+        fieldRec.func = field
+      else
+        fieldRec.name = @_sanitizeField(field, options)
+
+      if options.aggregation
+        fieldRec.aggregation = options.aggregation
+
+      @_fieldAliases[field] = alias
+      @_fields.push(fieldRec)
+
+    buildStr: (queryBuilder) ->
+      @_build(queryBuilder)
+
+    buildParam: (queryBuilder) ->
+      @_build(queryBuilder, true)
+
+    _build: (queryBuilder, paramMode = false) ->
+      if not queryBuilder.getBlock(cls.FromTableBlock)._hasTable()
+        if paramMode
+          return {
+            text : "", 
+            values : []
+          }
+        else 
+          return "" 
+
+      fields = ""
+      values = []
+
+      for field in @_fields
+        fields += ", " if "" isnt fields
+        if field.aggregation
+          fields += field.aggregation + "(";
+        if field.func
+          if paramMode
+            caseExpr = field.func.toParam()
+            fields += caseExpr.text
+            values = values.concat(caseExpr.values)
+          else
+            fields += field.func.toString()
+        else 
+          fields += field.name
+        if field.aggregation
+          fields += ")";
+        fields += " AS #{field.alias}" if field.alias
+
+      if fields == ""
+        fields = "*"
+
+      if paramMode 
+        return {text : fields, values : values}
+      else 
+        return fields
+
+
+
+  # Base class for setting fields to values (used for INSERT and UPDATE queries)
+  class cls.AbstractSetFieldBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @fieldOptions = []
+      @fields = []
+      @values = []
+
+    # Update the given field with the given value.
+    # This will override any previously set value for the given field.
+    _set: (field, value, options = {}) ->
+      throw new Error "Cannot call set or setFields on multiple rows of fields."  if @values.length > 1
+
+      value = @_sanitizeValue(value) if undefined isnt value
+
+      # Explicity overwrite existing fields
+      index = @fields.indexOf(@_sanitizeField(field, options))
+      if index isnt -1
+        @values[0][index] = value
+        @fieldOptions[0][index] = options
+      else
+        @fields.push @_sanitizeField(field, options)
+        index = @fields.length - 1
+
+        # The first value added needs to create the array of values for the row
+        if Array.isArray(@values[0])
+          @values[0][index] = value
+          @fieldOptions[0][index] = options
+        else
+          @values.push [value]
+          @fieldOptions.push [options]
+
+      @
+
+
+    # Insert fields based on the key/value pairs in the given object
+    _setFields: (fields, options = {}) ->
+      throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
+
+      for own field of fields
+        @_set field, fields[field], options
+      @
+
+
+    # Insert multiple rows for the given fields. Accepts an array of objects.
+    # This will override all previously set values for every field.
+    _setFieldsRows: (fieldsRows, options = {}) ->
+      throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
+
+      # Reset the objects stored fields and values
+      @fields = []
+      @values = []
+      for i in [0...fieldsRows.length]
+        for own field of fieldsRows[i]
+
+          index = @fields.indexOf(@_sanitizeField(field, options))
+          throw new Error 'All fields in subsequent rows must match the fields in the first row' if 0 < i and -1 is index
+
+          # Add field only if it hasn't been added before
+          if -1 is index
+            @fields.push @_sanitizeField(field, options)
+            index = @fields.length - 1
+
+          value = @_sanitizeValue(fieldsRows[i][field])
+
+          # The first value added needs to add the array
+          if Array.isArray(@values[i])
+            @values[i][index] = value
+            @fieldOptions[i][index] = options
+          else
+            @values[i] = [value]
+            @fieldOptions[i] = [options]
+      @
+
+    buildStr: ->
+      throw new Error('Not yet implemented')
+
+    buildParam: ->
+      throw new Error('Not yet implemented')
+
+
+
+  # (UPDATE) SET field=value
+  class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
+
+    set: (field, value, options) ->
+      @_set field, value, options
+
+    setFields: (fields, options) ->
+      @_setFields fields, options
+
+    buildStr: (queryBuilder) ->
+      if 0 >= @fields.length then throw new Error "set() needs to be called"
+
+      str = ""
+      for i in [0...@fields.length]
+        field = @fields[i]
+        str += ", " if "" isnt str
+        value = @values[0][i]
+        fieldOptions = @fieldOptions[0][i]
+        if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
+          str += field
+        else
+          str += "#{field} = #{@_formatValue(value, fieldOptions)}"
+
+      "SET #{str}"
+
+    buildParam: (queryBuilder) ->
+      if 0 >= @fields.length then throw new Error "set() needs to be called"
+
+      str = ""
+      vals = []
+      for i in [0...@fields.length]
+        field = @fields[i]
+        str += ", " if "" isnt str
+        value = @values[0][i]
+        if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
+          str += field
+        else
+          p = @_formatValueAsParam( value )
+          if p?.text?
+            str += "#{field} = (#{p.text})"
+            for v in p.values
+              vals.push v
+          else
+            str += "#{field} = #{@options.parameterCharacter}"
+            vals.push p
+
+      { text: "SET #{str}", values: vals }
+
+
+
+  # (INSERT INTO) ... field ... value
+  class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
+    set: (field, value, options = {}) ->
+      @_set field, value, options
+
+    setFields: (fields, options) ->
+      @_setFields fields, options
+
+    setFieldsRows: (fieldsRows, options) ->
+      @_setFieldsRows fieldsRows, options
+
+    _buildVals: ->
+      vals = []
+      for i in [0...@values.length]
+        for j in [0...@values[i].length]
+          formattedValue = @_formatValue(@values[i][j], @fieldOptions[i][j])
+          if 'string' is typeof vals[i]
+            vals[i] += ', ' + formattedValue
+          else
+            vals[i] = '' + formattedValue
+      vals
+
+    _buildValParams: ->
+      vals = []
+      params = []
+
+      for i in [0...@values.length]
+        for j in [0...@values[i].length]
+          p = @_formatValueAsParam( @values[i][j] )
+          if p?.text?
+            str = p.text
+            for v in p.values
+              params.push v
+          else
+            str = @options.parameterCharacter
+            params.push p
+          if 'string' is typeof vals[i]
+            vals[i] += ", #{str}"
+          else
+            vals[i] = "#{str}"
+
+
+      vals: vals
+      params: params
+
+    buildStr: (queryBuilder) ->
+      return '' if 0 >= @fields.length
+
+      "(#{@fields.join(', ')}) VALUES (#{@_buildVals().join('), (')})"
+
+    buildParam: (queryBuilder) ->
+      return { text: '', values: [] } if 0 >= @fields.length
+
+      # fields
+      str = ""
+      {vals, params} = @_buildValParams()
+      for i in [0...@fields.length]
+        str += ", " if "" isnt str
+        str += @fields[i]
+
+      { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
+
+
+
+  # (INSERT INTO) ... field ... (SELECT ... FROM ...)
+  class cls.InsertFieldsFromQueryBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @_fields = []
+      @_query = null
+
+    fromQuery: (fields, selectQuery) ->
+      @_fields = fields.map ( (v) => @_sanitizeField(v) )
+      @_query = @_sanitizeNestableQuery(selectQuery)
+
+    buildStr: (queryBuilder) ->
+      return '' if 0 >= @_fields.length
+
+      "(#{@_fields.join(', ')}) (#{@_query.toString()})"
+
+    buildParam: (queryBuilder) ->
+      return { text: '', values: [] } if 0 >= @_fields.length
+
+      @_query.updateOptions( { "nestedBuilder": true } )
+      qryParam = @_query.toParam()
+
+      {
+        text: "(#{@_fields.join(', ')}) (#{qryParam.text})",
+        values: qryParam.values,
+      }
+
+
+
+  # DISTINCT
+  class cls.DistinctBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @useDistinct = false
+
+    # Add the DISTINCT keyword to the query.
+    distinct: ->
+      @useDistinct = true
+
+    buildStr: (queryBuilder) ->
+      if @useDistinct then "DISTINCT" else ""
+
+
+
+  # GROUP BY
+  class cls.GroupByBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @groups = []
+
+    # Add a GROUP BY transformation for the given field.
+    group: (field) ->
+      field = @_sanitizeField(field)
+      @groups.push field
+
+    buildStr: (queryBuilder) ->
+      groups = ""
+
+      if 0 < @groups.length
+        for f in @groups
+          groups += ", " if "" isnt groups
+          groups += f
+        groups = "GROUP BY #{groups}"
+
+      groups
+
+
+  # OFFSET x
+  class cls.OffsetBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @offsets = null
+
+    # Set the OFFSET transformation.
+    #
+    # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
+    # the offset.
+    offset: (start) ->
+      start = @_sanitizeLimitOffset(start)
+      @offsets = start
+
+    buildStr: (queryBuilder) ->
+      if @offsets then "OFFSET #{@offsets}" else ""
+
+
+  # Abstract condition base class
+  class cls.AbstractConditionBlock extends cls.Block
+    constructor: (@conditionVerb, options) ->
+      super options
+      @conditions = []
+
+    # Add a condition.
+    #
+    # When the final query is constructed all the conditions are combined using the intersection (AND) operator.
+    #
+    # Concrete subclasses should provide a method which calls this
+    _condition: (condition, values...) ->
+      condition = @_sanitizeCondition(condition)
+
+      finalCondition = ""
+      finalValues = []
+
+      # if it's an Expression instance then convert to text and values
+      if condition instanceof cls.Expression
+        t = condition.toParam()
+        finalCondition = t.text
+        finalValues = t.values
+      else
+        for idx in [0...condition.length]
+          c = condition.charAt(idx)
+          if @options.parameterCharacter is c and 0 < values.length
+            nextValue = values.shift()
+            if Array.isArray(nextValue) # where b in (?, ? ?)
+              inValues = []
+              for item in nextValue
+                inValues.push @_sanitizeValue(item)
+              finalValues = finalValues.concat(inValues)
+              finalCondition += "(#{(@options.parameterCharacter for item in inValues).join ', '})"
+            else
+              finalCondition += @options.parameterCharacter
+              finalValues.push @_sanitizeValue(nextValue)
+          else
+            finalCondition += c
+
+      if "" isnt finalCondition
+        @conditions.push
+          text: finalCondition
+          values: finalValues
+
+
+    buildStr: (queryBuilder) ->
+      if 0 >= @conditions.length then return ""
+
+      condStr = ""
+
+      for cond in @conditions
+        if "" isnt condStr then condStr += ") AND ("
+        if 0 < cond.values.length
+          # replace placeholders with actual parameter values
+          pIndex = 0
+          for idx in [0...cond.text.length]
+            c = cond.text.charAt(idx)
+            if @options.parameterCharacter is c
+              condStr += @_formatValue( cond.values[pIndex++] )
+            else
+              condStr += c
+        else
+          condStr += cond.text
+
+      "#{@conditionVerb} (#{condStr})"
+
+
+    buildParam: (queryBuilder) ->
+      ret =
+        text: ""
+        values: []
+
+      if 0 >= @conditions.length then return ret
+
+      condStr = ""
+
+      for cond in @conditions
+        if "" isnt condStr then condStr += ") AND ("
+        str = cond.text.split(@options.parameterCharacter)
+        i = 0
+        for v in cond.values
+          condStr += "#{str[i]}" if str[i]?
+          p = @_formatValueAsParam(v)
+          if (p?.text?)
+            condStr += "(#{p.text})"
+            for qv in p.values
+              ret.values.push( qv )
+          else
+            condStr += @options.parameterCharacter
+            ret.values.push( p )
+          i = i+1
+        condStr += "#{str[i]}" if str[i]?
+      ret.text = "#{@conditionVerb} (#{condStr})"
+      ret
+
+
+  # WHERE
+  class cls.WhereBlock extends cls.AbstractConditionBlock
+    constructor: (options) ->
+      super 'WHERE', options
+
+    where: (condition, values...) ->
+      @_condition condition, values...
+
+
+  # HAVING
+  class cls.HavingBlock extends cls.AbstractConditionBlock
+    constructor: (options) ->
+      super 'HAVING', options
+
+    having: (condition, values...) ->
+      @_condition condition, values...
+
+
+  # ORDER BY
+  class cls.OrderByBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @orders = []
+      @_values = []
+
+    # Add an ORDER BY transformation for the given field in the given order.
+    #
+    # To specify descending order pass false for the 'asc' parameter.
+    order: (field, asc, values...) ->
+      field = @_sanitizeField(field)
+
+      asc = true if asc is undefined
+      asc = !!asc if asc isnt null
+
+      @_values = values
+
+      @orders.push
+        field: field
+        dir: asc
+
+    _buildStr: (toParam = false) ->
+      if 0 < @orders.length
+        pIndex = 0
+        orders = ""
+        for o in @orders
+          orders += ", " if "" isnt orders
+
+          fstr = ""
+
+          if not toParam
+            for idx in [0...o.field.length]
+              c = o.field.charAt(idx)
+              if @options.parameterCharacter is c
+                fstr += @_formatValue( @_values[pIndex++] )
+              else
+                fstr += c
+          else
+            fstr = o.field
+
+          orders += "#{fstr}"
+
+          if o.dir isnt null
+            orders += " #{if o.dir then 'ASC' else 'DESC'}"
+
+        "ORDER BY #{orders}"
+      else
+        ""
+
+    buildStr: (queryBuilder) ->
+      @_buildStr()
+
+    buildParam: (queryBuilder) ->
+      {
+        text: @_buildStr(true)
+        values: @_values.map (v) => @_formatValueAsParam(v)
+      }
+
+
+  # LIMIT
+  class cls.LimitBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @limits = null
+
+    # Set the LIMIT transformation.
+    #
+    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+    # the limit.
+    limit: (max) ->
+      max = @_sanitizeLimitOffset(max)
+      @limits = max
+
+
+    buildStr: (queryBuilder) ->
+      if @limits || @limits == 0 then "LIMIT #{@limits}" else ""
+
+
+
+  # JOIN
+  class cls.JoinBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @joins = []
+
+
+    # Add a JOIN with the given table.
+    #
+    # 'table' is the name of the table to join with.
+    #
+    # 'alias' is an optional alias for the table name.
+    #
+    # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
+    # an expression builder then it gets evaluated straight away.
+    #
+    # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
+    #
+    join: (table, alias = null, condition = null, type = 'INNER') ->
+      table = @_sanitizeTable(table, true)
+      alias = @_sanitizeTableAlias(alias) if alias
+      condition = @_sanitizeCondition(condition) if condition
+
+      @joins.push
+        type: type
+        table: table
+        alias: alias
+        condition: condition
+      @
+
+
+    # Add a LEFT JOIN with the given table.
+    left_join: (table, alias = null, condition = null) ->
+      @join table, alias, condition, 'LEFT'
+
+    # Add a RIGHT JOIN with the given table.
+    right_join: (table, alias = null, condition = null) ->
+      @join table, alias, condition, 'RIGHT'
+
+    # Add an OUTER JOIN with the given table.
+    outer_join: (table, alias = null, condition = null) ->
+      @join table, alias, condition, 'OUTER'
+
+    # Add a LEFT JOIN with the given table.
+    left_outer_join: (table, alias = null, condition = null) ->
+      @join table, alias, condition, 'LEFT OUTER'
+
+    # Add an FULL JOIN with the given table.
+    full_join: (table, alias = null, condition = null) ->
+      @join table, alias, condition, 'FULL'
+
+    # Add an CROSS JOIN with the given table.
+    cross_join: (table, alias = null, condition = null) ->
+      @join table, alias, condition, 'CROSS'
+
+    buildStr: (queryBuilder) ->
+      joins = ""
+
+      for j in (@joins or [])
+        if joins isnt "" then joins += " "
+        joins += "#{j.type} JOIN "
+        if "string" is typeof j.table
+          joins += j.table
+        else
+          joins += "(#{j.table})"
+        joins += " #{j.alias}" if j.alias
+        joins += " ON (#{j.condition})" if j.condition
+
+      joins
+
+    buildParam: (queryBuilder) ->
+      ret =
+        text: ""
+        values: []
+
+      params = []
+      joinStr = ""
+
+      if 0 >= @joins.length then return ret
+
+      # retrieve the parameterised queries
+      for blk in @joins
+
+        if "string" is typeof blk.table
+          p = { "text": "#{blk.table}", "values": [] }
+        else if blk.table instanceof cls.QueryBuilder
+          # building a nested query
+          blk.table.updateOptions( { "nestedBuilder": true } )
+          p = blk.table.toParam()
+        else
+          # building a nested query
+          blk.updateOptions( { "nestedBuilder": true } )
+          p = blk.buildParam(queryBuilder)
+
+        if blk.condition instanceof cls.Expression
+          cp = blk.condition.toParam()
+          p.condition = cp.text
+          p.values = p.values.concat(cp.values)
+        else
+          p.condition = blk.condition
+
+        p.join = blk
+        params.push( p )
+
+      # join the queries and their parameters
+      # this is the last building block processed so always add UNION if there are any UNION blocks
+      for p in params
+        if joinStr isnt "" then joinStr += " "
+        joinStr += "#{p.join.type} JOIN "
+        if "string" is typeof p.join.table
+          joinStr += p.text
+        else
+          joinStr += "(#{p.text})"
+        joinStr += " #{p.join.alias}" if p.join.alias
+        joinStr += " ON (#{p.condition})" if p.condition
+
+        for v in p.values
+          ret.values.push( @_formatCustomValue v )
+      ret.text += joinStr
+
+      ret
+
+
+  # UNION
+  class cls.UnionBlock extends cls.Block
+    constructor: (options) ->
+      super options
+      @unions = []
+
+
+    # Add a UNION with the given table/query.
+    #
+    # 'table' is the name of the table or query to union with.
+    #
+    #
+    # 'type' must be either one of UNION or UNION ALL.... Default is 'UNION'.
+    #
+    union: (table, type = 'UNION') ->
+      table = @_sanitizeTable(table, true)
+
+      @unions.push
+        type: type
+        table: table
+      @
+
+    # Add a UNION ALL with the given table/query.
+    union_all: (table) ->
+      @union table, 'UNION ALL'
+
+    buildStr: (queryBuilder) ->
+      unionStr = ""
+
+      for j in (@unions or [])
+        if unionStr isnt "" then unionStr += " "
+        unionStr += "#{j.type} "
+        if "string" is typeof j.table
+          unionStr += j.table
+        else
+          unionStr += "(#{j.table})"
+
+      unionStr
+
+    buildParam: (queryBuilder) ->
+      ret =
+        text: ""
+        values: []
+
+      params = []
+      unionStr = ""
+
+      if 0 >= @unions.length then return ret
+
+      # retrieve the parameterised queries
+      for blk in (@unions or [])
+        if "string" is typeof blk.table
+          p = { "text": "#{blk.table}", "values": [] }
+        else if blk.table instanceof cls.QueryBuilder
+          # building a nested query
+          blk.table.updateOptions( { "nestedBuilder": true } )
+          p = blk.table.toParam()
+        else
+          # building a nested query
+          blk.updateOptions( { "nestedBuilder": true } )
+          p = blk.buildParam(queryBuilder)
+        p.type = blk.type
+        params.push( p )
+
+      # join the queries and their parameters
+      # this is the last building block processed so always add UNION if there are any UNION blocks
+      for p in params
+        unionStr += " " if unionStr isnt ""
+        unionStr += "#{p.type} (#{p.text})"
+        for v in p.values
+          ret.values.push( @_formatCustomValue v )
+      ret.text += unionStr
+
+      ret
+
+
+
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+  # Query builders
+  # ---------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------
+
+
+  # Query builder base class
+  #
+  # Note that the query builder does not check the final query string for correctness.
+  #
+  # All the build methods in this object return the object instance for chained method calling purposes.
+  class cls.QueryBuilder extends cls.BaseBuilder
+    # Constructor
+    #
+    # blocks - array of cls.BaseBuilderBlock instances to build the query with.
+    constructor: (options, blocks) ->
+      super options
+
+      @blocks = blocks or []
+
+      # Copy exposed methods into myself
+      for block in @blocks
+        for methodName, methodBody of block.exposedMethods()
+          if @[methodName]?
+            throw new Error "#{@_getObjectClassName(@)} already has a builder method called: #{methodName}"
+
+          ( (block, name, body) =>
+            @[name] = =>
+              body.apply(block, arguments)
+              @
+          )(block, methodName, methodBody)
+
+
+    # Register a custom value handler for this query builder and all its contained blocks.
+    #
+    # Note: This will override any globally registered handler for this value type.
+    registerValueHandler: (type, handler) ->
+      for block in @blocks
+        block.registerValueHandler type, handler
+      super type, handler
+      @
+
+    # Update query builder options
+    #
+    # This will update the options for all blocks too. Use this method with caution as it allows you to change the
+    # behaviour of your query builder mid-build.
+    updateOptions: (options) ->
+      @options = _extend({}, @options, options)
+      for block in @blocks
+        block.options = _extend({}, block.options, options)
+
+
+    # Get the final fully constructed query string.
+    toString: ->
+      (block.buildStr(@) for block in @blocks).filter (v) ->
+        0 < v.length
+      .join(@options.separator)
+
+    # Get the final fully constructed query param obj.
+    toParam: (options = undefined)->
+      old = @options
+      @options = _extend({}, @options, options) if options?
+      result = { text: '', values: [] }
+      blocks = (block.buildParam(@) for block in @blocks)
+      result.text = (block.text for block in blocks).filter (v) ->
+        0 < v.length
+      .join(@options.separator)
+
+      result.values = [].concat (block.values for block in blocks)...
+      if not @options.nestedBuilder?
+        if @options.numberedParameters || options?.numberedParametersStartAt?
+          i = 1
+          i = @options.numberedParametersStartAt if @options.numberedParametersStartAt?
+          regex = new RegExp("\\" + @options.parameterCharacter, 'g')
+          result.text = result.text.replace regex, () => "#{@options.numberedParametersPrefix}#{i++}"
+      @options = old
+      result
+
+    # Deep clone
+    clone: ->
+      new @constructor @options, (block.clone() for block in @blocks)
+
+    # Get whether queries built with this builder can be nested within other queries
+    isNestable: ->
+      false
+
+    # Get a specific block
+    getBlock: (blockType) ->
+      @blocks.filter( (b) -> b instanceof blockType )[0]
+
+
+
+  # SELECT query builder.
+  class cls.Select extends cls.QueryBuilder
+      constructor: (options, blocks = null) ->
+        blocks or= [
+          new cls.StringBlock(options, 'SELECT'),
+          new cls.FunctionBlock(options),
+          new cls.DistinctBlock(options),
+          new cls.GetFieldBlock(options),
+          new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
+          new cls.JoinBlock(_extend({}, options, { allowNested: true })),
+          new cls.WhereBlock(options),
+          new cls.GroupByBlock(options),
+          new cls.HavingBlock(options),
+          new cls.OrderByBlock(options),
+          new cls.LimitBlock(options),
+          new cls.OffsetBlock(options),
+          new cls.UnionBlock(_extend({}, options, { allowNested: true }))
+        ]
+
+        super options, blocks
+
+      isNestable: ->
+        true
+
+
+
+  # UPDATE query builder.
+  class cls.Update extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'UPDATE'),
+        new cls.UpdateTableBlock(options),
+        new cls.SetFieldBlock(options),
+        new cls.WhereBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options)
+      ]
+
+      super options, blocks
+
+
+
+
+
+  # DELETE query builder.
+  class cls.Delete extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'DELETE'),
+        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
+        new cls.JoinBlock(options),
+        new cls.WhereBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+      ]
+
+      super options, blocks
+
+
+
+
+
+  # An INSERT query builder.
+  #
+  class cls.Insert extends cls.QueryBuilder
+    constructor: (options, blocks = null) ->
+      blocks or= [
+        new cls.StringBlock(options, 'INSERT'),
+        new cls.IntoTableBlock(options),
+        new cls.InsertFieldValueBlock(options),
+        new cls.InsertFieldsFromQueryBlock(options),
+      ]
+
+      super options, blocks
+
+
+  _squel =
+    VERSION: '4.3.3'
+    flavour: flavour
+    expr: (options) -> new cls.Expression(options)
+    case: (name, options) -> new cls.Case(name, options)
+    select: (options, blocks) -> new cls.Select(options, blocks)
+    update: (options, blocks) -> new cls.Update(options, blocks)
+    insert: (options, blocks) -> new cls.Insert(options, blocks)
+    delete: (options, blocks) -> new cls.Delete(options, blocks)
+    registerValueHandler: cls.registerValueHandler
+    fval: cls.fval
+
+  # aliases
+  _squel.remove = _squel.delete
+
+  # classes
+  _squel.cls = cls
+
+  return _squel
+
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Exported API
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+squel = _buildSquel()
+
+# AMD
+if define?.amd
+  define ->
+    return squel
+# CommonJS
+else if module?.exports
+  module.exports = squel
+# Browser
+else
+  window?.squel = squel
+
+
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Squel SQL flavours
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+
+# Available flavours
+squel.flavours = {}
+
+# Setup Squel for a particular SQL flavour
+squel.useFlavour = (flavour = null) ->
+  return squel if not flavour
+
+  if squel.flavours[flavour] instanceof Function
+    s = _buildSquel(flavour)
+    squel.flavours[flavour].call null, s
+    return s
+  else
+    throw new Error "Flavour not available: #{flavour}"
+
+}));

@@ -13,15 +13,20 @@ const SQUEL_VERSION = require('./package.json').version;
 
 
 gulp.task('build-basic', function() {
-  return gulp.src('./src/squel.js')
+
+  return gulp.src([
+      './src/umd-header.js',
+      './src/core.js',
+      './src/umd-footer.js',
+    ])
+    .pipe( concat('squel-basic.js') )
+    .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( babel({
       presets: ['es2015']
     }) )
-    .pipe( concat('squel-basic.js') )
-    .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
-    .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( gulp.dest('./') )
     .pipe( uglify() )
+    .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
     .pipe( concat('squel-basic.min.js') )
     .pipe( gulp.dest('./') )
 });
@@ -29,26 +34,28 @@ gulp.task('build-basic', function() {
 
 gulp.task('build-full', function() {
   return gulp.src([
-      './src/squel.js',
-      './src/mysql.js',
+      './src/umd-header.js',
+      './src/core.js',
       './src/mssql.js',
       './src/posgres.js',
+      './src/mysql.js',
+      './src/umd-footer.js',
     ])
+    .pipe( concat('squel.js') )
+    .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( babel({
       presets: ['es2015']
     }) )
-    .pipe( concat('squel.js') )
-    .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
-    .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( gulp.dest('./') )
     .pipe( uglify() )
+    .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
     .pipe( concat('squel.min.js') )
     .pipe( gulp.dest('./') )
 });
 
 
 
-gulp.task('tests', ['build', 'build-full'], function () {
+gulp.task('tests', ['build-basic', 'build-full'], function () {
   return gulp.src([
       './test/baseclasses.test.coffee',
       './test/blocks.test.coffee',
