@@ -348,7 +348,7 @@ const function _buildSquel(flavour = null) {
       _sanitizeLimitOffset (value) {
         let value = parseInt(value);
 
-        if (0 > value or isNaN(value)) {
+        if (0 > value || isNaN(value)) {
           throw new Error("limit/offset must be >= 0");
         }
 
@@ -1884,91 +1884,123 @@ const function _buildSquel(flavour = null) {
 
   // ORDER BY
   class cls.OrderByBlock extends cls.Block {
-    constructor: (options) ->
-      super options
-      this.orders = []
-      this._values = []
+    constructor (options) {
+      super(options);
+      this.orders = [];
+      this._values = [];
+    }
 
+    /**
     # Add an ORDER BY transformation for the given field in the given order.
     #
     # To specify descending order pass false for the 'asc' parameter.
-    order: (field, asc, values...) ->
-      field = this._sanitizeField(field)
+    */
+    order (field, asc, ...values) {
+      field = this._sanitizeField(field);
 
-      asc = true if asc is undefined
-      asc = !!asc if asc isnt null
-
-      this._values = values
-
-      this.orders.push
-        field: field
-        dir: asc
-
-    _buildStr: (toParam = false) ->
-      if 0 < this.orders.length
-        pIndex = 0
-        orders = ""
-        for o in this.orders
-          orders += ", " if "" isnt orders
-
-          fstr = ""
-
-          if not toParam
-            for idx in [0...o.field.length]
-              c = o.field.charAt(idx)
-              if this.options.parameterCharacter is c
-                fstr += this._formatValue( this._values[pIndex++] )
-              else
-                fstr += c
-          else
-            fstr = o.field
-
-          orders += "#{fstr}"
-
-          if o.dir isnt null
-            orders += " #{if o.dir then 'ASC' else 'DESC'}"
-
-        "ORDER BY #{orders}"
-      else
-        ""
-
-    buildStr: (queryBuilder) ->
-      this._buildStr()
-
-    buildParam: (queryBuilder) ->
-      {
-        text: this._buildStr(true)
-        values: this._values.map (v) => this._formatValueAsParam(v)
+      if (asc === undefined) {
+        asc = true;
       }
 
+      if (asc !== null) {
+        asc = !!asc;
+      }
 
-  # LIMIT
-  class cls.LimitBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.limits = null
+      this._values = values;
 
+      this.orders.push({
+        field: field,
+        dir: asc,   
+      });
+    }
+
+    _buildStr (toParam = false) {
+      if (0 < this.orders.length) {
+        let pIndex = 0;
+        let orders = "";
+        for (let o of this.orders) {
+          if (orders.length) {
+            orders += ", ";
+          }
+
+          let fstr = "";
+
+          if (!toParam) {
+            for (let c of o.field) {
+              if (this.options.parameterCharacter === c) {
+                fstr += this._formatValue( this._values[pIndex++] );
+              }
+              else {
+                fstr += c;
+              }
+            }
+          }
+          else {
+            fstr = o.field;
+          }
+
+          orders += fstr;
+
+          if (o.dir isnt null) {
+            orders += ` ${o.dir ? 'ASC' : 'DESC'}`;
+          }
+        }
+
+        return `ORDER BY ${orders}`;
+      }
+      else {
+        return "";
+      }
+    }
+
+    buildStr (queryBuilder) {
+      return this._buildStr();
+    }
+
+    buildParam (queryBuilder) {
+      return {
+        text: this._buildStr(true),
+        values: this._values.map((v) => {
+          return this._formatValueAsParam(v);
+        }),
+      };
+    }
+  }
+
+
+  // LIMIT
+  class cls.LimitBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.limits = null;
+    }
+
+    /**
     # Set the LIMIT transformation.
     #
     # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
     # the limit.
-    limit: (max) ->
-      max = this._sanitizeLimitOffset(max)
-      this.limits = max
+    */
+    limit (max) {
+      max = this._sanitizeLimitOffset(max);
+      this.limits = max;
+    }
+
+    buildStr (queryBuilder) {
+      return (this.limits || this.limits == 0) ? `LIMIT ${this.limits}` : "";
+    }
+  }
 
 
-    buildStr: (queryBuilder) ->
-      if this.limits || this.limits == 0 then "LIMIT #{this.limits}" else ""
 
+  // JOIN
+  class cls.JoinBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.joins = [];
+    }
 
-
-  # JOIN
-  class cls.JoinBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.joins = []
-
-
+    /**
     # Add a JOIN with the given table.
     #
     # 'table' is the name of the table to join with.
@@ -1980,118 +2012,155 @@ const function _buildSquel(flavour = null) {
     #
     # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
     #
-    join: (table, alias = null, condition = null, type = 'INNER') ->
-      table = this._sanitizeTable(table, true)
-      alias = this._sanitizeTableAlias(alias) if alias
-      condition = this._sanitizeCondition(condition) if condition
+    */
+    join (table, alias = null, condition = null, type = 'INNER') {
+      table = this._sanitizeTable(table, true);
+      alias = alias ? this._sanitizeTableAlias(alias) : alias;
+      condition = condition ? this._sanitizeCondition(condition) : condition;
 
-      this.joins.push
-        type: type
-        table: table
-        alias: alias
-        condition: condition
-      this.
+      this.joins.push({
+        type: type,
+        table: table,
+        alias: alias,
+        condition: condition,
+      });
+    }
+
+    left_join (table, alias = null, condition = null) {
+      this.join(table, alias, condition, 'LEFT');
+    }
+
+    right_join (table, alias = null, condition = null) {
+      this.join(table, alias, condition, 'RIGHT');
+    }
+
+    outer_join (table, alias = null, condition = null) {
+      this.join(table, alias, condition, 'OUTER');
+    }
+
+    left_outer_join (table, alias = null, condition = null) {
+      this.join(table, alias, condition, 'LEFT OUTER');
+    }
+
+    full_join (table, alias = null, condition = null) {
+      this.join(table, alias, condition, 'FULL');
+    }
+
+    cross_join (table, alias = null, condition = null) {
+      this.join(table, alias, condition, 'CROSS');
+    }
+
+    buildStr (queryBuilder) {
+      let joins = "";
+
+      for (let j of (this.joins || [])) {
+        if (joins.length) {
+          joins += " ";
+        }
+
+        joins += `${j.type} JOIN `;
+        if ("string" === typeof j.table) {
+          joins += j.table;
+        }
+        else {
+          joins += `(${j.table})`;
+        }
+        if (j.alias) {
+          joins += ` ${j.alias}`;
+        }
+        if (j.condition) {
+          joins += ` ON (${j.condition})` 
+        }
+      }
+
+      return joins;
+    }
+
+    buildParam (queryBuilder) {
+      let ret = {
+        text: "",
+        values: [],
+      };
+
+      let params = [];
+      let joinStr = "";
+
+      if (0 >= this.joins.length) {
+        return ret;
+      }
+
+      // retrieve the parameterised queries
+      for (let blk of this.joins) {
+        let p;
+        if ("string" === typeof blk.table) {
+          p = { "text": `${blk.table}`, "values": [] };
+        }
+        else if (blk.table instanceof cls.QueryBuilder) {
+          // building a nested query
+          blk.table.updateOptions( { "nestedBuilder": true } );
+          p = blk.table.toParam();
+        }
+        else {
+          // building a nested query
+          blk.updateOptions( { "nestedBuilder": true } );
+          p = blk.buildParam(queryBuilder);
+        }
+
+        if (blk.condition instanceof cls.Expression) {
+          cp = blk.condition.toParam();
+          p.condition = cp.text;
+          p.values = p.values.concat(cp.values);
+        }
+        else {
+          p.condition = blk.condition;
+        }
+
+        p.join = blk;
+        params.push( p );
+      }
+
+      // join the queries and their parameters
+      // this is the last building block processed so always add UNION if there are any UNION blocks
+      for (let p of params) {
+        if (joinStr.length) {
+          joinStr += " ";
+        }
+
+        joinStr += `${p.join.type} JOIN `;
+
+        if ("string" === typeof p.join.table) {
+          joinStr += p.text;
+        }
+        else {
+          joinStr += `(${p.text})`;
+        }
+        if (p.join.alias) {
+          joinStr += ` ${p.join.alias}`;
+        }
+        if (p.condition) {
+          joinStr += ` ON (${p.condition})`;
+        } 
+
+        for (let v of p.values) {
+          ret.values.push( this._formatCustomValue(v) );
+        }
+      }
+
+      ret.text += joinStr;
+
+      return ret;
+    }
+  }
 
 
-    # Add a LEFT JOIN with the given table.
-    left_join: (table, alias = null, condition = null) ->
-      this.join table, alias, condition, 'LEFT'
+  // UNION
+  class cls.UnionBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.unions = [];
+    }
 
-    # Add a RIGHT JOIN with the given table.
-    right_join: (table, alias = null, condition = null) ->
-      this.join table, alias, condition, 'RIGHT'
-
-    # Add an OUTER JOIN with the given table.
-    outer_join: (table, alias = null, condition = null) ->
-      this.join table, alias, condition, 'OUTER'
-
-    # Add a LEFT JOIN with the given table.
-    left_outer_join: (table, alias = null, condition = null) ->
-      this.join table, alias, condition, 'LEFT OUTER'
-
-    # Add an FULL JOIN with the given table.
-    full_join: (table, alias = null, condition = null) ->
-      this.join table, alias, condition, 'FULL'
-
-    # Add an CROSS JOIN with the given table.
-    cross_join: (table, alias = null, condition = null) ->
-      this.join table, alias, condition, 'CROSS'
-
-    buildStr: (queryBuilder) ->
-      joins = ""
-
-      for j in (this.joins or [])
-        if joins isnt "" then joins += " "
-        joins += "#{j.type} JOIN "
-        if "string" is typeof j.table
-          joins += j.table
-        else
-          joins += "(#{j.table})"
-        joins += " #{j.alias}" if j.alias
-        joins += " ON (#{j.condition})" if j.condition
-
-      joins
-
-    buildParam: (queryBuilder) ->
-      ret =
-        text: ""
-        values: []
-
-      params = []
-      joinStr = ""
-
-      if 0 >= this.joins.length then return ret
-
-      # retrieve the parameterised queries
-      for blk in this.joins
-
-        if "string" is typeof blk.table
-          p = { "text": "#{blk.table}", "values": [] }
-        else if blk.table instanceof cls.QueryBuilder
-          # building a nested query
-          blk.table.updateOptions( { "nestedBuilder": true } )
-          p = blk.table.toParam()
-        else
-          # building a nested query
-          blk.updateOptions( { "nestedBuilder": true } )
-          p = blk.buildParam(queryBuilder)
-
-        if blk.condition instanceof cls.Expression
-          cp = blk.condition.toParam()
-          p.condition = cp.text
-          p.values = p.values.concat(cp.values)
-        else
-          p.condition = blk.condition
-
-        p.join = blk
-        params.push( p )
-
-      # join the queries and their parameters
-      # this is the last building block processed so always add UNION if there are any UNION blocks
-      for p in params
-        if joinStr isnt "" then joinStr += " "
-        joinStr += "#{p.join.type} JOIN "
-        if "string" is typeof p.join.table
-          joinStr += p.text
-        else
-          joinStr += "(#{p.text})"
-        joinStr += " #{p.join.alias}" if p.join.alias
-        joinStr += " ON (#{p.condition})" if p.condition
-
-        for v in p.values
-          ret.values.push( this._formatCustomValue v )
-      ret.text += joinStr
-
-      ret
-
-
-  # UNION
-  class cls.UnionBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.unions = []
-
-
+    /**
     # Add a UNION with the given table/query.
     #
     # 'table' is the name of the table or query to union with.
@@ -2099,75 +2168,98 @@ const function _buildSquel(flavour = null) {
     #
     # 'type' must be either one of UNION or UNION ALL.... Default is 'UNION'.
     #
-    union: (table, type = 'UNION') ->
-      table = this._sanitizeTable(table, true)
+    */
+    union (table, type = 'UNION') {
+      let table = this._sanitizeTable(table, true);
 
-      this.unions.push
-        type: type
-        table: table
-      this.
+      this.unions.push({
+        type: type,
+        table: table,
+      });
+    }
 
-    # Add a UNION ALL with the given table/query.
-    union_all: (table) ->
-      this.union table, 'UNION ALL'
+    // Add a UNION ALL with the given table/query.
+    union_all (table) {
+      this.union(table, 'UNION ALL');
+    }
 
-    buildStr: (queryBuilder) ->
-      unionStr = ""
+    buildStr (queryBuilder) {
+      let unionStr = "";
 
-      for j in (this.unions or [])
-        if unionStr isnt "" then unionStr += " "
-        unionStr += "#{j.type} "
-        if "string" is typeof j.table
-          unionStr += j.table
-        else
-          unionStr += "(#{j.table})"
+      for (let j of (this.unions || [])) {
+        if (unionStr.length) {
+          unionStr += " ";
+        }
+        unionStr += `${j.type} `;
+        if ("string" === typeof j.table) {
+          unionStr += j.table;
+        }
+        else {
+          unionStr += `(${j.table})`;
+        }
+      }
 
-      unionStr
+      return unionStr;
+    }
 
-    buildParam: (queryBuilder) ->
-      ret =
-        text: ""
-        values: []
+    buildParam: (queryBuilder) {
+      let ret = {
+        text: "",
+        values: [],
+      };
 
-      params = []
-      unionStr = ""
+      let params = [];
+      let unionStr = "";
 
-      if 0 >= this.unions.length then return ret
+      if (0 >= this.unions.length) {
+        return ret;
+      }
 
-      # retrieve the parameterised queries
-      for blk in (this.unions or [])
-        if "string" is typeof blk.table
-          p = { "text": "#{blk.table}", "values": [] }
-        else if blk.table instanceof cls.QueryBuilder
-          # building a nested query
-          blk.table.updateOptions( { "nestedBuilder": true } )
-          p = blk.table.toParam()
-        else
-          # building a nested query
-          blk.updateOptions( { "nestedBuilder": true } )
-          p = blk.buildParam(queryBuilder)
-        p.type = blk.type
-        params.push( p )
+      // retrieve the parameterised queries
+      for (let blk of (this.unions || [])) {
+        let p;
+        if ("string" === typeof blk.table) {
+          p = { "text": blk.table, "values": [] };
+        }
+        else if (blk.table instanceof cls.QueryBuilder) {
+          // building a nested query
+          blk.table.updateOptions( { "nestedBuilder": true } );
+          p = blk.table.toParam();
+        }
+        else {
+          // building a nested query
+          blk.updateOptions( { "nestedBuilder": true } );
+          p = blk.buildParam(queryBuilder);
+        }
+        p.type = blk.type;
+        params.push( p );
+      }
 
-      # join the queries and their parameters
-      # this is the last building block processed so always add UNION if there are any UNION blocks
-      for p in params
-        unionStr += " " if unionStr isnt ""
-        unionStr += "#{p.type} (#{p.text})"
-        for v in p.values
-          ret.values.push( this._formatCustomValue v )
-      ret.text += unionStr
+      // join the queries and their parameters
+      // this is the last building block processed so always add UNION if there are any UNION blocks
+      for (let p of params) {
+        if (unionStr.length) {
+          unionStr += " ";
+        }
+        unionStr += `${p.type} (${p.text})`;
+        for (let v of p.values) {
+          ret.values.push( this._formatCustomValue(v) );
+        }
+      }
+      ret.text += unionStr;
 
-      ret
+      return ret;
+    }
+  }
 
 
-
+  /*
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
   # Query builders
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
-
+  */
 
   # Query builder base class
   #
@@ -2181,7 +2273,7 @@ const function _buildSquel(flavour = null) {
     constructor: (options, blocks) ->
       super options
 
-      this.blocks = blocks or []
+      this.blocks = blocks || []
 
       # Copy exposed methods into myself
       for block in this.blocks
