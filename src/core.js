@@ -2,7 +2,7 @@
 
 
 // Extend given object's with other objects' properties, overriding existing ones if necessary
-const function _extend (dst, ...sources) {
+function _extend (dst, ...sources) {
   if (sources) {
     for (let src of sources) {
       if (src) {
@@ -22,7 +22,7 @@ const function _extend (dst, ...sources) {
 
 
 // get whether object is a plain object
-const function _isPlainObject(obj) {
+function _isPlainObject(obj) {
   if (!obj) {
     return false;
   }
@@ -32,13 +32,13 @@ const function _isPlainObject(obj) {
 
 
 // get whether object is an array
-const function _isArray(obj) {
+function _isArray(obj) {
   return (obj.constructor.prototype === Array.prototype);
 };
 
 
 // get class name of given object
-const _getObjectClassName (obj) {
+function _getObjectClassName (obj) {
   if (obj && obj.constructor && obj.constructor.toString) {
     let arr = obj.constructor.toString().match(/function\s*(\w+)/);
     
@@ -50,7 +50,7 @@ const _getObjectClassName (obj) {
 
 
 // clone given item
-const function _clone(src) {
+function _clone(src) {
   if (!src) {
     return src;
   }
@@ -76,7 +76,7 @@ const function _clone(src) {
  *
  * Note: this will override any existing handler registered for this value type.
  */
-const function registerValueHandler (handlers, type, handler) {
+function registerValueHandler (handlers, type, handler) {
   let typeofType = typeof type;
 
   if (typeofType !== 'function' && typeofType !== 'string') {
@@ -96,8 +96,8 @@ const function registerValueHandler (handlers, type, handler) {
   }
 
   handlers.push({
-    type: type
-    handler: handler  
+    type: type,
+    handler: handler,
   });
 };
 
@@ -107,7 +107,7 @@ const function registerValueHandler (handlers, type, handler) {
 /**
  * Get value type handler for given type
  */
-const function getValueHandler (value, ...handlerLists) {
+function getValueHandler (value, ...handlerLists) {
   for (let handlers in handlerLists) {
     for (let typeHandler in handlers) {
       // if type is a string then use `typeof` or else use `instanceof`
@@ -123,7 +123,7 @@ const function getValueHandler (value, ...handlerLists) {
 /**
  * Build base squel classes and methods
  */
-const function _buildSquel(flavour = null) {
+function _buildSquel(flavour = null) {
   let cls = {};
 
   // default query builder options
@@ -188,7 +188,7 @@ const function _buildSquel(flavour = null) {
   */
 
   // Base class for cloneable builders
-  class cls.Cloneable {
+  cls.Cloneable = class {
     /**
      * Clone this builder
      */
@@ -202,7 +202,7 @@ const function _buildSquel(flavour = null) {
 
 
   // Base class for all builders
-  class cls.BaseBuilder extends cls.Cloneable {
+  cls.BaseBuilder = class extends cls.Cloneable {
     /**
      * Constructor.
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
@@ -293,7 +293,7 @@ const function _buildSquel(flavour = null) {
 
 
     _sanitizeTable (item, allowNested = false) {
-      if (allowNested)
+      if (allowNested) {
         if (typeof item !== "string") {
           try {
             item = this._sanitizeNestableQuery(item);
@@ -312,175 +312,175 @@ const function _buildSquel(flavour = null) {
       } else {
         return item;
       }
+    }
+
+    _sanitizeTableAlias (item) {
+      let sanitized = this._sanitizeName(item, "table alias");
+      
+      if (this.options.autoQuoteAliasNames) {
+        let quoteChar = this.options.tableAliasQuoteCharacter;
+
+        sanitized = `${quoteChar}${sanitized}${quoteChar}`;
+      }
+
+      if (this.options.useAsForTableAliasNames) {
+        return `AS ${sanitized}`;
+      } else {
+        return sanitized;
+      }
+    }
 
 
-      _sanitizeTableAlias (item) {
-        let sanitized = this._sanitizeName(item, "table alias");
-        
-        if (this.options.autoQuoteAliasNames) {
-          let quoteChar = this.options.tableAliasQuoteCharacter;
+    _sanitizeFieldAlias (item) {
+      let sanitized = this._sanitizeName(item, "field alias");
+      
+      if (this.options.autoQuoteAliasNames) {
+        let quoteChar = this.options.fieldAliasQuoteCharacter;
 
-          sanitized = `${quoteChar}${sanitized}${quoteChar}`;
-        }
+        `${quoteChar}${sanitized}${quoteChar}`;
+      } else {
+        return sanitized;
+      }
+    }
 
-        if (this.options.useAsForTableAliasNames) {
-          return `AS ${sanitized}`;
-        } else {
-          return sanitized;
+
+    // Sanitize the given limit/offset value.
+    _sanitizeLimitOffset (value) {
+      let value = parseInt(value);
+
+      if (0 > value || isNaN(value)) {
+        throw new Error("limit/offset must be >= 0");
+      }
+
+      return value
+    }
+
+
+
+    // Santize the given field value
+    _sanitizeValue (item) {
+      let itemType = typeof item;
+
+      if (null === item) {
+        // null is allowed
+      }
+      else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
+        // primitives are allowed
+      }
+      else if (item instanceof cls.QueryBuilder && item.isNestable()) {
+        // QueryBuilder instances allowed
+      }
+      else if (item instanceof cls.FunctionBlock) {
+        // FunctionBlock instances allowed
+      }
+      else {
+        let typeIsValid = 
+          !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+
+        if (!typeIsValid) {
+          throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
         }
       }
 
+      return item;
+    }
 
-      _sanitizeFieldAlias (item) {
-        let sanitized = this._sanitizeName(item, "field alias");
-        
-        if (this.options.autoQuoteAliasNames) {
-          let quoteChar = this.options.fieldAliasQuoteCharacter;
 
-          `${quoteChar}${sanitized}${quoteChar}`;
-        } else {
-          return sanitized;
-        }
+    // Escape a string value, e.g. escape quotes and other characters within it.
+    _escapeValue (value) {
+      return (!this.options.replaceSingleQuotes) ? value : (
+        value.replace(/\'/g, this.options.singleQuoteReplacement)
+      );
+    }
+
+
+    // Format the given custom value
+    _formatCustomValue (value, asParam = false) {
+      // user defined custom handlers takes precedence
+      let customHandler = 
+        getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
+
+      // use the custom handler if available
+      if (customHandler) {
+        value = customHandler(value, asParam);
       }
 
+      return value;
+    }
 
-      // Sanitize the given limit/offset value.
-      _sanitizeLimitOffset (value) {
-        let value = parseInt(value);
 
-        if (0 > value || isNaN(value)) {
-          throw new Error("limit/offset must be >= 0");
+
+    // Format the given field value for inclusion into query parameter array
+    _formatValueAsParam (value) {
+      if (_.isArray(value)) {
+        return value.map((v) => {
+          return this._formatValueAsParam(v)
+        });
+      } else {
+        if (value instanceof cls.QueryBuilder && value.isNestable()) {
+          value.updateOptions({ 
+            "nestedBuilder": true 
+          });
+
+          return value.toParam();
         }
-
-        return value
-      }
-
-
-
-      // Santize the given field value
-      _sanitizeValue (item) {
-        let itemType = typeof item;
-
-        if (null === item) {
-          // null is allowed
-        }
-        else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-          // primitives are allowed
-        }
-        else if (item instanceof cls.QueryBuilder && item.isNestable()) {
-          // QueryBuilder instances allowed
-        }
-        else if (item instanceof cls.FunctionBlock) {
-          // FunctionBlock instances allowed
+        else if (value instanceof cls.Expression) {
+          return value.toParam();
         }
         else {
-          let typeIsValid = 
-            !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
-
-          if (!typeIsValid) {
-            throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-          }
+          return this._formatCustomValue(value, true);
         }
+      }
+    }
 
-        return item;
+
+
+    // Format the given field value for inclusion into the query string
+    _formatValue (value, formattingOptions = {}) {
+      let customFormattedValue = this._formatCustomValue(value);
+      
+      // if formatting took place then return it directly
+      if (customFormattedValue !== value) {
+        return `(${customFormattedValue})`;
       }
 
+      // if it's an array then format each element separately
+      if (_isArray(value)) {
+        value = value.map((v) => {
+          return this._formatValue(v);
+        });
 
-      // Escape a string value, e.g. escape quotes and other characters within it.
-      _escapeValue (value) {
-        return (!this.options.replaceSingleQuotes) ? value : (
-          value.replace(/\'/g, this.options.singleQuoteReplacement)
-        );
+        value = `(${value.join(', ')})`;
       }
+      else {
+        let typeofValue = typeof value;
 
-
-      // Format the given custom value
-      _formatCustomValue (value, asParam = false) {
-        // user defined custom handlers takes precedence
-        let customHandler = 
-          getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
-
-        // use the custom handler if available
-        if (customHandler) {
-          value = customHandler(value, asParam);
+        if (null === value) {
+          value = "NULL";
         }
-
-        return value;
-      }
-
-
-
-      // Format the given field value for inclusion into query parameter array
-      _formatValueAsParam (value) {
-        if (_.isArray(value)) {
-          return value.map((v) => {
-            return this._formatValueAsParam(v)
-          });
-        } else {
-          if (value instanceof cls.QueryBuilder && value.isNestable()) {
-            value.updateOptions({ 
-              "nestedBuilder": true 
-            });
-
-            return value.toParam();
-          }
-          else if (value instanceof cls.Expression) {
-            return value.toParam();
-          }
+        else if (typeofValue === "boolean") {
+          value = value ? "TRUE" : "FALSE";
+        }
+        else if (value instanceof cls.QueryBuilder) {
+          value = `(${value})`;
+        }
+        else if (value instanceof cls.Expression) {
+          value = `(${value})`;
+        }
+        else if (typeofValue !== "number") {
+          if (formattingOptions.dontQuote) {
+            value = `${value}`;
+          } 
           else {
-            return this._formatCustomValue(value, true);
+            let escapedValue = this._escapeValue(value);
+
+            value = `'${escapedValue}'`;
           }
         }
       }
 
-
-
-      // Format the given field value for inclusion into the query string
-      _formatValue (value, formattingOptions = {}) {
-        let customFormattedValue = this._formatCustomValue(value);
-        
-        // if formatting took place then return it directly
-        if (customFormattedValue !== value) {
-          return `(${customFormattedValue})`;
-        }
-
-        // if it's an array then format each element separately
-        if _isArray(value) {
-          value = value.map((v) => {
-            return this._formatValue(v);
-          });
-
-          value = `(${value.join(', ')})`;
-        }
-        else {
-          let typeofValue = typeof value;
-
-          if (null === value) {
-            value = "NULL";
-          }
-          else if (typeofValue === "boolean") {
-            value = value ? "TRUE" : "FALSE";
-          }
-          else if (value instanceof cls.QueryBuilder) {
-            value = `(${value})`;
-          }
-          else if (value instanceof cls.Expression) {
-            value = `(${value})`;
-          }
-          else if (typeofValue !== "number") {
-            if (formattingOptions.dontQuote) {
-              value = `${value}`;
-            } 
-            else {
-              let escapedValue = this._escapeValue(value);
-
-              value = `'${escapedValue}'`;
-            }
-          }
-        }
-
-        return value;
-      }
+      return value;
+    }
   }
 
 
@@ -506,7 +506,7 @@ const function _buildSquel(flavour = null) {
   #
   # All the build methods in this object return the object instance for chained method calling purposes.
    */
-  class cls.Expression extends cls.BaseBuilder {
+  cls.Expression = class extends cls.BaseBuilder {
     // Initialise the expression.
     constructor (options) {
       super()
@@ -540,7 +540,7 @@ const function _buildSquel(flavour = null) {
     }
 
     // Getting current node from tree
-    _current ()) {
+    _current () {
       let current = this.tree;
 
       for (let num of this.stack) {
@@ -665,7 +665,7 @@ const function _buildSquel(flavour = null) {
               }
 
               // IN ? -> IN (?, ?, ..., ?)
-              if _isArray(child.para) {
+              if (_isArray(child.para)) {
                 let arr = Array.apply(null, new Array(child.para.length));
 
                 let inStr = arr.map(() => {
@@ -732,7 +732,7 @@ const function _buildSquel(flavour = null) {
    *
    * SQL cases are used to select proper values based on specific criteria.
    */
-  class cls.Case extends cls.BaseBuilder {
+  cls.Case = class extends cls.BaseBuilder {
     constructor (fieldName, options = {}) {
       super();
 
@@ -763,7 +763,7 @@ const function _buildSquel(flavour = null) {
 
     then (result) {
       if (this.cases.length == 0) {
-        throw new Error "when() needs to be called first"
+        throw new Error("when() needs to be called first");
       }
 
       this.cases[0].result = result;
@@ -812,7 +812,7 @@ const function _buildSquel(flavour = null) {
         }
 
         return `${str} THEN ${this._formatValue(part.result)}`;
-      }
+      });
 
       let str = cases.join(" ") + ' ELSE ' + this._formatValue(elseValue) + ' END';
 
@@ -832,6 +832,7 @@ const function _buildSquel(flavour = null) {
         return str;
       }
     }
+  }
 
 
   /*
@@ -854,7 +855,7 @@ const function _buildSquel(flavour = null) {
   #
   # Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427
   */
-  class cls.Block extends cls.BaseBuilder {
+  cls.Block = class extends cls.BaseBuilder {
     /**
     # Get input methods to expose within the query builder.
     #
@@ -871,7 +872,7 @@ const function _buildSquel(flavour = null) {
         let value = this[attr];
 
         // only want functions from this class
-        if (typeof value === "function" and attr.charAt(0) isnt '_' and !cls.Block.prototype[attr]) {
+        if (typeof value === "function" && attr.charAt(0) !== '_' && !cls.Block.prototype[attr]) {
           ret[attr] = value;
         }
       }
@@ -901,7 +902,7 @@ const function _buildSquel(flavour = null) {
 
 
   // A String which always gets output
-  class cls.StringBlock extends cls.Block {
+  cls.StringBlock = class extends cls.Block {
     constructor (options, str) {
       super(options);
 
@@ -916,7 +917,7 @@ const function _buildSquel(flavour = null) {
 
 
   // An arbitrary value or db function with parameters
-  class cls.AbstractValueBlock extends cls.Block {
+  cls.AbstractValueBlock = class extends cls.Block {
     // Constructor
     constructor (options) {
       super(options);
@@ -936,7 +937,7 @@ const function _buildSquel(flavour = null) {
       let values = [].concat(this._values);
 
       for (let c of str) {
-        if (this.options.parameterCharacter === c and 0 < values.length) {
+        if (this.options.parameterCharacter === c && 0 < values.length) {
           c = values.shift();
         }
 
@@ -954,7 +955,7 @@ const function _buildSquel(flavour = null) {
 
 
   // A function string block
-  class cls.FunctionBlock extends cls.AbstractValueBlock {
+  cls.FunctionBlock = class extends cls.AbstractValueBlock {
     function (str, ...values) {
       this._setValue.apply(this, [str].concat(values));
     }
@@ -981,7 +982,7 @@ const function _buildSquel(flavour = null) {
   #  - singleTable - only allow one table to be specified  (default: false)
   #  - allowNested - allow nested query to be specified as a table    (default: false)
   */
-  class cls.AbstractTableBlock extends cls.Block {
+  cls.AbstractTableBlock = class extends cls.Block {
     constructor (options) {
       super(options);
 
@@ -1007,8 +1008,8 @@ const function _buildSquel(flavour = null) {
       }
 
       this.tables.push({
-        table: table
-        alias: alias        
+        table: table,
+        alias: alias,       
       });
     }
 
@@ -1039,7 +1040,7 @@ const function _buildSquel(flavour = null) {
         }
 
         if (table.alias) {
-          # add the table alias
+          // add the table alias
           tables += ` ${table.alias}`;
         }
       }
@@ -1126,14 +1127,14 @@ const function _buildSquel(flavour = null) {
 
 
   // Update Table
-  class cls.UpdateTableBlock extends cls.AbstractTableBlock {
+  cls.UpdateTableBlock = class extends cls.AbstractTableBlock {
     table (table, alias = null) {
       this._table(table, alias);
     }
   }
 
   // FROM table
-  class cls.FromTableBlock extends cls.AbstractTableBlock {
+  cls.FromTableBlock = class extends cls.AbstractTableBlock {
     from (table, alias = null) {
       this._table(table, alias);
     }
@@ -1151,7 +1152,7 @@ const function _buildSquel(flavour = null) {
 
 
   // INTO table
-  class cls.IntoTableBlock extends cls.Block {
+  cls.IntoTableBlock = class extends cls.Block {
     constructor (options) {
       super(options);
 
@@ -1175,7 +1176,7 @@ const function _buildSquel(flavour = null) {
 
 
   // (SELECT) Get field
-  class cls.GetFieldBlock extends cls.Block {
+  cls.GetFieldBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this._fieldAliases = {};
@@ -1315,7 +1316,7 @@ const function _buildSquel(flavour = null) {
 
 
   // Base class for setting fields to values (used for INSERT and UPDATE queries)
-  class cls.AbstractSetFieldBlock extends cls.Block {
+  cls.AbstractSetFieldBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.fieldOptions = [];
@@ -1388,12 +1389,12 @@ const function _buildSquel(flavour = null) {
 
           let index = this.fields.indexOf(this._sanitizeField(field, options));
 
-          if (0 < i and -1 is index) {
+          if (0 < i && -1 === index) {
             throw new Error('All fields in subsequent rows must match the fields in the first row');
           }
 
           // Add field only if it hasn't been added before
-          if (-1 is index) {
+          if (-1 === index) {
             this.fields.push(this._sanitizeField(field, options));
             index = this.fields.length - 1;            
           }
@@ -1401,7 +1402,7 @@ const function _buildSquel(flavour = null) {
           value = this._sanitizeValue(value);
 
           // The first value added needs to add the array
-          if _isArray(this.values[i]) {
+          if (_isArray(this.values[i])) {
             this.values[i][index] = value;
             this.fieldOptions[i][index] = options;
           }
@@ -1424,7 +1425,7 @@ const function _buildSquel(flavour = null) {
 
 
   // (UPDATE) SET field=value
-  class cls.SetFieldBlock extends cls.AbstractSetFieldBlock {
+  cls.SetFieldBlock = class extends cls.AbstractSetFieldBlock {
     set (field, value, options) {
       this._set(field, value, options);
     }
@@ -1509,7 +1510,7 @@ const function _buildSquel(flavour = null) {
 
 
   // (INSERT INTO) ... field ... value
-  class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock {
+  cls.InsertFieldValueBlock = class extends cls.AbstractSetFieldBlock {
     set (field, value, options = {}) {
       this._set(field, value, options);
     }
@@ -1609,7 +1610,7 @@ const function _buildSquel(flavour = null) {
 
 
   // (INSERT INTO) ... field ... (SELECT ... FROM ...)
-  class cls.InsertFieldsFromQueryBlock extends cls.Block {
+  cls.InsertFieldsFromQueryBlock = class extends cls.Block {
     constructor (options) {
       super(options)
       this._fields = [];
@@ -1650,7 +1651,7 @@ const function _buildSquel(flavour = null) {
 
 
   // DISTINCT
-  class cls.DistinctBlock extends cls.Block {
+  cls.DistinctBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.useDistinct = false;
@@ -1669,7 +1670,7 @@ const function _buildSquel(flavour = null) {
 
 
   // GROUP BY
-  class cls.GroupByBlock extends cls.Block {
+  cls.GroupByBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.groups = [];
@@ -1693,7 +1694,7 @@ const function _buildSquel(flavour = null) {
 
 
   // OFFSET x
-  class cls.OffsetBlock extends cls.Block {
+  cls.OffsetBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.offsets = null;
@@ -1717,7 +1718,7 @@ const function _buildSquel(flavour = null) {
 
 
   // Abstract condition base class
-  class cls.AbstractConditionBlock extends cls.Block {
+  cls.AbstractConditionBlock = class extends cls.Block {
     constructor (verb, options) {
       super(options);
       this.conditionVerb = verb;
@@ -1750,7 +1751,7 @@ const function _buildSquel(flavour = null) {
           if (this.options.parameterCharacter === c && 0 < values.length) {
             let nextValue = values.shift();
             // # where b in (?, ? ?)
-            if (_isArray(nextValue) {
+            if (_isArray(nextValue)) {
               let inValues = [];
               for (let item of nextValue) {
                 inValues.push(this._sanitizeValue(item));
@@ -1860,7 +1861,7 @@ const function _buildSquel(flavour = null) {
 
 
   // WHERE
-  class cls.WhereBlock extends cls.AbstractConditionBlock {
+  cls.WhereBlock = class extends cls.AbstractConditionBlock {
     constructor (options) {
       super('WHERE', options);
     }
@@ -1872,7 +1873,7 @@ const function _buildSquel(flavour = null) {
 
 
   // HAVING
-  class cls.HavingBlock extends cls.AbstractConditionBlock
+  cls.HavingBlock = class extends cls.AbstractConditionBlock
     constructor(options) {
       super('HAVING', options);
     }
@@ -1883,7 +1884,7 @@ const function _buildSquel(flavour = null) {
 
 
   // ORDER BY
-  class cls.OrderByBlock extends cls.Block {
+  cls.OrderByBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.orders = [];
@@ -1941,7 +1942,7 @@ const function _buildSquel(flavour = null) {
 
           orders += fstr;
 
-          if (o.dir isnt null) {
+          if (o.dir !== null) {
             orders += ` ${o.dir ? 'ASC' : 'DESC'}`;
           }
         }
@@ -1969,7 +1970,7 @@ const function _buildSquel(flavour = null) {
 
 
   // LIMIT
-  class cls.LimitBlock extends cls.Block {
+  cls.LimitBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.limits = null;
@@ -1994,7 +1995,7 @@ const function _buildSquel(flavour = null) {
 
 
   // JOIN
-  class cls.JoinBlock extends cls.Block {
+  cls.JoinBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.joins = [];
@@ -2154,7 +2155,7 @@ const function _buildSquel(flavour = null) {
 
 
   // UNION
-  class cls.UnionBlock extends cls.Block {
+  cls.UnionBlock = class extends cls.Block {
     constructor (options) {
       super(options);
       this.unions = [];
@@ -2261,226 +2262,305 @@ const function _buildSquel(flavour = null) {
   # ---------------------------------------------------------------------------------------------------------
   */
 
+  /**
   # Query builder base class
   #
   # Note that the query builder does not check the final query string for correctness.
   #
   # All the build methods in this object return the object instance for chained method calling purposes.
-  class cls.QueryBuilder extends cls.BaseBuilder
+  */
+  cls.QueryBuilder = class extends cls.BaseBuilder {
+    /**
     # Constructor
     #
     # blocks - array of cls.BaseBuilderBlock instances to build the query with.
-    constructor: (options, blocks) ->
-      super options
+    */
+    constructor (options, blocks) {
+      super(options);
 
-      this.blocks = blocks || []
+      this.blocks = blocks || [];
 
-      # Copy exposed methods into myself
-      for block in this.blocks
-        for methodName, methodBody of block.exposedMethods()
-          if this.[methodName]?
-            throw new Error "#{this._getObjectClassName(this.)} already has a builder method called: #{methodName}"
+      // Copy exposed methods into myself
+      for (let block of this.blocks) {
+        let exposedMethods = block.exposedMethods();
 
-          ( (block, name, body) =>
-            this.[name] = =>
-              body.apply(block, arguments)
-              this.
-          )(block, methodName, methodBody)
+        for (methodName in exposedMethods) {
+          let methodBody = exposedMethods[methodName];
+
+          if (undefined !== this[methodName]) {
+            throw new Error(`${_getObjectClassName(this)} already has a builder method called: ${methodName}`);
+          }
+
+          ((block, name, body) =>
+            this[name] = (...args) =>
+              body.apply(block, args);
+              return this;
+          )(block, methodName, methodBody);
+        }
+      }
+    }
 
 
+    /**
     # Register a custom value handler for this query builder and all its contained blocks.
     #
     # Note: This will override any globally registered handler for this value type.
-    registerValueHandler: (type, handler) ->
-      for block in this.blocks
-        block.registerValueHandler type, handler
-      super type, handler
-      this.
+    */
+    registerValueHandler (type, handler) {
+      for (let block of this.blocks) {
+        block.registerValueHandler(type, handler);
+      }
+      
+      super.registerValueHandler(type, handler);
 
+      return this;
+    }
+
+    /**
     # Update query builder options
     #
     # This will update the options for all blocks too. Use this method with caution as it allows you to change the
     # behaviour of your query builder mid-build.
-    updateOptions: (options) ->
-      this.options = _extend({}, this.options, options)
-      for block in this.blocks
-        block.options = _extend({}, block.options, options)
+    */
+    updateOptions (options) {
+      this.options = _extend({}, this.options, options);
+
+      for (let block of this.blocks) {
+        block.options = _extend({}, block.options, options);
+      }
+    }
 
 
-    # Get the final fully constructed query string.
-    toString: ->
-      (block.buildStr(this.) for block in this.blocks).filter (v) ->
-        0 < v.length
-      .join(this.options.separator)
+    // Get the final fully constructed query string.
+    toString () {
+      let blockStr = this.blocks.map((blk) => {
+        return blk.buildStr(this);
+      });
 
-    # Get the final fully constructed query param obj.
-    toParam: (options = undefined)->
-      old = this.options
-      this.options = _extend({}, this.options, options) if options?
-      result = { text: '', values: [] }
-      blocks = (block.buildParam(this.) for block in this.blocks)
-      result.text = (block.text for block in blocks).filter (v) ->
-        0 < v.length
-      .join(this.options.separator)
+      return blockStr
+        .filter(function(v) {
+          0 < v.length
+        })
+        .join(this.options.separator);
+    }
 
-      result.values = [].concat (block.values for block in blocks)...
-      if not this.options.nestedBuilder?
-        if this.options.numberedParameters || options?.numberedParametersStartAt?
-          i = 1
-          i = this.options.numberedParametersStartAt if this.options.numberedParametersStartAt?
+    // Get the final fully constructed query param obj.
+    toParam (options) {
+      let old = this.options;
+      if (!!options) {
+        this.options = _extend({}, this.options, options);
+      }
+      let result = { text: '', values: [] };
+      let blocks = this.blocks.map((v) => v.buildParam(this));
+      let blockTexts = (blocks.map((v) => v.text));
+      let blockValues = (blocks.map((v) => v.values));
+      result.text = blockTexts
+        .filter((v) => {
+          return (0 < v.length);
+        })
+        .join(this.options.separator);
+
+      result.values = [].concat(...blockValues);
+
+      if (!this.options.nestedBuilder) {
+        if (this.options.numberedParameters) {
+          let i = (undefined !== this.options.numberedParametersStartAt) 
+            ? this.options.numberedParametersStartAt 
+            : 1;
           regex = new RegExp("\\" + this.options.parameterCharacter, 'g')
-          result.text = result.text.replace regex, () => "#{this.options.numberedParametersPrefix}#{i++}"
-      this.options = old
-      result
+          result.text = result.text.replace(
+            regex, () => `${this.options.numberedParametersPrefix}${i++}`
+          );
+        }
+      }
+      this.options = old;
+      return result;
+    }
 
-    # Deep clone
-    clone: ->
-      new this.constructor this.options, (block.clone() for block in this.blocks)
+    // Deep clone
+    clone () {
+      let blockClones = this.blocks.map((v) => {
+        return v.clone();
+      });
 
-    # Get whether queries built with this builder can be nested within other queries
-    isNestable: ->
-      false
+      return new this.constructor(this.options, blockClones);
+    }
 
-    # Get a specific block
-    getBlock: (blockType) ->
-      this.blocks.filter( (b) -> b instanceof blockType )[0]
+    // Get whether queries built with this builder can be nested within other queries
+    isNestable () {
+      return false;
+    }
 
+    // Get a specific block
+    getBlock (blockType) {
+      let filtered = this.blocks.filter(b => b instanceof blockType);
 
-
-  # SELECT query builder.
-  class cls.Select extends cls.QueryBuilder
-      constructor: (options, blocks = null) ->
-        blocks or= [
-          new cls.StringBlock(options, 'SELECT'),
-          new cls.FunctionBlock(options),
-          new cls.DistinctBlock(options),
-          new cls.GetFieldBlock(options),
-          new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
-          new cls.JoinBlock(_extend({}, options, { allowNested: true })),
-          new cls.WhereBlock(options),
-          new cls.GroupByBlock(options),
-          new cls.HavingBlock(options),
-          new cls.OrderByBlock(options),
-          new cls.LimitBlock(options),
-          new cls.OffsetBlock(options),
-          new cls.UnionBlock(_extend({}, options, { allowNested: true }))
-        ]
-
-        super options, blocks
-
-      isNestable: ->
-        true
+      return filtered[0];
+    }
+  }
 
 
+  // SELECT query builder.
+  cls.Select = class extends cls.QueryBuilder {
+    constructor (options, blocks = null) {
+      blocks ||= [
+        new cls.StringBlock(options, 'SELECT'),
+        new cls.FunctionBlock(options),
+        new cls.DistinctBlock(options),
+        new cls.GetFieldBlock(options),
+        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
+        new cls.JoinBlock(_extend({}, options, { allowNested: true })),
+        new cls.WhereBlock(options),
+        new cls.GroupByBlock(options),
+        new cls.HavingBlock(options),
+        new cls.OrderByBlock(options),
+        new cls.LimitBlock(options),
+        new cls.OffsetBlock(options),
+        new cls.UnionBlock(_extend({}, options, { allowNested: true })),
+      ];
 
-  # UPDATE query builder.
-  class cls.Update extends cls.QueryBuilder
-    constructor: (options, blocks = null) ->
-      blocks or= [
+      super(options, blocks);
+    } 
+
+    isNestable () {
+      return true
+    }
+  }
+
+
+
+  // UPDATE query builder.
+  cls.Update = class extends cls.QueryBuilder {
+    constructor (options, blocks = null) {
+      blocks ||= [
         new cls.StringBlock(options, 'UPDATE'),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
-        new cls.LimitBlock(options)
-      ]
+        new cls.LimitBlock(options),
+      ];
 
-      super options, blocks
+      super(options, blocks);
+    }
+  }
 
 
 
 
 
-  # DELETE query builder.
-  class cls.Delete extends cls.QueryBuilder
-    constructor: (options, blocks = null) ->
-      blocks or= [
+  // DELETE query builder.
+  cls.Delete = class extends cls.QueryBuilder {
+    constructor (options, blocks = null) {
+      blocks ||= [
         new cls.StringBlock(options, 'DELETE'),
         new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
-      ]
+      ];
 
-      super options, blocks
+      super(options, blocks);
+    }
+  }
 
 
 
 
 
-  # An INSERT query builder.
-  #
-  class cls.Insert extends cls.QueryBuilder
-    constructor: (options, blocks = null) ->
-      blocks or= [
+  // An INSERT query builder.
+  cls.Insert = class extends cls.QueryBuilder {
+    constructor (options, blocks = null) {
+      blocks ||= [
         new cls.StringBlock(options, 'INSERT'),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
         new cls.InsertFieldsFromQueryBlock(options),
-      ]
+      ];
 
-      super options, blocks
-
-
-  _squel =
-    VERSION: '<<VERSION_STRING>>'
-    flavour: flavour
-    expr: (options) -> new cls.Expression(options)
-    case: (name, options) -> new cls.Case(name, options)
-    select: (options, blocks) -> new cls.Select(options, blocks)
-    update: (options, blocks) -> new cls.Update(options, blocks)
-    insert: (options, blocks) -> new cls.Insert(options, blocks)
-    delete: (options, blocks) -> new cls.Delete(options, blocks)
-    registerValueHandler: cls.registerValueHandler
-    fval: cls.fval
-
-  # aliases
-  _squel.remove = _squel.delete
-
-  # classes
-  _squel.cls = cls
-
-  return _squel
+      super(options, blocks);
+    }
+  }
 
 
+  let _squel =
+    VERSION: '<<VERSION_STRING>>',
+    flavour: flavour,
+    expr: function(options) {
+      return new cls.Expression(options);
+    },
+    case: function(name, options) {
+      return new cls.Case(name, options);
+    },
+    select: function(options, blocks) {
+      return new cls.Select(options, blocks);
+    },
+    update: function(options, blocks) {
+      return new cls.Update(options, blocks);
+    },
+    insert: function(options, blocks) {
+      return new cls.Insert(options, blocks);
+    },
+    delete: function(options, blocks) {
+      return new cls.Delete(options, blocks);
+    },
+    registerValueHandler: cls.registerValueHandler,
+    fval: cls.fval,
+
+  // aliases
+  _squel.remove = _squel.delete;
+
+  // classes
+  _squel.cls = cls;
+
+
+  return _squel;
+}
+
+
+/**
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
-# Exported API
+# Exported instance (and for use by flavour definitions further down).
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
+*/
 
-squel = _buildSquel()
-
-# AMD
-if define?.amd
-  define ->
-    return squel
-# CommonJS
-else if module?.exports
-  module.exports = squel
-# Browser
-else
-  window?.squel = squel
+let squel = _buildSquel();
 
 
-
+/**
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # Squel SQL flavours
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
+*/
 
-# Available flavours
-squel.flavours = {}
+// Available flavours
+squel.flavours = {};
 
-# Setup Squel for a particular SQL flavour
-squel.useFlavour = (flavour = null) ->
-  return squel if not flavour
+// Setup Squel for a particular SQL flavour
+squel.useFlavour = function(flavour = null) {
+  if (!flavour) {
+    return squel;
+  }
 
-  if squel.flavours[flavour] instanceof Function
-    s = _buildSquel(flavour)
-    squel.flavours[flavour].call null, s
-    return s
-  else
-    throw new Error "Flavour not available: #{flavour}"
+  if (squel.flavours[flavour] instanceof Function) {
+    let s = _buildSquel(flavour);
+
+    squel.flavours[flavour].call(null, s);
+
+    // add in flavour methods
+    s.flavours = squel.flavours;
+    s.useFlavour = squel.useFlavour;
+
+    return s;
+  }
+  else {
+    throw new Error(`Flavour not available: ${flavour}`);
+  }
+}
+
+
