@@ -867,7 +867,9 @@ const function _buildSquel(flavour = null) {
     exposedMethods () {
       let ret = {};
 
-      for (let [attr, value] of this) {
+      for (let attr in this) {
+        let value = this[attr];
+
         // only want functions from this class
         if (typeof value === "function" and attr.charAt(0) isnt '_' and !cls.Block.prototype[attr]) {
           ret[attr] = value;
@@ -926,8 +928,6 @@ const function _buildSquel(flavour = null) {
     _setValue (str, ...values) {
       this._str = str;
       this._values = values;
-
-      return this;
     }
 
     buildStr (queryBuilder) {
@@ -956,7 +956,7 @@ const function _buildSquel(flavour = null) {
   // A function string block
   class cls.FunctionBlock extends cls.AbstractValueBlock {
     function (str, ...values) {
-      return this._setValue.apply(this, [str].concat(values));
+      this._setValue.apply(this, [str].concat(values));
     }
   }
 
@@ -965,7 +965,7 @@ const function _buildSquel(flavour = null) {
   cls.fval = function(str, ...values) {
     let inst = new cls.FunctionBlock();
 
-    inst.function.apply(inst, [str].concat(values));
+    return inst.function.apply(inst, [str].concat(values));
   }
 
   // value handler for FunctionValueBlock objects
@@ -1048,111 +1048,141 @@ const function _buildSquel(flavour = null) {
     }
 
     
+    _buildParam (queryBuilder, prefix = null) {
+      let ret = {
+        text: "",
+        values: [],
+      };
+
+      let params = [];
+      let paramStr = ""
+
+      if (!this._hasTable()) {
+        return ret;
+      }
+
+      // retrieve the parameterised queries
+      for (let blk of this.tables) {
+        let p;
+
+        if ("string" === typeof blk.table) {
+          p = { "text": `${blk.table}`, "values": [] };
+        }
+        else if (blk.table instanceof cls.QueryBuilder) {
+          // building a nested query
+          blk.table.updateOptions( { "nestedBuilder": true } );
+          p = blk.table.toParam();
+        }
+        else {
+          // building a nested query
+          blk.updateOptions( { "nestedBuilder": true } );
+          p = blk.buildParam(queryBuilder);
+        }
+        
+        p.table = blk;
+
+        params.push( p );
+      }
+
+      // join the queries and their parameters
+      // this is the last building block processed so always add UNION if there are any UNION blocks
+      for (let p of params) {
+        if (paramStr.length) {
+          paramStr += ", ";
+        }
+        else {
+          if (!!prefix && prefix.length) {
+            paramStr += `${prefix} ${paramStr}`;
+          }
+        }
+
+        if ("string" === typeof p.table.table) {
+          paramStr += `${p.text}`;
+        }
+        else {
+          paramStr += `(${p.text})`;
+        }
+
+        // add the table alias, the AS keyword is optional
+        if (!!p.table.alias) {
+          paramStr += ` ${p.table.alias}`
+        }
+
+        for (let v of p.values) {
+          ret.values.push( this._formatCustomValue(v) );
+        }
+      }
+
+      ret.text += paramStr;
+
+      return ret;
+    }
+
+    buildParam (queryBuilder) {
+      return this._buildParam(queryBuilder);
+    }
   }
 
 
 
+  // Update Table
+  class cls.UpdateTableBlock extends cls.AbstractTableBlock {
+    table (table, alias = null) {
+      this._table(table, alias);
+    }
+  }
+
+  // FROM table
+  class cls.FromTableBlock extends cls.AbstractTableBlock {
+    from (table, alias = null) {
+      this._table(table, alias);
+    }
+
+    buildStr (queryBuilder) {
+      let tables = super.buildStr(queryBuilder);
+
+      return tables.length ? `FROM ${tables}` : "";
+    }
+
+    buildParam (queryBuilder) {
+      return this._buildParam(queryBuilder, "FROM");
+    }
+  }
 
 
+  // INTO table
+  class cls.IntoTableBlock extends cls.Block {
+    constructor (options) {
+      super(options);
 
-    _buildParam: (queryBuilder, prefix = null) ->
-      ret =
-        text: ""
-        values: []
+      this.table = null;
+    }
 
-      params = []
-      paramStr = ""
+    // Into given table.
+    into (table) {
+      // do not allow nested table to be the target
+      this.table = this._sanitizeTable(table, false);
+    }
 
-      if not this._hasTable() then return ret
+    buildStr (queryBuilder) {
+      if (!this.table) {
+        throw new Error("into() needs to be called");
+      }
 
-      # retrieve the parameterised queries
-      for blk in this.tables
-        if "string" is typeof blk.table
-          p = { "text": "#{blk.table}", "values": [] }
-        else if blk.table instanceof cls.QueryBuilder
-          # building a nested query
-          blk.table.updateOptions( { "nestedBuilder": true } )
-          p = blk.table.toParam()
-        else
-          # building a nested query
-          blk.updateOptions( { "nestedBuilder": true } )
-          p = blk.buildParam(queryBuilder)
-        p.table = blk
-        params.push( p )
-
-      # join the queries and their parameters
-      # this is the last building block processed so always add UNION if there are any UNION blocks
-      for p in params
-        if paramStr isnt ""
-          paramStr += ", "
-        else
-          paramStr += "#{prefix} #{paramStr}" if prefix? and prefix isnt ""
-          paramStr
-        if "string" is typeof p.table.table
-          paramStr += "#{p.text}"
-        else
-          paramStr += "(#{p.text})"
-
-          # add the table alias, the AS keyword is optional
-        paramStr += " #{p.table.alias}" if p.table.alias?
-
-        for v in p.values
-          ret.values.push( this._formatCustomValue v )
-      ret.text += paramStr
-
-      ret
-
-    buildParam: (queryBuilder) ->
-      this._buildParam(queryBuilder)
+      return `INTO ${this.table}`;
+    }
+  }
 
 
-  # Update Table
-  class cls.UpdateTableBlock extends cls.AbstractTableBlock
-    table: (table, alias = null) ->
-      this._table(table, alias)
+  // (SELECT) Get field
+  class cls.GetFieldBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this._fieldAliases = {};
+      this._fields = [];
+    }
 
-  # FROM table
-  class cls.FromTableBlock extends cls.AbstractTableBlock
-    from: (table, alias = null) ->
-      this._table(table, alias)
-
-    buildStr: (queryBuilder) ->
-      tables = super queryBuilder
-
-      if tables.length
-        return "FROM #{tables}"
-      else
-        return ""
-
-    buildParam: (queryBuilder) ->
-      this._buildParam(queryBuilder, "FROM")
-
-
-  # INTO table
-  class cls.IntoTableBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.table = null
-
-    # Into given table.
-    into: (table) ->
-      # do not allow nested table to be the target
-      this.table = this._sanitizeTable(table, false)
-
-    buildStr: (queryBuilder) ->
-      if not this.table then throw new Error "into() needs to be called"
-      "INTO #{this.table}"
-
-
-
-  # (SELECT) Get field
-  class cls.GetFieldBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this._fieldAliases = {}
-      this._fields = []
-
-
+    /**
     # Add the given fields to the final result set.
     #
     # The parameter is an Object containing field names (or database functions) as the keys and aliases for the fields
@@ -1161,15 +1191,23 @@ const function _buildSquel(flavour = null) {
     # Internally this method simply calls the field() method of this block to add each individual field.
     #
     # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
-    fields: (_fields, options = {}) ->
-      if Array.isArray(_fields)
-        for field in _fields
-          this.field field, null, options
-      else
-        for field, alias of _fields
-          this.field(field, alias, options)
+    */
+    fields (_fields, options = {}) {
+      if (_isArray(_fields)) {
+        for (let field of _fields) {
+          this.field(field, null, options);
+        }
+      }
+      else {
+        for (let field in _fields) {
+          let alias = _fields[field];
 
+          this.field(field, alias, options);
+        }
+      }
+    }
 
+    /**
     # Add the given field to the final result set.
     #
     # The 'field' parameter does not necessarily have to be a fieldname. It can use database functions too,
@@ -1178,470 +1216,674 @@ const function _buildSquel(flavour = null) {
     # An alias may also be specified for this field.
     #
     # options.ignorePeriodsForFieldNameQuotes - whether to ignore period (.) when automatically quoting the field name
-    field: (field, alias = null, options = {}) ->
-      alias = this._sanitizeFieldAlias(alias) if alias
-
-      # if field-alias already present then don't add
-      return if this._fieldAliases[field] is alias
-
-      fieldRec = {
-        alias : alias
+    */
+    field (field, alias = null, options = {}) {
+      if (alias) {
+        alias = this._sanitizeFieldAlias(alias);
       }
 
-      if field instanceof cls.Case
-        fieldRec.func = field
-      else
-        fieldRec.name = this._sanitizeField(field, options)
+      // if field-alias already present then don't add
+      if (this._fieldAliases[field] === alias) {
+        return this;
+      }
 
-      if options.aggregation
-        fieldRec.aggregation = options.aggregation
+      let fieldRec = {
+        alias : alias
+      };
 
-      this._fieldAliases[field] = alias
-      this._fields.push(fieldRec)
+      if (field instanceof cls.Case) {
+        fieldRec.func = field;
+      }
+      else {
+        fieldRec.name = this._sanitizeField(field, options);
+      }
 
-    buildStr: (queryBuilder) ->
-      this._build(queryBuilder)
+      if (options.aggregation) {
+        fieldRec.aggregation = options.aggregation;
+      }
 
-    buildParam: (queryBuilder) ->
-      this._build(queryBuilder, true)
+      this._fieldAliases[field] = alias;
+      this._fields.push(fieldRec);
+    }
 
-    _build: (queryBuilder, paramMode = false) ->
-      if not queryBuilder.getBlock(cls.FromTableBlock)._hasTable()
-        if paramMode
+    buildStr (queryBuilder) {
+      return this._build(queryBuilder);
+    }
+
+    buildParam (queryBuilder) {
+      return this._build(queryBuilder, true);
+    }
+
+    _build (queryBuilder, paramMode = false) {
+      if (!queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
+        if (paramMode) {
           return {
             text : "", 
-            values : []
-          }
-        else 
-          return "" 
-
-      fields = ""
-      values = []
-
-      for field in this._fields
-        fields += ", " if "" isnt fields
-        if field.aggregation
-          fields += field.aggregation + "(";
-        if field.func
-          if paramMode
-            caseExpr = field.func.toParam()
-            fields += caseExpr.text
-            values = values.concat(caseExpr.values)
-          else
-            fields += field.func.toString()
-        else 
-          fields += field.name
-        if field.aggregation
-          fields += ")";
-        fields += " AS #{field.alias}" if field.alias
-
-      if fields == ""
-        fields = "*"
-
-      if paramMode 
-        return {text : fields, values : values}
-      else 
-        return fields
-
-
-
-  # Base class for setting fields to values (used for INSERT and UPDATE queries)
-  class cls.AbstractSetFieldBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.fieldOptions = []
-      this.fields = []
-      this.values = []
-
-    # Update the given field with the given value.
-    # This will override any previously set value for the given field.
-    _set: (field, value, options = {}) ->
-      throw new Error "Cannot call set or setFields on multiple rows of fields."  if this.values.length > 1
-
-      value = this._sanitizeValue(value) if undefined isnt value
-
-      # Explicity overwrite existing fields
-      index = this.fields.indexOf(this._sanitizeField(field, options))
-      if index isnt -1
-        this.values[0][index] = value
-        this.fieldOptions[0][index] = options
-      else
-        this.fields.push this._sanitizeField(field, options)
-        index = this.fields.length - 1
-
-        # The first value added needs to create the array of values for the row
-        if Array.isArray(this.values[0])
-          this.values[0][index] = value
-          this.fieldOptions[0][index] = options
-        else
-          this.values.push [value]
-          this.fieldOptions.push [options]
-
-      this.
-
-
-    # Insert fields based on the key/value pairs in the given object
-    _setFields: (fields, options = {}) ->
-      throw new Error "Expected an object but got " + typeof fields unless typeof fields is 'object'
-
-      for own field of fields
-        this._set field, fields[field], options
-      this.
-
-
-    # Insert multiple rows for the given fields. Accepts an array of objects.
-    # This will override all previously set values for every field.
-    _setFieldsRows: (fieldsRows, options = {}) ->
-      throw new Error "Expected an array of objects but got " + typeof fieldsRows unless Array.isArray(fieldsRows)
-
-      # Reset the objects stored fields and values
-      this.fields = []
-      this.values = []
-      for i in [0...fieldsRows.length]
-        for own field of fieldsRows[i]
-
-          index = this.fields.indexOf(this._sanitizeField(field, options))
-          throw new Error 'All fields in subsequent rows must match the fields in the first row' if 0 < i and -1 is index
-
-          # Add field only if it hasn't been added before
-          if -1 is index
-            this.fields.push this._sanitizeField(field, options)
-            index = this.fields.length - 1
-
-          value = this._sanitizeValue(fieldsRows[i][field])
-
-          # The first value added needs to add the array
-          if Array.isArray(this.values[i])
-            this.values[i][index] = value
-            this.fieldOptions[i][index] = options
-          else
-            this.values[i] = [value]
-            this.fieldOptions[i] = [options]
-      this.
-
-    buildStr: ->
-      throw new Error('Not yet implemented')
-
-    buildParam: ->
-      throw new Error('Not yet implemented')
-
-
-
-  # (UPDATE) SET field=value
-  class cls.SetFieldBlock extends cls.AbstractSetFieldBlock
-
-    set: (field, value, options) ->
-      this._set field, value, options
-
-    setFields: (fields, options) ->
-      this._setFields fields, options
-
-    buildStr: (queryBuilder) ->
-      if 0 >= this.fields.length then throw new Error "set() needs to be called"
-
-      str = ""
-      for i in [0...this.fields.length]
-        field = this.fields[i]
-        str += ", " if "" isnt str
-        value = this.values[0][i]
-        fieldOptions = this.fieldOptions[0][i]
-        if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
-          str += field
-        else
-          str += "#{field} = #{this._formatValue(value, fieldOptions)}"
-
-      "SET #{str}"
-
-    buildParam: (queryBuilder) ->
-      if 0 >= this.fields.length then throw new Error "set() needs to be called"
-
-      str = ""
-      vals = []
-      for i in [0...this.fields.length]
-        field = this.fields[i]
-        str += ", " if "" isnt str
-        value = this.values[0][i]
-        if typeof value is 'undefined'  # e.g. if field is an expression such as: count = count + 1
-          str += field
-        else
-          p = this._formatValueAsParam( value )
-          if p?.text?
-            str += "#{field} = (#{p.text})"
-            for v in p.values
-              vals.push v
-          else
-            str += "#{field} = #{this.options.parameterCharacter}"
-            vals.push p
-
-      { text: "SET #{str}", values: vals }
-
-
-
-  # (INSERT INTO) ... field ... value
-  class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock
-    set: (field, value, options = {}) ->
-      this._set field, value, options
-
-    setFields: (fields, options) ->
-      this._setFields fields, options
-
-    setFieldsRows: (fieldsRows, options) ->
-      this._setFieldsRows fieldsRows, options
-
-    _buildVals: ->
-      vals = []
-      for i in [0...this.values.length]
-        for j in [0...this.values[i].length]
-          formattedValue = this._formatValue(this.values[i][j], this.fieldOptions[i][j])
-          if 'string' is typeof vals[i]
-            vals[i] += ', ' + formattedValue
-          else
-            vals[i] = '' + formattedValue
-      vals
-
-    _buildValParams: ->
-      vals = []
-      params = []
-
-      for i in [0...this.values.length]
-        for j in [0...this.values[i].length]
-          p = this._formatValueAsParam( this.values[i][j] )
-          if p?.text?
-            str = p.text
-            for v in p.values
-              params.push v
-          else
-            str = this.options.parameterCharacter
-            params.push p
-          if 'string' is typeof vals[i]
-            vals[i] += ", #{str}"
-          else
-            vals[i] = "#{str}"
-
-
-      vals: vals
-      params: params
-
-    buildStr: (queryBuilder) ->
-      return '' if 0 >= this.fields.length
-
-      "(#{this.fields.join(', ')}) VALUES (#{this._buildVals().join('), (')})"
-
-    buildParam: (queryBuilder) ->
-      return { text: '', values: [] } if 0 >= this.fields.length
-
-      # fields
-      str = ""
-      {vals, params} = this._buildValParams()
-      for i in [0...this.fields.length]
-        str += ", " if "" isnt str
-        str += this.fields[i]
-
-      { text: "(#{str}) VALUES (#{vals.join('), (')})", values: params }
-
-
-
-  # (INSERT INTO) ... field ... (SELECT ... FROM ...)
-  class cls.InsertFieldsFromQueryBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this._fields = []
-      this._query = null
-
-    fromQuery: (fields, selectQuery) ->
-      this._fields = fields.map ( (v) => this._sanitizeField(v) )
-      this._query = this._sanitizeNestableQuery(selectQuery)
-
-    buildStr: (queryBuilder) ->
-      return '' if 0 >= this._fields.length
-
-      "(#{this._fields.join(', ')}) (#{this._query.toString()})"
-
-    buildParam: (queryBuilder) ->
-      return { text: '', values: [] } if 0 >= this._fields.length
-
-      this._query.updateOptions( { "nestedBuilder": true } )
-      qryParam = this._query.toParam()
-
-      {
-        text: "(#{this._fields.join(', ')}) (#{qryParam.text})",
-        values: qryParam.values,
+            values : [],
+          };          
+        }
+        else { 
+          return "";
+        }
       }
 
+      let fields = "";
+      let values = [];
+
+      for (let field of this._fields) {
+        if (fields.length) {
+         fields += ", ";
+        }
+        if (field.aggregation) {
+          fields += field.aggregation + "(";
+        }
+        if (field.func) {
+          if (paramMode) {
+            caseExpr = field.func.toParam();
+            fields += caseExpr.text;
+            values = values.concat(caseExpr.values);
+          }
+          else {
+            fields += field.func.toString();
+          }
+        }
+        else {
+          fields += field.name;
+        }
+        if (field.aggregation) {
+          fields += ")";
+        }
+
+        if (field.alias) {
+          fields += ` AS ${field.alias}`;
+        }
+      }
+
+      if (!fields.length) {
+        fields = "*";
+      }
+
+      if (paramMode) {
+        return {text : fields, values : values};
+      }
+      else {
+        return fields;
+      }
+    }
+  }
 
 
-  # DISTINCT
-  class cls.DistinctBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.useDistinct = false
 
-    # Add the DISTINCT keyword to the query.
-    distinct: ->
-      this.useDistinct = true
+  // Base class for setting fields to values (used for INSERT and UPDATE queries)
+  class cls.AbstractSetFieldBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.fieldOptions = [];
+      this.fields = [];
+      this.values = [];
+    }
 
-    buildStr: (queryBuilder) ->
-      if this.useDistinct then "DISTINCT" else ""
+    // Update the given field with the given value.
+    // This will override any previously set value for the given field.
+    _set (field, value, options = {}) {
+      if (this.values.length > 1) {
+        throw new Error("Cannot call set or setFields on multiple rows of fields.");
+      }
+
+      if (undefined !== value) {
+        value = this._sanitizeValue(value);
+      }
+
+      // Explicity overwrite existing fields
+      let index = this.fields.indexOf(this._sanitizeField(field, options));
+
+      if (index !== -1) {
+        this.values[0][index] = value;
+        this.fieldOptions[0][index] = options;
+      }
+      else {
+        this.fields.push(this._sanitizeField(field, options));
+        index = this.fields.length - 1;
+
+        // The first value added needs to create the array of values for the row
+        if (Array.isArray(this.values[0])) {
+          this.values[0][index] = value;
+          this.fieldOptions[0][index] = options;
+        }
+        else {
+          this.values.push([value]);
+          this.fieldOptions.push([options]);
+        }
+      }
+    }
+
+
+    // Insert fields based on the key/value pairs in the given object
+    _setFields (fields, options = {}) {
+      if (typeof fields !== 'object') {
+        throw new Error("Expected an object but got " + typeof fields);
+      }
+
+      for (let field of fields) {
+        this._set(field, fields[field], options);
+      }
+    }
+
+    // Insert multiple rows for the given fields. Accepts an array of objects.
+    // This will override all previously set values for every field.
+    _setFieldsRows (fieldsRows, options = {}) {
+      if (!_isArray(fieldsRows)) {
+        throw new Error("Expected an array of objects but got " + typeof fieldsRows);
+      }
+
+      // Reset the objects stored fields and values
+      this.fields = [];
+      this.values = [];
+
+      for (let i in fieldsRows) {
+        let fieldRow = fieldRows[i];
+
+        for (let field in fieldRow) {
+          let value = fieldRow[field];
+
+          let index = this.fields.indexOf(this._sanitizeField(field, options));
+
+          if (0 < i and -1 is index) {
+            throw new Error('All fields in subsequent rows must match the fields in the first row');
+          }
+
+          // Add field only if it hasn't been added before
+          if (-1 is index) {
+            this.fields.push(this._sanitizeField(field, options));
+            index = this.fields.length - 1;            
+          }
+
+          value = this._sanitizeValue(value);
+
+          // The first value added needs to add the array
+          if _isArray(this.values[i]) {
+            this.values[i][index] = value;
+            this.fieldOptions[i][index] = options;
+          }
+          else {
+            this.values[i] = [value];
+            this.fieldOptions[i] = [options];
+          }
+        }
+      }
+    }
+
+    buildStr () {
+      throw new Error('Not yet implemented');
+    }
+
+    buildParam () {
+      throw new Error('Not yet implemented');
+    }
+  }
+
+
+  // (UPDATE) SET field=value
+  class cls.SetFieldBlock extends cls.AbstractSetFieldBlock {
+    set (field, value, options) {
+      this._set(field, value, options);
+    }
+
+    setFields (fields, options) {
+      this._setFields(fields, options);
+    }
+
+    buildStr (queryBuilder) {
+      if (0 >= this.fields.length) {
+        throw new Error("set() needs to be called");
+      }
+
+      let str = "";
+
+      for (let i in this.fields) {
+        if (str.length) {
+          str += ", ";
+        }
+
+        let field = this.fields[i];
+
+        let value = this.values[0][i];
+
+        let fieldOptions = this.fieldOptions[0][i];
+
+        // e.g. if field is an expression such as: count = count + 1
+        if (typeof value === 'undefined') {
+          str += field;
+        }
+        else {
+          str += `${field} = ${this._formatValue(value, fieldOptions)}`;
+        }
+      }
+
+      return `SET ${str}`;
+    }
+
+    buildParam (queryBuilder) {
+      if (0 >= this.fields.length) {
+        throw new Error("set() needs to be called");
+      }
+
+      let str = "";
+      let vals = [];
+
+      for (let i in this.fields) {
+        if (str.length) {
+          str += ", ";
+        }
+
+        let field = this.fields[i];
+
+        let value = this.values[0][i];
+
+        // e.g. if field is an expression such as: count = count + 1
+        if (typeof value === 'undefined') {
+          str += field;
+        }
+        else {
+          let p = this._formatValueAsParam( value );
+
+          if (!!p && !!p.text) {
+            str += `${field} = (${p.text})`;
+
+            for (let v of p.values) {
+              vals.push(v);
+            }
+          }
+          else {
+            str += `${field} = ${this.options.parameterCharacter}`;
+
+            vals.push(p);
+          }
+        }
+      }
+
+      return { text: `SET ${str}`, values: vals };
+    }
+
+  }
+
+
+  // (INSERT INTO) ... field ... value
+  class cls.InsertFieldValueBlock extends cls.AbstractSetFieldBlock {
+    set (field, value, options = {}) {
+      this._set(field, value, options);
+    }
+
+    setFields (fields, options) {
+      this._setFields(fields, options);
+    }
+
+    setFieldsRows (fieldsRows, options) {
+      this._setFieldsRows(fieldsRows, options);
+    }
+
+    _buildVals () {
+      let vals = [];
+
+      for (let i in this.values) {
+        for (let j in this.values[i]) {
+          let formattedValue = this._formatValue(this.values[i][j], this.fieldOptions[i][j]);
+
+          if ('string' === typeof vals[i]) {
+            vals[i] += ', ' + formattedValue;
+          }
+          else {
+            vals[i] = '' + formattedValue;
+          }
+        }
+      }
+
+      return vals;
+    }
+
+    _buildValParams () {
+      let vals = [];
+      let params = [];
+
+      for (let i in this.values) {
+        for (let j in this.values[i]) {
+          let p = this._formatValueAsParam( this.values[i][j] );
+          let str;
+
+          if (!!p && !!p.text) {
+            str = p.text;
+
+            for (let v of p.values) {
+              params.push(v);
+            }
+          }
+          else {
+            str = this.options.parameterCharacter;
+            params.push(p);
+          }
+
+          if ('string' === typeof vals[i]) {
+            vals[i] += `, ${str}`;
+          }
+          else {
+            vals[i] = str;
+          }
+        }
+      }
+
+      return {
+        vals: vals,
+        params: params,
+      };
+    }
+
+
+    buildStr (queryBuilder) {
+      if (0 >= this.fields.length) {
+        return '';
+      }
+
+      return `(${this.fields.join(', ')}) VALUES (${this._buildVals().join('), (')})`;
+    }
+
+    buildParam (queryBuilder) {
+      if (0 >= this.fields.length) {
+       return { text: '', values: [] };
+      }
+
+      // fields
+      let str = "";
+      let {vals, params} = this._buildValParams();
+      for (let i in this.fields) {
+        if (str.length) {
+          str += ', ';
+        }
+        str += this.fields[i];
+      }
+
+      return { text: `(${str}) VALUES (${vals.join('), (')})`, values: params };
+    }
+
+  }
 
 
 
-  # GROUP BY
-  class cls.GroupByBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.groups = []
+  // (INSERT INTO) ... field ... (SELECT ... FROM ...)
+  class cls.InsertFieldsFromQueryBlock extends cls.Block {
+    constructor (options) {
+      super(options)
+      this._fields = [];
+      this._query = null;
+    }
 
-    # Add a GROUP BY transformation for the given field.
-    group: (field) ->
-      field = this._sanitizeField(field)
-      this.groups.push field
+    fromQuery (fields, selectQuery) {
+      this._fields = fields.map((v) => {
+        return this._sanitizeField(v);
+      });
 
-    buildStr: (queryBuilder) ->
-      groups = ""
+      this._query = this._sanitizeNestableQuery(selectQuery);
+    }
 
-      if 0 < this.groups.length
-        for f in this.groups
-          groups += ", " if "" isnt groups
-          groups += f
-        groups = "GROUP BY #{groups}"
+    buildStr (queryBuilder) {
+      if (0 >= this._fields.length) {
+        return '';
+      }
 
-      groups
+      return `(${this._fields.join(', ')}) (${this._query.toString()})`;
+    }
+
+    buildParam (queryBuilder) {
+      if (0 >= this._fields.length) {
+       return { text: '', values: [] };
+      }
+
+      this._query.updateOptions( { "nestedBuilder": true } );
+      let qryParam = this._query.toParam();
+
+      return {
+        text: `(${this._fields.join(', ')}) (${qryParam.text})`,
+        values: qryParam.values,
+      };
+    }
+  }
 
 
-  # OFFSET x
-  class cls.OffsetBlock extends cls.Block
-    constructor: (options) ->
-      super options
-      this.offsets = null
 
+  // DISTINCT
+  class cls.DistinctBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.useDistinct = false;
+    }
+
+    // Add the DISTINCT keyword to the query.
+    distinct () {
+      this.useDistinct = true;
+    }
+
+    buildStr (queryBuilder) {
+      return this.useDistinct ? "DISTINCT"  : "";
+    }
+  }
+
+
+
+  // GROUP BY
+  class cls.GroupByBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.groups = [];
+    }
+
+    // Add a GROUP BY transformation for the given field.
+    group (field) {
+      field = this._sanitizeField(field);
+      this.groups.push(field);
+    }
+
+    buildStr (queryBuilder) {
+      if (0 < this.groups.length) {
+        groups = this.groups.join(', ');
+        return `GROUP BY ${groups}`;
+      } else {
+        return "";
+      }
+    }
+  }
+
+
+  // OFFSET x
+  class cls.OffsetBlock extends cls.Block {
+    constructor (options) {
+      super(options);
+      this.offsets = null;
+    }
+
+    /**
     # Set the OFFSET transformation.
     #
     # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
     # the offset.
-    offset: (start) ->
-      start = this._sanitizeLimitOffset(start)
-      this.offsets = start
+    */
+    offset (start) {
+      start = this._sanitizeLimitOffset(start);
+      this.offsets = start;
+    }
 
-    buildStr: (queryBuilder) ->
-      if this.offsets then "OFFSET #{this.offsets}" else ""
+    buildStr (queryBuilder) {
+      return this.offsets ? `OFFSET ${this.offsets}` : '';
+    }
+  }
 
 
-  # Abstract condition base class
-  class cls.AbstractConditionBlock extends cls.Block
-    constructor: (this.conditionVerb, options) ->
-      super options
-      this.conditions = []
+  // Abstract condition base class
+  class cls.AbstractConditionBlock extends cls.Block {
+    constructor (verb, options) {
+      super(options);
+      this.conditionVerb = verb;
+      this.conditions = [];
+    }
 
+    /**
     # Add a condition.
     #
     # When the final query is constructed all the conditions are combined using the intersection (AND) operator.
     #
     # Concrete subclasses should provide a method which calls this
-    _condition: (condition, values...) ->
-      condition = this._sanitizeCondition(condition)
+    */
+    _condition (condition, ...values) {
+      condition = this._sanitizeCondition(condition);
 
-      finalCondition = ""
-      finalValues = []
+      let finalCondition = "";
+      let finalValues = [];
 
-      # if it's an Expression instance then convert to text and values
-      if condition instanceof cls.Expression
-        t = condition.toParam()
-        finalCondition = t.text
-        finalValues = t.values
-      else
-        for idx in [0...condition.length]
-          c = condition.charAt(idx)
-          if this.options.parameterCharacter is c and 0 < values.length
-            nextValue = values.shift()
-            if Array.isArray(nextValue) # where b in (?, ? ?)
-              inValues = []
-              for item in nextValue
-                inValues.push this._sanitizeValue(item)
-              finalValues = finalValues.concat(inValues)
-              finalCondition += "(#{(this.options.parameterCharacter for item in inValues).join ', '})"
-            else
-              finalCondition += this.options.parameterCharacter
-              finalValues.push this._sanitizeValue(nextValue)
-          else
-            finalCondition += c
+      // if it's an Expression instance then convert to text and values
+      if (condition instanceof cls.Expression) {
+        let t = condition.toParam();
+        finalCondition = t.text;
+        finalValues = t.values;
+      }
+      else {
+        for (let idx in condition) {
+          let c = condition.charAt(idx);
 
-      if "" isnt finalCondition
-        this.conditions.push
-          text: finalCondition
-          values: finalValues
+          if (this.options.parameterCharacter === c && 0 < values.length) {
+            let nextValue = values.shift();
+            // # where b in (?, ? ?)
+            if (_isArray(nextValue) {
+              let inValues = [];
+              for (let item of nextValue) {
+                inValues.push(this._sanitizeValue(item));
+              }
+              finalValues = finalValues.concat(inValues);
+              finalCondition += `(${(this.options.parameterCharacter for item in inValues).join ', '})`;
+            }
+            else {
+              finalCondition += this.options.parameterCharacter;
+              finalValues.push(this._sanitizeValue(nextValue));
+            }
+          }
+          else {
+            finalCondition += c;
+          }
+        }
+      }
 
-
-    buildStr: (queryBuilder) ->
-      if 0 >= this.conditions.length then return ""
-
-      condStr = ""
-
-      for cond in this.conditions
-        if "" isnt condStr then condStr += ") AND ("
-        if 0 < cond.values.length
-          # replace placeholders with actual parameter values
-          pIndex = 0
-          for idx in [0...cond.text.length]
-            c = cond.text.charAt(idx)
-            if this.options.parameterCharacter is c
-              condStr += this._formatValue( cond.values[pIndex++] )
-            else
-              condStr += c
-        else
-          condStr += cond.text
-
-      "#{this.conditionVerb} (#{condStr})"
+      if (finalCondition.length) {
+        this.conditions.push({
+          text: finalCondition,
+          values: finalValues,        
+        });
+      }
+    }
 
 
-    buildParam: (queryBuilder) ->
-      ret =
-        text: ""
-        values: []
+    buildStr (queryBuilder) {
+      if (0 >= this.conditions.length) {
+        return "";
+      }
 
-      if 0 >= this.conditions.length then return ret
+      let condStr = "";
 
-      condStr = ""
+      for (let cond of this.conditions) {
+        if (condStr.length) {
+          condStr += ") AND (";
+        }
 
-      for cond in this.conditions
-        if "" isnt condStr then condStr += ") AND ("
-        str = cond.text.split(this.options.parameterCharacter)
-        i = 0
-        for v in cond.values
-          condStr += "#{str[i]}" if str[i]?
-          p = this._formatValueAsParam(v)
-          if (p?.text?)
-            condStr += "(#{p.text})"
-            for qv in p.values
-              ret.values.push( qv )
-          else
-            condStr += this.options.parameterCharacter
-            ret.values.push( p )
-          i = i+1
-        condStr += "#{str[i]}" if str[i]?
-      ret.text = "#{this.conditionVerb} (#{condStr})"
-      ret
+        if (0 < cond.values.length) {
+          // replace placeholders with actual parameter values
+          let pIndex = 0;
+          for (let c of cond.text) {
+            if (this.options.parameterCharacter === c) {
+              condStr += this._formatValue( cond.values[pIndex++] );
+            }
+            else {
+              condStr += c;
+            }
+          }
+        }
+        else {
+          condStr += cond.text;
+        }
+      }
 
-
-  # WHERE
-  class cls.WhereBlock extends cls.AbstractConditionBlock
-    constructor: (options) ->
-      super 'WHERE', options
-
-    where: (condition, values...) ->
-      this._condition condition, values...
+      return `${this.conditionVerb} (${condStr})`;
+    }
 
 
-  # HAVING
+    buildParam (queryBuilder) {
+      let ret = {
+        text: "",
+        values: [],
+      }
+
+      if (0 >= this.conditions.length) {
+        return ret;
+      }
+
+      let condStr = "";
+
+      for (let cond of this.conditions) {
+        if (condStr.length) {
+          condStr += ") AND (";
+        }
+
+        let str = cond.text.split(this.options.parameterCharacter);
+        let i = 0
+        for (let v of cond.values) {
+          if (undefined !== str[i]) {
+            condStr += str[i];
+          }
+            
+          let p = this._formatValueAsParam(v);
+          if (!!p && !!p.text) {
+            condStr += `(${p.text})`;
+            for (let qv of p.values) {
+              ret.values.push( qv );
+            }
+          }
+          else {
+            condStr += this.options.parameterCharacter;
+            ret.values.push( p );
+          }
+          i = i+1;
+        }
+
+        if (undefined !== str[i]) {
+          condStr += str[i];
+        }
+      }
+      ret.text = `${this.conditionVerb} (${condStr})`;
+      return ret;
+    }
+  }
+
+
+  // WHERE
+  class cls.WhereBlock extends cls.AbstractConditionBlock {
+    constructor (options) {
+      super('WHERE', options);
+    }
+
+    where (condition, ...values) {
+      this._condition(condition, ...values);
+    }
+  }
+
+
+  // HAVING
   class cls.HavingBlock extends cls.AbstractConditionBlock
-    constructor: (options) ->
-      super 'HAVING', options
+    constructor(options) {
+      super('HAVING', options);
+    }
 
-    having: (condition, values...) ->
-      this._condition condition, values...
+    having (condition, ...values) {
+      this._condition(condition, ...values);
+    }
 
 
-  # ORDER BY
-  class cls.OrderByBlock extends cls.Block
+  // ORDER BY
+  class cls.OrderByBlock extends cls.Block {
     constructor: (options) ->
       super options
       this.orders = []
