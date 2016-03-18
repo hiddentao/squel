@@ -124,7 +124,9 @@ function getValueHandler (value, ...handlerLists) {
  * Build base squel classes and methods
  */
 function _buildSquel(flavour = null) {
-  let cls = {};
+  let cls = {
+    _getObjectClassName: _getObjectClassName,
+  };
 
   // default query builder options
   cls.DefaultQueryBuilderOptions = {
@@ -208,6 +210,8 @@ function _buildSquel(flavour = null) {
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
     constructor (options) {
+      super();
+
       let defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
 
       this.options = _extend({}, defaults, options);
@@ -346,13 +350,13 @@ function _buildSquel(flavour = null) {
 
     // Sanitize the given limit/offset value.
     _sanitizeLimitOffset (value) {
-      let value = parseInt(value);
+      value = parseInt(value);
 
       if (0 > value || isNaN(value)) {
         throw new Error("limit/offset must be >= 0");
       }
 
-      return value
+      return value;
     }
 
 
@@ -412,7 +416,7 @@ function _buildSquel(flavour = null) {
 
     // Format the given field value for inclusion into query parameter array
     _formatValueAsParam (value) {
-      if (_.isArray(value)) {
+      if (_isArray(value)) {
         return value.map((v) => {
           return this._formatValueAsParam(v)
         });
@@ -868,11 +872,18 @@ function _buildSquel(flavour = null) {
     exposedMethods () {
       let ret = {};
 
-      for (let attr in this) {
+      let attrNames = 
+        Object.getOwnPropertyNames(Object.getPrototypeOf(this));
+
+      for (let attr of attrNames) {
         let value = this[attr];
 
         // only want functions from this class
-        if (typeof value === "function" && attr.charAt(0) !== '_' && !cls.Block.prototype[attr]) {
+        if ('constructor' !== attr
+            && typeof value === "function" 
+            && attr.charAt(0) !== '_' 
+            && !cls.Block.prototype[attr]) 
+        {
           ret[attr] = value;
         }
       }
@@ -963,11 +974,12 @@ function _buildSquel(flavour = null) {
 
 
   // Construct a FunctionValueBlock object for use as a value
-  cls.fval = function(str, ...values) {
+  cls.fval = function(...args) {
     let inst = new cls.FunctionBlock();
+    inst.function(...args);
+    return inst;
+  };
 
-    return inst.function.apply(inst, [str].concat(values));
-  }
 
   // value handler for FunctionValueBlock objects
   cls.registerValueHandler(cls.FunctionBlock, function(value, asParam = false) {
@@ -1757,7 +1769,8 @@ function _buildSquel(flavour = null) {
                 inValues.push(this._sanitizeValue(item));
               }
               finalValues = finalValues.concat(inValues);
-              finalCondition += `(${(this.options.parameterCharacter for item in inValues).join ', '})`;
+              let paramChars = inValues.map(() => this.options.parameterCharacter);
+              finalCondition += `(${paramChars.join(', ')})`;
             }
             else {
               finalCondition += this.options.parameterCharacter;
@@ -1873,7 +1886,7 @@ function _buildSquel(flavour = null) {
 
 
   // HAVING
-  cls.HavingBlock = class extends cls.AbstractConditionBlock
+  cls.HavingBlock = class extends cls.AbstractConditionBlock {
     constructor(options) {
       super('HAVING', options);
     }
@@ -1881,6 +1894,7 @@ function _buildSquel(flavour = null) {
     having (condition, ...values) {
       this._condition(condition, ...values);
     }
+  }
 
 
   // ORDER BY
@@ -2171,7 +2185,7 @@ function _buildSquel(flavour = null) {
     #
     */
     union (table, type = 'UNION') {
-      let table = this._sanitizeTable(table, true);
+      table = this._sanitizeTable(table, true);
 
       this.unions.push({
         type: type,
@@ -2203,7 +2217,7 @@ function _buildSquel(flavour = null) {
       return unionStr;
     }
 
-    buildParam: (queryBuilder) {
+    buildParam (queryBuilder) {
       let ret = {
         text: "",
         values: [],
@@ -2284,18 +2298,20 @@ function _buildSquel(flavour = null) {
       for (let block of this.blocks) {
         let exposedMethods = block.exposedMethods();
 
-        for (methodName in exposedMethods) {
+        for (let methodName in exposedMethods) {
           let methodBody = exposedMethods[methodName];
 
           if (undefined !== this[methodName]) {
-            throw new Error(`${_getObjectClassName(this)} already has a builder method called: ${methodName}`);
+            throw new Error(`Builder already has a builder method called: ${methodName}`);
           }
 
-          ((block, name, body) =>
-            this[name] = (...args) =>
-              body.apply(block, args);
+          ((block, name, body) => {
+            this[name] = (...args) => {
+              body.call(block, ...args);
+
               return this;
-          )(block, methodName, methodBody);
+            };
+          })(block, methodName, methodBody);
         }
       }
     }
@@ -2367,7 +2383,7 @@ function _buildSquel(flavour = null) {
           let i = (undefined !== this.options.numberedParametersStartAt) 
             ? this.options.numberedParametersStartAt 
             : 1;
-          regex = new RegExp("\\" + this.options.parameterCharacter, 'g')
+          let regex = new RegExp("\\" + this.options.parameterCharacter, 'g')
           result.text = result.text.replace(
             regex, () => `${this.options.numberedParametersPrefix}${i++}`
           );
@@ -2403,7 +2419,7 @@ function _buildSquel(flavour = null) {
   // SELECT query builder.
   cls.Select = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
-      blocks ||= [
+      blocks = blocks || [
         new cls.StringBlock(options, 'SELECT'),
         new cls.FunctionBlock(options),
         new cls.DistinctBlock(options),
@@ -2432,7 +2448,7 @@ function _buildSquel(flavour = null) {
   // UPDATE query builder.
   cls.Update = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
-      blocks ||= [
+      blocks = blocks || [
         new cls.StringBlock(options, 'UPDATE'),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
@@ -2452,7 +2468,7 @@ function _buildSquel(flavour = null) {
   // DELETE query builder.
   cls.Delete = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
-      blocks ||= [
+      blocks = blocks || [
         new cls.StringBlock(options, 'DELETE'),
         new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
         new cls.JoinBlock(options),
@@ -2472,7 +2488,7 @@ function _buildSquel(flavour = null) {
   // An INSERT query builder.
   cls.Insert = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
-      blocks ||= [
+      blocks = blocks || [
         new cls.StringBlock(options, 'INSERT'),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
@@ -2484,7 +2500,7 @@ function _buildSquel(flavour = null) {
   }
 
 
-  let _squel =
+  let _squel = {
     VERSION: '<<VERSION_STRING>>',
     flavour: flavour,
     expr: function(options) {
@@ -2507,6 +2523,7 @@ function _buildSquel(flavour = null) {
     },
     registerValueHandler: cls.registerValueHandler,
     fval: cls.fval,
+  };
 
   // aliases
   _squel.remove = _squel.delete;

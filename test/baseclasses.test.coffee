@@ -34,6 +34,21 @@ test['Version number'] =
 test['Default flavour'] =
   assert.isNull squel.flavour
 
+test['internal methods'] = 
+  '_getObjectClassName': ->
+    s = 'a string'
+    b = new Object()
+    c = new Error()
+    d = 1
+
+    assert.same squel.cls._getObjectClassName(0), undefined
+    assert.same squel.cls._getObjectClassName(true), 'Boolean'
+    assert.same squel.cls._getObjectClassName(1.2), 'Number'
+    assert.same squel.cls._getObjectClassName('a string'), 'String'
+    assert.same squel.cls._getObjectClassName(new Object), 'Object'
+    assert.same squel.cls._getObjectClassName(new Error), 'Error'
+
+
 test['Cloneable base class'] =
   '>> clone()': ->
 
@@ -106,7 +121,7 @@ test['Register global custom value handler'] =
     assert.same { type: 'boolean', handler: handler }, squel.cls.globalValueHandlers[2]
 
   'type should be class constructor': ->
-    assert.throws (-> squel.registerValueHandler 1, null), "type must be a class constructor or string denoting \'typeof\' result"
+    assert.throws (-> squel.registerValueHandler 1, null), "type must be a class constructor or string"
 
   'handler should be function': ->
     class MyClass
@@ -225,19 +240,6 @@ test['Builder base class'] =
       assert.same expectedOptions, @inst.options
 
 
-  '_getObjectClassName': ->
-    s = 'a string'
-    b = new Object()
-    c = new Error()
-    d = 1
-
-    assert.same @inst._getObjectClassName(0), undefined
-    assert.same @inst._getObjectClassName(true), 'Boolean'
-    assert.same @inst._getObjectClassName(1.2), 'Number'
-    assert.same @inst._getObjectClassName('a string'), 'String'
-    assert.same @inst._getObjectClassName(new Object), 'Object'
-    assert.same @inst._getObjectClassName(new Error), 'Error'
-
   'registerValueHandler':
     'afterEach': ->
       squel.cls.globalValueHandlers = []
@@ -254,7 +256,7 @@ test['Builder base class'] =
       assert.same { type: 'number', handler: handler }, @inst.options.valueHandlers[2]
 
     'type should be class constructor': ->
-      assert.throws (=> @inst.registerValueHandler 1, null), "type must be a class constructor or string denoting \'typeof\' result"
+      assert.throws (=> @inst.registerValueHandler 1, null), "type must be a class constructor or string"
 
     'handler should be function': ->
       class MyClass
@@ -283,9 +285,6 @@ test['Builder base class'] =
 
 
   '_sanitizeCondition':
-    beforeEach: ->
-      test.mocker.spy @inst, '_getObjectClassName'
-
     'if Expression':
       'empty expression': ->
         e = squel.expr()
@@ -806,7 +805,7 @@ test['QueryBuilder base class'] =
           @inst = new @cls({}, blocks)
           throw new Error 'should not reach here'
         catch err
-          assert.same 'Error: QueryBuilder already has a builder method called: distinct', err.toString()
+          assert.same 'Error: Builder already has a builder method called: distinct', err.toString()
 
 
   'updateOptions()':

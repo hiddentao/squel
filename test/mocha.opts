@@ -1,3 +1,0 @@
---ui exports
---reporter spec
---compilers coffee:coffee-script
