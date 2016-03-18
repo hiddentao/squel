@@ -339,7 +339,7 @@ function _buildSquel(flavour = null) {
       if (this.options.autoQuoteAliasNames) {
         let quoteChar = this.options.fieldAliasQuoteCharacter;
 
-        `${quoteChar}${sanitized}${quoteChar}`;
+        return `${quoteChar}${sanitized}${quoteChar}`;
       } else {
         return sanitized;
       }
@@ -657,7 +657,7 @@ function _buildSquel(flavour = null) {
             else {
               let cv = this._formatValueAsParam(child.para);
 
-              if (undefined !== cv && undefined !== cv.text) {
+              if (cv && cv.text) {
                 params = params.concat(cv.values);
 
                 nodeStr = nodeStr.replace(
@@ -860,6 +860,10 @@ function _buildSquel(flavour = null) {
   # Original idea posted in https://github.com/hiddentao/export/issues/10#issuecomment-15016427
   */
   cls.Block = class extends cls.BaseBuilder {
+    constructor (options) {
+      super(options)
+    }
+
     /**
     # Get input methods to expose within the query builder.
     #
@@ -1236,7 +1240,9 @@ function _buildSquel(flavour = null) {
       }
 
       // if field-alias already present then don't add
-      if (this._fieldAliases[field] === alias) {
+      if (this._fieldAliases.hasOwnProperty(field) 
+            && this._fieldAliases[alias] === alias) 
+      {
         return this;
       }
 
@@ -1292,7 +1298,7 @@ function _buildSquel(flavour = null) {
         }
         if (field.func) {
           if (paramMode) {
-            caseExpr = field.func.toParam();
+            let caseExpr = field.func.toParam();
             fields += caseExpr.text;
             values = values.concat(caseExpr.values);
           }
@@ -1377,7 +1383,7 @@ function _buildSquel(flavour = null) {
         throw new Error("Expected an object but got " + typeof fields);
       }
 
-      for (let field of fields) {
+      for (let field in fields) {
         this._set(field, fields[field], options);
       }
     }
@@ -1394,7 +1400,7 @@ function _buildSquel(flavour = null) {
       this.values = [];
 
       for (let i in fieldsRows) {
-        let fieldRow = fieldRows[i];
+        let fieldRow = fieldsRows[i];
 
         for (let field in fieldRow) {
           let value = fieldRow[field];
@@ -1696,7 +1702,8 @@ function _buildSquel(flavour = null) {
 
     buildStr (queryBuilder) {
       if (0 < this.groups.length) {
-        groups = this.groups.join(', ');
+        let groups = this.groups.join(', ');
+
         return `GROUP BY ${groups}`;
       } else {
         return "";
@@ -2122,7 +2129,7 @@ function _buildSquel(flavour = null) {
         }
 
         if (blk.condition instanceof cls.Expression) {
-          cp = blk.condition.toParam();
+          let cp = blk.condition.toParam();
           p.condition = cp.text;
           p.values = p.values.concat(cp.values);
         }
@@ -2359,7 +2366,7 @@ function _buildSquel(flavour = null) {
     }
 
     // Get the final fully constructed query param obj.
-    toParam (options) {
+    toParam (options = {}) {
       let old = this.options;
       if (!!options) {
         this.options = _extend({}, this.options, options);
@@ -2377,7 +2384,8 @@ function _buildSquel(flavour = null) {
       result.values = [].concat(...blockValues);
 
       if (!this.options.nestedBuilder) {
-        if (this.options.numberedParameters) {
+        if (this.options.numberedParameters) 
+        {
           let i = (undefined !== this.options.numberedParametersStartAt) 
             ? this.options.numberedParametersStartAt 
             : 1;
