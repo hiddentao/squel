@@ -74,9 +74,7 @@ test['MSSQL flavour'] =
         assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS'
 
     '>> from(table).field(field).offset(5).union(...)':
-      beforeEach: -> @sel
-          .from('table').field('field').offset(5)
-          .union(squel.select().from('table2').where('a = 2'))
+      beforeEach: -> @sel.from('table').field('field').offset(5).union(squel.select().from('table2').where('a = 2'))
       toString: ->
         assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS UNION (SELECT * FROM table2 WHERE (a = 2))'
 

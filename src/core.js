@@ -876,21 +876,21 @@ function _buildSquel(flavour = null) {
     exposedMethods () {
       let ret = {};
 
-      let attrNames = 
-        Object.getOwnPropertyNames(Object.getPrototypeOf(this));
+      let obj = this;
 
-      for (let attr of attrNames) {
-        let value = this[attr];
+      while (obj) {
+        Object.getOwnPropertyNames(obj).forEach(function(prop) {
+          if ('constructor' !== prop
+                && typeof obj[prop] === "function" 
+                && prop.charAt(0) !== '_' 
+                && !cls.Block.prototype[prop])
+          {
+            ret[prop] = obj[prop];
+          }
+        });
 
-        // only want functions from this class
-        if ('constructor' !== attr
-            && typeof value === "function" 
-            && attr.charAt(0) !== '_' 
-            && !cls.Block.prototype[attr]) 
-        {
-          ret[attr] = value;
-        }
-      }
+        obj = Object.getPrototypeOf(obj);
+      };
       
       return ret;
     }
