@@ -1768,7 +1768,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
 
           // if field-alias already present then don't add
-          if (this._fieldAliases.hasOwnProperty(_field) && this._fieldAliases[alias] === alias) {
+          if (this._fieldAliases.hasOwnProperty(_field) && this._fieldAliases[_field] === alias) {
             return this;
           }
 

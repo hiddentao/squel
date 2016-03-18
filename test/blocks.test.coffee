@@ -88,15 +88,6 @@ test['Blocks'] =
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'buildStr()':
       'returns the string as is': ->
         @inst = new @cls {}, 'TAG'
@@ -118,15 +109,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial member values': ->
       assert.same [], @inst._values
@@ -169,15 +151,6 @@ test['Blocks'] =
     'instanceof of AbstractValueBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractValueBlock
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractValueBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'set function': ->
       spy = test.mocker.spy(squel.cls.AbstractValueBlock.prototype, '_setValue')
       @inst.function('basd', 2, 5)
@@ -199,15 +172,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial field values': ->
       assert.same [], @inst.tables
@@ -337,15 +301,6 @@ test['Blocks'] =
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractTableBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'from()':
       'calls base class handler': ->
         baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, '_table'
@@ -378,15 +333,6 @@ test['Blocks'] =
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractTableBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'table()':
       'calls base class handler': ->
         baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, '_table'
@@ -409,15 +355,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial field values': ->
       assert.same null, @inst.table
@@ -462,15 +399,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial field values': ->
       assert.same [], @inst._fields
@@ -631,15 +559,6 @@ test['Blocks'] =
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'initial fields': ->
       assert.same [], @inst.fields
 
@@ -764,15 +683,6 @@ test['Blocks'] =
     'instanceof of AbstractSetFieldBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractSetFieldBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'initial field options': ->
       assert.same [], @inst.fieldOptions
 
@@ -863,15 +773,6 @@ test['Blocks'] =
     'instanceof of AbstractSetFieldBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractSetFieldBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'set()':
       'calls to _set()': ->
         spy = test.mocker.stub @inst, '_set'
@@ -956,15 +857,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'fromQuery()':
       'sanitizes field names': ->
@@ -1051,15 +943,6 @@ test['Blocks'] =
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'initial field values': ->
       assert.same false, @inst.useDistinct
 
@@ -1092,15 +975,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial field values': ->
       assert.same [], @inst.groups
@@ -1143,15 +1017,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial field values': ->
       assert.same null, @inst.offsets
@@ -1213,15 +1078,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls 'MOCKVERB',
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy: true
 
     'initial field values': ->
       assert.same [], @inst.conditions
@@ -1366,15 +1222,6 @@ test['Blocks'] =
 
     'instanceof of AbstractConditionBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractConditionBlock
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractConditionBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly 'WHERE',
-        dummy: true
 
     'sets verb to WHERE': ->
       @inst = new @cls
@@ -1524,15 +1371,6 @@ test['Blocks'] =
 
     'instanceof of AbstractConditionBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractConditionBlock
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractConditionBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly 'HAVING',
-        dummy: true
 
     'sets verb to HAVING': ->
       @inst = new @cls
@@ -1684,15 +1522,6 @@ test['Blocks'] =
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'initial field values': ->
       assert.same [], @inst.orders
       assert.same [], @inst._values
@@ -1774,15 +1603,6 @@ test['Blocks'] =
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
-
     'initial field values': ->
       assert.same null, @inst.limits
 
@@ -1828,15 +1648,6 @@ test['Blocks'] =
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.Block.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'initial field values': ->
       assert.same [], @inst.joins

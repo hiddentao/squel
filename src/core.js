@@ -1241,7 +1241,7 @@ function _buildSquel(flavour = null) {
 
       // if field-alias already present then don't add
       if (this._fieldAliases.hasOwnProperty(field) 
-            && this._fieldAliases[alias] === alias) 
+            && this._fieldAliases[field] === alias) 
       {
         return this;
       }
