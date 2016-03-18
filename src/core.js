@@ -6,8 +6,8 @@ function _extend (dst, ...sources) {
   if (sources) {
     for (let src of sources) {
       if (src) {
-        Object.keys(src).forEach(function (key) {
-          if (src.hasOwnProperty(key)) {
+        Object.getOwnPropertyNames(src).forEach(function (key) {
+          if (typeof src[key] !== 'function') {
             dst[key] = src[key];
           }
         });
@@ -23,17 +23,13 @@ function _extend (dst, ...sources) {
 
 // get whether object is a plain object
 function _isPlainObject(obj) {
-  if (!obj) {
-    return false;
-  }
-
-  return (obj.constructor.prototype === Object.prototype);
+  return (obj && obj.constructor.prototype === Object.prototype);
 };
 
 
 // get whether object is an array
 function _isArray(obj) {
-  return (obj.constructor.prototype === Array.prototype);
+  return (obj && obj.constructor.prototype === Array.prototype);
 };
 
 
@@ -60,11 +56,13 @@ function _clone(src) {
   } else if (_isPlainObject(src) || _isArray(src)) {
     let ret = new (src.constructor);
 
-    Object.keys(src).forEach(function(key) {
-      if (src.hasOwnProperty(key) && typeof src[key] !== 'function') {
+    Object.getOwnPropertyNames(src).forEach(function(key) {
+      if (typeof src[key] !== 'function') {
         ret[key] = _clone(src[key]);
       }
     });
+
+    return ret;
   } else {
     return JSON.parse(JSON.stringify(src));
   }
@@ -108,8 +106,8 @@ function registerValueHandler (handlers, type, handler) {
  * Get value type handler for given type
  */
 function getValueHandler (value, ...handlerLists) {
-  for (let handlers in handlerLists) {
-    for (let typeHandler in handlers) {
+  for (let handlers of handlerLists) {
+    for (let typeHandler of handlers) {
       // if type is a string then use `typeof` or else use `instanceof`
       if (typeof value === typeHandler.type || 
           (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
@@ -643,9 +641,11 @@ function _buildSquel(flavour = null) {
       let str = "";
       let params = [];
 
-      for (child of node.nodes) {
+      for (let child of node.nodes) {
+        let nodeStr;
+        
         if (undefined !== child.expr) {
-          let nodeStr = child.expr;
+          nodeStr = child.expr;
 
           // have param
           if (undefined !== child.para) {
@@ -684,7 +684,7 @@ function _buildSquel(flavour = null) {
           }
         }
         else {
-          let nodeStr = this._toString(child, paramMode);
+          nodeStr = this._toString(child, paramMode);
 
           if (paramMode) {
             params = params.concat(nodeStr.values);
@@ -2354,9 +2354,7 @@ function _buildSquel(flavour = null) {
       });
 
       return blockStr
-        .filter(function(v) {
-          0 < v.length
-        })
+        .filter((v) => (0 < v.length))
         .join(this.options.separator);
     }
 

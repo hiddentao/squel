@@ -324,7 +324,7 @@ test['SELECT builder'] =
     assert.same true, @inst.isNestable()
 
   'can specify block separator': ->
-    assert.same squel.select({separator: '\n'})
+    assert.same( squel.select({separator: '\n'})
       .field('thing')
       .from('table')
       .toString(), """
@@ -332,6 +332,7 @@ test['SELECT builder'] =
         thing
         FROM table
       """
+    )
 
   'UNION JOINs':
     'Two Queries NO Params':

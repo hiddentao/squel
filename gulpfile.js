@@ -60,15 +60,14 @@ gulp.task('build-full', function() {
 gulp.task('test', function () {
   return gulp.src([
       './test/baseclasses.test.coffee',
-      // './test/blocks.test.coffee',
-      // './test/case.test.coffee',
-      // './test/custom.test.coffee',
-      // './test/delete.test.coffee',
-      // './test/expressions.test.coffee',
-      // './test/insert.test.coffee',
-      // './test/select.test.coffee',
-      // './test/testbase.test.coffee',
-      // './test/update.test.coffee'
+      './test/blocks.test.coffee',
+      './test/case.test.coffee',
+      './test/custom.test.coffee',
+      './test/delete.test.coffee',
+      './test/expressions.test.coffee',
+      './test/insert.test.coffee',
+      './test/select.test.coffee',
+      './test/update.test.coffee'
     ], { read: false })
       .pipe(mocha({
         ui: 'exports',
