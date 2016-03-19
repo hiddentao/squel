@@ -3906,7 +3906,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
             var _this45 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class36).call(this, parent));
 
-            _this45.limit = _limit;
+            _this45.top = _limit;
             return _this45;
           }
 
@@ -4037,7 +4037,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
           var innerStr = this.outputs.length != 0 ? 'OUTPUT ' + this.outputs.join(', ') + ' ' : '';
 
-          return '(' + this.fields.join(', ') + ') ' + innerStr + ' VALUES (' + this._buildVals().join('), (') + ')';
+          return '(' + this.fields.join(', ') + ') ' + innerStr + 'VALUES (' + this._buildVals().join('), (') + ')';
         }
       }, {
         key: 'buildParam',

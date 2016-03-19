@@ -57,7 +57,7 @@ squel.flavours['mssql'] = function(_squel) {
       this.TopBlock = class extends this.ParentBlock {
         constructor (parent) {
           super(parent);
-          this.limit = _limit;
+          this.top = _limit;
         }
         buildStr (queryBuilder) {
           if (this._parent.limits && !this._parent.offsets) {
@@ -139,7 +139,7 @@ squel.flavours['mssql'] = function(_squel) {
         ? `OUTPUT ${this.outputs.join(', ')} ` 
         : '';
 
-      return `(${this.fields.join(', ')}) ${innerStr} VALUES (${this._buildVals().join('), (')})`;
+      return `(${this.fields.join(', ')}) ${innerStr}VALUES (${this._buildVals().join('), (')})`;
     }
 
     buildParam (queryBuilder) {
