@@ -1365,7 +1365,7 @@ function _buildSquel(flavour = null) {
         index = this.fields.length - 1;
 
         // The first value added needs to create the array of values for the row
-        if (Array.isArray(this.values[0])) {
+        if (_isArray(this.values[0])) {
           this.values[0][index] = value;
           this.fieldOptions[0][index] = options;
         }

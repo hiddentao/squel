@@ -39,8 +39,8 @@ gulp.task('build-full', function() {
       './src/umd-header.js',
       './src/core.js',
       './src/mssql.js',
+      './src/mysql.js',
       // './src/posgres.js',
-      // './src/mysql.js',
       './src/umd-footer.js',
     ])
     .pipe( concat('squel.js') )
@@ -68,7 +68,8 @@ gulp.task('test', function () {
       // './test/insert.test.coffee',
       // './test/select.test.coffee',
       // './test/update.test.coffee',
-      './test/mssql.test.coffee',
+      // './test/mssql.test.coffee',
+      './test/mysql.test.coffee',
     ], { read: false })
       .pipe(mocha({
         ui: 'exports',

@@ -44,15 +44,6 @@ test['MySQL flavour'] =
     'instanceof of AbstractValueBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractValueBlock
 
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractValueBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true    
-
     'target()': ->
       setSpy = test.mocker.stub @inst, '_setValue'
       sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', (v) -> return "[#{v}]"
@@ -70,15 +61,6 @@ test['MySQL flavour'] =
 
     'instanceof of AbstractSetFieldBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
-
-    'calls base constructor': ->
-      spy = test.mocker.spy(squel.cls.AbstractSetFieldBlock.prototype, 'constructor')
-
-      @inst = new @cls
-        dummy: true
-
-      assert.ok spy.calledWithExactly
-        dummy:true
 
     'onDupUpdate()':
       'calls to _set()': ->
@@ -110,6 +92,7 @@ test['MySQL flavour'] =
 
         @inst.fields = [ 'field1', 'field2', 'field3' ]
         @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+        @inst.fieldOptions = [ [ {}, {}, {} ] ]
 
         assert.same { text: 'ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
 
@@ -123,6 +106,7 @@ test['MySQL flavour'] =
 
         @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
         @inst.values = [ [ undefined, 'value2', 'value3' ] ]
+        @inst.fieldOptions = [ [ {}, {}, {} ] ]
 
         assert.same { text: 'ON DUPLICATE KEY UPDATE age = age + 1, field2 = ?, field3 = ?', values: ['value2', 'value3'] }, @inst.buildParam()
 

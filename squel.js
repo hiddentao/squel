@@ -1904,7 +1904,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             index = this.fields.length - 1;
 
             // The first value added needs to create the array of values for the row
-            if (Array.isArray(this.values[0])) {
+            if (_isArray(this.values[0])) {
               this.values[0][index] = value;
               this.fieldOptions[0][index] = options;
             } else {
@@ -4274,6 +4274,142 @@ OTHER DEALINGS IN THE SOFTWARE.
       }
 
       return _class44;
+    }(cls.QueryBuilder);
+  };
+
+  // This file contains additional Squel commands for use with MySQL
+
+  squel.flavours['mysql'] = function (_squel) {
+    var cls = _squel.cls;
+
+    // target <table> in DELETE <table> FROM ...
+    cls.TargetTableBlock = function (_cls$AbstractValueBlo2) {
+      _inherits(_class45, _cls$AbstractValueBlo2);
+
+      function _class45() {
+        _classCallCheck(this, _class45);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class45).apply(this, arguments));
+      }
+
+      _createClass(_class45, [{
+        key: 'target',
+        value: function target(table) {
+          this._setValue(this._sanitizeTable(table));
+        }
+      }]);
+
+      return _class45;
+    }(cls.AbstractValueBlock);
+
+    // ON DUPLICATE KEY UPDATE ...
+    cls.MysqlOnDuplicateKeyUpdateBlock = function (_cls$AbstractSetField3) {
+      _inherits(_class46, _cls$AbstractSetField3);
+
+      function _class46() {
+        _classCallCheck(this, _class46);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class46).apply(this, arguments));
+      }
+
+      _createClass(_class46, [{
+        key: 'onDupUpdate',
+        value: function onDupUpdate(field, value, options) {
+          this._set(field, value, options);
+        }
+      }, {
+        key: 'buildStr',
+        value: function buildStr() {
+          var str = "";
+
+          for (var i in this.fields) {
+            var field = this.fields[i];
+
+            if (str.length) {
+              str += ", ";
+            }
+
+            var value = this.values[0][i];
+
+            var fieldOptions = this.fieldOptions[0][i];
+
+            // e.g. if field is an expression such as: count = count + 1
+            if (typeof value === 'undefined') {
+              str += field;
+            } else {
+              str += field + ' = ' + this._formatValue(value, fieldOptions);
+            }
+          }
+
+          return !str.length ? "" : 'ON DUPLICATE KEY UPDATE ' + str;
+        }
+      }, {
+        key: 'buildParam',
+        value: function buildParam(queryBuilder) {
+          var str = "",
+              vals = [];
+
+          for (var i in this.fields) {
+            var field = this.fields[i];
+
+            if (str.length) {
+              str += ", ";
+            }
+
+            var value = this.values[0][i];
+
+            var fieldOptions = this.fieldOptions[0][i];
+
+            // e.g. if field is an expression such as: count = count + 1
+            if (typeof value === 'undefined') {
+              str += field;
+            } else {
+              str += field + ' = ' + this.options.parameterCharacter;
+              vals.push(this._formatValueAsParam(value));
+            }
+          }
+
+          return {
+            text: !str.length ? "" : 'ON DUPLICATE KEY UPDATE ' + str,
+            values: vals
+          };
+        }
+      }]);
+
+      return _class46;
+    }(cls.AbstractSetFieldBlock);
+
+    // INSERT query builder.
+    cls.Insert = function (_cls$QueryBuilder9) {
+      _inherits(_class47, _cls$QueryBuilder9);
+
+      function _class47(options) {
+        var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+        _classCallCheck(this, _class47);
+
+        blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.MysqlOnDuplicateKeyUpdateBlock(options)];
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class47).call(this, options, blocks));
+      }
+
+      return _class47;
+    }(cls.QueryBuilder);
+
+    cls.Delete = function (_cls$QueryBuilder10) {
+      _inherits(_class48, _cls$QueryBuilder10);
+
+      function _class48(options) {
+        var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+        _classCallCheck(this, _class48);
+
+        blocks = blocks || [new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, { singleTable: true })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class48).call(this, options, blocks));
+      }
+
+      return _class48;
     }(cls.QueryBuilder);
   };
 
