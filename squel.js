@@ -70,7 +70,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         var _loop = function _loop() {
           var src = _step.value;
 
-          if (src) {
+          if ((typeof src === 'undefined' ? 'undefined' : _typeof(src)) === 'object') {
             Object.getOwnPropertyNames(src).forEach(function (key) {
               if (typeof src[key] !== 'function') {
                 dst[key] = src[key];

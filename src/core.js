@@ -5,7 +5,7 @@
 function _extend (dst, ...sources) {
   if (sources) {
     for (let src of sources) {
-      if (src) {
+      if (typeof src === 'object') {
         Object.getOwnPropertyNames(src).forEach(function (key) {
           if (typeof src[key] !== 'function') {
             dst[key] = src[key];
