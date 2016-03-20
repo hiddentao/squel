@@ -1,7 +1,7 @@
 {
   "name": "squel",
   "description": "SQL query string builder",
-  "version": "4.4.0",
+  "version": "4.4.1",
   "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
   "contributors": [
     "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",

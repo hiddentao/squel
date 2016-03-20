@@ -3062,7 +3062,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     }(cls.QueryBuilder);
 
     var _squel = {
-      VERSION: '4.4.0',
+      VERSION: '4.4.1',
       flavour: flavour,
       expr: function expr(options) {
         return new cls.Expression(options);

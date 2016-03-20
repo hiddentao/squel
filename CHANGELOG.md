@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 20 Mar 2016 (4.4.1)
+* Fixed for #219
+
 ## 19 Mar 2016 (4.4.0)
 * Ported coffeescript to ES6
 
