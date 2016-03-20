@@ -151,13 +151,13 @@ squel.flavours['mssql'] = function(_squel) {
       let str = "";
       let {vals, params} = this._buildValParams();
 
-      for (let field of this.fields) {
+      _forOf(this.fields, (field) => {
         if (str.length) {
           str += ", ";
         }
 
         str += field;
-      }
+      });
 
       let innerStr = (this.outputs.length != 0) 
         ? `OUTPUT ${this.outputs.join(', ')} ` 
@@ -215,7 +215,7 @@ squel.flavours['mssql'] = function(_squel) {
       let outputs = "";
 
       if (this._outputs.length > 0) {
-        for (let output of this._outputs) {
+        _forOf(this._outputs, (output) => {
           if (outputs.length) {
             outputs += ", ";
           }
@@ -224,7 +224,7 @@ squel.flavours['mssql'] = function(_squel) {
           if (output.alias) {
             outputs += ` AS ${output.alias}`;
           }
-        }
+        });
 
         outputs = `OUTPUT ${outputs}`;
       }

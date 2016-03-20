@@ -1,10 +1,17 @@
-
+// for-of (temporary fix for #219 until v5 is released)
+function _forOf (arr, cb) {
+  if (arr) {
+    for (let i=0; i<arr.length; ++i) {
+      cb(arr[i]);
+    }
+  }
+};
 
 
 // Extend given object's with other objects' properties, overriding existing ones if necessary
 function _extend (dst, ...sources) {
   if (sources) {
-    for (let src of sources) {
+    _forOf(sources, function(src) {
       if (typeof src === 'object') {
         Object.getOwnPropertyNames(src).forEach(function (key) {
           if (typeof src[key] !== 'function') {
@@ -12,7 +19,7 @@ function _extend (dst, ...sources) {
           }
         });
       }
-    }
+    });
   }
 
   return dst;
@@ -85,7 +92,9 @@ function registerValueHandler (handlers, type, handler) {
     throw new Error("handler must be a function");
   }
 
-  for (let typeHandler of handlers) {
+  for (let idx in handlers) {
+    let typeHandler = handlers[idx];
+
     if (typeHandler.type === type) {
       typeHandler.handler = handler;
 
@@ -106,8 +115,12 @@ function registerValueHandler (handlers, type, handler) {
  * Get value type handler for given type
  */
 function getValueHandler (value, ...handlerLists) {
-  for (let handlers of handlerLists) {
-    for (let typeHandler of handlers) {
+  for (let listIdx in handlerLists) {
+    let handlers = handlerLists[listIdx];
+
+    for (let handlerIdx in handlers) {
+      let typeHandler = handlers[handlerIdx];
+
       // if type is a string then use `typeof` or else use `instanceof`
       if (typeof value === typeHandler.type || 
           (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
@@ -545,9 +558,9 @@ function _buildSquel(flavour = null) {
     _current () {
       let current = this.tree;
 
-      for (let num of this.stack) {
+      _forOf(this.stack, function(num) {
         current = current.nodes[num];
-      }
+      });
 
       return current;
     }
@@ -641,7 +654,7 @@ function _buildSquel(flavour = null) {
       let str = "";
       let params = [];
 
-      for (let child of node.nodes) {
+      _forOf(node.nodes, (child) => {
         let nodeStr;
         
         if (undefined !== child.expr) {
@@ -706,7 +719,7 @@ function _buildSquel(flavour = null) {
 
           str += nodeStr;
         }
-      } // for-each child
+      }); // for-each child
 
       if (paramMode)
         return {
@@ -951,13 +964,13 @@ function _buildSquel(flavour = null) {
       let finalStr = '';
       let values = [].concat(this._values);
 
-      for (let c of str) {
+      _forOf(str, (c) => {
         if (this.options.parameterCharacter === c && 0 < values.length) {
           c = values.shift();
         }
 
         finalStr += c;
-      }
+      });
 
       return finalStr;
     }
@@ -1042,7 +1055,7 @@ function _buildSquel(flavour = null) {
 
       let tables = "";
 
-      for (let table of this.tables) {
+      _forOf(this.tables, (table) => {
         if (tables.length) {
           tables += ", ";  
         }
@@ -1059,7 +1072,7 @@ function _buildSquel(flavour = null) {
           // add the table alias
           tables += ` ${table.alias}`;
         }
-      }
+      });
 
       return tables;
     }
@@ -1079,7 +1092,7 @@ function _buildSquel(flavour = null) {
       }
 
       // retrieve the parameterised queries
-      for (let blk of this.tables) {
+      _forOf(this.tables, (blk) => {
         let p;
 
         if ("string" === typeof blk.table) {
@@ -1099,11 +1112,11 @@ function _buildSquel(flavour = null) {
         p.table = blk;
 
         params.push( p );
-      }
+      });
 
       // join the queries and their parameters
       // this is the last building block processed so always add UNION if there are any UNION blocks
-      for (let p of params) {
+      _forOf(params, (p) => {
         if (paramStr.length) {
           paramStr += ", ";
         }
@@ -1125,10 +1138,10 @@ function _buildSquel(flavour = null) {
           paramStr += ` ${p.table.alias}`
         }
 
-        for (let v of p.values) {
+        _forOf(p.values, (v) => {
           ret.values.push( this._formatCustomValue(v) );
-        }
-      }
+        });
+      });
 
       ret.text += paramStr;
 
@@ -1211,9 +1224,9 @@ function _buildSquel(flavour = null) {
     */
     fields (_fields, options = {}) {
       if (_isArray(_fields)) {
-        for (let field of _fields) {
+        _forOf(_fields, (field) => {
           this.field(field, null, options);
-        }
+        });
       }
       else {
         for (let field in _fields) {
@@ -1289,7 +1302,7 @@ function _buildSquel(flavour = null) {
       let fields = "";
       let values = [];
 
-      for (let field of this._fields) {
+      _forOf(this._fields, (field) => {
         if (fields.length) {
          fields += ", ";
         }
@@ -1316,7 +1329,7 @@ function _buildSquel(flavour = null) {
         if (field.alias) {
           fields += ` AS ${field.alias}`;
         }
-      }
+      });
 
       if (!fields.length) {
         fields = "*";
@@ -1509,9 +1522,9 @@ function _buildSquel(flavour = null) {
           if (!!p && !!p.text) {
             str += `${field} = (${p.text})`;
 
-            for (let v of p.values) {
+            _forOf(p.values, (v) => {
               vals.push(v);
-            }
+            });
           }
           else {
             str += `${field} = ${this.options.parameterCharacter}`;
@@ -1572,9 +1585,9 @@ function _buildSquel(flavour = null) {
           if (!!p && !!p.text) {
             str = p.text;
 
-            for (let v of p.values) {
+            _forOf(p.values, (v) => {
               params.push(v);
-            }
+            });
           }
           else {
             str = this.options.parameterCharacter;
@@ -1772,9 +1785,9 @@ function _buildSquel(flavour = null) {
             // # where b in (?, ? ?)
             if (_isArray(nextValue)) {
               let inValues = [];
-              for (let item of nextValue) {
+              _forOf(nextValue, (item) => {
                 inValues.push(this._sanitizeValue(item));
-              }
+              });
               finalValues = finalValues.concat(inValues);
               let paramChars = inValues.map(() => this.options.parameterCharacter);
               finalCondition += `(${paramChars.join(', ')})`;
@@ -1806,7 +1819,7 @@ function _buildSquel(flavour = null) {
 
       let condStr = "";
 
-      for (let cond of this.conditions) {
+      _forOf(this.conditions, (cond) => {
         if (condStr.length) {
           condStr += ") AND (";
         }
@@ -1814,19 +1827,19 @@ function _buildSquel(flavour = null) {
         if (0 < cond.values.length) {
           // replace placeholders with actual parameter values
           let pIndex = 0;
-          for (let c of cond.text) {
+          _forOf(cond.text, (c) => {
             if (this.options.parameterCharacter === c) {
               condStr += this._formatValue( cond.values[pIndex++] );
             }
             else {
               condStr += c;
             }
-          }
+          });
         }
         else {
           condStr += cond.text;
         }
-      }
+      });
 
       return `${this.conditionVerb} (${condStr})`;
     }
@@ -1844,14 +1857,14 @@ function _buildSquel(flavour = null) {
 
       let condStr = "";
 
-      for (let cond of this.conditions) {
+      _forOf(this.conditions, (cond) => {
         if (condStr.length) {
           condStr += ") AND (";
         }
 
         let str = cond.text.split(this.options.parameterCharacter);
         let i = 0
-        for (let v of cond.values) {
+        _forOf(cond.values, (v) => {
           if (undefined !== str[i]) {
             condStr += str[i];
           }
@@ -1859,21 +1872,22 @@ function _buildSquel(flavour = null) {
           let p = this._formatValueAsParam(v);
           if (!!p && !!p.text) {
             condStr += `(${p.text})`;
-            for (let qv of p.values) {
+            _forOf(p.values, (qv) => {
               ret.values.push( qv );
-            }
+            });
           }
           else {
             condStr += this.options.parameterCharacter;
             ret.values.push( p );
           }
           i = i+1;
-        }
+        });
 
         if (undefined !== str[i]) {
           condStr += str[i];
         }
-      }
+      });
+
       ret.text = `${this.conditionVerb} (${condStr})`;
       return ret;
     }
@@ -1940,7 +1954,7 @@ function _buildSquel(flavour = null) {
       if (0 < this.orders.length) {
         let pIndex = 0;
         let orders = "";
-        for (let o of this.orders) {
+        _forOf(this.orders, (o) => {
           if (orders.length) {
             orders += ", ";
           }
@@ -1948,14 +1962,14 @@ function _buildSquel(flavour = null) {
           let fstr = "";
 
           if (!toParam) {
-            for (let c of o.field) {
+            _forOf(o.field, (c) => {
               if (this.options.parameterCharacter === c) {
                 fstr += this._formatValue( this._values[pIndex++] );
               }
               else {
                 fstr += c;
               }
-            }
+            });
           }
           else {
             fstr = o.field;
@@ -1966,7 +1980,7 @@ function _buildSquel(flavour = null) {
           if (o.dir !== null) {
             orders += ` ${o.dir ? 'ASC' : 'DESC'}`;
           }
-        }
+        });
 
         return `ORDER BY ${orders}`;
       }
@@ -2075,7 +2089,7 @@ function _buildSquel(flavour = null) {
     buildStr (queryBuilder) {
       let joins = "";
 
-      for (let j of (this.joins || [])) {
+      _forOf(this.joins || [], (j) => {
         if (joins.length) {
           joins += " ";
         }
@@ -2093,7 +2107,7 @@ function _buildSquel(flavour = null) {
         if (j.condition) {
           joins += ` ON (${j.condition})` 
         }
-      }
+      });
 
       return joins;
     }
@@ -2112,7 +2126,7 @@ function _buildSquel(flavour = null) {
       }
 
       // retrieve the parameterised queries
-      for (let blk of this.joins) {
+      _forOf(this.joins, (blk) => {
         let p;
         if ("string" === typeof blk.table) {
           p = { "text": `${blk.table}`, "values": [] };
@@ -2139,11 +2153,11 @@ function _buildSquel(flavour = null) {
 
         p.join = blk;
         params.push( p );
-      }
+      });
 
       // join the queries and their parameters
       // this is the last building block processed so always add UNION if there are any UNION blocks
-      for (let p of params) {
+      _forOf(params, (p) => {
         if (joinStr.length) {
           joinStr += " ";
         }
@@ -2163,10 +2177,10 @@ function _buildSquel(flavour = null) {
           joinStr += ` ON (${p.condition})`;
         } 
 
-        for (let v of p.values) {
+        _forOf(p.values, (v) => {
           ret.values.push( this._formatCustomValue(v) );
-        }
-      }
+        });
+      });
 
       ret.text += joinStr;
 
@@ -2208,7 +2222,7 @@ function _buildSquel(flavour = null) {
     buildStr (queryBuilder) {
       let unionStr = "";
 
-      for (let j of (this.unions || [])) {
+      _forOf(this.unions || [], (j) => {
         if (unionStr.length) {
           unionStr += " ";
         }
@@ -2219,7 +2233,7 @@ function _buildSquel(flavour = null) {
         else {
           unionStr += `(${j.table})`;
         }
-      }
+      });
 
       return unionStr;
     }
@@ -2238,7 +2252,7 @@ function _buildSquel(flavour = null) {
       }
 
       // retrieve the parameterised queries
-      for (let blk of (this.unions || [])) {
+      _forOf(this.unions || [], (blk) => {
         let p;
         if ("string" === typeof blk.table) {
           p = { "text": blk.table, "values": [] };
@@ -2255,19 +2269,20 @@ function _buildSquel(flavour = null) {
         }
         p.type = blk.type;
         params.push( p );
-      }
+      });
 
       // join the queries and their parameters
       // this is the last building block processed so always add UNION if there are any UNION blocks
-      for (let p of params) {
+      _forOf(params, (p) => {
         if (unionStr.length) {
           unionStr += " ";
         }
         unionStr += `${p.type} (${p.text})`;
-        for (let v of p.values) {
+        _forOf(p.values, (v) => {
           ret.values.push( this._formatCustomValue(v) );
-        }
-      }
+        });
+      });
+
       ret.text += unionStr;
 
       return ret;
@@ -2302,7 +2317,7 @@ function _buildSquel(flavour = null) {
       this.blocks = blocks || [];
 
       // Copy exposed methods into myself
-      for (let block of this.blocks) {
+      _forOf(this.blocks, (block) => {
         let exposedMethods = block.exposedMethods();
 
         for (let methodName in exposedMethods) {
@@ -2320,7 +2335,7 @@ function _buildSquel(flavour = null) {
             };
           })(block, methodName, methodBody);
         }
-      }
+      });
     }
 
 
@@ -2330,9 +2345,9 @@ function _buildSquel(flavour = null) {
     # Note: This will override any globally registered handler for this value type.
     */
     registerValueHandler (type, handler) {
-      for (let block of this.blocks) {
+      _forOf(this.blocks, (block) => {
         block.registerValueHandler(type, handler);
-      }
+      });
       
       super.registerValueHandler(type, handler);
 
@@ -2348,9 +2363,9 @@ function _buildSquel(flavour = null) {
     updateOptions (options) {
       this.options = _extend({}, this.options, options);
 
-      for (let block of this.blocks) {
+      _forOf(this.blocks, (block) => {
         block.options = _extend({}, block.options, options);
-      }
+      });
     }
 
 
