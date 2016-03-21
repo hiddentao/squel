@@ -772,7 +772,7 @@ function _buildSquel(flavour = null) {
    */
   cls.Case = class extends cls.BaseBuilder {
     constructor (fieldName, options = {}) {
-      super();
+      super(options);
 
       if (_isPlainObject(fieldName)) {
         options = fieldName;
@@ -781,17 +781,17 @@ function _buildSquel(flavour = null) {
       }
 
       if (fieldName) {
-        this.fieldName = this._sanitizeField( fieldName );
+        this._fieldName = this._sanitizeField( fieldName );
       }
 
       this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
 
-      this.cases = [];
-      this.elseValue = null;      
+      this._cases = [];
+      this._elseValue = null;      
     }
 
     when (expression, ...values) {
-      this.cases.unshift({
+      this._cases.unshift({
         expression: expression,
         values: values,
       });
@@ -800,75 +800,78 @@ function _buildSquel(flavour = null) {
     }
 
     then (result) {
-      if (this.cases.length == 0) {
+      if (this._cases.length == 0) {
         throw new Error("when() needs to be called first");
       }
 
-      this.cases[0].result = result;
+      this._cases[0].result = result;
       
       return this;
     }
 
     else (elseValue) {
-      this.elseValue = elseValue;
+      this._elseValue = elseValue;
 
       return this;
     }
 
-    // Get the final fully constructed expression string.
     toString () {
-      return this._toString(this.cases, this.elseValue);
+      return this._toString().text;
     }
 
-    // Get the final fully constructed expression string.
     toParam () {
-      return this._toString(this.cases, this.elseValue, true);
+      return this._toString({
+        buildParameterized: true,
+      });
     }
 
-    // Get a string representation of the given expression tree node.
-    _toString (cases, elseValue, paramMode = false) {
-      if (cases.length == 0) {
-        return this._formatValue(elseValue);
-      }
+    /**
+     * @param {Object} [options] Options.
+     * @param {Boolean} [options.buildParameterized] Whether to build paramterized string. Default is false.
+     * @param {Boolean} [options.nested] Whether this expression is nested within another.
+     * @return {Object}
+     */
+    _toString (options = {}) {
+      let totalStr = [],
+        totalValues = [];
 
-      let values = [];
+      if (this._cases.length == 0) {
+        totalStr = '' + this._formatValue(this._elseValue);
+      } else {
+        let cases = this._cases.map((part) => {
+          let { expression, values, result } = part;
 
-      cases = cases.map((part) => {
-        let condition = new cls.AbstractConditionBlock("WHEN");
+          let condition = new cls.AbstractConditionBlock("WHEN");
 
-        condition._condition.apply(condition, [part.expression].concat(part.values));
+          condition._condition.apply(condition, [expression].concat(values));
 
-        let str = '';
+          let str = '';
 
-        if (!paramMode) {
-          str = condition.buildStr();
+          if (!options.buildParameterized) {
+            str = condition.buildStr();
+          }
+          else {
+            let ret = condition.buildParam();
+            str = ret.text;
+            totalValues.push(...ret.values);
+          }
+
+          return `${str} THEN ${this._formatValue(result)}`;
+        });
+
+        let str = `${cases.join(" ")} ELSE ${this._formatValue(this._elseValue)} END`;
+
+        if (this._fieldName) {
+          str = `${this._fieldName} ${str}`;
         }
-        else {
-          condition = condition.buildParam();
-          str = condition.text;
-          values = values.concat(condition.values);
-        }
 
-        return `${str} THEN ${this._formatValue(part.result)}`;
-      });
-
-      let str = cases.join(" ") + ' ELSE ' + this._formatValue(elseValue) + ' END';
-
-      if (this.fieldName) {
-        str = this.fieldName + " " + str;
+        totalStr = `CASE ${str}`;
       }
 
-      str = "CASE " + str;
-
-      if (paramMode) {
-        return {
-          text: str,
-          values: values,
-        };        
-      }
-      else {
-        return str;
-      }
+      return {
+        text: totalStr,
+        values: totalValues,
+      };        
     }
   }
 
@@ -1795,7 +1798,7 @@ function _buildSquel(flavour = null) {
     # Concrete subclasses should provide a method which calls this
     */
     _condition (condition, ...values) {
-      condition = this._sanitizeCondition(condition);
+      condition = this._sanitizeExpression(condition);
 
       let finalCondition = "";
       let finalValues = [];
@@ -2082,7 +2085,7 @@ function _buildSquel(flavour = null) {
     join (table, alias = null, condition = null, type = 'INNER') {
       table = this._sanitizeTable(table, true);
       alias = alias ? this._sanitizeTableAlias(alias) : alias;
-      condition = condition ? this._sanitizeCondition(condition) : condition;
+      condition = condition ? this._sanitizeExpression(condition) : condition;
 
       this.joins.push({
         type: type,

@@ -956,7 +956,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         _classCallCheck(this, _class5);
 
-        var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class5).call(this));
+        var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class5).call(this, options));
 
         if (_isPlainObject(fieldName)) {
           options = fieldName;
@@ -965,13 +965,13 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
 
         if (fieldName) {
-          _this7.fieldName = _this7._sanitizeField(fieldName);
+          _this7._fieldName = _this7._sanitizeField(fieldName);
         }
 
         _this7.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
 
-        _this7.cases = [];
-        _this7.elseValue = null;
+        _this7._cases = [];
+        _this7._elseValue = null;
         return _this7;
       }
 
@@ -982,7 +982,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             values[_key5 - 1] = arguments[_key5];
           }
 
-          this.cases.unshift({
+          this._cases.unshift({
             expression: expression,
             values: values
           });
@@ -992,87 +992,90 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: 'then',
         value: function then(result) {
-          if (this.cases.length == 0) {
+          if (this._cases.length == 0) {
             throw new Error("when() needs to be called first");
           }
 
-          this.cases[0].result = result;
+          this._cases[0].result = result;
 
           return this;
         }
       }, {
         key: 'else',
         value: function _else(elseValue) {
-          this.elseValue = elseValue;
+          this._elseValue = elseValue;
 
           return this;
         }
-
-        // Get the final fully constructed expression string.
-
       }, {
         key: 'toString',
         value: function toString() {
-          return this._toString(this.cases, this.elseValue);
+          return this._toString().text;
         }
-
-        // Get the final fully constructed expression string.
-
       }, {
         key: 'toParam',
         value: function toParam() {
-          return this._toString(this.cases, this.elseValue, true);
+          return this._toString({
+            buildParameterized: true
+          });
         }
 
-        // Get a string representation of the given expression tree node.
+        /**
+         * @param {Object} [options] Options.
+         * @param {Boolean} [options.buildParameterized] Whether to build paramterized string. Default is false.
+         * @param {Boolean} [options.nested] Whether this expression is nested within another.
+         * @return {Object}
+         */
 
       }, {
         key: '_toString',
-        value: function _toString(cases, elseValue) {
+        value: function _toString() {
           var _this8 = this;
 
-          var paramMode = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-          if (cases.length == 0) {
-            return this._formatValue(elseValue);
-          }
+          var totalStr = [],
+              totalValues = [];
 
-          var values = [];
+          if (this._cases.length == 0) {
+            totalStr = '' + this._formatValue(this._elseValue);
+          } else {
+            var cases = this._cases.map(function (part) {
+              var expression = part.expression;
+              var values = part.values;
+              var result = part.result;
 
-          cases = cases.map(function (part) {
-            var condition = new cls.AbstractConditionBlock("WHEN");
 
-            condition._condition.apply(condition, [part.expression].concat(part.values));
+              var condition = new cls.AbstractConditionBlock("WHEN");
 
-            var str = '';
+              condition._condition.apply(condition, [expression].concat(values));
 
-            if (!paramMode) {
-              str = condition.buildStr();
-            } else {
-              condition = condition.buildParam();
-              str = condition.text;
-              values = values.concat(condition.values);
+              var str = '';
+
+              if (!options.buildParameterized) {
+                str = condition.buildStr();
+              } else {
+                var ret = condition.buildParam();
+                str = ret.text;
+                totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              }
+
+              return str + ' THEN ' + _this8._formatValue(result);
+            });
+
+            var str = cases.join(" ") + ' ELSE ' + this._formatValue(this._elseValue) + ' END';
+
+            if (this._fieldName) {
+              str = this._fieldName + ' ' + str;
             }
 
-            return str + ' THEN ' + _this8._formatValue(part.result);
-          });
-
-          var str = cases.join(" ") + ' ELSE ' + this._formatValue(elseValue) + ' END';
-
-          if (this.fieldName) {
-            str = this.fieldName + " " + str;
+            totalStr = 'CASE ' + str;
           }
 
-          str = "CASE " + str;
-
-          if (paramMode) {
-            return {
-              text: str,
-              values: values
-            };
-          } else {
-            return str;
-          }
+          return {
+            text: totalStr,
+            values: totalValues
+          };
         }
       }]);
 
@@ -2342,7 +2345,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         value: function _condition(condition) {
           var _this28 = this;
 
-          condition = this._sanitizeCondition(condition);
+          condition = this._sanitizeExpression(condition);
 
           var finalCondition = "";
           var finalValues = [];
@@ -2717,7 +2720,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
           table = this._sanitizeTable(table, true);
           alias = alias ? this._sanitizeTableAlias(alias) : alias;
-          condition = condition ? this._sanitizeCondition(condition) : condition;
+          condition = condition ? this._sanitizeExpression(condition) : condition;
 
           this.joins.push({
             type: type,

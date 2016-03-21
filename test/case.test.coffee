@@ -68,7 +68,10 @@ test['Case expression builder base class'] =
       toString: ->
         assert.same @inst.toString(), 'CASE WHEN (\'foo\') THEN \'bar\' ELSE NULL END'
       toParam: ->
-        assert.same @inst.toParam(), { text: 'CASE WHEN (?) THEN \'bar\' ELSE NULL END', values: ['foo'] }
+        assert.same @inst.toParam(), { 
+          text: 'CASE WHEN (?) THEN \'bar\' ELSE NULL END', 
+          values: ['foo'] 
+        }
 
     '>> when().then().else()':
       beforeEach: -> 
@@ -79,7 +82,10 @@ test['Case expression builder base class'] =
       toString: ->
         assert.same @inst.toString(), 'CASE WHEN (\'foo\') THEN \'bar\' ELSE \'foobar\' END'
       toParam: ->
-        assert.same @inst.toParam(), { text: 'CASE WHEN (?) THEN \'bar\' ELSE \'foobar\' END', values: ['foo'] }
+        assert.same @inst.toParam(), { 
+          text: 'CASE WHEN (?) THEN \'bar\' ELSE \'foobar\' END', 
+          values: ['foo'] 
+        }
         
   'field case':
     beforeEach: -> 
@@ -90,7 +96,10 @@ test['Case expression builder base class'] =
     toString: ->
       assert.same @inst.toString(), 'CASE name WHEN (\'foo\') THEN \'bar\' ELSE NULL END'
     toParam: ->
-      assert.same @inst.toParam(), { text: 'CASE name WHEN (?) THEN \'bar\' ELSE NULL END', values: ['foo'] }
+      assert.same @inst.toParam(), { 
+        text: 'CASE name WHEN (?) THEN \'bar\' ELSE NULL END', 
+        values: ['foo'] 
+      }
 
 
 module?.exports[require('path').basename(__filename)] = test
