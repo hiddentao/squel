@@ -1158,6 +1158,13 @@ test['Blocks'] =
         @inst.buildStr()
         assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
 
+      'Fix for hiddentao/squel#220': ->
+        str = 'a string'
+        str.format = 1
+        @inst._condition('a = ?', str)
+
+        assert.same 'MOCKVERB (a = \'a string\')', @inst.buildStr()
+
       'formats values ': ->
         formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
 
