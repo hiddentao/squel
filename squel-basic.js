@@ -57,9 +57,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 
   // for-of (temporary fix for #219 until v5 is released)
   function _forOf(arr, cb) {
-    if (arr) {
+    if (arr && arr.length) {
       for (var i = 0; i < arr.length; ++i) {
         cb(arr[i]);
+      }
+    }
+  };
+  function _forOfStr(str, cb) {
+    if (str && str.length) {
+      for (var i = 0; i < str.length; ++i) {
+        cb(str.charAt(i));
       }
     }
   };
@@ -1129,7 +1136,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           var finalStr = '';
           var values = [].concat(this._values);
 
-          _forOf(str, function (c) {
+          _forOfStr(str, function (c) {
             if (_this12.options.parameterCharacter === c && 0 < values.length) {
               c = values.shift();
             }
@@ -2139,6 +2146,10 @@ OTHER DEALINGS IN THE SOFTWARE.
         value: function _condition(condition) {
           var _this30 = this;
 
+          for (var _len6 = arguments.length, values = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+            values[_key6 - 1] = arguments[_key6];
+          }
+
           condition = this._sanitizeCondition(condition);
 
           var finalCondition = "";
@@ -2150,14 +2161,8 @@ OTHER DEALINGS IN THE SOFTWARE.
             finalCondition = t.text;
             finalValues = t.values;
           } else {
-            for (var _len6 = arguments.length, values = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-              values[_key6 - 1] = arguments[_key6];
-            }
-
-            for (var idx in condition) {
-              var c = condition.charAt(idx);
-
-              if (this.options.parameterCharacter === c && 0 < values.length) {
+            _forOfStr(condition, function (c) {
+              if (_this30.options.parameterCharacter === c && 0 < values.length) {
                 var nextValue = values.shift();
                 // # where b in (?, ? ?)
                 if (_isArray(nextValue)) {
@@ -2173,13 +2178,13 @@ OTHER DEALINGS IN THE SOFTWARE.
                     finalCondition += '(' + paramChars.join(', ') + ')';
                   })();
                 } else {
-                  finalCondition += this.options.parameterCharacter;
-                  finalValues.push(this._sanitizeValue(nextValue));
+                  finalCondition += _this30.options.parameterCharacter;
+                  finalValues.push(_this30._sanitizeValue(nextValue));
                 }
               } else {
                 finalCondition += c;
               }
-            }
+            });
           }
 
           if (finalCondition.length) {
@@ -2209,7 +2214,7 @@ OTHER DEALINGS IN THE SOFTWARE.
               (function () {
                 // replace placeholders with actual parameter values
                 var pIndex = 0;
-                _forOf(cond.text, function (c) {
+                _forOfStr(cond.text, function (c) {
                   if (_this31.options.parameterCharacter === c) {
                     condStr += _this31._formatValue(cond.values[pIndex++]);
                   } else {

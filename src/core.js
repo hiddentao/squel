@@ -1,8 +1,15 @@
 // for-of (temporary fix for #219 until v5 is released)
 function _forOf (arr, cb) {
-  if (arr) {
+  if (arr && arr.length) {
     for (let i=0; i<arr.length; ++i) {
       cb(arr[i]);
+    }
+  }
+};
+function _forOfStr (str, cb) {
+  if (str && str.length) {
+    for (let i=0; i<str.length; ++i) {
+      cb(str.charAt(i));
     }
   }
 };
@@ -964,7 +971,7 @@ function _buildSquel(flavour = null) {
       let finalStr = '';
       let values = [].concat(this._values);
 
-      _forOf(str, (c) => {
+      _forOfStr(str, (c) => {
         if (this.options.parameterCharacter === c && 0 < values.length) {
           c = values.shift();
         }
@@ -1777,9 +1784,7 @@ function _buildSquel(flavour = null) {
         finalValues = t.values;
       }
       else {
-        for (let idx in condition) {
-          let c = condition.charAt(idx);
-
+        _forOfStr(condition, (c) => {
           if (this.options.parameterCharacter === c && 0 < values.length) {
             let nextValue = values.shift();
             // # where b in (?, ? ?)
@@ -1800,7 +1805,7 @@ function _buildSquel(flavour = null) {
           else {
             finalCondition += c;
           }
-        }
+        });
       }
 
       if (finalCondition.length) {
@@ -1827,7 +1832,7 @@ function _buildSquel(flavour = null) {
         if (0 < cond.values.length) {
           // replace placeholders with actual parameter values
           let pIndex = 0;
-          _forOf(cond.text, (c) => {
+          _forOfStr(cond.text, (c) => {
             if (this.options.parameterCharacter === c) {
               condStr += this._formatValue( cond.values[pIndex++] );
             }
