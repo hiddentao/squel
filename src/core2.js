@@ -426,33 +426,25 @@ function _buildSquel(flavour = null) {
 
 
 
-    // Format the given field value for inclusion into query parameter array
-    _formatValueAsParam (value) {
+    /** 
+     * Format given value for inclusion into parameter values array.
+     */
+    _formatValueForParamArray (value) {
       if (_isArray(value)) {
         return value.map((v) => {
-          return this._formatValueAsParam(v);
+          return this._formatValueForParamArray(v);
         });
       } else {
-        if (value instanceof cls.QueryBuilder && value.isNestable()) {
-          value.updateOptions({ 
-            "nestedBuilder": true 
-          });
-
-          return value.toParam();
-        }
-        else if (value instanceof cls.Expression) {
-          return value.toParam();
-        }
-        else {
-          return this._formatCustomValue(value, true);
-        }
+        return this._formatCustomValue(value, true);
       }
     }
 
 
 
-    // Format the given field value for inclusion into the query string
-    _formatValue (value, formattingOptions = {}) {
+    /**
+     * Format the given field value for inclusion into the query string
+     */
+    _formatValueForQueryString (value, formattingOptions = {}) {
       let customFormattedValue = this._formatCustomValue(value);
       
       // if formatting took place then return it directly
@@ -463,7 +455,7 @@ function _buildSquel(flavour = null) {
       // if it's an array then format each element separately
       if (_isArray(value)) {
         value = value.map((v) => {
-          return this._formatValue(v);
+          return this._formatValueForQueryString(v);
         });
 
         value = `(${value.join(', ')})`;
@@ -537,25 +529,33 @@ function _buildSquel(flavour = null) {
           let value = values[++curValue];
 
           if (options.buildParameterized) {
-            let finalValue = this._formatValueAsParam(value);
+            if (value instanceof cls.BaseBuilder) {
+              let ret = value.toParam({
+                nested: true,
+              });
 
-            if (_isArray(finalValue)) {
-              // 6 -> "(??, ??, ??, ??, ??, ??)"
-              let tmpStr = '';
-              for (let num=0; finalValue.length > num; ++num) {
-                tmpStr = _pad(tmpStr, ', ');
-                tmpStr += paramChar;
-              }
-              formattedStr += `(${tmpStr})`;
-
-              formattedValues.push(...finalValue);
+              formattedStr += ret.text;
+              formattedValues.push(...ret.value);
             } else {
-              formattedStr += this.options.parameterCharacter;
+              value = this._formatValueForParamArray(value);
 
-              formattedValues.push(finalValue);              
+              if (_isArray(value)) {
+                // Array(6) -> "(??, ??, ??, ??, ??, ??)"
+                let tmpStr = values.map(function() {
+                  return paramChar;
+                }).join(', ');
+
+                formattedStr += `(${tmpStr})`;
+
+                formattedValues.push(...value);
+              } else {
+                formattedStr += paramChar;
+
+                formattedValues.push(value);              
+              }
             }
           } else {
-            formattedStr += this._formatValue(value);
+            formattedStr += this._formatValueForQueryString(value);
           }
 
           idx += paramChar.length;
@@ -714,7 +714,7 @@ function _buildSquel(flavour = null) {
         let { type, expr,  para } = node;
 
         let ret = (expr instanceof cls.Expression) 
-          ? expr._toString({
+          ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
             })
@@ -810,7 +810,7 @@ function _buildSquel(flavour = null) {
         totalValues = [];
 
       if (this._cases.length == 0) {
-        totalStr = '' + this._formatValue(this._elseValue);
+        totalStr = '' + this._formatValueForQueryString(this._elseValue);
       } else {
         let cases = this._cases.map((part) => {
           let { expression, values, result } = part;
@@ -830,10 +830,10 @@ function _buildSquel(flavour = null) {
             totalValues.push(...ret.values);
           }
 
-          return `${str} THEN ${this._formatValue(result)}`;
+          return `${str} THEN ${this._formatValueForQueryString(result)}`;
         });
 
-        let str = `${cases.join(" ")} ELSE ${this._formatValue(this._elseValue)} END`;
+        let str = `${cases.join(" ")} ELSE ${this._formatValueForQueryString(this._elseValue)} END`;
 
         if (this._fieldName) {
           str = `${this._fieldName} ${str}`;
@@ -918,11 +918,11 @@ function _buildSquel(flavour = null) {
       this._str = str;
     }
 
-    /**
-     * @param options.queryBuilder cls.QueryBuilder a reference to the query builder that owns this block.
-     */
     _toParamString (options) {
-      return this._str;
+      return {
+        text: this._str,
+        values: [],
+      };
     }
   }
 
@@ -1017,9 +1017,7 @@ function _buildSquel(flavour = null) {
         for (let blk of this._tables) {
           let { table, alias } = blk;
 
-          if ("string" === typeof table) {
-            totalStr.push(table);
-          } else {
+          if (table instanceof BaseBuilder) {
             let { text, values } = table.toParam({
               nested: true,
             });
@@ -1029,7 +1027,9 @@ function _buildSquel(flavour = null) {
             }
 
             totalStr.push(text);
-            totalValues.push(...values);
+            totalValues.push(...values);            
+          } else {
+            totalStr.push('' + table);            
           }
         }
       }
@@ -1214,43 +1214,40 @@ function _buildSquel(flavour = null) {
   cls.AbstractSetFieldBlock = class extends cls.Block {
     constructor (options) {
       super(options);
-      this.fieldOptions = [];
-      this.fields = [];
-      this.values = [];
+
+      this._reset();
+    }
+
+    _reset () {
+      this._fields = [];
+      this._values = [[]];
+      this._fieldOptions = [[]];
     }
 
     // Update the given field with the given value.
     // This will override any previously set value for the given field.
     _set (field, value, options = {}) {
-      if (this.values.length > 1) {
-        throw new Error("Cannot call set or setFields on multiple rows of fields.");
+      if (this._values.length > 1) {
+        throw new Error("Cannot set multiple rows of fields this way.");
       }
 
-      if (undefined !== value) {
+      if (typeof value == 'undefined') {
         value = this._sanitizeValue(value);
       }
 
+      field = this._sanitizeField(field, options);
+
       // Explicity overwrite existing fields
-      let index = this.fields.indexOf(this._sanitizeField(field, options));
+      let index = this._fields.indexOf(field);
 
-      if (index !== -1) {
-        this.values[0][index] = value;
-        this.fieldOptions[0][index] = options;
+      // if field not defined before
+      if (-1 === index) {
+        this._fields.push(field);
+        index = this._fields.length - 1;
       }
-      else {
-        this.fields.push(this._sanitizeField(field, options));
-        index = this.fields.length - 1;
 
-        // The first value added needs to create the array of values for the row
-        if (_isArray(this.values[0])) {
-          this.values[0][index] = value;
-          this.fieldOptions[0][index] = options;
-        }
-        else {
-          this.values.push([value]);
-          this.fieldOptions.push([options]);
-        }
-      }
+      this._values[0][index] = value;
+      this._fieldOptions[0][index] = options;
     }
 
 
@@ -1273,16 +1270,20 @@ function _buildSquel(flavour = null) {
       }
 
       // Reset the objects stored fields and values
-      this.fields = [];
-      this.values = [];
+      this._reset();
 
+      // for each row
       for (let i in fieldsRows) {
         let fieldRow = fieldsRows[i];
 
+        // for each field
         for (let field in fieldRow) {
           let value = fieldRow[field];
 
-          let index = this.fields.indexOf(this._sanitizeField(field, options));
+          field = this._sanitizeField(field, options);
+          value = this._sanitizeValue(value);
+
+          let index = this._fields.indexOf(field);
 
           if (0 < i && -1 === index) {
             throw new Error('All fields in subsequent rows must match the fields in the first row');
@@ -1290,21 +1291,18 @@ function _buildSquel(flavour = null) {
 
           // Add field only if it hasn't been added before
           if (-1 === index) {
-            this.fields.push(this._sanitizeField(field, options));
-            index = this.fields.length - 1;            
+            this._fields.push(field);
+            index = this._fields.length - 1;            
           }
-
-          value = this._sanitizeValue(value);
 
           // The first value added needs to add the array
-          if (_isArray(this.values[i])) {
-            this.values[i][index] = value;
-            this.fieldOptions[i][index] = options;
+          if (!_isArray(this._values[i])) {
+            this._values[i] = [];
+            this._fieldOptions[i] = [];
           }
-          else {
-            this.values[i] = [value];
-            this.fieldOptions[i] = [options];
-          }
+
+          this._values[i][index] = value;
+          this._fieldOptions[i][index] = options;
         }
       }
     }
@@ -1321,76 +1319,44 @@ function _buildSquel(flavour = null) {
       this._setFields(fields, options);
     }
 
-    toString (queryBuilder) {
-      if (0 >= this.fields.length) {
+    _toParamString (options) {
+      let { buildParameterized } = options;
+
+      if (0 >= this._fields.length) {
         throw new Error("set() needs to be called");
       }
 
-      let str = "";
+      let totalValues = '',
+        totalValues = [];
 
-      for (let i in this.fields) {
-        if (str.length) {
-          str += ", ";
-        }
+      for (let i in this._fields) {
+        totalStr = _pad(totalStr, ', ');
 
-        let field = this.fields[i];
-
+        let field = this._fields[i];
         let value = this.values[0][i];
 
-        let fieldOptions = this.fieldOptions[0][i];
-
-        // e.g. if field is an expression such as: count = count + 1
+        // e.g. field can be an expression such as `count = count + 1`
         if (typeof value === 'undefined') {
-          str += field;
+          totalStr += field;
         }
         else {
-          str += `${field} = ${this._formatValue(value, fieldOptions)}`;
-        }
-      }
-
-      return `SET ${str}`;
-    }
-
-    toParam (queryBuilder) {
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
-      }
-
-      let str = "";
-      let vals = [];
-
-      for (let i in this.fields) {
-        if (str.length) {
-          str += ", ";
-        }
-
-        let field = this.fields[i];
-
-        let value = this.values[0][i];
-
-        // e.g. if field is an expression such as: count = count + 1
-        if (typeof value === 'undefined') {
-          str += field;
-        }
-        else {
-          let p = this._formatValueAsParam( value );
-
-          if (!!p && !!p.text) {
-            str += `${field} = (${p.text})`;
-
-            for (let v of p.values) {
-              vals.push(v);
+          let ret = this._buildString(
+            `${field} = ${this.options.parameterCharacter}`, 
+            value,
+            {
+              buildParameterized: buildParameterized,
             }
-          }
-          else {
-            str += `${field} = ${this.options.parameterCharacter}`;
+          );
 
-            vals.push(p);
-          }
+          totalStr += ret.text;
+          totalValues.push(...ret.values);
         }
       }
 
-      return { text: `SET ${str}`, values: vals };
+      return { 
+        text: `SET ${totalStr}`, 
+        values: totalValues 
+      };
     }
 
   }
@@ -1410,86 +1376,33 @@ function _buildSquel(flavour = null) {
       this._setFieldsRows(fieldsRows, options);
     }
 
-    _buildVals () {
-      let vals = [];
+    _toParamString (options) {
+      let { buildParameterized } = options;
+      
+      let fieldString = this._fields.join(', '),
+        valueStrings = [],
+        totalValues = [];
 
       for (let i in this.values) {
-        for (let j in this.values[i]) {
-          let formattedValue = this._formatValue(this.values[i][j], this.fieldOptions[i][j]);
+        valueStrings[i] = '';
 
-          if ('string' === typeof vals[i]) {
-            vals[i] += ', ' + formattedValue;
-          }
-          else {
-            vals[i] = '' + formattedValue;
-          }
+        for (let j in this.values[i]) {
+          let ret = 
+            this._buildString(this.options.parameterCharacter, this.values[i][j], {
+              buildParameterized: buildParameterized,
+            });
+
+          totalValues.push(...ret.values);          
+
+          valueStrings[i] = _pad(valueStrings[i], ', ');
+          valueStrings[i] += str;
         }
       }
 
-      return vals;
-    }
-
-    _buildValParams () {
-      let vals = [];
-      let params = [];
-
-      for (let i in this.values) {
-        for (let j in this.values[i]) {
-          let p = this._formatValueAsParam( this.values[i][j] );
-          let str;
-
-          if (!!p && !!p.text) {
-            str = p.text;
-
-            for (let v of p.values) {
-              params.push(v);
-            }
-          }
-          else {
-            str = this.options.parameterCharacter;
-            params.push(p);
-          }
-
-          if ('string' === typeof vals[i]) {
-            vals[i] += `, ${str}`;
-          }
-          else {
-            vals[i] = str;
-          }
-        }
-      }
-
-      return {
-        vals: vals,
-        params: params,
+      return { 
+        text: `(${fieldString}) VALUES (${valueStrings.join('), (')})`, 
+        values: totalValues 
       };
-    }
-
-
-    toString (queryBuilder) {
-      if (0 >= this.fields.length) {
-        return '';
-      }
-
-      return `(${this.fields.join(', ')}) VALUES (${this._buildVals().join('), (')})`;
-    }
-
-    toParam (queryBuilder) {
-      if (0 >= this.fields.length) {
-       return { text: '', values: [] };
-      }
-
-      // fields
-      let str = "";
-      let {vals, params} = this._buildValParams();
-      for (let i in this.fields) {
-        if (str.length) {
-          str += ', ';
-        }
-        str += this.fields[i];
-      }
-
-      return { text: `(${str}) VALUES (${vals.join('), (')})`, values: params };
     }
 
   }
@@ -1690,7 +1603,7 @@ function _buildSquel(flavour = null) {
 
           let (c of cond.text) {
             if (this.options.parameterCharacter === c) {
-              condStr += this._formatValue( cond.values[pIndex++] );
+              condStr += this._formatValueForQueryString( cond.values[pIndex++] );
             }
             else {
               condStr += c;
@@ -1731,7 +1644,7 @@ function _buildSquel(flavour = null) {
             condStr += str[i];
           }
             
-          let p = this._formatValueAsParam(v);
+          let p = this._formatValueForParamArray(v);
           if (!!p && !!p.text) {
             condStr += `(${p.text})`;
 
@@ -1830,7 +1743,7 @@ function _buildSquel(flavour = null) {
           if (!toParam) {
             for (let c of o.field) {
               if (this.options.parameterCharacter === c) {
-                fstr += this._formatValue( this._values[pIndex++] );
+                fstr += this._formatValueForQueryString( this._values[pIndex++] );
               }
               else {
                 fstr += c;
@@ -1863,7 +1776,7 @@ function _buildSquel(flavour = null) {
       return {
         text: this._toString(true),
         values: this._values.map((v) => {
-          return this._formatValueAsParam(v);
+          return this._formatValueForParamArray(v);
         }),
       };
     }
