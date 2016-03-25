@@ -607,7 +607,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
           if (nesting) {
             // don't want to apply twice
-            if ('(' !== str.charAt(0) && ')' !== str.charAt(str.length - 1)) {
+            if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
               return '(' + str + ')';
             }
           }
@@ -666,7 +666,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
                   if (_isArray(value)) {
                     // Array(6) -> "(??, ??, ??, ??, ??, ??)"
-                    var tmpStr = values.map(function () {
+                    var tmpStr = value.map(function () {
                       return paramChar;
                     }).join(', ');
 
@@ -692,7 +692,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
 
           return {
-            text: this._applyNestingFormatting(formattedStr, nested),
+            text: this._applyNestingFormatting(formattedStr, !!nested),
             values: formattedValues
           };
         }
@@ -737,7 +737,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           totalStr = totalStr.join(this.options.separator);
 
           return {
-            text: totalStr.length ? this._applyNestingFormatting(totalStr, options.nested) : '',
+            text: totalStr.length ? this._applyNestingFormatting(totalStr, !!options.nested) : '',
             values: totalValues
           };
         }
@@ -881,16 +881,15 @@ OTHER DEALINGS IN THE SOFTWARE.
               var expr = node.expr;
               var para = node.para;
 
-
-              var _ret5 = expr instanceof cls.Expression ? expr._toParamString({
+              var _ref = expr instanceof cls.Expression ? expr._toParamString({
                 buildParameterized: options.buildParameterized,
                 nested: true
               }) : this._buildString(expr, para, {
                 buildParameterized: options.buildParameterized
               });
 
-              var text = _ret5.text;
-              var values = _ret5.values;
+              var text = _ref.text;
+              var values = _ref.values;
 
 
               if (totalStr.length) {
@@ -918,7 +917,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           totalStr = totalStr.join(' ');
 
           return {
-            text: totalStr,
+            text: this._applyNestingFormatting(totalStr, !!options.nested),
             values: totalValues
           };
         }
@@ -1020,13 +1019,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, ' ');
 
-              var _ret6 = this._buildString(expression, values, {
+              var _ret5 = this._buildString(expression, values, {
                 buildParameterized: options.buildParameterized,
                 nested: true
               });
 
-              totalStr += 'WHEN ' + _ret6.text + ' THEN ' + this._formatValueForQueryString(result);
-              totalValues.push.apply(totalValues, _toConsumableArray(_ret6.values));
+              totalStr += 'WHEN ' + _ret5.text + ' THEN ' + this._formatValueForQueryString(result);
+              totalValues.push.apply(totalValues, _toConsumableArray(_ret5.values));
             }
           } catch (err) {
             _didIteratorError3 = true;
@@ -1555,13 +1554,13 @@ OTHER DEALINGS IN THE SOFTWARE.
               if (typeof name === 'string') {
                 totalStr += this._formatFieldName(name, _options);
               } else {
-                var _ret7 = name._toParamString({
+                var _ret6 = name._toParamString({
                   nested: true,
                   buildParameterized: buildParameterized
                 });
 
-                totalStr += _ret7.text;
-                totalValues.push.apply(totalValues, _toConsumableArray(_ret7.values));
+                totalStr += _ret6.text;
+                totalValues.push.apply(totalValues, _toConsumableArray(_ret6.values));
               }
 
               if (alias) {
@@ -1762,13 +1761,13 @@ OTHER DEALINGS IN THE SOFTWARE.
             if (typeof value === 'undefined') {
               totalStr += field;
             } else {
-              var _ret8 = this._buildString(field + ' = ' + this.options.parameterCharacter, value, {
+              var _ret7 = this._buildString(field + ' = ' + this.options.parameterCharacter, value, {
                 buildParameterized: buildParameterized,
                 formattingOptions: this._valueOptions[0][i]
               });
 
-              totalStr += _ret8.text;
-              totalValues.push.apply(totalValues, _toConsumableArray(_ret8.values));
+              totalStr += _ret7.text;
+              totalValues.push.apply(totalValues, _toConsumableArray(_ret7.values));
             }
           }
 
@@ -1823,12 +1822,12 @@ OTHER DEALINGS IN THE SOFTWARE.
             valueStrings[i] = '';
 
             for (var j in this.values[i]) {
-              var _ret9 = this._buildString(this.options.parameterCharacter, this.values[i][j], {
+              var _ret8 = this._buildString(this.options.parameterCharacter, this.values[i][j], {
                 buildParameterized: buildParameterized,
                 formattingOptions: this._valueOptions[i][j]
               });
 
-              totalValues.push.apply(totalValues, _toConsumableArray(_ret9.values));
+              totalValues.push.apply(totalValues, _toConsumableArray(_ret8.values));
 
               valueStrings[i] = _pad(valueStrings[i], ', ');
               valueStrings[i] += str;
@@ -2061,13 +2060,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, ') AND (');
 
-              var _ret10 = expr instanceof cls.Expression ? expr._toParamString({
+              var _ret9 = expr instanceof cls.Expression ? expr._toParamString({
                 buildParameterized: options.buildParameterized
               }) : this._buildString(expr, values, {
                 buildParameterized: options.buildParameterized
               });
 
-              totalStr += _ret10.text, totalValues.push.apply(totalValues, _toConsumableArray(_ret10.values));
+              totalStr += _ret9.text, totalValues.push.apply(totalValues, _toConsumableArray(_ret9.values));
             }
           } catch (err) {
             _didIteratorError7 = true;
@@ -2203,11 +2202,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, ', ');
 
-              var _ret11 = this._buildString(field, values, {
+              var _ret10 = this._buildString(field, values, {
                 buildParameterized: options.buildParameterized
               });
 
-              totalStr += _ret11.text, totalValues.push.apply(totalValues, _toConsumableArray(_ret11.values));
+              totalStr += _ret10.text, totalValues.push.apply(totalValues, _toConsumableArray(_ret10.values));
 
               if (dir !== null) {
                 totalStr += ' ' + (dir ? 'ASC' : 'DESC');
@@ -2394,12 +2393,12 @@ OTHER DEALINGS IN THE SOFTWARE.
               var tableStr = void 0;
 
               if (table instanceof cls.BaseBuilder) {
-                var _ret12 = table.toParam({
+                var _ret11 = table.toParam({
                   nested: true
                 });
 
-                totalValues.push.apply(totalValues, _toConsumableArray(_ret12.values));
-                tableStr = _ret12.text;
+                totalValues.push.apply(totalValues, _toConsumableArray(_ret11.values));
+                tableStr = _ret11.text;
               } else {
                 tableStr = this._formatTableName(tableStr);
               }
@@ -2509,12 +2508,12 @@ OTHER DEALINGS IN THE SOFTWARE.
               var tableStr = void 0;
 
               if (table instanceof cls.BaseBuilder) {
-                var _ret13 = table.toParam({
+                var _ret12 = table.toParam({
                   nested: true
                 });
 
-                tableStr = _ret13.text;
-                totalValues.push.apply(totalValues, _toConsumableArray(_ret13.values));
+                tableStr = _ret12.text;
+                totalValues.push.apply(totalValues, _toConsumableArray(_ret12.values));
               } else {
                 totalStr = this._formatTableName(table);
               }
@@ -2709,7 +2708,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_toParamString',
         value: function _toParamString() {
-          var _ref;
+          var _ref2;
 
           var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -2732,7 +2731,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             return 0 < v.length;
           }).join(this.options.separator);
 
-          var totalValues = (_ref = []).concat.apply(_ref, _toConsumableArray(blockValues));
+          var totalValues = (_ref2 = []).concat.apply(_ref2, _toConsumableArray(blockValues));
 
           if (!options.nested) {
             if (options.numberedParameters) {

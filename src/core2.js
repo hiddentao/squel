@@ -494,7 +494,7 @@ function _buildSquel(flavour = null) {
     _applyNestingFormatting(str, nesting = true) {
       if (nesting) {
         // don't want to apply twice
-        if ('(' !== str.charAt(0) && ')' !== str.charAt(str.length - 1)) {
+        if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
           return `(${str})`;
         }
       }
@@ -547,7 +547,7 @@ function _buildSquel(flavour = null) {
 
               if (_isArray(value)) {
                 // Array(6) -> "(??, ??, ??, ??, ??, ??)"
-                let tmpStr = values.map(function() {
+                let tmpStr = value.map(function() {
                   return paramChar;
                 }).join(', ');
 
@@ -574,7 +574,7 @@ function _buildSquel(flavour = null) {
       }
 
       return {
-        text: this._applyNestingFormatting(formattedStr, nested),
+        text: this._applyNestingFormatting(formattedStr, !!nested),
         values: formattedValues,
       };
     }
@@ -613,7 +613,7 @@ function _buildSquel(flavour = null) {
 
       return {
         text: totalStr.length 
-          ? this._applyNestingFormatting(totalStr, options.nested) 
+          ? this._applyNestingFormatting(totalStr, !!options.nested) 
           : '',
         values: totalValues,
       };
@@ -722,7 +722,8 @@ function _buildSquel(flavour = null) {
       for (let node of this._nodes) {
         let { type, expr,  para } = node;
 
-        let ret = (expr instanceof cls.Expression) 
+
+        let { text, values } = (expr instanceof cls.Expression) 
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -731,8 +732,6 @@ function _buildSquel(flavour = null) {
               buildParameterized: options.buildParameterized,
             })
         ;
-
-        let { text, values } = ret;
 
         if (totalStr.length) {
           totalStr.push(type);
@@ -745,7 +744,7 @@ function _buildSquel(flavour = null) {
       totalStr = totalStr.join(' ');
 
       return {
-        text: totalStr,
+        text: this._applyNestingFormatting(totalStr, !!options.nested),
         values: totalValues,
       };
     }

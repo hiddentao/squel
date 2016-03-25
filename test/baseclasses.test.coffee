@@ -693,11 +693,11 @@ test['Builder base class'] =
   '_applyNestingFormatting':
     default: ->
       assert.same '(77)', @inst._applyNestingFormatting('77')
-    nesting: ->
-      assert.same '(77)', @inst._applyNestingFormatting('77', true)
-      assert.same '(77', @inst._applyNestingFormatting('(77', true)
-      assert.same '77)', @inst._applyNestingFormatting('77)', true)
-      assert.same '(77)', @inst._applyNestingFormatting('(77)', true)
+      assert.same '((77)', @inst._applyNestingFormatting('(77')
+      assert.same '(77))', @inst._applyNestingFormatting('77)')
+      assert.same '(77)', @inst._applyNestingFormatting('(77)')
+    'no nesting': ->
+      assert.same '77', @inst._applyNestingFormatting('77', false)
 
 
 

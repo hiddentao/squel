@@ -64,7 +64,7 @@ gulp.task('test', function () {
       './test/case.test.coffee',
       // './test/custom.test.coffee',
       // './test/delete.test.coffee',
-      // './test/expressions.test.coffee',
+      './test/expressions.test.coffee',
       // './test/insert.test.coffee',
       // './test/select.test.coffee',
       // './test/update.test.coffee',
