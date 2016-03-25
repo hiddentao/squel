@@ -737,7 +737,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           totalStr = totalStr.join(this.options.separator);
 
           return {
-            text: this._applyNestingFormatting(totalStr, options.nested),
+            text: totalStr.length ? this._applyNestingFormatting(totalStr, options.nested) : '',
             values: totalValues
           };
         }
@@ -1270,10 +1270,6 @@ OTHER DEALINGS IN THE SOFTWARE.
               totalValues = [];
 
           if (this._hasTable()) {
-            if (this.options.prefix) {
-              totalStr += this.options.prefix + ' ';
-            }
-
             // retrieve the parameterised queries
             var _iteratorNormalCompletion4 = true;
             var _didIteratorError4 = false;
@@ -1323,6 +1319,10 @@ OTHER DEALINGS IN THE SOFTWARE.
                   throw _iteratorError4;
                 }
               }
+            }
+
+            if (this.options.prefix) {
+              totalStr = this.options.prefix + ' ' + totalStr;
             }
           }
 
@@ -1537,56 +1537,54 @@ OTHER DEALINGS IN THE SOFTWARE.
           var totalStr = '',
               totalValues = [];
 
-          if (queryBuilder && queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
-            var _iteratorNormalCompletion6 = true;
-            var _didIteratorError6 = false;
-            var _iteratorError6 = undefined;
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
 
+          try {
+            for (var _iterator6 = this._fields[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var field = _step6.value;
+
+              totalStr = _pad(totalStr, ", ");
+
+              var name = field.name;
+              var alias = field.alias;
+              var _options = field.options;
+
+
+              if (typeof name === 'string') {
+                totalStr += this._formatFieldName(name, _options);
+              } else {
+                var _ret7 = name._toParamString({
+                  nested: true,
+                  buildParameterized: buildParameterized
+                });
+
+                totalStr += _ret7.text;
+                totalValues.push.apply(totalValues, _toConsumableArray(_ret7.values));
+              }
+
+              if (alias) {
+                totalStr += ' AS ' + this._formatFieldAlias(alias);
+              }
+            }
+          } catch (err) {
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
+          } finally {
             try {
-              for (var _iterator6 = this._fields[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                var field = _step6.value;
-
-                totalStr = _pad(totalStr, ", ");
-
-                var name = field.name;
-                var alias = field.alias;
-                var _options = field.options;
-
-
-                if (typeof name === 'string') {
-                  totalStr += this._formatFieldName(name, _options);
-                } else {
-                  var _ret7 = name._toParamString({
-                    nested: true,
-                    buildParameterized: buildParameterized
-                  });
-
-                  totalStr += _ret7.text;
-                  totalValues.push.apply(totalValues, _toConsumableArray(_ret7.values));
-                }
-
-                if (alias) {
-                  totalStr += ' AS ' + this._formatFieldAlias(alias);
-                }
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
               }
-            } catch (err) {
-              _didIteratorError6 = true;
-              _iteratorError6 = err;
             } finally {
-              try {
-                if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                  _iterator6.return();
-                }
-              } finally {
-                if (_didIteratorError6) {
-                  throw _iteratorError6;
-                }
+              if (_didIteratorError6) {
+                throw _iteratorError6;
               }
             }
+          }
 
-            if (!totalStr.length) {
-              totalStr = "*";
-            }
+          if (!totalStr.length) {
+            totalStr = "*";
           }
 
           return {
@@ -2087,7 +2085,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
 
           return {
-            text: this.options.verb + ' (' + totalStr + ')',
+            text: totalStr.length ? this.options.verb + ' (' + totalStr + ')' : '',
             values: totalValues
           };
         }
@@ -2270,7 +2268,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         key: '_toParamString',
         value: function _toParamString() {
           return {
-            text: !isNaN(this._limit) ? 'LIMIT ' + this._limit : "",
+            text: null !== this._limit ? 'LIMIT ' + this._limit : '',
             values: []
           };
         }
@@ -2384,7 +2382,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           var _iteratorError9 = undefined;
 
           try {
-            for (var _iterator9 = this._conditions[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+            for (var _iterator9 = this._joins[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
               var _step9$value = _step9.value;
               var type = _step9$value.type;
               var table = _step9$value.table;

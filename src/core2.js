@@ -612,7 +612,9 @@ function _buildSquel(flavour = null) {
       totalStr = totalStr.join(this.options.separator);
 
       return {
-        text: this._applyNestingFormatting(totalStr, options.nested),
+        text: totalStr.length 
+          ? this._applyNestingFormatting(totalStr, options.nested) 
+          : '',
         values: totalValues,
       };
     }
@@ -1007,10 +1009,6 @@ function _buildSquel(flavour = null) {
         totalValues = [];
 
       if (this._hasTable()) {
-        if (this.options.prefix) {
-          totalStr += `${this.options.prefix} `;
-        }
-
         // retrieve the parameterised queries
         for (let blk of this._tables) {
           totalStr = _pad(totalStr, ', ');
@@ -1033,6 +1031,10 @@ function _buildSquel(flavour = null) {
           }
 
           totalStr += tableStr;
+        }
+
+        if (this.options.prefix) {
+          totalStr = `${this.options.prefix} ${totalStr}`;
         }
       }
 
@@ -1175,32 +1177,30 @@ function _buildSquel(flavour = null) {
       let totalStr = '',
         totalValues = [];
 
-      if (queryBuilder && queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
-        for (let field of this._fields) {
-          totalStr = _pad(totalStr, ", ");
-          
-          let { name, alias, options } = field;
+      for (let field of this._fields) {
+        totalStr = _pad(totalStr, ", ");
+        
+        let { name, alias, options } = field;
 
-          if (typeof name === 'string') {
-            totalStr += this._formatFieldName(name, options);
-          } else {
-            let ret = name._toParamString({
-              nested: true,
-              buildParameterized: buildParameterized,
-            });
+        if (typeof name === 'string') {
+          totalStr += this._formatFieldName(name, options);
+        } else {
+          let ret = name._toParamString({
+            nested: true,
+            buildParameterized: buildParameterized,
+          });
 
-            totalStr += ret.text;
-            totalValues.push(...ret.values);
-          }
-
-          if (alias) {
-            totalStr += ` AS ${this._formatFieldAlias(alias)}`;
-          }
+          totalStr += ret.text;
+          totalValues.push(...ret.values);
         }
 
-        if (!totalStr.length) {
-          totalStr = "*";
+        if (alias) {
+          totalStr += ` AS ${this._formatFieldAlias(alias)}`;
         }
+      }
+
+      if (!totalStr.length) {
+        totalStr = "*";
       }
 
       return {
@@ -1569,7 +1569,7 @@ function _buildSquel(flavour = null) {
       }
 
       return {
-        text: `${this.options.verb} (${totalStr})`,
+        text: totalStr.length ? `${this.options.verb} (${totalStr})` : '',
         values: totalValues,
       };
     }
@@ -1679,7 +1679,7 @@ function _buildSquel(flavour = null) {
 
     _toParamString () {
       return {
-        text: (!isNaN(this._limit)) ? `LIMIT ${this._limit}` : "",
+        text: (null !== this._limit) ? `LIMIT ${this._limit}` : '',
         values: [],
       };
     }
@@ -1750,7 +1750,7 @@ function _buildSquel(flavour = null) {
       let totalStr = "",  
         totalValues = [];
 
-      for (let {type, table, alias, condition} of this._conditions) {
+      for (let {type, table, alias, condition} of this._joins) {
         totalStr = _pad(totalStr, this.options.separator);
 
         let tableStr;

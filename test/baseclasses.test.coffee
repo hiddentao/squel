@@ -679,7 +679,7 @@ test['Builder base class'] =
       assert.ok spy.calledWith null
 
     'BaseBuilder': ->
-      spy = test.mocker.stub @inst, '_applyNestingFormatting', (v) => '{{v}}'
+      spy = test.mocker.stub @inst, '_applyNestingFormatting', (v) => "{{#{v}}}"
       s = squel.select().from('table')
       assert.same '{{SELECT * FROM table}}', @inst._formatValueForQueryString(s)
 
@@ -692,7 +692,7 @@ test['Builder base class'] =
 
   '_applyNestingFormatting':
     default: ->
-      assert.same '77', @inst._applyNestingFormatting('77')
+      assert.same '(77)', @inst._applyNestingFormatting('77')
     nesting: ->
       assert.same '(77)', @inst._applyNestingFormatting('77', true)
       assert.same '(77', @inst._applyNestingFormatting('(77', true)
