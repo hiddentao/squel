@@ -4,8 +4,6 @@ function _pad (str, pad) {
 }
 
 
-
-
 // Extend given object's with other objects' properties, overriding existing ones if necessary
 function _extend (dst, ...sources) {
   if (sources) {
@@ -22,7 +20,6 @@ function _extend (dst, ...sources) {
 
   return dst;
 };
-
 
 
 
@@ -255,7 +252,6 @@ function _buildSquel(flavour = null) {
 
 
 
-
     /**
      * Sanitize the given name.
      *
@@ -270,7 +266,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _sanitizeField (item, formattingOptions = {}) {
+    _sanitizeField (item) {
       if (!(item instanceof cls.BaseBuilder)) {
         item = this._sanitizeName(item, "field name");
       }
@@ -284,7 +280,7 @@ function _buildSquel(flavour = null) {
         return item;
       }
 
-      throw new Error("query builder must be a QueryBuilder instance");
+      throw new Error("must be a QueryBuilder instance");
     }
 
 
@@ -297,42 +293,18 @@ function _buildSquel(flavour = null) {
         }
       } else {
         item = this._sanitizeName(item, 'table');
-
-        if (this.options.autoQuoteTableNames) {
-          const quoteChar = this.options.nameQuoteCharacter;
-
-          item = `${quoteChar}${item}${quoteChar}`;
-        }
       }
 
       return item;
     }
 
     _sanitizeTableAlias (item) {
-      let sanitized = this._sanitizeName(item, "table alias");
-      
-      if (this.options.autoQuoteAliasNames) {
-        let quoteChar = this.options.tableAliasQuoteCharacter;
-
-        sanitized = `${quoteChar}${sanitized}${quoteChar}`;
-      }
-
-      return (this.options.useAsForTableAliasNames) 
-        ? `AS ${sanitized}`
-        : sanitized;
+      return this._sanitizeName(item, "table alias");
     }
 
 
     _sanitizeFieldAlias (item) {
-      let sanitized = this._sanitizeName(item, "field alias");
-      
-      if (this.options.autoQuoteAliasNames) {
-        let quoteChar = this.options.fieldAliasQuoteCharacter;
-
-        return `${quoteChar}${sanitized}${quoteChar}`;
-      } else {
-        return sanitized;
-      }
+      return this._sanitizeName(item, "field alias");
     }
 
 
@@ -348,7 +320,6 @@ function _buildSquel(flavour = null) {
     }
 
 
-
     // Santize the given field value
     _sanitizeValue (item) {
       let itemType = typeof item;
@@ -359,11 +330,8 @@ function _buildSquel(flavour = null) {
       else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
         // primitives are allowed
       }
-      else if (item instanceof cls.QueryBuilder && item.isNestable()) {
-        // QueryBuilder instances allowed
-      }
-      else if (item instanceof cls.FunctionBlock) {
-        // FunctionBlock instances allowed
+      else if (item instanceof cls.BaseBuilder) {
+        // Builders allowed
       }
       else {
         let typeIsValid = 
@@ -386,7 +354,42 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _formatFieldName (item) {
+    _formatTableName (item) {
+      if (this.options.autoQuoteTableNames) {
+        const quoteChar = this.options.nameQuoteCharacter;
+
+        item = `${quoteChar}${item}${quoteChar}`;
+      }
+
+      return item;
+    }
+
+
+    _formatFieldAlias (item) {
+      if (this.options.autoQuoteAliasNames) {
+        let quoteChar = this.options.fieldAliasQuoteCharacter;
+
+        item = `${quoteChar}${item}${quoteChar}`;
+      }
+
+      return item;
+    }
+
+
+    _formatTableAlias (item) {
+      if (this.options.autoQuoteAliasNames) {
+        let quoteChar = this.options.tableAliasQuoteCharacter;
+
+        item = `${quoteChar}${item}${quoteChar}`;
+      }
+
+      return (this.options.useAsForTableAliasNames) 
+        ? `AS ${item}`
+        : item;
+    }
+
+
+    _formatFieldName (item, formattingOptions = {}) {
       if (this.options.autoQuoteFieldNames) {
         let quoteChar = this.options.nameQuoteCharacter;
 
@@ -590,14 +593,14 @@ function _buildSquel(flavour = null) {
      * @return {Object}
      */
     _buildManyStrings(strings, strValues, options = {}) {
-      let totalStr = '',
+      let totalStr = [],
         totalValues = [];
 
       for (let idx in strings) {
-        let str = strings[idx],
-          strValues = strValues[idx];
+        let inputString = strings[idx],
+          inputValues = strValues[idx];
 
-        let { text, values } = this._buildString(str, strValues, {
+        let { text, values } = this._buildString(inputString, inputValues, {
           buildParameterized: options.buildParameterized,
           nested: false,
         });
@@ -1000,7 +1003,7 @@ function _buildSquel(flavour = null) {
      * @override
      */
     _toParamString (options) {
-      let totalStr = [],
+      let totalStr = '',
         totalValues = [];
 
       if (this._hasTable()) {
@@ -1010,27 +1013,31 @@ function _buildSquel(flavour = null) {
 
         // retrieve the parameterised queries
         for (let blk of this._tables) {
+          totalStr = _pad(totalStr, ', ');
+
           let { table, alias } = blk;
 
-          if (table instanceof BaseBuilder) {
+          let tableStr = table;
+
+          if (table instanceof cls.BaseBuilder) {
             let { text, values } = table.toParam({
               nested: true,
             });
 
-            if (alias) {
-              text = `${text} ${alias}`;
-            }
-
-            totalStr.push(text);
+            tableStr = text;
             totalValues.push(...values);            
-          } else {
-            totalStr.push('' + table);            
           }
+
+          if (alias) {
+            tableStr += `${this._formatTableAlias(alias)}`;
+          }
+
+          totalStr += tableStr;
         }
       }
 
       return {
-        text: totalStr.join(', '),
+        text: totalStr,
         values: totalValues,
       };
     }
@@ -1168,7 +1175,7 @@ function _buildSquel(flavour = null) {
       let totalStr = '',
         totalValues = [];
 
-      if (queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
+      if (queryBuilder && queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
         for (let field of this._fields) {
           totalStr = _pad(totalStr, ", ");
           
@@ -1187,7 +1194,7 @@ function _buildSquel(flavour = null) {
           }
 
           if (alias) {
-            totalValues += ` AS ${alias}`;
+            totalStr += ` AS ${this._formatFieldAlias(alias)}`;
           }
         }
 
@@ -1216,12 +1223,12 @@ function _buildSquel(flavour = null) {
     _reset () {
       this._fields = [];
       this._values = [[]];
-      this._fieldOptions = [[]];
+      this._valueOptions = [[]];
     }
 
     // Update the given field with the given value.
     // This will override any previously set value for the given field.
-    _set (field, value, options = {}) {
+    _set (field, value, valueOptions = {}) {
       if (this._values.length > 1) {
         throw new Error("Cannot set multiple rows of fields this way.");
       }
@@ -1230,7 +1237,7 @@ function _buildSquel(flavour = null) {
         value = this._sanitizeValue(value);
       }
 
-      field = this._sanitizeField(field, options);
+      field = this._sanitizeField(field);
 
       // Explicity overwrite existing fields
       let index = this._fields.indexOf(field);
@@ -1242,24 +1249,24 @@ function _buildSquel(flavour = null) {
       }
 
       this._values[0][index] = value;
-      this._fieldOptions[0][index] = options;
+      this._valueOptions[0][index] = valueOptions;
     }
 
 
     // Insert fields based on the key/value pairs in the given object
-    _setFields (fields, options = {}) {
+    _setFields (fields, valueOptions = {}) {
       if (typeof fields !== 'object') {
         throw new Error("Expected an object but got " + typeof fields);
       }
 
       for (let field in fields) {
-        this._set(field, fields[field], options);
+        this._set(field, fields[field], valueOptions);
       }
     }
 
     // Insert multiple rows for the given fields. Accepts an array of objects.
     // This will override all previously set values for every field.
-    _setFieldsRows (fieldsRows, options = {}) {
+    _setFieldsRows (fieldsRows, valueOptions = {}) {
       if (!_isArray(fieldsRows)) {
         throw new Error("Expected an array of objects but got " + typeof fieldsRows);
       }
@@ -1275,7 +1282,7 @@ function _buildSquel(flavour = null) {
         for (let field in fieldRow) {
           let value = fieldRow[field];
 
-          field = this._sanitizeField(field, options);
+          field = this._sanitizeField(field);
           value = this._sanitizeValue(value);
 
           let index = this._fields.indexOf(field);
@@ -1293,11 +1300,11 @@ function _buildSquel(flavour = null) {
           // The first value added needs to add the array
           if (!_isArray(this._values[i])) {
             this._values[i] = [];
-            this._fieldOptions[i] = [];
+            this._valueOptions[i] = [];
           }
 
           this._values[i][index] = value;
-          this._fieldOptions[i][index] = options;
+          this._valueOptions[i][index] = valueOptions;
         }
       }
     }
@@ -1310,8 +1317,8 @@ function _buildSquel(flavour = null) {
       this._set(field, value, options);
     }
 
-    setFields (fields, options) {
-      this._setFields(fields, options);
+    setFields (fields, valueOptions) {
+      this._setFields(fields, valueOptions);
     }
 
     _toParamString (options) {
@@ -1340,7 +1347,7 @@ function _buildSquel(flavour = null) {
             value,
             {
               buildParameterized: buildParameterized,
-              formattingOptions: this._fieldOptions[0][i],
+              formattingOptions: this._valueOptions[0][i],
             }
           );
 
@@ -1364,12 +1371,12 @@ function _buildSquel(flavour = null) {
       this._set(field, value, options);
     }
 
-    setFields (fields, options) {
-      this._setFields(fields, options);
+    setFields (fields, valueOptions) {
+      this._setFields(fields, valueOptions);
     }
 
-    setFieldsRows (fieldsRows, options) {
-      this._setFieldsRows(fieldsRows, options);
+    setFieldsRows (fieldsRows, valueOptions) {
+      this._setFieldsRows(fieldsRows, valueOptions);
     }
 
     _toParamString (options) {
@@ -1386,7 +1393,7 @@ function _buildSquel(flavour = null) {
           let ret = 
             this._buildString(this.options.parameterCharacter, this.values[i][j], {
               buildParameterized: buildParameterized,
-              formattingOptions: this._fieldOptions[i][j],
+              formattingOptions: this._valueOptions[i][j],
             });
 
           totalValues.push(...ret.values);          
@@ -1746,17 +1753,24 @@ function _buildSquel(flavour = null) {
       for (let {type, table, alias, condition} of this._conditions) {
         totalStr = _pad(totalStr, this.options.separator);
 
-        let ret = this._buildString(table, [], {
-          buildParameterized: options.buildParameterized,
-        });
+        let tableStr;
 
-        totalStr += `${type} JOIN ${ret.text}`;
+        if (table instanceof cls.BaseBuilder) {
+          let ret = table.toParam({
+            nested: true
+          });
+
+          totalValues.push(...ret.values);          
+          tableStr = ret.text;
+        } else {
+          tableStr = this._formatTableName(tableStr);
+        }
+
+        totalStr += `${type} JOIN ${tableStr}`;
 
         if (alias) {
           totalStr += ` ${alias}`;
         }
-
-        totalValues.push(...ret.values);
 
         if (condition) {
           totalStr += ' ON ';
@@ -1794,7 +1808,7 @@ function _buildSquel(flavour = null) {
     # 'type' must be either one of UNION or UNION ALL.... Default is 'UNION'.
     */
     union (table, type = 'UNION') {
-      table = this._sanitizeTable(table, true);
+      table = this._sanitizeTable(table);
 
       this._unions.push({
         type: type,
@@ -1815,12 +1829,20 @@ function _buildSquel(flavour = null) {
       for (let {type, table} of this._unions) {
         totalStr = _pad(totalStr, this.options.separator);
 
-        let ret = this._buildString(table, [], {
-          buildParameterized: options.buildParameterized,
-        });
+        let tableStr;
 
-        totalStr += `${type} ${ret.text}`;
-        totalValues.push(...ret.values);
+        if (table instanceof cls.BaseBuilder) {
+          let ret = table.toParam({
+            nested: true
+          });
+
+          tableStr = ret.text;
+          totalValues.push(...ret.values);
+        } else {
+          totalStr = this._formatTableName(table);
+        }
+
+        totalStr += `${type} ${tableStr}`;
       }
 
       return {

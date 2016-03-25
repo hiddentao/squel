@@ -141,8 +141,8 @@ test['Function values'] =
   constructor: ->
     f = squel.fval('GETDATE(?)', 12, 23)
     assert.ok (f instanceof squel.cls.FunctionBlock)
-    assert.same 'GETDATE(?)', f._str
-    assert.same [12, 23], f._values
+    assert.same 'GETDATE(?)', f._strings[0]
+    assert.same [12, 23], f._values[0]
 
   'custom value handler':
     beforeEach: ->
@@ -154,9 +154,9 @@ test['Function values'] =
       @handler = handlerConfig.handler
 
     toString: ->
-      assert.same @inst.buildStr(), @handler(@inst)
+      assert.same @inst.toString(), @handler(@inst)
     toParam: ->
-      assert.same @inst.buildParam(), @handler(@inst, true)
+      assert.same @inst.toParam(), @handler(@inst, true)
 
 
 test['Load an SQL flavour'] =
@@ -204,6 +204,8 @@ test['Load an SQL flavour'] =
 
     ret = squel.useFlavour flavour
     assert.same ret.flavour, flavour
+
+
 
 test['Builder base class'] =
   beforeEach: ->
@@ -284,27 +286,22 @@ test['Builder base class'] =
       assert.same oldGlobalHandlers, squel.cls.globalValueHandlers
 
 
-  '_sanitizeCondition':
+  '_sanitizeExpression':
     'if Expression':
       'empty expression': ->
         e = squel.expr()
-        assert.same e, @inst._sanitizeCondition(e)
+        assert.same e, @inst._sanitizeExpression(e)
       'non-empty expression': ->
-        e = squel.expr()
-          .and("s.name <> 'Fred'")
-          .or_begin()
-            .or("s.id = 5")
-            .or("s.id = 6")
-          .end()
-        assert.same e, @inst._sanitizeCondition(e)
+        e = squel.expr().and("s.name <> 'Fred'")
+        assert.same e, @inst._sanitizeExpression(e)
 
     'if string': ->
       s = 'BLA BLA'
-      assert.same 'BLA BLA', @inst._sanitizeCondition(s)
+      assert.same 'BLA BLA', @inst._sanitizeExpression(s)
 
     'if neither Expression nor String': ->
-      testFn = => @inst._sanitizeCondition(1)
-      assert.throws testFn, 'condition must be a string or Expression instance'
+      testFn = => @inst._sanitizeExpression(1)
+      assert.throws testFn, 'expression must be a string or Expression instance'
 
 
   '_sanitizeName':
@@ -344,86 +341,34 @@ test['Builder base class'] =
 
       assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'field name'
 
-    'auto quote names':
-      beforeEach: ->
-        @inst.options.autoQuoteFieldNames = true
-
-      'default quote character': ->
-        assert.same '`abc`.`def`', @inst._sanitizeField('abc.def')
-
-      'do not quote *': ->
-        assert.same '`abc`.*', @inst._sanitizeField('abc.*')
-
-      'custom quote character': ->
-        @inst.options.nameQuoteCharacter = '|'
-        assert.same '|abc|.|def|', @inst._sanitizeField('abc.def')
-
-      'ignore periods when quoting': ->
-        assert.same '`abc.def`', @inst._sanitizeField('abc.def', ignorePeriodsForFieldNameQuotes: true)
-
     'QueryBuilder': ->
       s = squel.select().from('scores').field('MAX(score)')
-      assert.same '(SELECT MAX(score) FROM scores)', @inst._sanitizeField(s)
+      assert.same s, @inst._sanitizeField(s)
 
 
-  '_sanitizeNestableQuery':
+  '_sanitizeQueryBuilder':
     'is not query builder': ->
-      assert.throws (=> @inst._sanitizeNestableQuery(null)), 'must be a nestable query, e.g. SELECT'
+      assert.throws (=> @inst._sanitizeQueryBuilder(null)), 'must be a QueryBuilder instance'
 
-    'is not a nestable query builder': ->
+    'is a query builder': ->
       qry = squel.select()
-      stub = test.mocker.stub qry, 'isNestable', -> false
-
-      assert.throws (=> @inst._sanitizeNestableQuery(qry)), 'must be a nestable query, e.g. SELECT'
-
-    'is not a nestable query builder': ->
-      qry = squel.select()
-      stub = test.mocker.stub qry, 'isNestable', -> true
-
-      assert.same qry, @inst._sanitizeNestableQuery(qry)
+      assert.same qry, @inst._sanitizeQueryBuilder(qry)
 
 
   '_sanitizeTable':
-    'nesting allowed':
-      'string': ->
-        assert.same 'abc', @inst._sanitizeTable('abc', true)
+    'default': ->
+      test.mocker.spy @inst, '_sanitizeName'
 
-      'nestable query builder': ->
-        select = squel.select()
-        stub = test.mocker.stub select, 'isNestable', -> true
+      assert.same 'abc', @inst._sanitizeTable('abc')
 
-        assert.same select, @inst._sanitizeTable(select, true)
-        assert.ok stub.calledOnce
+      assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table'
 
-      'non-nestable query builder': ->
-        invalid = squel.select()
-        stub = test.mocker.stub invalid, 'isNestable', -> false
+    'not a string': ->
+      assert.throws (=> @inst._sanitizeTable(null)), 'table name must be a string or a query builder'
 
-        assert.throws (=> @inst._sanitizeTable(invalid, true)), 'table name must be a string or a nestable query instance'
-        assert.ok stub.calledOnce
-
-    'nesting not allowed': ->
-      'string': ->
-        test.mocker.spy @inst, '_sanitizeName'
-
-        assert.same 'abc', @inst._sanitizeTable('abc')
-
-        assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table name'
-
-      'nestable query builder': ->
-        select = squel.select()
-        assert.throws (=> @inst._sanitizeTable(select)), 'table name must be a string'
-
-    'auto quote names':
-      beforeEach: ->
-        @inst.options.autoQuoteTableNames = true
-
-      'default quote character': ->
-        assert.same '`abc`', @inst._sanitizeTable('abc')
-
-      'custom quote character': ->
-        @inst.options.nameQuoteCharacter = '|'
-        assert.same '|abc|', @inst._sanitizeTable('abc')
+    'query builder': ->
+      select = squel.select()
+      assert.same select, @inst._sanitizeTable(select, true)
 
 
   '_sanitizeFieldAlias': ->
@@ -434,22 +379,6 @@ test['Builder base class'] =
 
       assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'field alias'
 
-    'auto quote alias names is ON':
-      beforeEach: ->
-        @inst.options.autoQuoteAliasNames = true
-
-      'default quote character': ->
-        assert.same '"abc"', @inst._sanitizeFieldAlias('abc')
-
-      'custom quote character': ->
-        @inst.options.fieldAliasQuoteCharacter = '~'
-        assert.same '~abc~', @inst._sanitizeFieldAlias('abc')
-
-    'auto quote alias names is OFF': ->
-      @inst.options.autoQuoteAliasNames = false
-      assert.same 'abc', @inst._sanitizeFieldAlias('abc')
-
-
 
   '_sanitizeTableAlias': ->
     'default': ->
@@ -458,33 +387,6 @@ test['Builder base class'] =
       @inst._sanitizeTableAlias('abc')
 
       assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table alias'
-
-    'auto quote alias names is ON':
-      beforeEach: ->
-        @inst.options.autoQuoteAliasNames = true
-
-      'default quote character': ->
-        assert.same '`abc`', @inst._sanitizeTableAlias('abc')
-
-      'custom quote character': ->
-        @inst.options.fieldAliasQuoteCharacter = '~'
-        assert.same '~abc~', @inst._sanitizeTableAlias('abc')
-
-    'auto quote alias names is OFF': ->
-      @inst.options.autoQuoteAliasNames = false
-      assert.same 'abc', @inst._sanitizeTableAlias('abc')
-
-    'auto quote alias names is ON': ->
-      @inst.options.autoQuoteAliasNames = false
-      @inst.options.useAsForTableAliasNames = true
-      assert.same 'AS abc', @inst._sanitizeTableAlias('abc')
-
-    'auto quote alias names is OFF': ->
-      @inst.options.autoQuoteAliasNames = false
-      @inst.options.useAsForTableAliasNames = false
-      assert.same 'abc', @inst._sanitizeTableAlias('abc')
-
-
 
   '_sanitizeLimitOffset':
     'undefined': ->
@@ -549,12 +451,8 @@ test['Builder base class'] =
     'if null': ->
       assert.same null, @inst._sanitizeValue(null)
 
-    'if QueryBuilder': ->
+    'if BaseBuilder': ->
       s = squel.select()
-      assert.same s, @inst._sanitizeValue(s)
-
-    'if FuncVal': ->
-      s = squel.fval()
       assert.same s, @inst._sanitizeValue(s)
 
     'if undefined': ->
@@ -581,6 +479,75 @@ test['Builder base class'] =
 
       @inst.options.singleQuoteReplacement = '--'
       assert.same "te--st", @inst._escapeValue("te'st")
+
+  '_formatTableName':
+    'default': ->
+      assert.same 'abc', @inst._formatTableName('abc')
+
+    'auto quote names':
+      beforeEach: ->
+        @inst.options.autoQuoteTableNames = true
+
+      'default quote character': ->
+        assert.same '`abc`', @inst._formatTableName('abc')
+
+      'custom quote character': ->
+        @inst.options.nameQuoteCharacter = '|'
+        assert.same '|abc|', @inst._formatTableName('abc')
+
+
+  '_formatTableAlias':
+    'default': ->
+      assert.same '`abc`', @inst._formatTableAlias('abc')
+
+    'custom quote character': ->
+      @inst.options.tableAliasQuoteCharacter = '~'
+      assert.same '~abc~', @inst._formatTableAlias('abc')
+
+    'auto quote alias names is OFF': ->
+      @inst.options.autoQuoteAliasNames = false
+      assert.same 'abc', @inst._formatTableAlias('abc')
+
+    'AS is turned ON': ->
+      @inst.options.autoQuoteAliasNames = false
+      @inst.options.useAsForTableAliasNames = true
+      assert.same 'AS abc', @inst._formatTableAlias('abc')
+
+
+
+  '_formatFieldAlias':
+    default: ->
+      assert.same '"abc"', @inst._formatFieldAlias('abc')
+
+    'custom quote character': ->
+      @inst.options.fieldAliasQuoteCharacter = '~'
+      assert.same '~abc~', @inst._formatFieldAlias('abc')
+
+    'auto quote alias names is OFF': ->
+      @inst.options.autoQuoteAliasNames = false
+      assert.same 'abc', @inst._formatFieldAlias('abc')
+
+
+  '_formatFieldName':
+    default: ->
+      assert.same 'abc', @inst._formatFieldName('abc')
+
+    'auto quote names':
+      beforeEach: ->
+        @inst.options.autoQuoteFieldNames = true
+
+      'default quote character': ->
+        assert.same '`abc`.`def`', @inst._formatFieldName('abc.def')
+
+      'do not quote *': ->
+        assert.same '`abc`.*', @inst._formatFieldName('abc.*')
+
+      'custom quote character': ->
+        @inst.options.nameQuoteCharacter = '|'
+        assert.same '|abc|.|def|', @inst._formatFieldName('abc.def')
+
+      'ignore periods when quoting': ->
+        assert.same '`abc.def`', @inst._formatFieldName('abc.def', ignorePeriodsForFieldNameQuotes: true)
 
 
   '_formatCustomValue':
@@ -633,79 +600,76 @@ test['Builder base class'] =
         assert.same 'bar', @inst._formatCustomValue(val)
         
 
-  '_formatValueAsParam':
-    'QueryBuilder Select - nestable': ->
+  '_formatValueForParamArray':
+    'Query builder': ->
       s = squel.select().from('table')
-      assert.same { "text": 'SELECT * FROM table', "values":[] }, @inst._formatValueAsParam(s)
-
-    'QueryBuilder Update - not nestable': ->
-      u = squel.update().table('table').set('f', 'val')
-      assert.same u, @inst._formatValueAsParam(u)
+      assert.same s, @inst._formatValueForParamArray(s)
 
     'else calls _formatCustomValue': ->
       spy = test.mocker.stub @inst, '_formatCustomValue', (v, asParam) -> 
         'test' + (if asParam then 'foo' else 'bar')
 
-      assert.same 'testfoo', @inst._formatValueAsParam(null)
-      assert.same 'testfoo', @inst._formatValueAsParam('abc')
-      assert.same 'testfoo', @inst._formatValueAsParam(12)
-      assert.same 'testfoo', @inst._formatValueAsParam(1.2)
-      assert.same 'testfoo', @inst._formatValueAsParam(true)
-      assert.same 'testfoo', @inst._formatValueAsParam(false)
+      assert.same 'testfoo', @inst._formatValueForParamArray(null)
+      assert.same 'testfoo', @inst._formatValueForParamArray('abc')
+      assert.same 'testfoo', @inst._formatValueForParamArray(12)
+      assert.same 'testfoo', @inst._formatValueForParamArray(1.2)
+      assert.same 'testfoo', @inst._formatValueForParamArray(true)
+      assert.same 'testfoo', @inst._formatValueForParamArray(false)
 
       assert.same 6, spy.callCount
 
     'Array - recursively calls itself on each element': ->
-      spy = test.mocker.spy @inst, '_formatValueAsParam'
+      spy = test.mocker.spy @inst, '_formatValueForParamArray'
 
       v = [ squel.select().from('table'), 1.2 ]
-      res = @inst._formatValueAsParam(v)
+      res = @inst._formatValueForParamArray(v)
 
-      assert.same [ { "text": 'SELECT * FROM table', "values": [] }, 1.2], res
+      assert.same v, res
 
       assert.same 3, spy.callCount
       assert.ok spy.calledWith v[0]
       assert.ok spy.calledWith v[1]
 
 
-  '_formatValue':
+
+  '_formatValueForQueryString':
     'null': ->
-      assert.same 'NULL', @inst._formatValue(null)
+      assert.same 'NULL', @inst._formatValueForQueryString(null)
 
     'boolean': ->
-      assert.same 'TRUE', @inst._formatValue(true)
-      assert.same 'FALSE', @inst._formatValue(false)
+      assert.same 'TRUE', @inst._formatValueForQueryString(true)
+      assert.same 'FALSE', @inst._formatValueForQueryString(false)
 
     'integer': ->
-      assert.same 12, @inst._formatValue(12)
+      assert.same 12, @inst._formatValueForQueryString(12)
 
     'float': ->
-      assert.same 1.2, @inst._formatValue(1.2)
+      assert.same 1.2, @inst._formatValueForQueryString(1.2)
 
     'string': ->
       escapedValue = undefined
       test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
 
-      assert.same "'test'", @inst._formatValue('test')
+      assert.same "'test'", @inst._formatValueForQueryString('test')
 
-      assert.same "'test'", @inst._formatValue('test')
+      assert.same "'test'", @inst._formatValueForQueryString('test')
       assert.ok @inst._escapeValue.calledWithExactly('test')
       escapedValue = 'blah'
-      assert.same "'blah'", @inst._formatValue('test')
+      assert.same "'blah'", @inst._formatValueForQueryString('test')
 
     'string - dont quote': ->
       escapedValue = undefined
       test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
 
-      assert.same "test", @inst._formatValue('test', dontQuote: true )
+      assert.same "test", @inst._formatValueForQueryString('test', dontQuote: true )
 
       assert.ok @inst._escapeValue.notCalled
 
     'Array - recursively calls itself on each element': ->
-      spy = test.mocker.spy @inst, '_formatValue'
+      spy = test.mocker.spy @inst, '_formatValueForQueryString'
 
       expected = "('test', 123, TRUE, 1.2, NULL)"
-      assert.same expected, @inst._formatValue([ 'test', 123, true, 1.2, null ])
+      assert.same expected, @inst._formatValueForQueryString([ 'test', 123, true, 1.2, null ])
 
       assert.same 6, spy.callCount
       assert.ok spy.calledWith 'test'
@@ -714,276 +678,278 @@ test['Builder base class'] =
       assert.ok spy.calledWith 1.2
       assert.ok spy.calledWith null
 
-    'QueryBuilder': ->
+    'BaseBuilder': ->
+      spy = test.mocker.stub @inst, '_applyNestingFormatting', (v) => '{{v}}'
       s = squel.select().from('table')
-      assert.same '(SELECT * FROM table)', @inst._formatValue(s)
-      u = squel.update().table('table').set('f', 'val')
-      assert.same '(UPDATE table SET f = \'val\')', @inst._formatValue(u)
-
-    'Expression': ->
-      s = squel.expr()
-          .and("s.name <> 'Fred'")
-          .or_begin()
-            .or("s.id = 5")
-            .or("s.id = 6")
-          .end()
-      assert.same "(s.name <> 'Fred' OR (s.id = 5 OR s.id = 6))", @inst._formatValue(s)
+      assert.same '{{SELECT * FROM table}}', @inst._formatValueForQueryString(s)
 
     'checks to see if it is custom value type first': ->
       test.mocker.stub @inst, '_formatCustomValue', (val, asParam) -> 
         12 + (if asParam then 25 else 65)
-      assert.same '(77)', @inst._formatValue(123)
+      test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
+      assert.same '{77}', @inst._formatValueForQueryString(123)
 
 
+  '_applyNestingFormatting':
+    default: ->
+      assert.same '77', @inst._applyNestingFormatting('77')
+    nesting: ->
+      assert.same '(77)', @inst._applyNestingFormatting('77', true)
+      assert.same '(77', @inst._applyNestingFormatting('(77', true)
+      assert.same '77)', @inst._applyNestingFormatting('77)', true)
+      assert.same '(77)', @inst._applyNestingFormatting('(77)', true)
 
-test['QueryBuilder base class'] =
-  beforeEach: ->
-    @cls = squel.cls.QueryBuilder
-    @inst = new @cls
 
-  'instanceof base builder': ->
-    assert.instanceOf @inst, squel.cls.BaseBuilder
 
-  'constructor':
-    'default options': ->
-      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
 
-    'overridden options': ->
-      @inst = new @cls
-        dummy1: 'str'
-        dummy2: 12.3
-        usingValuePlaceholders: true
-        dummy3: true
+# test['QueryBuilder base class'] =
+#   beforeEach: ->
+#     @cls = squel.cls.QueryBuilder
+#     @inst = new @cls
 
-      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
-        dummy1: 'str'
-        dummy2: 12.3
-        usingValuePlaceholders: true
-        dummy3: true
+#   'instanceof base builder': ->
+#     assert.instanceOf @inst, squel.cls.BaseBuilder
 
-      assert.same expectedOptions, @inst.options
+#   'constructor':
+#     'default options': ->
+#       assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
 
-    'default blocks - none': ->
-      assert.same [], @inst.blocks
+#     'overridden options': ->
+#       @inst = new @cls
+#         dummy1: 'str'
+#         dummy2: 12.3
+#         usingValuePlaceholders: true
+#         dummy3: true
 
-    'blocks passed in':
-      'exposes block methods': ->
-        limitExposedMethodsSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'exposedMethods');
-        distinctExposedMethodsSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'exposedMethods');
-        limitSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'limit')
-        distinctSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'distinct')
+#       expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
+#         dummy1: 'str'
+#         dummy2: 12.3
+#         usingValuePlaceholders: true
+#         dummy3: true
 
-        blocks = [
-          new squel.cls.LimitBlock(),
-          new squel.cls.DistinctBlock()
-        ]
+#       assert.same expectedOptions, @inst.options
 
-        @inst = new @cls({}, blocks)
+#     'default blocks - none': ->
+#       assert.same [], @inst.blocks
 
-        assert.ok limitExposedMethodsSpy.calledOnce
-        assert.ok distinctExposedMethodsSpy.calledOnce
+#     'blocks passed in':
+#       'exposes block methods': ->
+#         limitExposedMethodsSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'exposedMethods');
+#         distinctExposedMethodsSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'exposedMethods');
+#         limitSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'limit')
+#         distinctSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'distinct')
 
-        assert.typeOf @inst.distinct, 'function'
-        assert.typeOf @inst.limit, 'function'
+#         blocks = [
+#           new squel.cls.LimitBlock(),
+#           new squel.cls.DistinctBlock()
+#         ]
 
-        assert.same @inst, @inst.limit(2)
-        assert.ok limitSpy.calledOnce
-        assert.ok limitSpy.calledOn(blocks[0])
+#         @inst = new @cls({}, blocks)
 
-        assert.same @inst, @inst.distinct()
-        assert.ok distinctSpy.calledOnce
-        assert.ok distinctSpy.calledOn(blocks[1])
+#         assert.ok limitExposedMethodsSpy.calledOnce
+#         assert.ok distinctExposedMethodsSpy.calledOnce
 
+#         assert.typeOf @inst.distinct, 'function'
+#         assert.typeOf @inst.limit, 'function'
 
-      'cannot expose the same method twice': ->
-        blocks = [
-          new squel.cls.DistinctBlock(),
-          new squel.cls.DistinctBlock()
-        ]
+#         assert.same @inst, @inst.limit(2)
+#         assert.ok limitSpy.calledOnce
+#         assert.ok limitSpy.calledOn(blocks[0])
 
-        try
-          @inst = new @cls({}, blocks)
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: Builder already has a builder method called: distinct', err.toString()
+#         assert.same @inst, @inst.distinct()
+#         assert.ok distinctSpy.calledOnce
+#         assert.ok distinctSpy.calledOn(blocks[1])
 
 
-  'updateOptions()':
-    'updates query builder options': ->
-      oldOptions = _.extend({}, @inst.options)
+#       'cannot expose the same method twice': ->
+#         blocks = [
+#           new squel.cls.DistinctBlock(),
+#           new squel.cls.DistinctBlock()
+#         ]
 
-      @inst.updateOptions
-        updated: false
+#         try
+#           @inst = new @cls({}, blocks)
+#           throw new Error 'should not reach here'
+#         catch err
+#           assert.same 'Error: Builder already has a builder method called: distinct', err.toString()
 
-      expected = _.extend oldOptions,
-        updated: false
 
-      assert.same expected, @inst.options
+#   'updateOptions()':
+#     'updates query builder options': ->
+#       oldOptions = _.extend({}, @inst.options)
 
-    'updates building block options': ->
-      @inst.blocks = [
-        new squel.cls.Block()
-      ]
-      oldOptions = _.extend({}, @inst.blocks[0].options)
+#       @inst.updateOptions
+#         updated: false
 
-      @inst.updateOptions
-        updated: false
+#       expected = _.extend oldOptions,
+#         updated: false
 
-      expected = _.extend oldOptions,
-        updated: false
+#       assert.same expected, @inst.options
 
-      assert.same expected, @inst.blocks[0].options
+#     'updates building block options': ->
+#       @inst.blocks = [
+#         new squel.cls.Block()
+#       ]
+#       oldOptions = _.extend({}, @inst.blocks[0].options)
 
+#       @inst.updateOptions
+#         updated: false
 
+#       expected = _.extend oldOptions,
+#         updated: false
 
-  'toString()':
-    'returns empty if no blocks': ->
-      assert.same '', @inst.toString()
+#       assert.same expected, @inst.blocks[0].options
 
-    'skips empty block strings': ->
-      @inst.blocks = [
-        new squel.cls.StringBlock({}, ''),
-      ]
 
-      assert.same '', @inst.toString()
 
-    'returns final query string': ->
-      i = 1
-      buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+#   'toString()':
+#     'returns empty if no blocks': ->
+#       assert.same '', @inst.toString()
 
-      @inst.blocks = [
-        new squel.cls.StringBlock({}, 'STR1'),
-        new squel.cls.StringBlock({}, 'STR2'),
-        new squel.cls.StringBlock({}, 'STR3')
-      ]
+#     'skips empty block strings': ->
+#       @inst.blocks = [
+#         new squel.cls.StringBlock({}, ''),
+#       ]
 
-      assert.same 'ret2 ret3 ret4', @inst.toString()
+#       assert.same '', @inst.toString()
 
-      assert.ok buildStrSpy.calledThrice
-      assert.ok buildStrSpy.calledOn(@inst.blocks[0])
-      assert.ok buildStrSpy.calledOn(@inst.blocks[1])
-      assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+#     'returns final query string': ->
+#       i = 1
+#       buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
 
+#       @inst.blocks = [
+#         new squel.cls.StringBlock({}, 'STR1'),
+#         new squel.cls.StringBlock({}, 'STR2'),
+#         new squel.cls.StringBlock({}, 'STR3')
+#       ]
 
-  'toParam()':
-    'returns empty if no blocks': ->
-      assert.same { text: '', values: [] }, @inst.toParam()
+#       assert.same 'ret2 ret3 ret4', @inst.toString()
 
-    'skips empty block strings': ->
-      @inst.blocks = [
-        new squel.cls.StringBlock({}, ''),
-      ]
+#       assert.ok buildStrSpy.calledThrice
+#       assert.ok buildStrSpy.calledOn(@inst.blocks[0])
+#       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
+#       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
 
-      assert.same { text: '', values: [] }, @inst.toParam()
 
-    'returns final query string': ->
-      @inst.blocks = [
-        new squel.cls.StringBlock({}, 'STR1'),
-        new squel.cls.StringBlock({}, 'STR2'),
-        new squel.cls.StringBlock({}, 'STR3')
-      ]
+#   'toParam()':
+#     'returns empty if no blocks': ->
+#       assert.same { text: '', values: [] }, @inst.toParam()
 
-      i = 1
-      buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+#     'skips empty block strings': ->
+#       @inst.blocks = [
+#         new squel.cls.StringBlock({}, ''),
+#       ]
 
-      assert.same { text: 'ret2 ret3 ret4', values: [] }, @inst.toParam()
+#       assert.same { text: '', values: [] }, @inst.toParam()
 
-      assert.ok buildStrSpy.calledThrice
-      assert.ok buildStrSpy.calledOn(@inst.blocks[0])
-      assert.ok buildStrSpy.calledOn(@inst.blocks[1])
-      assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+#     'returns final query string': ->
+#       @inst.blocks = [
+#         new squel.cls.StringBlock({}, 'STR1'),
+#         new squel.cls.StringBlock({}, 'STR2'),
+#         new squel.cls.StringBlock({}, 'STR3')
+#       ]
 
-    'returns query with unnumbered parameters': ->
-      @inst.blocks = [
-        new squel.cls.WhereBlock({}),
-      ]
+#       i = 1
+#       buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
 
-      test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+#       assert.same { text: 'ret2 ret3 ret4', values: [] }, @inst.toParam()
 
-      assert.same { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}, @inst.toParam()
+#       assert.ok buildStrSpy.calledThrice
+#       assert.ok buildStrSpy.calledOn(@inst.blocks[0])
+#       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
+#       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
 
-    'returns query with numbered parameters': ->
-      @inst = new @cls
-        numberedParameters: true
+#     'returns query with unnumbered parameters': ->
+#       @inst.blocks = [
+#         new squel.cls.WhereBlock({}),
+#       ]
 
-      @inst.blocks = [
-        new squel.cls.WhereBlock({}),
-      ]
+#       test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
 
-      test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+#       assert.same { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}, @inst.toParam()
 
-      assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
+#     'returns query with numbered parameters': ->
+#       @inst = new @cls
+#         numberedParameters: true
 
-    'returns query with numbered parameters and custom prefix': ->
-      @inst = new @cls
-        numberedParameters: true
-        numberedParametersPrefix: '&%'
+#       @inst.blocks = [
+#         new squel.cls.WhereBlock({}),
+#       ]
 
-      @inst.blocks = [
-        new squel.cls.WhereBlock({}),
-      ]
+#       test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
 
-      test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+#       assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
 
-      assert.same { text: 'a = &%1 AND b in (&%2, &%3)', values: [1, 2, 3]}, @inst.toParam()
+#     'returns query with numbered parameters and custom prefix': ->
+#       @inst = new @cls
+#         numberedParameters: true
+#         numberedParametersPrefix: '&%'
 
+#       @inst.blocks = [
+#         new squel.cls.WhereBlock({}),
+#       ]
 
-  'cloning':
-    'blocks get cloned properly': ->
-      blockCloneSpy = test.mocker.spy(squel.cls.StringBlock.prototype, 'clone')
+#       test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
 
-      @inst.blocks = [
-        new squel.cls.StringBlock({}, 'TEST')
-      ]
+#       assert.same { text: 'a = &%1 AND b in (&%2, &%3)', values: [1, 2, 3]}, @inst.toParam()
 
-      newinst = @inst.clone()
-      @inst.blocks[0].str = 'TEST2'
 
-      assert.same 'TEST', newinst.blocks[0].buildStr()
+#   'cloning':
+#     'blocks get cloned properly': ->
+#       blockCloneSpy = test.mocker.spy(squel.cls.StringBlock.prototype, 'clone')
 
-  'registerValueHandler':
-    'beforEach': ->
-      @originalHandlers = [].concat(squel.cls.globalValueHandlers)
-    'afterEach': ->
-      squel.cls.globalValueHandlers = @originalHandlers
+#       @inst.blocks = [
+#         new squel.cls.StringBlock({}, 'TEST')
+#       ]
 
-    'calls through to base class method': ->
-      baseBuilderSpy = test.mocker.spy(squel.cls.BaseBuilder.prototype, 'registerValueHandler')
+#       newinst = @inst.clone()
+#       @inst.blocks[0].str = 'TEST2'
 
-      handler = -> 'test'
-      @inst.registerValueHandler(Date, handler)
-      @inst.registerValueHandler('number', handler)
+#       assert.same 'TEST', newinst.blocks[0].buildStr()
 
-      assert.ok baseBuilderSpy.calledTwice
-      assert.ok baseBuilderSpy.calledOn(@inst)
+#   'registerValueHandler':
+#     'beforEach': ->
+#       @originalHandlers = [].concat(squel.cls.globalValueHandlers)
+#     'afterEach': ->
+#       squel.cls.globalValueHandlers = @originalHandlers
 
-    'returns instance for chainability': ->
-      handler = -> 'test'
-      assert.same @inst, @inst.registerValueHandler(Date, handler)
+#     'calls through to base class method': ->
+#       baseBuilderSpy = test.mocker.spy(squel.cls.BaseBuilder.prototype, 'registerValueHandler')
 
-    'calls through to blocks': ->
-      @inst.blocks = [
-        new squel.cls.StringBlock({}, ''),
-      ]
+#       handler = -> 'test'
+#       @inst.registerValueHandler(Date, handler)
+#       @inst.registerValueHandler('number', handler)
 
-      baseBuilderSpy = test.mocker.spy(@inst.blocks[0], 'registerValueHandler')
+#       assert.ok baseBuilderSpy.calledTwice
+#       assert.ok baseBuilderSpy.calledOn(@inst)
 
-      handler = -> 'test'
-      @inst.registerValueHandler(Date, handler)
+#     'returns instance for chainability': ->
+#       handler = -> 'test'
+#       assert.same @inst, @inst.registerValueHandler(Date, handler)
 
-      assert.ok baseBuilderSpy.calledOnce
-      assert.ok baseBuilderSpy.calledOn(@inst.blocks[0])
+#     'calls through to blocks': ->
+#       @inst.blocks = [
+#         new squel.cls.StringBlock({}, ''),
+#       ]
 
-  'is nestable': ->
-    assert.same false, @inst.isNestable()
+#       baseBuilderSpy = test.mocker.spy(@inst.blocks[0], 'registerValueHandler')
 
-  'get block':
-    'valid': ->
-      block = new squel.cls.FunctionBlock()
-      @inst.blocks.push(block)
-      assert.same block, @inst.getBlock(squel.cls.FunctionBlock)
-    'invalid': ->
-      assert.throws (-> @inst.getBlock(squel.cls.FunctionBlock) )
+#       handler = -> 'test'
+#       @inst.registerValueHandler(Date, handler)
+
+#       assert.ok baseBuilderSpy.calledOnce
+#       assert.ok baseBuilderSpy.calledOn(@inst.blocks[0])
+
+#   'is nestable': ->
+#     assert.same false, @inst.isNestable()
+
+#   'get block':
+#     'valid': ->
+#       block = new squel.cls.FunctionBlock()
+#       @inst.blocks.push(block)
+#       assert.same block, @inst.getBlock(squel.cls.FunctionBlock)
+#     'invalid': ->
+#       assert.throws (-> @inst.getBlock(squel.cls.FunctionBlock) )
 
 
 

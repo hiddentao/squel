@@ -371,8 +371,6 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_sanitizeField',
         value: function _sanitizeField(item) {
-          var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
           if (!(item instanceof cls.BaseBuilder)) {
             item = this._sanitizeName(item, "field name");
           }
@@ -386,7 +384,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             return item;
           }
 
-          throw new Error("query builder must be a QueryBuilder instance");
+          throw new Error("must be a QueryBuilder instance");
         }
       }, {
         key: '_sanitizeTable',
@@ -399,12 +397,6 @@ OTHER DEALINGS IN THE SOFTWARE.
             }
           } else {
             item = this._sanitizeName(item, 'table');
-
-            if (this.options.autoQuoteTableNames) {
-              var quoteChar = this.options.nameQuoteCharacter;
-
-              item = '' + quoteChar + item + quoteChar;
-            }
           }
 
           return item;
@@ -412,28 +404,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_sanitizeTableAlias',
         value: function _sanitizeTableAlias(item) {
-          var sanitized = this._sanitizeName(item, "table alias");
-
-          if (this.options.autoQuoteAliasNames) {
-            var quoteChar = this.options.tableAliasQuoteCharacter;
-
-            sanitized = '' + quoteChar + sanitized + quoteChar;
-          }
-
-          return this.options.useAsForTableAliasNames ? 'AS ' + sanitized : sanitized;
+          return this._sanitizeName(item, "table alias");
         }
       }, {
         key: '_sanitizeFieldAlias',
         value: function _sanitizeFieldAlias(item) {
-          var sanitized = this._sanitizeName(item, "field alias");
-
-          if (this.options.autoQuoteAliasNames) {
-            var quoteChar = this.options.fieldAliasQuoteCharacter;
-
-            return '' + quoteChar + sanitized + quoteChar;
-          } else {
-            return sanitized;
-          }
+          return this._sanitizeName(item, "field alias");
         }
 
         // Sanitize the given limit/offset value.
@@ -461,17 +437,15 @@ OTHER DEALINGS IN THE SOFTWARE.
             // null is allowed
           } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
               // primitives are allowed
-            } else if (item instanceof cls.QueryBuilder && item.isNestable()) {
-                // QueryBuilder instances allowed
-              } else if (item instanceof cls.FunctionBlock) {
-                  // FunctionBlock instances allowed
-                } else {
-                    var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+            } else if (item instanceof cls.BaseBuilder) {
+                // Builders allowed
+              } else {
+                  var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-                    if (!typeIsValid) {
-                      throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-                    }
+                  if (!typeIsValid) {
+                    throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
                   }
+                }
 
           return item;
         }
@@ -484,9 +458,44 @@ OTHER DEALINGS IN THE SOFTWARE.
           return !this.options.replaceSingleQuotes ? value : value.replace(/\'/g, this.options.singleQuoteReplacement);
         }
       }, {
+        key: '_formatTableName',
+        value: function _formatTableName(item) {
+          if (this.options.autoQuoteTableNames) {
+            var quoteChar = this.options.nameQuoteCharacter;
+
+            item = '' + quoteChar + item + quoteChar;
+          }
+
+          return item;
+        }
+      }, {
+        key: '_formatFieldAlias',
+        value: function _formatFieldAlias(item) {
+          if (this.options.autoQuoteAliasNames) {
+            var quoteChar = this.options.fieldAliasQuoteCharacter;
+
+            item = '' + quoteChar + item + quoteChar;
+          }
+
+          return item;
+        }
+      }, {
+        key: '_formatTableAlias',
+        value: function _formatTableAlias(item) {
+          if (this.options.autoQuoteAliasNames) {
+            var quoteChar = this.options.tableAliasQuoteCharacter;
+
+            item = '' + quoteChar + item + quoteChar;
+          }
+
+          return this.options.useAsForTableAliasNames ? 'AS ' + item : item;
+        }
+      }, {
         key: '_formatFieldName',
         value: function _formatFieldName(item) {
           var _this2 = this;
+
+          var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
           if (this.options.autoQuoteFieldNames) {
             (function () {
@@ -646,12 +655,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               if (buildParameterized) {
                 if (value instanceof cls.BaseBuilder) {
-                  var ret = value.toParam({
+                  var _ret4 = value.toParam({
                     nested: true
                   });
 
-                  formattedStr += ret.text;
-                  formattedValues.push.apply(formattedValues, _toConsumableArray(ret.value));
+                  formattedStr += _ret4.text;
+                  formattedValues.push.apply(formattedValues, _toConsumableArray(_ret4.value));
                 } else {
                   value = this._formatValueForParamArray(value);
 
@@ -705,14 +714,14 @@ OTHER DEALINGS IN THE SOFTWARE.
         value: function _buildManyStrings(strings, strValues) {
           var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-          var totalStr = '',
+          var totalStr = [],
               totalValues = [];
 
           for (var idx in strings) {
-            var _str = strings[idx],
-                _strValues = _strValues[idx];
+            var inputString = strings[idx],
+                inputValues = strValues[idx];
 
-            var _buildString2 = this._buildString(_str, _strValues, {
+            var _buildString2 = this._buildString(inputString, inputValues, {
               buildParameterized: options.buildParameterized,
               nested: false
             });
@@ -873,15 +882,15 @@ OTHER DEALINGS IN THE SOFTWARE.
               var para = node.para;
 
 
-              var ret = expr instanceof cls.Expression ? expr._toParamString({
+              var _ret5 = expr instanceof cls.Expression ? expr._toParamString({
                 buildParameterized: options.buildParameterized,
                 nested: true
               }) : this._buildString(expr, para, {
                 buildParameterized: options.buildParameterized
               });
 
-              var text = ret.text;
-              var values = ret.values;
+              var text = _ret5.text;
+              var values = _ret5.values;
 
 
               if (totalStr.length) {
@@ -1011,13 +1020,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, ' ');
 
-              var ret = this._buildString(expression, values, {
+              var _ret6 = this._buildString(expression, values, {
                 buildParameterized: options.buildParameterized,
                 nested: true
               });
 
-              totalStr += 'WHEN ' + ret.text + ' THEN ' + this._formatValueForQueryString(result);
-              totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              totalStr += 'WHEN ' + _ret6.text + ' THEN ' + this._formatValueForQueryString(result);
+              totalValues.push.apply(totalValues, _toConsumableArray(_ret6.values));
             }
           } catch (err) {
             _didIteratorError3 = true;
@@ -1257,7 +1266,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_toParamString',
         value: function _toParamString(options) {
-          var totalStr = [],
+          var totalStr = '',
               totalValues = [];
 
           if (this._hasTable()) {
@@ -1273,11 +1282,16 @@ OTHER DEALINGS IN THE SOFTWARE.
             try {
               for (var _iterator4 = this._tables[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
                 var blk = _step4.value;
+
+                totalStr = _pad(totalStr, ', ');
+
                 var table = blk.table;
                 var alias = blk.alias;
 
 
-                if (table instanceof BaseBuilder) {
+                var tableStr = table;
+
+                if (table instanceof cls.BaseBuilder) {
                   var _table$toParam = table.toParam({
                     nested: true
                   });
@@ -1286,15 +1300,15 @@ OTHER DEALINGS IN THE SOFTWARE.
                   var values = _table$toParam.values;
 
 
-                  if (alias) {
-                    text = text + ' ' + alias;
-                  }
-
-                  totalStr.push(text);
+                  tableStr = text;
                   totalValues.push.apply(totalValues, _toConsumableArray(values));
-                } else {
-                  totalStr.push('' + table);
                 }
+
+                if (alias) {
+                  tableStr += '' + this._formatTableAlias(alias);
+                }
+
+                totalStr += tableStr;
               }
             } catch (err) {
               _didIteratorError4 = true;
@@ -1313,7 +1327,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
 
           return {
-            text: totalStr.join(', '),
+            text: totalStr,
             values: totalValues
           };
         }
@@ -1523,7 +1537,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           var totalStr = '',
               totalValues = [];
 
-          if (queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
+          if (queryBuilder && queryBuilder.getBlock(cls.FromTableBlock)._hasTable()) {
             var _iteratorNormalCompletion6 = true;
             var _didIteratorError6 = false;
             var _iteratorError6 = undefined;
@@ -1542,19 +1556,17 @@ OTHER DEALINGS IN THE SOFTWARE.
                 if (typeof name === 'string') {
                   totalStr += this._formatFieldName(name, _options);
                 } else {
-                  var _totalValues;
-
-                  var ret = name._toParamString({
+                  var _ret7 = name._toParamString({
                     nested: true,
                     buildParameterized: buildParameterized
                   });
 
-                  totalStr += ret.text;
-                  (_totalValues = totalValues).push.apply(_totalValues, _toConsumableArray(ret.values));
+                  totalStr += _ret7.text;
+                  totalValues.push.apply(totalValues, _toConsumableArray(_ret7.values));
                 }
 
                 if (alias) {
-                  totalValues += ' AS ' + alias;
+                  totalStr += ' AS ' + this._formatFieldAlias(alias);
                 }
               }
             } catch (err) {
@@ -1605,7 +1617,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         value: function _reset() {
           this._fields = [];
           this._values = [[]];
-          this._fieldOptions = [[]];
+          this._valueOptions = [[]];
         }
 
         // Update the given field with the given value.
@@ -1614,7 +1626,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_set',
         value: function _set(field, value) {
-          var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+          var valueOptions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
           if (this._values.length > 1) {
             throw new Error("Cannot set multiple rows of fields this way.");
@@ -1624,7 +1636,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             value = this._sanitizeValue(value);
           }
 
-          field = this._sanitizeField(field, options);
+          field = this._sanitizeField(field);
 
           // Explicity overwrite existing fields
           var index = this._fields.indexOf(field);
@@ -1636,7 +1648,7 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
 
           this._values[0][index] = value;
-          this._fieldOptions[0][index] = options;
+          this._valueOptions[0][index] = valueOptions;
         }
 
         // Insert fields based on the key/value pairs in the given object
@@ -1644,14 +1656,14 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_setFields',
         value: function _setFields(fields) {
-          var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+          var valueOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
           if ((typeof fields === 'undefined' ? 'undefined' : _typeof(fields)) !== 'object') {
             throw new Error("Expected an object but got " + (typeof fields === 'undefined' ? 'undefined' : _typeof(fields)));
           }
 
           for (var field in fields) {
-            this._set(field, fields[field], options);
+            this._set(field, fields[field], valueOptions);
           }
         }
 
@@ -1661,7 +1673,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_setFieldsRows',
         value: function _setFieldsRows(fieldsRows) {
-          var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+          var valueOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
           if (!_isArray(fieldsRows)) {
             throw new Error("Expected an array of objects but got " + (typeof fieldsRows === 'undefined' ? 'undefined' : _typeof(fieldsRows)));
@@ -1678,7 +1690,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             for (var field in fieldRow) {
               var value = fieldRow[field];
 
-              field = this._sanitizeField(field, options);
+              field = this._sanitizeField(field);
               value = this._sanitizeValue(value);
 
               var index = this._fields.indexOf(field);
@@ -1696,11 +1708,11 @@ OTHER DEALINGS IN THE SOFTWARE.
               // The first value added needs to add the array
               if (!_isArray(this._values[i])) {
                 this._values[i] = [];
-                this._fieldOptions[i] = [];
+                this._valueOptions[i] = [];
               }
 
               this._values[i][index] = value;
-              this._fieldOptions[i][index] = options;
+              this._valueOptions[i][index] = valueOptions;
             }
           }
         }
@@ -1726,8 +1738,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: 'setFields',
-        value: function setFields(fields, options) {
-          this._setFields(fields, options);
+        value: function setFields(fields, valueOptions) {
+          this._setFields(fields, valueOptions);
         }
       }, {
         key: '_toParamString',
@@ -1752,13 +1764,13 @@ OTHER DEALINGS IN THE SOFTWARE.
             if (typeof value === 'undefined') {
               totalStr += field;
             } else {
-              var ret = this._buildString(field + ' = ' + this.options.parameterCharacter, value, {
+              var _ret8 = this._buildString(field + ' = ' + this.options.parameterCharacter, value, {
                 buildParameterized: buildParameterized,
-                formattingOptions: this._fieldOptions[0][i]
+                formattingOptions: this._valueOptions[0][i]
               });
 
-              totalStr += ret.text;
-              totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              totalStr += _ret8.text;
+              totalValues.push.apply(totalValues, _toConsumableArray(_ret8.values));
             }
           }
 
@@ -1791,13 +1803,13 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: 'setFields',
-        value: function setFields(fields, options) {
-          this._setFields(fields, options);
+        value: function setFields(fields, valueOptions) {
+          this._setFields(fields, valueOptions);
         }
       }, {
         key: 'setFieldsRows',
-        value: function setFieldsRows(fieldsRows, options) {
-          this._setFieldsRows(fieldsRows, options);
+        value: function setFieldsRows(fieldsRows, valueOptions) {
+          this._setFieldsRows(fieldsRows, valueOptions);
         }
       }, {
         key: '_toParamString',
@@ -1813,12 +1825,12 @@ OTHER DEALINGS IN THE SOFTWARE.
             valueStrings[i] = '';
 
             for (var j in this.values[i]) {
-              var ret = this._buildString(this.options.parameterCharacter, this.values[i][j], {
+              var _ret9 = this._buildString(this.options.parameterCharacter, this.values[i][j], {
                 buildParameterized: buildParameterized,
-                formattingOptions: this._fieldOptions[i][j]
+                formattingOptions: this._valueOptions[i][j]
               });
 
-              totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              totalValues.push.apply(totalValues, _toConsumableArray(_ret9.values));
 
               valueStrings[i] = _pad(valueStrings[i], ', ');
               valueStrings[i] += str;
@@ -2051,13 +2063,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, ') AND (');
 
-              var ret = expr instanceof cls.Expression ? expr._toParamString({
+              var _ret10 = expr instanceof cls.Expression ? expr._toParamString({
                 buildParameterized: options.buildParameterized
               }) : this._buildString(expr, values, {
                 buildParameterized: options.buildParameterized
               });
 
-              totalStr += ret.text, totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              totalStr += _ret10.text, totalValues.push.apply(totalValues, _toConsumableArray(_ret10.values));
             }
           } catch (err) {
             _didIteratorError7 = true;
@@ -2193,11 +2205,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, ', ');
 
-              var ret = this._buildString(field, values, {
+              var _ret11 = this._buildString(field, values, {
                 buildParameterized: options.buildParameterized
               });
 
-              totalStr += ret.text, totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              totalStr += _ret11.text, totalValues.push.apply(totalValues, _toConsumableArray(_ret11.values));
 
               if (dir !== null) {
                 totalStr += ' ' + (dir ? 'ASC' : 'DESC');
@@ -2381,17 +2393,24 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, this.options.separator);
 
-              var ret = this._buildString(table, [], {
-                buildParameterized: options.buildParameterized
-              });
+              var tableStr = void 0;
 
-              totalStr += type + ' JOIN ' + ret.text;
+              if (table instanceof cls.BaseBuilder) {
+                var _ret12 = table.toParam({
+                  nested: true
+                });
+
+                totalValues.push.apply(totalValues, _toConsumableArray(_ret12.values));
+                tableStr = _ret12.text;
+              } else {
+                tableStr = this._formatTableName(tableStr);
+              }
+
+              totalStr += type + ' JOIN ' + tableStr;
 
               if (alias) {
                 totalStr += ' ' + alias;
               }
-
-              totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
 
               if (condition) {
                 totalStr += ' ON ';
@@ -2456,7 +2475,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         value: function union(table) {
           var type = arguments.length <= 1 || arguments[1] === undefined ? 'UNION' : arguments[1];
 
-          table = this._sanitizeTable(table, true);
+          table = this._sanitizeTable(table);
 
           this._unions.push({
             type: type,
@@ -2489,12 +2508,20 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               totalStr = _pad(totalStr, this.options.separator);
 
-              var ret = this._buildString(table, [], {
-                buildParameterized: options.buildParameterized
-              });
+              var tableStr = void 0;
 
-              totalStr += type + ' ' + ret.text;
-              totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+              if (table instanceof cls.BaseBuilder) {
+                var _ret13 = table.toParam({
+                  nested: true
+                });
+
+                tableStr = _ret13.text;
+                totalValues.push.apply(totalValues, _toConsumableArray(_ret13.values));
+              } else {
+                totalStr = this._formatTableName(table);
+              }
+
+              totalStr += type + ' ' + tableStr;
             }
           } catch (err) {
             _didIteratorError10 = true;
