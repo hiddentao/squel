@@ -633,7 +633,7 @@ function _buildSquel(flavour = null) {
      * Get the expression string.
      * @return {String}
      */
-    toString (options) {
+    toString (options = {}) {
       return this._toParamString(options).text;
     }
 
@@ -642,7 +642,7 @@ function _buildSquel(flavour = null) {
      * Get the parameterized expression string.
      * @return {Object}
      */
-    toParam (options) {
+    toParam (options = {}) {
       return this._toParamString(_extend(options, {
         buildParameterized: true,
       }));
@@ -810,40 +810,31 @@ function _buildSquel(flavour = null) {
 
 
     _toParamString (options = {}) {
-      let totalStr = [],
+      let totalStr = '',
         totalValues = [];
 
-      if (this._cases.length == 0) {
-        totalStr = '' + this._formatValueForQueryString(this._elseValue);
-      } else {
-        let cases = this._cases.map((part) => {
-          let { expression, values, result } = part;
+      for (let { expression, values, result } of this._cases) {
+        totalStr = _pad(totalStr,' ');
 
-          let condition = new cls.AbstractConditionBlock("WHEN");
-
-          condition._condition.apply(condition, [expression].concat(values));
-
-          let str = '';
-
-          if (!options.buildParameterized) {
-            str = condition.toString();
-          }
-          else {
-            let ret = condition.toParam();
-            str = ret.text;
-            totalValues.push(...ret.values);
-          }
-
-          return `${str} THEN ${this._formatValueForQueryString(result)}`;
+        let ret = this._buildString(expression, values, {
+          buildParameterized: options.buildParameterized,
+          nested: true,
         });
 
-        let str = `${cases.join(" ")} ELSE ${this._formatValueForQueryString(this._elseValue)} END`;
+        totalStr += `WHEN ${ret.text} THEN ${this._formatValueForQueryString(result)}`;
+        totalValues.push(...ret.values);
+      }
+
+      if (totalStr.length) {
+        totalStr += ` ELSE ${this._formatValueForQueryString(this._elseValue)} END`;
 
         if (this._fieldName) {
-          str = `${this._fieldName} ${str}`;
+          totalStr = `${this._fieldName} ${totalStr}`;
         }
 
-        totalStr = `CASE ${str}`;
+        totalStr = `CASE ${totalStr}`;
+      } else {
+        totalStr = this._formatValueForQueryString(this._elseValue);
       }
 
       return {
@@ -1330,7 +1321,7 @@ function _buildSquel(flavour = null) {
         throw new Error("set() needs to be called");
       }
 
-      let totalValues = '',
+      let totalStr = '',
         totalValues = [];
 
       for (let i in this._fields) {
@@ -1430,14 +1421,6 @@ function _buildSquel(flavour = null) {
       });
 
       this._query = this._sanitizeQueryBuilder(selectQuery);
-    }
-
-    toString (queryBuilder) {
-      if (0 >= this._fields.length) {
-        return '';
-      }
-
-      return `(${this._fields.join(', ')}) (${this._query.toString()})`;
     }
 
     _toParamString (options) {
@@ -1691,7 +1674,7 @@ function _buildSquel(flavour = null) {
       return {
         text: (!isNaN(this._limit)) ? `LIMIT ${this._limit}` : "",
         values: [],
-      },
+      };
     }
   }
 
@@ -1927,49 +1910,41 @@ function _buildSquel(flavour = null) {
     }
 
 
-    // Get the final fully constructed query string.
-    toString () {
-      let blockStr = this.blocks.map((blk) => {
-        return blk.toString(this);
-      });
-
-      return blockStr
-        .filter((v) => (0 < v.length))
-        .join(this.options.separator);
-    }
 
     // Get the final fully constructed query param obj.
-    toParam (options = {}) {
-      let old = this.options;
-      if (!!options) {
-        this.options = _extend({}, this.options, options);
-      }
-      let result = { text: '', values: [] };
-      let blocks = this.blocks.map((v) => v.toParam(this));
-      let blockTexts = (blocks.map((v) => v.text));
-      let blockValues = (blocks.map((v) => v.values));
-      result.text = blockTexts
-        .filter((v) => {
-          return (0 < v.length);
-        })
+    _toParamString (options = {}) {
+      options = _extend({}, this.options, options);
+
+      let blockResults = this.blocks.map((b) => b._toParamString({
+        buildParameterized: options.buildParameterized,
+      }));
+
+      let blockTexts = blockResults.map((b) => b.text);
+      let blockValues = blockResults.map((b) => b.values);
+
+      let totalStr = blockTexts
+        .filter((v) => (0 < v.length))
         .join(this.options.separator);
 
-      result.values = [].concat(...blockValues);
+      let totalValues = [].concat(...blockValues);
 
-      if (!this.options.nestedBuilder) {
-        if (this.options.numberedParameters) 
-        {
-          let i = (undefined !== this.options.numberedParametersStartAt) 
-            ? this.options.numberedParametersStartAt 
+      if (!options.nested) {
+        if (options.numberedParameters) {
+          let i = (undefined !== options.numberedParametersStartAt) 
+            ? options.numberedParametersStartAt 
             : 1;
-          let regex = new RegExp("\\" + this.options.parameterCharacter, 'g')
-          result.text = result.text.replace(
-            regex, () => `${this.options.numberedParametersPrefix}${i++}`
+
+          totalStr = totalStr.replace(
+            options.parameterCharacter, 
+            `${options.numberedParametersPrefix}${i++}`
           );
         }
       }
-      this.options = old;
-      return result;
+
+      return {
+        text: totalStr,
+        values: totalValues,
+      };
     }
 
     // Deep clone
