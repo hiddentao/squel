@@ -1756,7 +1756,8 @@ function _buildSquel(flavour = null) {
         let tableStr;
 
         if (table instanceof cls.BaseBuilder) {
-          let ret = table.toParam({
+          let ret = table._toParamString({
+            buildParameterized: options.buildParameterized,
             nested: true
           });
 
