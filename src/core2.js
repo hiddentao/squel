@@ -6,7 +6,7 @@ function _pad (str, pad) {
 
 // Extend given object's with other objects' properties, overriding existing ones if necessary
 function _extend (dst, ...sources) {
-  if (sources) {
+  if (dst && sources) {
     for (let src of sources) {
       if (typeof src === 'object') {
         Object.getOwnPropertyNames(src).forEach(function (key) {
@@ -1017,7 +1017,8 @@ function _buildSquel(flavour = null) {
           let tableStr = table;
 
           if (table instanceof cls.BaseBuilder) {
-            let { text, values } = table.toParam({
+            let { text, values } = table._toParamString({
+              buildParameterized: options.buildParameterized,
               nested: true,
             });
 
@@ -1026,7 +1027,7 @@ function _buildSquel(flavour = null) {
           }
 
           if (alias) {
-            tableStr += `${this._formatTableAlias(alias)}`;
+            tableStr += ` ${this._formatTableAlias(alias)}`;
           }
 
           totalStr += tableStr;
@@ -1762,21 +1763,29 @@ function _buildSquel(flavour = null) {
           totalValues.push(...ret.values);          
           tableStr = ret.text;
         } else {
-          tableStr = this._formatTableName(tableStr);
+          tableStr = this._formatTableName(table);
         }
 
         totalStr += `${type} JOIN ${tableStr}`;
 
         if (alias) {
-          totalStr += ` ${alias}`;
+          totalStr += ` ${this._formatTableAlias(alias)}`;
         }
 
         if (condition) {
           totalStr += ' ON ';
 
-          ret = this._buildString(condition, [], {
-            buildParameterized: options.buildParameterized,
-          });
+          let ret;
+
+          if (condition instanceof cls.Expression) {
+            ret = condition._toParamString({
+              buildParameterized: options.buildParameterized,
+            });
+          } else {
+            ret = this._buildString(condition, [], {
+              buildParameterized: options.buildParameterized,
+            });
+          }
 
           totalStr += `(${ret.text})`;
           totalValues.push(...ret.values);
@@ -1831,7 +1840,8 @@ function _buildSquel(flavour = null) {
         let tableStr;
 
         if (table instanceof cls.BaseBuilder) {
-          let ret = table.toParam({
+          let ret = table._toParamString({
+            buildParameterized: options.buildParameterized,
             nested: true
           });
 
@@ -1945,7 +1955,7 @@ function _buildSquel(flavour = null) {
 
       let totalStr = blockTexts
         .filter((v) => (0 < v.length))
-        .join(this.options.separator);
+        .join(options.separator);
 
       let totalValues = [].concat(...blockValues);
 
@@ -1968,7 +1978,7 @@ function _buildSquel(flavour = null) {
       }
 
       return {
-        text: totalStr,
+        text: this._applyNestingFormatting(totalStr, !!options.nested),
         values: totalValues,
       };
     }

@@ -47,6 +47,7 @@ test['SELECT builder'] =
       expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
+        prefix: "FROM"
 
       for block in @inst.blocks
         if (block instanceof squel.cls.FromTableBlock) or (block instanceof squel.cls.JoinBlock) or (block instanceof squel.cls.UnionBlock)
@@ -94,8 +95,8 @@ test['SELECT builder'] =
         toParam: ->
           assert.same @inst.toParam(), { text: 'SELECT CASE WHEN (score > ?) THEN 1 ELSE NULL END AS "fa1" FROM table, table2 `alias2`', values: [1] }
 
-      '>> field(squel.case().when(score > ?, 1).then(1), fa1, { aggregation : SUM })':
-        beforeEach: -> @inst.field(squel.case().when("score > ?", 1).then(1), 'fa1', { aggregation : 'SUM' })
+      '>> field( squel.fval(SUM(?), squel.case().when(score > ?, 1).then(1) ), fa1)':
+        beforeEach: -> @inst.field( squel.fval('SUM(?)', squel.case().when("score > ?", 1).then(1)), 'fa1')
         toString: ->
           assert.same @inst.toString(), 'SELECT SUM(CASE WHEN (score > 1) THEN 1 ELSE NULL END) AS "fa1" FROM table, table2 `alias2`'
         toParam: ->
@@ -128,8 +129,8 @@ test['SELECT builder'] =
                   values: []
                 }
 
-            '>> where(squel.expr().and(a = ?, 1).and_begin().or(b = ?, 2).or(c = ?, 3).end())':
-              beforeEach: -> @inst.where(squel.expr().and("a = ?", 1).and_begin().or("b = ?", 2).or("c = ?", 3).end())
+            '>> where(squel.expr().and(a = ?, 1).and( expr().or(b = ?, 2).or(c = ?, 3) ))':
+              beforeEach: -> @inst.where(squel.expr().and("a = ?", 1).and(squel.expr().or("b = ?", 2).or("c = ?", 3)))
               toString: ->
                 assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = 1 AND (b = 2 OR c = 3)) GROUP BY field, field2'
               toParam: ->
@@ -138,10 +139,10 @@ test['SELECT builder'] =
                   values: [1, 2, 3]
                 }
 
-            '>> where(squel.expr().and(a = ?, QueryBuilder).and_begin().or(b = ?, 2).or(c = ?, 3).end())':
+            '>> where(squel.expr().and(a = ?, QueryBuilder).and( expr().or(b = ?, 2).or(c = ?, 3) ))':
               beforeEach: ->
                 subQuery = squel.select().field('field1').from('table1').where('field2 = ?', 10)
-                @inst.where(squel.expr().and("a = ?", subQuery).and_begin().or("b = ?", 2).or("c = ?", 3).end())
+                @inst.where(squel.expr().and("a = ?", subQuery).and(squel.expr().or("b = ?", 2).or("c = ?", 3)))
               toString: ->
                 assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = (SELECT field1 FROM table1 WHERE (field2 = 10)) AND (b = 2 OR c = 3)) GROUP BY field, field2'
               toParam: ->
@@ -150,10 +151,10 @@ test['SELECT builder'] =
                   values: [10, 2, 3]
                 }
 
-            '>> having(squel.expr().and(a = ?, QueryBuilder).and_begin().or(b = ?, 2).or(c = ?, 3).end())':
+            '>> having(squel.expr().and(a = ?, QueryBuilder).and( expr().or(b = ?, 2).or(c = ?, 3) ))':
               beforeEach: ->
                 subQuery = squel.select().field('field1').from('table1').having('field2 = ?', 10)
-                @inst.having(squel.expr().and("a = ?", subQuery).and_begin().or("b = ?", 2).or("c = ?", 3).end())
+                @inst.having(squel.expr().and("a = ?", subQuery).and(squel.expr().or("b = ?", 2).or("c = ?", 3)))
               toString: ->
                 assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` GROUP BY field, field2 HAVING (a = (SELECT field1 FROM table1 HAVING (field2 = 10)) AND (b = 2 OR c = 3))'
               toParam: ->
@@ -308,7 +309,11 @@ test['SELECT builder'] =
       assert.same 'SELECT * FROM (SELECT * FROM students) WHERE (c = 1) LIMIT 35', newinst.toString()
 
     'with complex expressions': ->
-      expr = squel.expr().and_begin().or('b = 2').or_begin().and('c = 3').and('d = 4').end().end().and('a = 1')
+      expr = squel.expr().and(
+        squel.expr().or('b = 2').or(
+          squel.expr().and('c = 3').and('d = 4')
+        )
+      ).and('a = 1')
 
       newinst = @inst.from('table').left_join('table_2', 't', expr)
         .clone()
@@ -320,8 +325,6 @@ test['SELECT builder'] =
       assert.same newinst.toString(), 'SELECT * FROM table LEFT JOIN table_2 `t` ON ((b = 2 OR (c = 3 AND d = 4)) AND a = 1) WHERE (c = 1)'
 
 
-  'is nestable': ->
-    assert.same true, @inst.isNestable()
 
   'can specify block separator': ->
     assert.same( squel.select({separator: '\n'})
