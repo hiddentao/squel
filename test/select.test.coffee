@@ -47,11 +47,10 @@ test['SELECT builder'] =
       expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
         usingValuePlaceholders: true
         dummy: true
-        prefix: "FROM"
 
       for block in @inst.blocks
-        if (block instanceof squel.cls.FromTableBlock) or (block instanceof squel.cls.JoinBlock) or (block instanceof squel.cls.UnionBlock)
-          assert.same _.extend({}, expectedOptions, { allowNested: true }), block.options
+        if (block instanceof squel.cls.FromTableBlock)
+          assert.same _.extend({}, expectedOptions, { prefix: 'FROM'}), block.options
         else
           assert.same expectedOptions, block.options
 

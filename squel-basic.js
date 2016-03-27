@@ -780,7 +780,7 @@ OTHER DEALINGS IN THE SOFTWARE.
         value: function toParam() {
           var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-          return this._toParamString(_extend(options, {
+          return this._toParamString(_extend({}, options, {
             buildParameterized: true
           }));
         }
@@ -1374,7 +1374,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       function _class10(options) {
         _classCallCheck(this, _class10);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class10).call(this, _extend(options, {
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class10).call(this, _extend({}, options, {
           prefix: 'FROM'
         })));
       }
@@ -1407,7 +1407,7 @@ OTHER DEALINGS IN THE SOFTWARE.
       function _class11(options) {
         _classCallCheck(this, _class11);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class11).call(this, _extend(options, {
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(_class11).call(this, _extend({}, options, {
           prefix: 'INTO',
           singleTable: true
         })));
@@ -2394,7 +2394,8 @@ OTHER DEALINGS IN THE SOFTWARE.
               var tableStr = void 0;
 
               if (table instanceof cls.BaseBuilder) {
-                var ret = table.toParam({
+                var ret = table._toParamString({
+                  buildParameterized: options.buildParameterized,
                   nested: true
                 });
 
@@ -2801,7 +2802,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         _classCallCheck(this, _class28);
 
-        blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(_extend({}, options, { allowNested: true })), new cls.JoinBlock(_extend({}, options, { allowNested: true })), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(_extend({}, options, { allowNested: true }))];
+        blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
         return _possibleConstructorReturn(this, Object.getPrototypeOf(_class28).call(this, options, blocks));
       }

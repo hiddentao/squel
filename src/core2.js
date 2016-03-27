@@ -648,7 +648,7 @@ function _buildSquel(flavour = null) {
      * @return {Object}
      */
     toParam (options = {}) {
-      return this._toParamString(_extend(options, {
+      return this._toParamString(_extend({}, options, {
         buildParameterized: true,
       }));
     }
@@ -1067,7 +1067,7 @@ function _buildSquel(flavour = null) {
   // FROM table
   cls.FromTableBlock = class extends cls.AbstractTableBlock {
     constructor (options) {
-      super(_extend(options, { 
+      super(_extend({}, options, { 
         prefix: 'FROM',
       }));
     }
@@ -1090,7 +1090,7 @@ function _buildSquel(flavour = null) {
   // INTO table
   cls.IntoTableBlock = class extends cls.AbstractTableBlock {
     constructor (options) {
-      super(_extend(options, { 
+      super(_extend({}, options, { 
         prefix: 'INTO',
         singleTable: true,
       }));
@@ -2010,15 +2010,15 @@ function _buildSquel(flavour = null) {
         new cls.FunctionBlock(options),
         new cls.DistinctBlock(options),
         new cls.GetFieldBlock(options),
-        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
-        new cls.JoinBlock(_extend({}, options, { allowNested: true })),
+        new cls.FromTableBlock(options),
+        new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.HavingBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
         new cls.OffsetBlock(options),
-        new cls.UnionBlock(_extend({}, options, { allowNested: true })),
+        new cls.UnionBlock(options),
       ];
 
       super(options, blocks);
