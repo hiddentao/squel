@@ -1955,9 +1955,14 @@ function _buildSquel(flavour = null) {
             ? options.numberedParametersStartAt 
             : 1;
 
+          // construct regex for searching
+          const regex = options.parameterCharacter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
           totalStr = totalStr.replace(
-            options.parameterCharacter, 
-            `${options.numberedParametersPrefix}${i++}`
+            new RegExp(regex, 'g'), 
+            function() {
+              return `${options.numberedParametersPrefix}${i++}`;
+            }
           );
         }
       }

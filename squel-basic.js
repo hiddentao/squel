@@ -2735,9 +2735,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 
           if (!options.nested) {
             if (options.numberedParameters) {
-              var i = undefined !== options.numberedParametersStartAt ? options.numberedParametersStartAt : 1;
+              (function () {
+                var i = undefined !== options.numberedParametersStartAt ? options.numberedParametersStartAt : 1;
 
-              totalStr = totalStr.replace(options.parameterCharacter, '' + options.numberedParametersPrefix + i++);
+                // construct regex for searching
+                var regex = options.parameterCharacter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+                totalStr = totalStr.replace(new RegExp(regex, 'g'), function () {
+                  return '' + options.numberedParametersPrefix + i++;
+                });
+              })();
             }
           }
 

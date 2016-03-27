@@ -702,254 +702,266 @@ test['Builder base class'] =
 
 
 
-# test['QueryBuilder base class'] =
-#   beforeEach: ->
-#     @cls = squel.cls.QueryBuilder
-#     @inst = new @cls
+test['QueryBuilder base class'] =
+  beforeEach: ->
+    @cls = squel.cls.QueryBuilder
+    @inst = new @cls
 
-#   'instanceof base builder': ->
-#     assert.instanceOf @inst, squel.cls.BaseBuilder
+  'instanceof base builder': ->
+    assert.instanceOf @inst, squel.cls.BaseBuilder
 
-#   'constructor':
-#     'default options': ->
-#       assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
+  'constructor':
+    'default options': ->
+      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
 
-#     'overridden options': ->
-#       @inst = new @cls
-#         dummy1: 'str'
-#         dummy2: 12.3
-#         usingValuePlaceholders: true
-#         dummy3: true
+    'overridden options': ->
+      @inst = new @cls
+        dummy1: 'str'
+        dummy2: 12.3
+        usingValuePlaceholders: true
+        dummy3: true
 
-#       expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
-#         dummy1: 'str'
-#         dummy2: 12.3
-#         usingValuePlaceholders: true
-#         dummy3: true
+      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
+        dummy1: 'str'
+        dummy2: 12.3
+        usingValuePlaceholders: true
+        dummy3: true
 
-#       assert.same expectedOptions, @inst.options
+      assert.same expectedOptions, @inst.options
 
-#     'default blocks - none': ->
-#       assert.same [], @inst.blocks
+    'default blocks - none': ->
+      assert.same [], @inst.blocks
 
-#     'blocks passed in':
-#       'exposes block methods': ->
-#         limitExposedMethodsSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'exposedMethods');
-#         distinctExposedMethodsSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'exposedMethods');
-#         limitSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'limit')
-#         distinctSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'distinct')
+    'blocks passed in':
+      'exposes block methods': ->
+        limitExposedMethodsSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'exposedMethods');
+        distinctExposedMethodsSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'exposedMethods');
+        limitSpy = test.mocker.spy(squel.cls.LimitBlock.prototype, 'limit')
+        distinctSpy = test.mocker.spy(squel.cls.DistinctBlock.prototype, 'distinct')
 
-#         blocks = [
-#           new squel.cls.LimitBlock(),
-#           new squel.cls.DistinctBlock()
-#         ]
+        blocks = [
+          new squel.cls.LimitBlock(),
+          new squel.cls.DistinctBlock()
+        ]
 
-#         @inst = new @cls({}, blocks)
+        @inst = new @cls({}, blocks)
 
-#         assert.ok limitExposedMethodsSpy.calledOnce
-#         assert.ok distinctExposedMethodsSpy.calledOnce
+        assert.ok limitExposedMethodsSpy.calledOnce
+        assert.ok distinctExposedMethodsSpy.calledOnce
 
-#         assert.typeOf @inst.distinct, 'function'
-#         assert.typeOf @inst.limit, 'function'
+        assert.typeOf @inst.distinct, 'function'
+        assert.typeOf @inst.limit, 'function'
 
-#         assert.same @inst, @inst.limit(2)
-#         assert.ok limitSpy.calledOnce
-#         assert.ok limitSpy.calledOn(blocks[0])
+        assert.same @inst, @inst.limit(2)
+        assert.ok limitSpy.calledOnce
+        assert.ok limitSpy.calledOn(blocks[0])
 
-#         assert.same @inst, @inst.distinct()
-#         assert.ok distinctSpy.calledOnce
-#         assert.ok distinctSpy.calledOn(blocks[1])
+        assert.same @inst, @inst.distinct()
+        assert.ok distinctSpy.calledOnce
+        assert.ok distinctSpy.calledOn(blocks[1])
 
 
-#       'cannot expose the same method twice': ->
-#         blocks = [
-#           new squel.cls.DistinctBlock(),
-#           new squel.cls.DistinctBlock()
-#         ]
+      'cannot expose the same method twice': ->
+        blocks = [
+          new squel.cls.DistinctBlock(),
+          new squel.cls.DistinctBlock()
+        ]
 
-#         try
-#           @inst = new @cls({}, blocks)
-#           throw new Error 'should not reach here'
-#         catch err
-#           assert.same 'Error: Builder already has a builder method called: distinct', err.toString()
+        try
+          @inst = new @cls({}, blocks)
+          throw new Error 'should not reach here'
+        catch err
+          assert.same 'Error: Builder already has a builder method called: distinct', err.toString()
 
 
-#   'updateOptions()':
-#     'updates query builder options': ->
-#       oldOptions = _.extend({}, @inst.options)
+  'updateOptions()':
+    'updates query builder options': ->
+      oldOptions = _.extend({}, @inst.options)
 
-#       @inst.updateOptions
-#         updated: false
+      @inst.updateOptions
+        updated: false
 
-#       expected = _.extend oldOptions,
-#         updated: false
+      expected = _.extend oldOptions,
+        updated: false
 
-#       assert.same expected, @inst.options
+      assert.same expected, @inst.options
 
-#     'updates building block options': ->
-#       @inst.blocks = [
-#         new squel.cls.Block()
-#       ]
-#       oldOptions = _.extend({}, @inst.blocks[0].options)
+    'updates building block options': ->
+      @inst.blocks = [
+        new squel.cls.Block()
+      ]
+      oldOptions = _.extend({}, @inst.blocks[0].options)
 
-#       @inst.updateOptions
-#         updated: false
+      @inst.updateOptions
+        updated: false
 
-#       expected = _.extend oldOptions,
-#         updated: false
+      expected = _.extend oldOptions,
+        updated: false
 
-#       assert.same expected, @inst.blocks[0].options
+      assert.same expected, @inst.blocks[0].options
 
 
 
-#   'toString()':
-#     'returns empty if no blocks': ->
-#       assert.same '', @inst.toString()
+  'toString()':
+    'returns empty if no blocks': ->
+      assert.same '', @inst.toString()
+
+    'skips empty block strings': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, ''),
+      ]
 
-#     'skips empty block strings': ->
-#       @inst.blocks = [
-#         new squel.cls.StringBlock({}, ''),
-#       ]
+      assert.same '', @inst.toString()
+
+    'returns final query string': ->
+      i = 1
+      toStringSpy = test.mocker.stub squel.cls.StringBlock.prototype, '_toParamString', -> 
+        {
+          text: "ret#{++i}"
+          values: []
+        }
 
-#       assert.same '', @inst.toString()
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, 'STR1'),
+        new squel.cls.StringBlock({}, 'STR2'),
+        new squel.cls.StringBlock({}, 'STR3')
+      ]
 
-#     'returns final query string': ->
-#       i = 1
-#       buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+      assert.same 'ret2 ret3 ret4', @inst.toString()
 
-#       @inst.blocks = [
-#         new squel.cls.StringBlock({}, 'STR1'),
-#         new squel.cls.StringBlock({}, 'STR2'),
-#         new squel.cls.StringBlock({}, 'STR3')
-#       ]
+      assert.ok toStringSpy.calledThrice
+      assert.ok toStringSpy.calledOn(@inst.blocks[0])
+      assert.ok toStringSpy.calledOn(@inst.blocks[1])
+      assert.ok toStringSpy.calledOn(@inst.blocks[2])
 
-#       assert.same 'ret2 ret3 ret4', @inst.toString()
 
-#       assert.ok buildStrSpy.calledThrice
-#       assert.ok buildStrSpy.calledOn(@inst.blocks[0])
-#       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
-#       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+  'toParam()':
+    'returns empty if no blocks': ->
+      assert.same { text: '', values: [] }, @inst.toParam()
 
+    'skips empty block strings': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, ''),
+      ]
 
-#   'toParam()':
-#     'returns empty if no blocks': ->
-#       assert.same { text: '', values: [] }, @inst.toParam()
+      assert.same { text: '', values: [] }, @inst.toParam()
 
-#     'skips empty block strings': ->
-#       @inst.blocks = [
-#         new squel.cls.StringBlock({}, ''),
-#       ]
+    'returns final query string': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, 'STR1'),
+        new squel.cls.StringBlock({}, 'STR2'),
+        new squel.cls.StringBlock({}, 'STR3')
+      ]
 
-#       assert.same { text: '', values: [] }, @inst.toParam()
+      i = 1
+      toStringSpy = test.mocker.stub squel.cls.StringBlock.prototype, '_toParamString', -> 
+        {
+          text: "ret#{++i}"
+          values: []
+        }
 
-#     'returns final query string': ->
-#       @inst.blocks = [
-#         new squel.cls.StringBlock({}, 'STR1'),
-#         new squel.cls.StringBlock({}, 'STR2'),
-#         new squel.cls.StringBlock({}, 'STR3')
-#       ]
+      assert.same { text: 'ret2 ret3 ret4', values: [] }, @inst.toParam()
 
-#       i = 1
-#       buildStrSpy = test.mocker.stub squel.cls.StringBlock.prototype, 'buildStr', -> "ret#{++i}"
+      assert.ok toStringSpy.calledThrice
+      assert.ok toStringSpy.calledOn(@inst.blocks[0])
+      assert.ok toStringSpy.calledOn(@inst.blocks[1])
+      assert.ok toStringSpy.calledOn(@inst.blocks[2])
 
-#       assert.same { text: 'ret2 ret3 ret4', values: [] }, @inst.toParam()
+    'returns query with unnumbered parameters': ->
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
 
-#       assert.ok buildStrSpy.calledThrice
-#       assert.ok buildStrSpy.calledOn(@inst.blocks[0])
-#       assert.ok buildStrSpy.calledOn(@inst.blocks[1])
-#       assert.ok buildStrSpy.calledOn(@inst.blocks[2])
+      @inst.blocks[0]._toParamString = test.mocker.spy -> { 
+        text: 'a = ? AND b in (?, ?)',
+        values: [1, 2, 3]
+      }
 
-#     'returns query with unnumbered parameters': ->
-#       @inst.blocks = [
-#         new squel.cls.WhereBlock({}),
-#       ]
+      assert.same { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}, @inst.toParam()
 
-#       test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+    'returns query with numbered parameters': ->
+      @inst = new @cls
+        numberedParameters: true
 
-#       assert.same { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}, @inst.toParam()
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
 
-#     'returns query with numbered parameters': ->
-#       @inst = new @cls
-#         numberedParameters: true
+      test.mocker.stub squel.cls.WhereBlock.prototype, '_toParamString', -> { 
+        text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]
+      }
 
-#       @inst.blocks = [
-#         new squel.cls.WhereBlock({}),
-#       ]
+      assert.same @inst.toParam(), { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}
 
-#       test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
+    'returns query with numbered parameters and custom prefix': ->
+      @inst = new @cls
+        numberedParameters: true
+        numberedParametersPrefix: '&%'
 
-#       assert.same { text: 'a = $1 AND b in ($2, $3)', values: [1, 2, 3]}, @inst.toParam()
+      @inst.blocks = [
+        new squel.cls.WhereBlock({}),
+      ]
 
-#     'returns query with numbered parameters and custom prefix': ->
-#       @inst = new @cls
-#         numberedParameters: true
-#         numberedParametersPrefix: '&%'
+      test.mocker.stub squel.cls.WhereBlock.prototype, '_toParamString', -> { 
+        text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]
+      } 
 
-#       @inst.blocks = [
-#         new squel.cls.WhereBlock({}),
-#       ]
+      assert.same @inst.toParam(), { text: 'a = &%1 AND b in (&%2, &%3)', values: [1, 2, 3]}
 
-#       test.mocker.stub squel.cls.WhereBlock.prototype, 'buildParam', -> { text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]}
 
-#       assert.same { text: 'a = &%1 AND b in (&%2, &%3)', values: [1, 2, 3]}, @inst.toParam()
+  'cloning':
+    'blocks get cloned properly': ->
+      blockCloneSpy = test.mocker.spy(squel.cls.StringBlock.prototype, 'clone')
 
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, 'TEST')
+      ]
 
-#   'cloning':
-#     'blocks get cloned properly': ->
-#       blockCloneSpy = test.mocker.spy(squel.cls.StringBlock.prototype, 'clone')
+      newinst = @inst.clone()
+      @inst.blocks[0].str = 'TEST2'
 
-#       @inst.blocks = [
-#         new squel.cls.StringBlock({}, 'TEST')
-#       ]
+      assert.same 'TEST', newinst.blocks[0].toString()
 
-#       newinst = @inst.clone()
-#       @inst.blocks[0].str = 'TEST2'
+  'registerValueHandler':
+    'beforEach': ->
+      @originalHandlers = [].concat(squel.cls.globalValueHandlers)
+    'afterEach': ->
+      squel.cls.globalValueHandlers = @originalHandlers
 
-#       assert.same 'TEST', newinst.blocks[0].buildStr()
+    'calls through to base class method': ->
+      baseBuilderSpy = test.mocker.spy(squel.cls.BaseBuilder.prototype, 'registerValueHandler')
 
-#   'registerValueHandler':
-#     'beforEach': ->
-#       @originalHandlers = [].concat(squel.cls.globalValueHandlers)
-#     'afterEach': ->
-#       squel.cls.globalValueHandlers = @originalHandlers
+      handler = -> 'test'
+      @inst.registerValueHandler(Date, handler)
+      @inst.registerValueHandler('number', handler)
 
-#     'calls through to base class method': ->
-#       baseBuilderSpy = test.mocker.spy(squel.cls.BaseBuilder.prototype, 'registerValueHandler')
+      assert.ok baseBuilderSpy.calledTwice
+      assert.ok baseBuilderSpy.calledOn(@inst)
 
-#       handler = -> 'test'
-#       @inst.registerValueHandler(Date, handler)
-#       @inst.registerValueHandler('number', handler)
+    'returns instance for chainability': ->
+      handler = -> 'test'
+      assert.same @inst, @inst.registerValueHandler(Date, handler)
 
-#       assert.ok baseBuilderSpy.calledTwice
-#       assert.ok baseBuilderSpy.calledOn(@inst)
+    'calls through to blocks': ->
+      @inst.blocks = [
+        new squel.cls.StringBlock({}, ''),
+      ]
 
-#     'returns instance for chainability': ->
-#       handler = -> 'test'
-#       assert.same @inst, @inst.registerValueHandler(Date, handler)
+      baseBuilderSpy = test.mocker.spy(@inst.blocks[0], 'registerValueHandler')
 
-#     'calls through to blocks': ->
-#       @inst.blocks = [
-#         new squel.cls.StringBlock({}, ''),
-#       ]
+      handler = -> 'test'
+      @inst.registerValueHandler(Date, handler)
 
-#       baseBuilderSpy = test.mocker.spy(@inst.blocks[0], 'registerValueHandler')
+      assert.ok baseBuilderSpy.calledOnce
+      assert.ok baseBuilderSpy.calledOn(@inst.blocks[0])
 
-#       handler = -> 'test'
-#       @inst.registerValueHandler(Date, handler)
-
-#       assert.ok baseBuilderSpy.calledOnce
-#       assert.ok baseBuilderSpy.calledOn(@inst.blocks[0])
-
-#   'is nestable': ->
-#     assert.same false, @inst.isNestable()
-
-#   'get block':
-#     'valid': ->
-#       block = new squel.cls.FunctionBlock()
-#       @inst.blocks.push(block)
-#       assert.same block, @inst.getBlock(squel.cls.FunctionBlock)
-#     'invalid': ->
-#       assert.throws (-> @inst.getBlock(squel.cls.FunctionBlock) )
+  'get block':
+    'valid': ->
+      block = new squel.cls.FunctionBlock()
+      @inst.blocks.push(block)
+      assert.same block, @inst.getBlock(squel.cls.FunctionBlock)
+    'invalid': ->
+      assert.throws (-> @inst.getBlock(squel.cls.FunctionBlock) )
 
 
 
