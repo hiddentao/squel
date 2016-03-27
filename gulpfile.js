@@ -66,7 +66,7 @@ gulp.task('test', function () {
       // './test/delete.test.coffee',
       './test/expressions.test.coffee',
       // './test/insert.test.coffee',
-      // './test/select.test.coffee',
+      './test/select.test.coffee',
       // './test/update.test.coffee',
       // './test/mssql.test.coffee',
       // './test/mysql.test.coffee',
