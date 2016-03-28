@@ -700,6 +700,176 @@ test['Builder base class'] =
       assert.same '77', @inst._applyNestingFormatting('77', false)
 
 
+  '_buildString':
+    'empty': ->
+      assert.same @inst._buildString('', []), {
+        text: '',
+        values: [],
+      }
+    'no params':
+      'non-parameterized': ->
+        assert.same @inst._buildString('abc = 3', []), {
+          text: 'abc = 3',
+          values: []
+        }
+      'parameterized': ->
+        assert.same @inst._buildString('abc = 3', [], { buildParameterized: true }), {
+          text: 'abc = 3',
+          values: []
+        }
+    'non-array':
+      'non-parameterized': ->
+        assert.same @inst._buildString('a = ? ? ? ?', [2, 'abc', false, null]), {
+          text: 'a = 2 \'abc\' FALSE NULL',
+          values: []
+        }
+      'parameterized': ->
+        assert.same @inst._buildString('a = ? ? ? ?', [2, 'abc', false, null], { buildParameterized: true }), {
+          text: 'a = ? ? ? ?',
+          values: [2, 'abc', false, null]
+        }
+    'array': ->
+      'non-parameterized': ->
+        assert.same @inst._buildString('a = ?', [[1,2,3]]), {
+          text: 'a = (1, 2, 3)',
+          values: [],
+        }
+      'parameterized': ->
+        assert.same @inst._buildString('a = ?', [[1,2,3]], { buildParameterized: true }), {
+          text: 'a = (?, ?, ?)',
+          values: [1, 2, 3]
+        }
+    'nested builder': ->
+      beforeEach:
+        @s = squel.select().from('master').where('b = ?', 5)
+      'non-parameterized': ->
+        assert.same @inst._buildString('a = ?', [@s]), {
+          text: 'a = (SELECT * FROM master WHERE (b = ?))',
+          values: [5]
+        }
+      'parameterized': ->
+        assert.same @inst._buildString('a = ?', [@s], { buildParameterized: true }), {
+          text: 'a = (SELECT * FROM master WHERE (b = ?))',
+          values: [5]
+        }
+    'return nested output':
+      'non-parameterized': ->
+        assert.same @inst._buildString('a = ?', [3], { nested: true }), {
+          text: '(a = 3)',
+          values: []
+        }
+      'parameterized': ->
+        assert.same @inst._buildString('a = ?', [3], { buildParameterized: true, nested: true }), {
+          text: '(a = ?)',
+          values: [3]
+        }
+    'string formatting options': ->
+      options = 
+        formattingOptions:
+          dontQuote: true
+
+      assert.same @inst._buildString('a = ?', ['NOW()'], options), {
+        text: 'a = NOW()',
+        values: []
+      }
+    'custom parameter character': ->
+      beforeEach: ->
+        @inst.options.parameterCharacter = '@@'
+
+      'non-parameterized': ->
+        assert.same @inst._buildString('a = @@', [[1,2,3]]), {
+          text: 'a = (1, 2, 3)',
+          values: [],
+        }
+      'parameterized': ->
+        assert.same @inst._buildString('a = @@', [[1,2,3]]), {
+          text: 'a = (@@, @@, @@)',
+          values: [1,2,3],
+        }
+
+  '_buildManyStrings':
+    'empty': ->
+      assert.same @inst._buildManyStrings([], []), {
+        text: '',
+        values: [],
+      }
+    'simple':
+      beforeEach: ->
+        @strings = [
+          'a = ?',
+          'b IN ? AND c = ?'
+        ]
+
+        @values = [
+          ['elephant'],
+          [[1,2,3], 4]
+        ]
+
+      'non-parameterized': ->
+        assert.same @inst._buildManyStrings(@strings, @values), {
+          text: 'a = \'elephant\' b IN (1, 2, 3) AND c = 4',
+          values: [],
+        }
+      'parameterized': ->
+        assert.same @inst._buildManyStrings(@strings, @values, { buildParameterized: true }), {
+          text: 'a = ? b IN (?, ?, ?) AND c = ?',
+          values: ['elephant', 1, 2, 3, 4],
+        }
+
+    'return nested': ->
+      'non-parameterized': ->
+        assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]], { nested: true }), {
+          text: '(a = 1 b = 2)',
+          values: [],
+        }
+      'parameterized': ->
+        assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]], { buildParameterized: true, nested: true }), {
+          text: '(a = ? b = ?)',
+          values: [1, 2],
+        }
+
+    'custom separator': ->
+      'non-parameterized': ->
+        @inst.options.separator = '|'
+        assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]]), {
+          text: '(a = 1|b = 2)',
+          values: [],
+        }
+      'parameterized': ->
+        assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]], { buildParameterized: true}), {
+          text: '(a = ?|b = ?)',
+          values: [1, 2],
+        }
+
+  'toParam': ->
+    spy = test.mocker.stub @inst, '_toParamString', ->
+      {
+        text: 'dummy'
+        values: [1]
+      }
+
+    options = {test: 2}
+    assert.same @inst.toParam(options), {
+      text: 'dummy'
+      values: [1]      
+    }
+
+    spy.should.have.been.calledOnce
+    assert.same spy.getCall(0).args[0].test, 2
+    assert.same spy.getCall(0).args[0].buildParameterized, true
+
+  'toString': ->
+    spy = test.mocker.stub @inst, '_toParamString', ->
+      {
+        text: 'dummy'
+        values: [1]
+      }
+
+    options = {test: 2}
+    assert.same @inst.toString(options), 'dummy'
+
+    spy.should.have.been.calledOnce
+    assert.same spy.getCall(0).args[0], options
 
 
 test['QueryBuilder base class'] =

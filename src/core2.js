@@ -478,8 +478,7 @@ function _buildSquel(flavour = null) {
         else if (typeofValue !== "number") {
           if (formattingOptions.dontQuote) {
             value = `${value}`;
-          } 
-          else {
+          } else {
             let escapedValue = this._escapeValue(value);
 
             value = `'${escapedValue}'`;
