@@ -461,7 +461,7 @@ function _buildSquel(flavour = null) {
           return this._formatValueForQueryString(v);
         });
 
-        value = `(${value.join(', ')})`;
+        value = this._applyNestingFormatting(value.join(', '));
       }
       else {
         let typeofValue = typeof value;
@@ -473,7 +473,9 @@ function _buildSquel(flavour = null) {
           value = value ? "TRUE" : "FALSE";
         }
         else if (value instanceof cls.BaseBuilder) {
-          value = this._applyNestingFormatting(value.toString());
+          value = value.toString({
+            nested: true,
+          });
         }
         else if (typeofValue !== "number") {
           if (formattingOptions.dontQuote) {
@@ -552,7 +554,7 @@ function _buildSquel(flavour = null) {
                   return paramChar;
                 }).join(', ');
 
-                formattedStr += `(${tmpStr})`;
+                formattedStr += tmpStr;
 
                 formattedValues.push(...value);
               } else {
@@ -1385,12 +1387,12 @@ function _buildSquel(flavour = null) {
         valueStrings = [],
         totalValues = [];
 
-      for (let i in this.values) {
+      for (let i in this._values) {
         valueStrings[i] = '';
 
-        for (let j in this.values[i]) {
+        for (let j in this._values[i]) {
           let ret = 
-            this._buildString(this.options.parameterCharacter, this.values[i][j], {
+            this._buildString(this.options.parameterCharacter, [this._values[i][j]], {
               buildParameterized: buildParameterized,
               formattingOptions: this._valueOptions[i][j],
             });
@@ -1398,12 +1400,14 @@ function _buildSquel(flavour = null) {
           totalValues.push(...ret.values);          
 
           valueStrings[i] = _pad(valueStrings[i], ', ');
-          valueStrings[i] += str;
+          valueStrings[i] += ret.text;
         }
       }
 
       return { 
-        text: `(${fieldString}) VALUES (${valueStrings.join('), (')})`, 
+        text: fieldString.length 
+          ? `(${fieldString}) VALUES (${valueStrings.join('), (')})`
+          : '',
         values: totalValues 
       };
     }
@@ -1787,7 +1791,7 @@ function _buildSquel(flavour = null) {
             });
           }
 
-          totalStr += `(${ret.text})`;
+          totalStr += this._applyNestingFormatting(ret.text);
           totalValues.push(...ret.values);
         }
       }
@@ -2010,6 +2014,7 @@ function _buildSquel(flavour = null) {
         new cls.FunctionBlock(options),
         new cls.DistinctBlock(options),
         new cls.GetFieldBlock(options),
+        new cls.FromTableBlock(options),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),

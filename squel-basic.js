@@ -577,7 +577,7 @@ OTHER DEALINGS IN THE SOFTWARE.
               return _this4._formatValueForQueryString(v);
             });
 
-            value = '(' + value.join(', ') + ')';
+            value = this._applyNestingFormatting(value.join(', '));
           } else {
             var typeofValue = typeof value === 'undefined' ? 'undefined' : _typeof(value);
 
@@ -586,7 +586,9 @@ OTHER DEALINGS IN THE SOFTWARE.
             } else if (typeofValue === "boolean") {
               value = value ? "TRUE" : "FALSE";
             } else if (value instanceof cls.BaseBuilder) {
-              value = this._applyNestingFormatting(value.toString());
+              value = value.toString({
+                nested: true
+              });
             } else if (typeofValue !== "number") {
               if (formattingOptions.dontQuote) {
                 value = '' + value;
@@ -671,7 +673,7 @@ OTHER DEALINGS IN THE SOFTWARE.
                       return paramChar;
                     }).join(', ');
 
-                    formattedStr += '(' + tmpStr + ')';
+                    formattedStr += tmpStr;
 
                     formattedValues.push.apply(formattedValues, _toConsumableArray(value));
                   } else {
@@ -1818,11 +1820,11 @@ OTHER DEALINGS IN THE SOFTWARE.
               valueStrings = [],
               totalValues = [];
 
-          for (var i in this.values) {
+          for (var i in this._values) {
             valueStrings[i] = '';
 
-            for (var j in this.values[i]) {
-              var ret = this._buildString(this.options.parameterCharacter, this.values[i][j], {
+            for (var j in this._values[i]) {
+              var ret = this._buildString(this.options.parameterCharacter, [this._values[i][j]], {
                 buildParameterized: buildParameterized,
                 formattingOptions: this._valueOptions[i][j]
               });
@@ -1830,12 +1832,12 @@ OTHER DEALINGS IN THE SOFTWARE.
               totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
 
               valueStrings[i] = _pad(valueStrings[i], ', ');
-              valueStrings[i] += str;
+              valueStrings[i] += ret.text;
             }
           }
 
           return {
-            text: '(' + fieldString + ') VALUES (' + valueStrings.join('), (') + ')',
+            text: fieldString.length ? '(' + fieldString + ') VALUES (' + valueStrings.join('), (') + ')' : '',
             values: totalValues
           };
         }
@@ -2425,7 +2427,7 @@ OTHER DEALINGS IN THE SOFTWARE.
                   });
                 }
 
-                totalStr += '(' + _ret4.text + ')';
+                totalStr += this._applyNestingFormatting(_ret4.text);
                 totalValues.push.apply(totalValues, _toConsumableArray(_ret4.values));
               }
             }
@@ -2803,7 +2805,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         _classCallCheck(this, _class28);
 
-        blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
+        blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
         return _possibleConstructorReturn(this, Object.getPrototypeOf(_class28).call(this, options, blocks));
       }
