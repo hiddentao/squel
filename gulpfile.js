@@ -59,8 +59,8 @@ gulp.task('build-full', function() {
 
 gulp.task('test', function () {
   return gulp.src([
-      './test/baseclasses.test.coffee',
-      // './test/blocks.test.coffee',
+      // './test/baseclasses.test.coffee',
+      './test/blocks.test.coffee',
       // './test/case.test.coffee',
       // './test/custom.test.coffee',
       // './test/delete.test.coffee',

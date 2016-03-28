@@ -917,7 +917,7 @@ function _buildSquel(flavour = null) {
       this._str = str;
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       return {
         text: this._str,
         values: [],
@@ -941,7 +941,7 @@ function _buildSquel(flavour = null) {
       this._values.push(values);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       return this._buildManyStrings(this._strings, this._values, options);
     }
   }
@@ -1003,7 +1003,7 @@ function _buildSquel(flavour = null) {
     /**
      * @override
      */
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let totalStr = '',
         totalValues = [];
 
@@ -1052,7 +1052,7 @@ function _buildSquel(flavour = null) {
       this._table(table, alias);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       if (!this._hasTable()) {
         throw new Error("table() needs to be called");
       }
@@ -1074,7 +1074,7 @@ function _buildSquel(flavour = null) {
       this._table(table, alias);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       return super._toParamString(options);
     }
 
@@ -1094,7 +1094,7 @@ function _buildSquel(flavour = null) {
       this._table(table);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       if (!this._hasTable()) {
         throw new Error("into() needs to be called");
       }
@@ -1165,7 +1165,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let { queryBuilder, buildParameterized } = options;
 
       let totalStr = '',
@@ -1319,7 +1319,7 @@ function _buildSquel(flavour = null) {
       this._setFields(fields, valueOptions);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let { buildParameterized } = options;
 
       if (0 >= this._fields.length) {
@@ -1377,7 +1377,7 @@ function _buildSquel(flavour = null) {
       this._setFieldsRows(fieldsRows, valueOptions);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let { buildParameterized } = options;
       
       let fieldString = this._fields.join(', '),
@@ -1430,7 +1430,7 @@ function _buildSquel(flavour = null) {
       this._query = this._sanitizeQueryBuilder(selectQuery);
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let totalStr = '',
         totalValues = [];
 
@@ -1483,7 +1483,7 @@ function _buildSquel(flavour = null) {
       this._groups.push(this._sanitizeField(field));
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       return {
         text: this._groups.length ? `GROUP BY ${this._groups.join(', ')}`: '',
         values: [],
@@ -1548,7 +1548,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let totalStr = "",
         totalValues = [];
 
@@ -1630,7 +1630,7 @@ function _buildSquel(flavour = null) {
       });
     }
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let totalStr = '',
         totalValues = [];
 
@@ -1746,7 +1746,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let totalStr = "",  
         totalValues = [];
 
@@ -1831,7 +1831,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _toParamString (options) {
+    _toParamString (options = {}) {
       let totalStr = '',
         totalValues = [];
 

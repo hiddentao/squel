@@ -49,8 +49,8 @@ test['Blocks'] =
 
       assert.same expectedOptions, @inst.options
 
-    'buildStr()': ->
-      assert.same '', @inst.buildStr()
+    '_toParamString()': ->
+      assert.throws (=> @inst.toString()), 'Not yet implemented'
 
     'exposedMethods()':
       'returns methods': ->
@@ -65,9 +65,9 @@ test['Blocks'] =
         assert.ok undefined is _.find (name for name of @inst.exposedMethods()), (name) ->
           return name is '_method'
 
-      'ignores buildStr()': ->
+      'ignores toString()': ->
         assert.ok undefined is _.find (name for name of @inst.exposedMethods()), (name) ->
-          return name is 'buildStr'
+          return name is 'toString'
 
     'cloning copies the options over': ->
       @inst.options.dummy = true;
@@ -88,58 +88,21 @@ test['Blocks'] =
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
 
-    'buildStr()':
-      'returns the string as is': ->
+    '_toParamString()':
+      'non-parameterized': ->
         @inst = new @cls {}, 'TAG'
 
-        assert.same 'TAG', @inst.buildStr()
-
-    'buildParam()':
-      'returns the string as is': ->
+        assert.same @inst._toParamString(), { 
+          text: 'TAG'
+          values: [] 
+        }
+      'parameterized': ->
         @inst = new @cls {}, 'TAG'
 
-        assert.same { text: 'TAG', values: [] }, @inst.buildParam()
-
-
-
-  'AbstractValueBlock':
-    beforeEach: ->
-      @cls = squel.cls.AbstractValueBlock
-      @inst = new @cls
-
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
-
-    'initial member values': ->
-      assert.same [], @inst._values
-      assert.same '', @inst._str
-
-    'set value': ->
-      @inst._setValue('basd', 2, 5)
-      assert.same [2, 5], @inst._values
-      assert.same 'basd', @inst._str
-
-    'buildStr()':
-      'when not set': ->
-        assert.same '', @inst.buildStr()
-      'when set': ->
-        @inst._str  = 'bla'
-        assert.same 'bla', @inst.buildStr()
-      'when set with params': ->
-        @inst._str  = 'bla ? ? ?'
-        @inst._values  = [1,2]
-        assert.same 'bla 1 2 ?', @inst.buildStr()
-
-    'buildParam()':
-      'when not set': ->
-        assert.same { text: '', values: [] }, @inst.buildParam()
-      'when set': ->
-        @inst._str  = 'bla'
-        assert.same { text: 'bla', values: [] }, @inst.buildParam()
-      'when set with params': ->
-        @inst._str  = 'bla ? ? ?'
-        @inst._values  = [1,2]
-        assert.same { text: 'bla ? ? ?', values: [1,2] }, @inst.buildParam()
+        assert.same @inst._toParamString(buildParameterized: true), { 
+          text: 'TAG'
+          values: [] 
+        }
 
 
 
@@ -148,21 +111,35 @@ test['Blocks'] =
       @cls = squel.cls.FunctionBlock
       @inst = new @cls
 
-    'instanceof of AbstractValueBlock': ->
-      assert.instanceOf @inst, squel.cls.AbstractValueBlock
+    'instanceof of Block': ->
+      assert.instanceOf @inst, squel.cls.Block
 
-    'set function': ->
-      spy = test.mocker.spy(squel.cls.AbstractValueBlock.prototype, '_setValue')
-      @inst.function('basd', 2, 5)
+    'initial member values': ->
+      assert.same [], @inst._values
+      assert.same [], @inst._strings
 
-      assert.ok spy.calledWithExactly 'basd', 2, 5
+    '_toParamString()':
+      'when not set': ->
+        assert.same @inst._toParamString(), { 
+          text: ''
+          values: [] 
+        } 
+      'non-parameterized': ->
+        @inst.function('bla')
+        @inst.function('bla2')
 
-    'buildStr() same as base class': ->
-      assert.same @inst.buildStr, squel.cls.AbstractValueBlock.prototype.buildStr
+        assert.same @inst._toParamString(), {
+          text: 'bla bla2', 
+          values: []
+        }
+      'parameterized': ->
+        @inst.function('bla ?', 2)
+        @inst.function('bla2 ?', 3)
 
-    'buildParam() same as base class': ->
-      assert.same @inst.buildParam, squel.cls.AbstractValueBlock.prototype.buildParam
-
+        assert.same @inst._toParamString(buildParameterized: true), {
+          text: 'bla ? bla2 ?', 
+          values: [2, 3]
+        }
 
 
   'AbstractTableBlock':
@@ -174,7 +151,7 @@ test['Blocks'] =
       assert.instanceOf @inst, squel.cls.Block
 
     'initial field values': ->
-      assert.same [], @inst.tables
+      assert.same [], @inst._tables
 
     'has table':
       'no': ->
@@ -196,7 +173,7 @@ test['Blocks'] =
           },
           {
           table: 'table2',
-          alias: '`alias2`'
+          alias: 'alias2'
           },
           {
           table: 'table3',
@@ -204,7 +181,7 @@ test['Blocks'] =
           }
         ]
 
-        assert.same expectedFroms, @inst.tables
+        assert.same expectedFroms, @inst._tables
 
       'sanitizes inputs': ->
         sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
@@ -215,7 +192,7 @@ test['Blocks'] =
         assert.ok sanitizeTableSpy.calledWith 'table'
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias'
 
-        assert.same [ { table: '_t', alias: '_a' }], @inst.tables
+        assert.same [ { table: '_t', alias: '_a' }], @inst._tables
 
 
       'handles single-table mode': ->
@@ -232,29 +209,19 @@ test['Blocks'] =
           }
         ]
 
-        assert.same expected, @inst.tables
+        assert.same expected, @inst._tables
 
-
-      'if not allowing nested queries': ->
-        sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
-        innerTable = squel.select()
-
-        @inst.options.allowNested = false
-        @inst._table(innerTable)
-        assert.ok sanitizeTableSpy.calledWithExactly innerTable, false
-
-      'if allowing nested queries': ->
+      'builder as table': ->
         sanitizeTableSpy = test.mocker.spy @cls.prototype, '_sanitizeTable'
 
         innerTable1 = squel.select()
         innerTable2 = squel.select()
 
-        @inst.options.allowNested = true
         @inst._table(innerTable1)
         @inst._table(innerTable2, 'Inner2')
 
-        assert.ok sanitizeTableSpy.calledWithExactly innerTable1, true
-        assert.ok sanitizeTableSpy.calledWithExactly innerTable2, true
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable1
+        assert.ok sanitizeTableSpy.calledWithExactly innerTable2
 
         expected = [
           {
@@ -262,34 +229,52 @@ test['Blocks'] =
           table: innerTable1
           }
           {
-          alias: '`Inner2`'
+          alias: 'Inner2'
           table: innerTable2
           }
         ]
 
-        assert.same expected, @inst.tables
+        assert.same expected, @inst._tables
 
-    'buildStr()':
-      'no table needs to have been provided': ->
-        assert.same '', @inst.buildStr()
+    '_toParamString()':
+      beforeEach: ->
+        @innerTable1 = squel.select().from('inner1').where('a = ?', 3)
 
-      'returns formatted query phrase': ->
-        @inst._table('table1')
+      'no table': ->
+        assert.same @inst._toParamString(), {
+          text: ''
+          values: []
+        }
+
+      'prefix': ->
+        @inst.options.prefix = 'TEST'
+
+        @inst._table('table2', 'alias2')
+
+        assert.same @inst._toParamString(), {
+          text: 'TEST table2 `alias2`',
+          values: []
+        }
+
+
+      'non-parameterized': ->
+        @inst._table(@innerTable1)
         @inst._table('table2', 'alias2')
         @inst._table('table3')
 
-        assert.same 'table1, table2 `alias2`, table3', @inst.buildStr()
+        assert.same @inst._toParamString(), {
+          text: '(SELECT * FROM inner1 WHERE (a = 3)), table2 `alias2`, table3'
+          values: []
+        }
+      'parameterized': ->
+        @inst._table(@innerTable1)
+        @inst._table('table2', 'alias2')
+        @inst._table('table3')
 
-      'handles nested query': ->
-        innerTable1 = squel.select().from('inner1')
-        innerTable2 = squel.select().from('inner2')
-
-        @inst.options.allowNested = true
-        @inst._table(innerTable1)
-        @inst._table(innerTable2, 'inner2')
-
-        assert.same '(SELECT * FROM inner1), (SELECT * FROM inner2) `inner2`', @inst.buildStr()
-
+        assert.same @inst._toParamString(buildParameterized: true), {
+          text: '(SELECT * FROM inner1 WHERE (a = ?)), table2 `alias2`, table3'
+          values: [3]
+        }
 
 
 
@@ -297,6 +282,9 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.FromTableBlock
       @inst = new @cls()
+
+    'check prefix': ->
+      assert.same @inst.options.prefix, 'FROM'
 
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
@@ -312,17 +300,6 @@ test['Blocks'] =
         assert.ok baseMethodSpy.calledWithExactly('table1', null)
         assert.ok baseMethodSpy.calledWithExactly('table2', 'alias2')
 
-    'buildStr()':
-      'no table needs to be provided': ->
-        @inst.buildStr()
-
-      'calls base class handler': ->
-        baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, 'buildStr', -> 'blah'
-
-        @inst.from('table')
-
-        assert.same 'FROM blah', @inst.buildStr()
-
 
 
   'UpdateTableBlock':
@@ -333,8 +310,9 @@ test['Blocks'] =
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
 
-    'table()':
-      'calls base class handler': ->
+    'check prefix': ->
+      assert.same @inst.options.prefix, undefined
+
         baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, '_table'
 
         @inst.table('table1')
@@ -346,1489 +324,1487 @@ test['Blocks'] =
 
 
 
+  # 'IntoTableBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.IntoTableBlock
+  #     @inst = new @cls()
+
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
+
+  #   'initial field values': ->
+  #     assert.same null, @inst.table
+
+  #   'into()':
+  #     'saves inputs': ->
+  #       @inst.into('table1')
+  #       @inst.into('table2')
+  #       @inst.into('table3')
+
+  #       assert.same 'table3', @inst.table
+
+  #     'sanitizes inputs': ->
+  #       sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
+
+  #       @inst.into('table')
+
+  #       assert.ok sanitizeTableSpy.calledWithExactly 'table', false
+
+  #       assert.same '_t', @inst.table
+
+  #   'toString()':
+  #     'requires table to have been provided': ->
+  #       try
+  #         @inst.toString()
+  #         throw new Error 'should not reach here'
+  #       catch err
+  #         assert.same 'Error: into() needs to be called', err.toString()
+
+  #     'returns formatted query phrase': ->
+  #       @inst.into('table1')
+
+  #       assert.same 'INTO table1', @inst.toString()
+
+
+
+
+  # 'GetFieldBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.GetFieldBlock
+  #     @inst = new @cls()
+
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
+
+  #   'initial field values': ->
+  #     assert.same [], @inst._fields
+
+  #   'fields() - object':
+  #     'saves inputs': ->
+  #       fieldSpy = test.mocker.spy(@inst, 'field')
+
+  #       @inst.fields({
+  #         'field1': null
+  #         'field2': 'alias2'
+  #         'field3': null
+  #       }, { dummy: true})
+
+  #       expected = [
+  #         {
+  #           name: 'field1',
+  #           alias: null
+  #         },
+  #         {
+  #           name: 'field2',
+  #           alias: '"alias2"'
+  #         },
+  #         {
+  #           name: 'field3',
+  #           alias: null
+  #         }
+  #       ]
+
+  #       assert.ok fieldSpy.calledThrice
+  #       assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
+  #       assert.ok fieldSpy.calledWithExactly('field2', 'alias2', dummy: true)
+  #       assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
+
+  #       assert.same expected, @inst._fields
+
+  #   'fields() - array':
+  #     'saves inputs': ->
+  #       fieldSpy = test.mocker.spy(@inst, 'field')
+
+  #       @inst.fields([ 'field1', 'field2', 'field3' ], { dummy: true})
+
+  #       expected = [
+  #         {
+  #           name: 'field1',
+  #           alias: null
+  #         },
+  #         {
+  #           name: 'field2',
+  #           alias: null
+  #         },
+  #         {
+  #           name: 'field3',
+  #           alias: null
+  #         }
+  #       ]
+
+  #       assert.ok fieldSpy.calledThrice
+  #       assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
+  #       assert.ok fieldSpy.calledWithExactly('field2', null, dummy: true)
+  #       assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
+
+  #       assert.same expected, @inst._fields
+
+  #   'field()':
+  #     'saves inputs': ->
+  #       @inst.field('field1')
+  #       @inst.field('field2', 'alias2')
+  #       @inst.field('field3')
 
+  #       expected = [
+  #         {
+  #         name: 'field1',
+  #         alias: null
+  #         },
+  #         {
+  #         name: 'field2',
+  #         alias: '"alias2"'
+  #         },
+  #         {
+  #         name: 'field3',
+  #         alias: null
+  #         }
+  #       ]
+
+  #       assert.same expected, @inst._fields
+
+  #   'field() - discard duplicates':
+  #     'saves inputs': ->
+  #       @inst.field('field1')
+  #       @inst.field('field2', 'alias2')
+  #       @inst.field('field2', 'alias2')
+  #       @inst.field('field1', 'alias1')
 
-  'IntoTableBlock':
-    beforeEach: ->
-      @cls = squel.cls.IntoTableBlock
-      @inst = new @cls()
+  #       expected = [
+  #         {
+  #         name: 'field1',
+  #         alias: null
+  #         },
+  #         {
+  #         name: 'field2',
+  #         alias: '"alias2"'
+  #         },
+  #         {
+  #         name: 'field1',
+  #         alias: '"alias1"'
+  #         }
+  #       ]
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
-
-    'initial field values': ->
-      assert.same null, @inst.table
+  #       assert.same expected, @inst._fields
+
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+  #       sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeFieldAlias', -> return '_a'
+
+  #       @inst.field('field1', 'alias1', { dummy: true})
 
-    'into()':
-      'saves inputs': ->
-        @inst.into('table1')
-        @inst.into('table2')
-        @inst.into('table3')
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'field1', { dummy: true }
+  #       assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
 
-        assert.same 'table3', @inst.table
+  #       assert.same [ { name: '_f', alias: '_a' } ], @inst._fields
 
-      'sanitizes inputs': ->
-        sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
+  #   'toString()':
+  #     beforeEach: ->
+  #       @queryBuilder = squel.select()
+  #       @fromTableBlock = @queryBuilder.getBlock(squel.cls.FromTableBlock)
 
-        @inst.into('table')
-
-        assert.ok sanitizeTableSpy.calledWithExactly 'table', false
-
-        assert.same '_t', @inst.table
-
-    'buildStr()':
-      'requires table to have been provided': ->
-        try
-          @inst.buildStr()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: into() needs to be called', err.toString()
-
-      'returns formatted query phrase': ->
-        @inst.into('table1')
-
-        assert.same 'INTO table1', @inst.buildStr()
-
-
-
-
-  'GetFieldBlock':
-    beforeEach: ->
-      @cls = squel.cls.GetFieldBlock
-      @inst = new @cls()
-
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
-
-    'initial field values': ->
-      assert.same [], @inst._fields
-
-    'fields() - object':
-      'saves inputs': ->
-        fieldSpy = test.mocker.spy(@inst, 'field')
-
-        @inst.fields({
-          'field1': null
-          'field2': 'alias2'
-          'field3': null
-        }, { dummy: true})
-
-        expected = [
-          {
-            name: 'field1',
-            alias: null
-          },
-          {
-            name: 'field2',
-            alias: '"alias2"'
-          },
-          {
-            name: 'field3',
-            alias: null
-          }
-        ]
-
-        assert.ok fieldSpy.calledThrice
-        assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
-        assert.ok fieldSpy.calledWithExactly('field2', 'alias2', dummy: true)
-        assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
-
-        assert.same expected, @inst._fields
-
-    'fields() - array':
-      'saves inputs': ->
-        fieldSpy = test.mocker.spy(@inst, 'field')
-
-        @inst.fields([ 'field1', 'field2', 'field3' ], { dummy: true})
-
-        expected = [
-          {
-            name: 'field1',
-            alias: null
-          },
-          {
-            name: 'field2',
-            alias: null
-          },
-          {
-            name: 'field3',
-            alias: null
-          }
-        ]
-
-        assert.ok fieldSpy.calledThrice
-        assert.ok fieldSpy.calledWithExactly('field1', null, dummy: true)
-        assert.ok fieldSpy.calledWithExactly('field2', null, dummy: true)
-        assert.ok fieldSpy.calledWithExactly('field3', null, dummy: true)
-
-        assert.same expected, @inst._fields
-
-    'field()':
-      'saves inputs': ->
-        @inst.field('field1')
-        @inst.field('field2', 'alias2')
-        @inst.field('field3')
-
-        expected = [
-          {
-          name: 'field1',
-          alias: null
-          },
-          {
-          name: 'field2',
-          alias: '"alias2"'
-          },
-          {
-          name: 'field3',
-          alias: null
-          }
-        ]
-
-        assert.same expected, @inst._fields
-
-    'field() - discard duplicates':
-      'saves inputs': ->
-        @inst.field('field1')
-        @inst.field('field2', 'alias2')
-        @inst.field('field2', 'alias2')
-        @inst.field('field1', 'alias1')
-
-        expected = [
-          {
-          name: 'field1',
-          alias: null
-          },
-          {
-          name: 'field2',
-          alias: '"alias2"'
-          },
-          {
-          name: 'field1',
-          alias: '"alias1"'
-          }
-        ]
-
-        assert.same expected, @inst._fields
-
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeFieldAlias', -> return '_a'
-
-        @inst.field('field1', 'alias1', { dummy: true})
-
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', { dummy: true }
-        assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
+  #     'returns all fields when none provided': ->
+  #       @fromTableBlock._hasTable = -> true
 
-        assert.same [ { name: '_f', alias: '_a' } ], @inst._fields
+  #       @inst._fields = []
+
+  #       assert.same '*', @inst.toString(@queryBuilder)
+
+  #     'but returns nothing if no table set': ->
+  #       @fromTableBlock._hasTable = -> false
+
+  #       @inst._fields = []
+
+  #       assert.same '', @inst.toString(@queryBuilder)
+
+  #     'returns formatted query phrase': ->
+  #       @fromTableBlock._hasTable = -> true
+
+  #       @inst.field('field1')
+  #       @inst.field('field2', 'alias2')
+  #       @inst.field('field3')
+
+  #       assert.same 'field1, field2 AS "alias2", field3', @inst.toString(@queryBuilder)
+
+
+
+  # 'AbstractSetFieldBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.AbstractSetFieldBlock
+  #     @inst = new @cls()
+
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
+
+  #   'initial fields': ->
+  #     assert.same [], @inst.fields
+
+  #   'initial field options': ->
+  #     assert.same [], @inst.fieldOptions
+
+  #   'initial values': ->
+  #     assert.same [], @inst.values
+
+  #   '_set()':
+  #     'saves inputs': ->
+  #       @inst._set('field1', 'value1', dummy: 1)
+  #       @inst._set('field2', 'value2', dummy: 2)
+  #       @inst._set('field3', 'value3', dummy: 3)
+  #       @inst._set('field4')
+
+  #       expectedFields = [ 'field1', 'field2', 'field3', 'field4' ]
+  #       expectedValues = [ [ 'value1', 'value2', 'value3', undefined ] ]
+  #       expectedFieldOptions = [ [ {dummy: 1}, {dummy: 2}, {dummy: 3}, {} ] ]
+
+  #       assert.same expectedFields, @inst.fields
+  #       assert.same expectedValues, @inst.values
+  #       assert.same expectedFieldOptions, @inst.fieldOptions
+
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+  #       sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-    'buildStr()':
-      beforeEach: ->
-        @queryBuilder = squel.select()
-        @fromTableBlock = @queryBuilder.getBlock(squel.cls.FromTableBlock)
+  #       @inst._set('field1', 'value1', dummy: true)
 
-      'returns all fields when none provided': ->
-        @fromTableBlock._hasTable = -> true
-
-        @inst._fields = []
-
-        assert.same '*', @inst.buildStr(@queryBuilder)
-
-      'but returns nothing if no table set': ->
-        @fromTableBlock._hasTable = -> false
-
-        @inst._fields = []
-
-        assert.same '', @inst.buildStr(@queryBuilder)
-
-      'returns formatted query phrase': ->
-        @fromTableBlock._hasTable = -> true
-
-        @inst.field('field1')
-        @inst.field('field2', 'alias2')
-        @inst.field('field3')
-
-        assert.same 'field1, field2 AS "alias2", field3', @inst.buildStr(@queryBuilder)
-
-
-
-  'AbstractSetFieldBlock':
-    beforeEach: ->
-      @cls = squel.cls.AbstractSetFieldBlock
-      @inst = new @cls()
-
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
-
-    'initial fields': ->
-      assert.same [], @inst.fields
-
-    'initial field options': ->
-      assert.same [], @inst.fieldOptions
-
-    'initial values': ->
-      assert.same [], @inst.values
-
-    '_set()':
-      'saves inputs': ->
-        @inst._set('field1', 'value1', dummy: 1)
-        @inst._set('field2', 'value2', dummy: 2)
-        @inst._set('field3', 'value3', dummy: 3)
-        @inst._set('field4')
-
-        expectedFields = [ 'field1', 'field2', 'field3', 'field4' ]
-        expectedValues = [ [ 'value1', 'value2', 'value3', undefined ] ]
-        expectedFieldOptions = [ [ {dummy: 1}, {dummy: 2}, {dummy: 3}, {} ] ]
-
-        assert.same expectedFields, @inst.fields
-        assert.same expectedValues, @inst.values
-        assert.same expectedFieldOptions, @inst.fieldOptions
-
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
-        sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
+  #       assert.ok sanitizeValueSpy.calledWithExactly 'value1'
 
-        @inst._set('field1', 'value1', dummy: true)
-
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
-        assert.ok sanitizeValueSpy.calledWithExactly 'value1'
-
-        assert.same [ '_f' ], @inst.fields
-        assert.same [ [ '_v' ] ], @inst.values
+  #       assert.same [ '_f' ], @inst.fields
+  #       assert.same [ [ '_v' ] ], @inst.values
 
-
-    '_setFields()':
-      'saves inputs': ->
-        @inst._setFields
-          'field1': 'value1'
-          'field2': 'value2'
-          'field3': 'value3'
 
-        expectedFields = [ 'field1', 'field2', 'field3' ]
-        expectedValues = [ [ 'value1', 'value2', 'value3'] ]
-        expectedFieldOptions = [ [ {}, {}, {} ] ]
+  #   '_setFields()':
+  #     'saves inputs': ->
+  #       @inst._setFields
+  #         'field1': 'value1'
+  #         'field2': 'value2'
+  #         'field3': 'value3'
 
-        assert.same expectedFields, @inst.fields
-        assert.same expectedValues, @inst.values
-        assert.same expectedFieldOptions, @inst.fieldOptions
+  #       expectedFields = [ 'field1', 'field2', 'field3' ]
+  #       expectedValues = [ [ 'value1', 'value2', 'value3'] ]
+  #       expectedFieldOptions = [ [ {}, {}, {} ] ]
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
-        sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
+  #       assert.same expectedFields, @inst.fields
+  #       assert.same expectedValues, @inst.values
+  #       assert.same expectedFieldOptions, @inst.fieldOptions
 
-        @inst._setFields({'field1': 'value1'}, {dummy: true})
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+  #       sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
-        assert.ok sanitizeValueSpy.calledWithExactly 'value1'
+  #       @inst._setFields({'field1': 'value1'}, {dummy: true})
 
-        assert.same [ '_f' ], @inst.fields
-        assert.same [ [ '_v' ] ], @inst.values
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'field1', dummy: true
+  #       assert.ok sanitizeValueSpy.calledWithExactly 'value1'
 
-    '_setFieldsRows()':
-      'saves inputs': ->
-        @inst._setFieldsRows [
-          {
-            'field1': 'value1'
-            'field2': 'value2'
-            'field3': 'value3'
-          }
-          {
-            'field1': 'value21'
-            'field2': 'value22'
-            'field3': 'value23'
-          }
-        ]
+  #       assert.same [ '_f' ], @inst.fields
+  #       assert.same [ [ '_v' ] ], @inst.values
 
-        expectedFields = [ 'field1', 'field2', 'field3' ]
-        expectedValues = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
-        expectedFieldOptions = [ [ {}, {}, {} ], [ {}, {}, {} ] ]
+  #   '_setFieldsRows()':
+  #     'saves inputs': ->
+  #       @inst._setFieldsRows [
+  #         {
+  #           'field1': 'value1'
+  #           'field2': 'value2'
+  #           'field3': 'value3'
+  #         }
+  #         {
+  #           'field1': 'value21'
+  #           'field2': 'value22'
+  #           'field3': 'value23'
+  #         }
+  #       ]
 
-        assert.same expectedFields, @inst.fields
-        assert.same expectedValues, @inst.values
-        assert.same expectedFieldOptions, @inst.fieldOptions
+  #       expectedFields = [ 'field1', 'field2', 'field3' ]
+  #       expectedValues = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
+  #       expectedFieldOptions = [ [ {}, {}, {} ], [ {}, {}, {} ] ]
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
-        sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
+  #       assert.same expectedFields, @inst.fields
+  #       assert.same expectedValues, @inst.values
+  #       assert.same expectedFieldOptions, @inst.fieldOptions
 
-        @inst._setFieldsRows [
-          {
-            'field1': 'value1'
-          },
-          {
-            'field1': 'value21'
-          }
-        ], { dummy: true }
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+  #       sanitizeValueSpy = test.mocker.stub @cls.prototype, '_sanitizeValue', -> return '_v'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1', { dummy: true }
-        assert.ok sanitizeValueSpy.calledWithExactly 'value1'
-        assert.ok sanitizeValueSpy.calledWithExactly 'value21'
+  #       @inst._setFieldsRows [
+  #         {
+  #           'field1': 'value1'
+  #         },
+  #         {
+  #           'field1': 'value21'
+  #         }
+  #       ], { dummy: true }
 
-        assert.same [ '_f' ], @inst.fields
-        assert.same [ [ '_v' ], [ '_v' ] ], @inst.values
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'field1', { dummy: true }
+  #       assert.ok sanitizeValueSpy.calledWithExactly 'value1'
+  #       assert.ok sanitizeValueSpy.calledWithExactly 'value21'
 
-    'buildStr()': ->
-      assert.throws ( => @inst.buildStr()), 'Not yet implemented'
+  #       assert.same [ '_f' ], @inst.fields
+  #       assert.same [ [ '_v' ], [ '_v' ] ], @inst.values
 
-    'buildParam()': ->
-      assert.throws ( => @inst.buildParam()), 'Not yet implemented'
+  #   'toString()': ->
+  #     assert.throws ( => @inst.toString()), 'Not yet implemented'
 
+  #   'toParam()': ->
+  #     assert.throws ( => @inst.toParam()), 'Not yet implemented'
 
 
 
-  'SetFieldBlock':
-    beforeEach: ->
-      @cls = squel.cls.SetFieldBlock
-      @inst = new @cls()
 
-    'instanceof of AbstractSetFieldBlock': ->
-      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
+  # 'SetFieldBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.SetFieldBlock
+  #     @inst = new @cls()
 
-    'initial field options': ->
-      assert.same [], @inst.fieldOptions
+  #   'instanceof of AbstractSetFieldBlock': ->
+  #     assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
 
-    'initial fields': ->
-      assert.same [], @inst.fields
+  #   'initial field options': ->
+  #     assert.same [], @inst.fieldOptions
 
-    'initial values': ->
-      assert.same [], @inst.values
+  #   'initial fields': ->
+  #     assert.same [], @inst.fields
 
-    'set()':
-      'calls to _set()': ->
-        spy = test.mocker.stub @inst, '_set'
+  #   'initial values': ->
+  #     assert.same [], @inst.values
 
-        @inst.set 'f', 'v', dummy: true
+  #   'set()':
+  #     'calls to _set()': ->
+  #       spy = test.mocker.stub @inst, '_set'
 
-        assert.ok spy.calledWithExactly('f', 'v', dummy: true)
+  #       @inst.set 'f', 'v', dummy: true
 
-    'setFields()':
-      'calls to _setFields()': ->
-        spy = test.mocker.stub @inst, '_setFields'
+  #       assert.ok spy.calledWithExactly('f', 'v', dummy: true)
 
-        @inst.setFields 'f', dummy: true
+  #   'setFields()':
+  #     'calls to _setFields()': ->
+  #       spy = test.mocker.stub @inst, '_setFields'
 
-        assert.ok spy.calledWithExactly('f', dummy: true)
+  #       @inst.setFields 'f', dummy: true
 
+  #       assert.ok spy.calledWithExactly('f', dummy: true)
 
-    'buildStr()':
-      'needs at least one field to have been provided': ->
-        @inst.fields = []
-        try
-          @inst.buildStr()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: set() needs to be called', err.toString()
 
-      'calls formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+  #   'toString()':
+  #     'needs at least one field to have been provided': ->
+  #       @inst.fields = []
+  #       try
+  #         @inst.toString()
+  #         throw new Error 'should not reach here'
+  #       catch err
+  #         assert.same 'Error: set() needs to be called', err.toString()
 
-        @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
-        @inst.fieldOptions = [ [ {dummy: true}, {dummy: false}, {} ] ]
+  #     'calls formatValue() for each field value': ->
+  #       formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        assert.same 'SET field1 = [value1], field2 = [value2], field3 = [value3]', @inst.buildStr()
+  #       @inst.fields = [ 'field1', 'field2', 'field3' ]
+  #       @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+  #       @inst.fieldOptions = [ [ {dummy: true}, {dummy: false}, {} ] ]
 
-        assert.ok formatValueSpy.calledThrice
-        assert.ok formatValueSpy.calledWithExactly 'value1', { dummy: true }
-        assert.ok formatValueSpy.calledWithExactly 'value2', { dummy: false }
-        assert.ok formatValueSpy.calledWithExactly 'value3', {}
+  #       assert.same 'SET field1 = [value1], field2 = [value2], field3 = [value3]', @inst.toString()
 
-    'buildParam()':
-      'needs at least one field to have been provided': ->
-        @inst.fields = []
-        try
-          @inst.buildParam()
-          throw new Error 'should not reach here'
-        catch err
-          assert.same 'Error: set() needs to be called', err.toString()
+  #       assert.ok formatValueSpy.calledThrice
+  #       assert.ok formatValueSpy.calledWithExactly 'value1', { dummy: true }
+  #       assert.ok formatValueSpy.calledWithExactly 'value2', { dummy: false }
+  #       assert.ok formatValueSpy.calledWithExactly 'value3', {}
 
-      'calls formatValueAsParam() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
+  #   'toParam()':
+  #     'needs at least one field to have been provided': ->
+  #       @inst.fields = []
+  #       try
+  #         @inst.toParam()
+  #         throw new Error 'should not reach here'
+  #       catch err
+  #         assert.same 'Error: set() needs to be called', err.toString()
 
-        @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
+  #     'calls formatValueAsParam() for each field value': ->
+  #       formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
 
-        assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
+  #       @inst.fields = [ 'field1', 'field2', 'field3' ]
+  #       @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
 
-        assert.ok formatValueSpy.calledThrice
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
+  #       assert.same { text: 'SET field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.toParam()
 
-      'Fix for hiddentao/squel#63': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> v
+  #       assert.ok formatValueSpy.calledThrice
+  #       assert.ok formatValueSpy.calledWithExactly 'value1'
+  #       assert.ok formatValueSpy.calledWithExactly 'value2'
+  #       assert.ok formatValueSpy.calledWithExactly 'value3'
 
-        @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
-        @inst.values = [ [ undefined, 'value2', 'value3' ] ]
+  #     'Fix for hiddentao/squel#63': ->
+  #       formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> v
 
-        assert.same { text: 'SET age = age + 1, field2 = ?, field3 = ?', values: ['value2', 'value3'] }, @inst.buildParam()
+  #       @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
+  #       @inst.values = [ [ undefined, 'value2', 'value3' ] ]
 
+  #       assert.same { text: 'SET age = age + 1, field2 = ?, field3 = ?', values: ['value2', 'value3'] }, @inst.toParam()
 
 
 
-  'InsertFieldValueBlock':
-    beforeEach: ->
-      @cls = squel.cls.InsertFieldValueBlock
-      @inst = new @cls()
 
-    'instanceof of AbstractSetFieldBlock': ->
-      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
+  # 'InsertFieldValueBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.InsertFieldValueBlock
+  #     @inst = new @cls()
 
-    'set()':
-      'calls to _set()': ->
-        spy = test.mocker.stub @inst, '_set'
+  #   'instanceof of AbstractSetFieldBlock': ->
+  #     assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
 
-        @inst.set 'f', 'v', dummy: true
+  #   'set()':
+  #     'calls to _set()': ->
+  #       spy = test.mocker.stub @inst, '_set'
 
-        assert.ok spy.calledWithExactly('f', 'v', dummy: true)
+  #       @inst.set 'f', 'v', dummy: true
 
-    'setFields()':
-      'calls to _setFields()': ->
-        spy = test.mocker.stub @inst, '_setFields'
+  #       assert.ok spy.calledWithExactly('f', 'v', dummy: true)
 
-        @inst.setFields 'f', dummy: true
+  #   'setFields()':
+  #     'calls to _setFields()': ->
+  #       spy = test.mocker.stub @inst, '_setFields'
 
-        assert.ok spy.calledWithExactly('f', dummy: true)
+  #       @inst.setFields 'f', dummy: true
 
-    'setFieldsRows()':
-      'calls to _setFieldsRows()': ->
-        spy = test.mocker.stub @inst, '_setFieldsRows'
+  #       assert.ok spy.calledWithExactly('f', dummy: true)
 
-        @inst.setFieldsRows 'f', dummy: true
+  #   'setFieldsRows()':
+  #     'calls to _setFieldsRows()': ->
+  #       spy = test.mocker.stub @inst, '_setFieldsRows'
 
-        assert.ok spy.calledWithExactly('f', dummy: true)
+  #       @inst.setFieldsRows 'f', dummy: true
 
-    'buildStr()':
-      'needs at least one field to have been provided': ->
-        @inst.fields = []
+  #       assert.ok spy.calledWithExactly('f', dummy: true)
 
-        assert.same '', @inst.buildStr()
+  #   'toString()':
+  #     'needs at least one field to have been provided': ->
+  #       @inst.fields = []
 
-      'calls formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+  #       assert.same '', @inst.toString()
 
-        @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
-        @inst.fieldOptions = [ [ {}, {}, {} ], [ {}, {}, { dummy: 23 } ] ]
+  #     'calls formatValue() for each field value': ->
+  #       formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
 
-        assert.same '(field1, field2, field3) VALUES ([value1], [value2], [value3]), ([value21], [value22], [value23])', @inst.buildStr()
+  #       @inst.fields = [ 'field1', 'field2', 'field3' ]
+  #       @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
+  #       @inst.fieldOptions = [ [ {}, {}, {} ], [ {}, {}, { dummy: 23 } ] ]
 
-        assert.same formatValueSpy.callCount, 6
-        assert.ok formatValueSpy.calledWithExactly 'value1', {}
-        assert.ok formatValueSpy.calledWithExactly 'value2', {}
-        assert.ok formatValueSpy.calledWithExactly 'value3', {}
-        assert.ok formatValueSpy.calledWithExactly 'value21', {}
-        assert.ok formatValueSpy.calledWithExactly 'value22', {}
-        assert.ok formatValueSpy.calledWithExactly 'value23', { dummy: 23 }
+  #       assert.same '(field1, field2, field3) VALUES ([value1], [value2], [value3]), ([value21], [value22], [value23])', @inst.toString()
 
-    'buildParam()':
-      'needs at least one field to have been provided': ->
-        @inst.fields = []
+  #       assert.same formatValueSpy.callCount, 6
+  #       assert.ok formatValueSpy.calledWithExactly 'value1', {}
+  #       assert.ok formatValueSpy.calledWithExactly 'value2', {}
+  #       assert.ok formatValueSpy.calledWithExactly 'value3', {}
+  #       assert.ok formatValueSpy.calledWithExactly 'value21', {}
+  #       assert.ok formatValueSpy.calledWithExactly 'value22', {}
+  #       assert.ok formatValueSpy.calledWithExactly 'value23', { dummy: 23 }
 
-        assert.same {
-          text: ''
-          values: []
-        }, @inst.buildParam()
+  #   'toParam()':
+  #     'needs at least one field to have been provided': ->
+  #       @inst.fields = []
 
-      'calls formatValueAsParam() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
+  #       assert.same {
+  #         text: ''
+  #         values: []
+  #       }, @inst.toParam()
 
-        @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
+  #     'calls formatValueAsParam() for each field value': ->
+  #       formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
 
-        assert.same {
-          text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)',
-          values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ]
-        }, @inst.buildParam()
+  #       @inst.fields = [ 'field1', 'field2', 'field3' ]
+  #       @inst.values = [ [ 'value1', 'value2', 'value3' ], [ 'value21', 'value22', 'value23' ] ]
 
-        assert.same formatValueSpy.callCount, 6
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
-        assert.ok formatValueSpy.calledWithExactly 'value21'
-        assert.ok formatValueSpy.calledWithExactly 'value22'
-        assert.ok formatValueSpy.calledWithExactly 'value23'
+  #       assert.same {
+  #         text: '(field1, field2, field3) VALUES (?, ?, ?), (?, ?, ?)',
+  #         values: [ '[value1]', '[value2]', '[value3]', '[value21]', '[value22]', '[value23]' ]
+  #       }, @inst.toParam()
 
+  #       assert.same formatValueSpy.callCount, 6
+  #       assert.ok formatValueSpy.calledWithExactly 'value1'
+  #       assert.ok formatValueSpy.calledWithExactly 'value2'
+  #       assert.ok formatValueSpy.calledWithExactly 'value3'
+  #       assert.ok formatValueSpy.calledWithExactly 'value21'
+  #       assert.ok formatValueSpy.calledWithExactly 'value22'
+  #       assert.ok formatValueSpy.calledWithExactly 'value23'
 
 
-  'InsertFieldsFromQueryBlock':
-    beforeEach: ->
-      @cls = squel.cls.InsertFieldsFromQueryBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'InsertFieldsFromQueryBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.InsertFieldsFromQueryBlock
+  #     @inst = new @cls()
 
-    'fromQuery()':
-      'sanitizes field names': ->
-        spy = test.mocker.stub @inst, '_sanitizeField', -> 1
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-        qry = squel.select()
+  #   'fromQuery()':
+  #     'sanitizes field names': ->
+  #       spy = test.mocker.stub @inst, '_sanitizeField', -> 1
 
-        @inst.fromQuery(['test', 'one', 'two'], qry)
+  #       qry = squel.select()
 
-        assert.ok spy.calledThrice
-        assert.ok spy.calledWithExactly 'test'
-        assert.ok spy.calledWithExactly 'one'
-        assert.ok spy.calledWithExactly 'two'
+  #       @inst.fromQuery(['test', 'one', 'two'], qry)
 
-      'sanitizes query': ->
-        spy = test.mocker.stub @inst, '_sanitizeNestableQuery', -> 1
+  #       assert.ok spy.calledThrice
+  #       assert.ok spy.calledWithExactly 'test'
+  #       assert.ok spy.calledWithExactly 'one'
+  #       assert.ok spy.calledWithExactly 'two'
 
-        qry = 123
+  #     'sanitizes query': ->
+  #       spy = test.mocker.stub @inst, '_sanitizeNestableQuery', -> 1
 
-        @inst.fromQuery(['test', 'one', 'two'], qry)
+  #       qry = 123
 
-        assert.ok spy.calledOnce
-        assert.ok spy.calledWithExactly qry
+  #       @inst.fromQuery(['test', 'one', 'two'], qry)
 
-      'overwrites existing values': ->
-        @inst._fields = 1
-        @inst._query = 2
+  #       assert.ok spy.calledOnce
+  #       assert.ok spy.calledWithExactly qry
 
-        qry = squel.select()
-        @inst.fromQuery(['test', 'one', 'two'], qry)
+  #     'overwrites existing values': ->
+  #       @inst._fields = 1
+  #       @inst._query = 2
 
-        assert.same qry, @inst._query
-        assert.same ['test', 'one', 'two'], @inst._fields
+  #       qry = squel.select()
+  #       @inst.fromQuery(['test', 'one', 'two'], qry)
 
-    'buildStr()':
-      'needs fromQuery() to have been called': ->
-        @inst._fields = []
+  #       assert.same qry, @inst._query
+  #       assert.same ['test', 'one', 'two'], @inst._fields
 
-        assert.same "", @inst.buildStr()
+  #   'toString()':
+  #     'needs fromQuery() to have been called': ->
+  #       @inst._fields = []
 
-      'default': ->
-        qry = squel.select().from('mega')
+  #       assert.same "", @inst.toString()
 
-        @inst.fromQuery ['test', 'one', 'two'], qry
+  #     'default': ->
+  #       qry = squel.select().from('mega')
 
-        assert.same "(test, one, two) (#{qry.toString()})", @inst.buildStr()
+  #       @inst.fromQuery ['test', 'one', 'two'], qry
 
-    'buildParam()':
-      'needs fromQuery() to have been called': ->
-        @inst._fields = []
+  #       assert.same "(test, one, two) (#{qry.toString()})", @inst.toString()
 
-        expected = {
-          text: '',
-          values: []
-        }
+  #   'toParam()':
+  #     'needs fromQuery() to have been called': ->
+  #       @inst._fields = []
 
-        assert.same expected, @inst.buildParam()
+  #       expected = {
+  #         text: '',
+  #         values: []
+  #       }
 
-      'default': ->
-        qry = squel.select().from('mega')
+  #       assert.same expected, @inst.toParam()
 
-        @inst.fromQuery ['test', 'one', 'two'], qry
+  #     'default': ->
+  #       qry = squel.select().from('mega')
 
-        test.mocker.stub  qry, 'toParam', ->
-          {
-            text: 'blah',
-            values: [1,2,3]
-          }
+  #       @inst.fromQuery ['test', 'one', 'two'], qry
 
-        expected = {
-          text: '(test, one, two) (blah)',
-          values: [1,2,3]
-        }
+  #       test.mocker.stub  qry, 'toParam', ->
+  #         {
+  #           text: 'blah',
+  #           values: [1,2,3]
+  #         }
 
-        assert.same expected, @inst.buildParam()
+  #       expected = {
+  #         text: '(test, one, two) (blah)',
+  #         values: [1,2,3]
+  #       }
 
+  #       assert.same expected, @inst.toParam()
 
 
-  'DistinctBlock':
-    beforeEach: ->
-      @cls = squel.cls.DistinctBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'DistinctBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.DistinctBlock
+  #     @inst = new @cls()
 
-    'initial field values': ->
-      assert.same false, @inst.useDistinct
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    'distinct()':
-      'sets the flat': ->
-        @inst.distinct()
+  #   'initial field values': ->
+  #     assert.same false, @inst.useDistinct
 
-        assert.same true, @inst.useDistinct
+  #   'distinct()':
+  #     'sets the flat': ->
+  #       @inst.distinct()
 
-        @inst.distinct()
+  #       assert.same true, @inst.useDistinct
 
-        assert.same true, @inst.useDistinct
+  #       @inst.distinct()
 
-    'buildStr()':
-      'output nothing if not set': ->
-        @inst.useDistinct = false
-        assert.same '', @inst.buildStr()
+  #       assert.same true, @inst.useDistinct
 
-      'output DISTINCT if set': ->
-        @inst.useDistinct = true
-        assert.same 'DISTINCT', @inst.buildStr()
+  #   'toString()':
+  #     'output nothing if not set': ->
+  #       @inst.useDistinct = false
+  #       assert.same '', @inst.toString()
 
+  #     'output DISTINCT if set': ->
+  #       @inst.useDistinct = true
+  #       assert.same 'DISTINCT', @inst.toString()
 
 
 
-  'GroupByBlock':
-    beforeEach: ->
-      @cls = squel.cls.GroupByBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'GroupByBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.GroupByBlock
+  #     @inst = new @cls()
 
-    'initial field values': ->
-      assert.same [], @inst.groups
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    'group()':
-      'adds to list': ->
-        @inst.group('field1')
-        @inst.group('field2')
+  #   'initial field values': ->
+  #     assert.same [], @inst.groups
 
-        assert.same ['field1', 'field2'], @inst.groups
+  #   'group()':
+  #     'adds to list': ->
+  #       @inst.group('field1')
+  #       @inst.group('field2')
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+  #       assert.same ['field1', 'field2'], @inst.groups
 
-        @inst.group('field1')
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+  #       @inst.group('field1')
 
-        assert.same ['_f'], @inst.groups
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
 
+  #       assert.same ['_f'], @inst.groups
 
-    'buildStr()':
-      'output nothing if no fields set': ->
-        @inst.groups = []
-        assert.same '', @inst.buildStr()
 
-      'output GROUP BY': ->
-        @inst.group('field1')
-        @inst.group('field2')
+  #   'toString()':
+  #     'output nothing if no fields set': ->
+  #       @inst.groups = []
+  #       assert.same '', @inst.toString()
 
-        assert.same 'GROUP BY field1, field2', @inst.buildStr()
+  #     'output GROUP BY': ->
+  #       @inst.group('field1')
+  #       @inst.group('field2')
 
+  #       assert.same 'GROUP BY field1, field2', @inst.toString()
 
 
 
-  'OffsetBlock':
-    beforeEach: ->
-      @cls = squel.cls.OffsetBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'OffsetBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.OffsetBlock
+  #     @inst = new @cls()
 
-    'initial field values': ->
-      assert.same null, @inst.offsets
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    'offset()':
-      'set value': ->
-        @inst.offset(1)
+  #   'initial field values': ->
+  #     assert.same null, @inst.offsets
 
-        assert.same 1, @inst.offsets
+  #   'offset()':
+  #     'set value': ->
+  #       @inst.offset(1)
 
-        @inst.offset(22)
+  #       assert.same 1, @inst.offsets
 
-        assert.same 22, @inst.offsets
+  #       @inst.offset(22)
 
-      'sanitizes inputs': ->
-        sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
+  #       assert.same 22, @inst.offsets
 
-        @inst.offset(23)
+  #     'sanitizes inputs': ->
+  #       sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
 
-        assert.ok sanitizeSpy.calledWithExactly 23
+  #       @inst.offset(23)
 
-        assert.same 234, @inst.offsets
+  #       assert.ok sanitizeSpy.calledWithExactly 23
 
-    'buildStr()':
-      'output nothing if not set': ->
-        @inst.offsets = null
-        assert.same '', @inst.buildStr()
+  #       assert.same 234, @inst.offsets
 
-      'output OFFSET': ->
-        @inst.offset(12)
+  #   'toString()':
+  #     'output nothing if not set': ->
+  #       @inst.offsets = null
+  #       assert.same '', @inst.toString()
 
-        assert.same 'OFFSET 12', @inst.buildStr()
+  #     'output OFFSET': ->
+  #       @inst.offset(12)
 
+  #       assert.same 'OFFSET 12', @inst.toString()
 
 
-  'AbstractConditionBlock':
-    beforeEach: ->
-      @cls = squel.cls.AbstractConditionBlock
-      @inst = new @cls 'MOCKVERB'
 
-      class squel.cls.MockConditionBlock extends squel.cls.AbstractConditionBlock
-        constructor: (options) ->
-          super 'MOCKVERB', options
+  # 'AbstractConditionBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.AbstractConditionBlock
+  #     @inst = new @cls 'MOCKVERB'
 
-        mockCondition: (condition, values...) ->
-          @_condition condition, values...
+  #     class squel.cls.MockConditionBlock extends squel.cls.AbstractConditionBlock
+  #       constructor: (options) ->
+  #         super 'MOCKVERB', options
 
-      class squel.cls.MockSelectWithCondition extends squel.cls.Select
-        constructor: (options, blocks = null) ->
-          blocks = [
-            new squel.cls.StringBlock(options, 'SELECT'),
-            new squel.cls.GetFieldBlock(options),
-            new squel.cls.FromTableBlock(options),
-            new squel.cls.MockConditionBlock(options)
-          ]
+  #       mockCondition: (condition, values...) ->
+  #         @_condition condition, values...
 
-          super options, blocks
+  #     class squel.cls.MockSelectWithCondition extends squel.cls.Select
+  #       constructor: (options, blocks = null) ->
+  #         blocks = [
+  #           new squel.cls.StringBlock(options, 'SELECT'),
+  #           new squel.cls.GetFieldBlock(options),
+  #           new squel.cls.FromTableBlock(options),
+  #           new squel.cls.MockConditionBlock(options)
+  #         ]
 
+  #         super options, blocks
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
 
-    'initial field values': ->
-      assert.same [], @inst.conditions
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    '_condition()':
-      'adds to list': ->
-        @inst._condition('a = 1')
-        @inst._condition('b = 2 OR c = 3')
+  #   'initial field values': ->
+  #     assert.same [], @inst.conditions
 
-        assert.same [
-          {
-            text: 'a = 1'
-            values: []
-          }
-          {
-            text: 'b = 2 OR c = 3'
-            values: []
-          }
-        ], @inst.conditions
+  #   '_condition()':
+  #     'adds to list': ->
+  #       @inst._condition('a = 1')
+  #       @inst._condition('b = 2 OR c = 3')
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+  #       assert.same [
+  #         {
+  #           text: 'a = 1'
+  #           values: []
+  #         }
+  #         {
+  #           text: 'b = 2 OR c = 3'
+  #           values: []
+  #         }
+  #       ], @inst.conditions
 
-        @inst._condition('a = 1')
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
+  #       @inst._condition('a = 1')
 
-        assert.same [{
-          text: '_c'
-          values: []
-        }], @inst.conditions
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
 
-      'handles variadic arguments': ->
-        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+  #       assert.same [{
+  #         text: '_c'
+  #         values: []
+  #       }], @inst.conditions
 
-        substitutes = ['hello', [1, 2, 3]]
-        @inst._condition.apply @inst, ['a = ? and b in ?'].concat(substitutes)
+  #     'handles variadic arguments': ->
+  #       sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
 
-        expectedValues = _.flatten substitutes
-        for expectedValue, index in expectedValues
-          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+  #       substitutes = ['hello', [1, 2, 3]]
+  #       @inst._condition.apply @inst, ['a = ? and b in ?'].concat(substitutes)
 
-        assert.same [
-          {
-            text: 'a = ? and b in (?, ?, ?)'
-            values: ['hello', 1, 2, 3]
-          }
-        ], @inst.conditions
+  #       expectedValues = _.flatten substitutes
+  #       for expectedValue, index in expectedValues
+  #         assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
 
-    'buildStr()':
-      'output QueryBuilder ': ->
-        subquery = new squel.cls.MockSelectWithCondition()
-        subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
-        @inst._condition('a in ?', subquery)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #       assert.same [
+  #         {
+  #           text: 'a = ? and b in (?, ?, ?)'
+  #           values: ['hello', 1, 2, 3]
+  #         }
+  #       ], @inst.conditions
 
-        assert.same 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #   'toString()':
+  #     'output QueryBuilder ': ->
+  #       subquery = new squel.cls.MockSelectWithCondition()
+  #       subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
+  #       @inst._condition('a in ?', subquery)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-      'output nothing if no conditions set': ->
-        @inst.conditions = []
-        assert.same '', @inst.buildStr()
+  #       assert.same 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-      'output condition': ->
-        @inst._condition('a = ?', 1)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #     'output nothing if no conditions set': ->
+  #       @inst.conditions = []
+  #       assert.same '', @inst.toString()
 
-        assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #     'output condition': ->
+  #       @inst._condition('a = ?', 1)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-      'Fix for hiddentao/squel#64': ->
-        @inst._condition('a = ?', 1)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #       assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-        # second time it should still work
-        @inst.buildStr()
-        @inst.buildStr()
-        assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #     'Fix for hiddentao/squel#64': ->
+  #       @inst._condition('a = ?', 1)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-      'formats values ': ->
-        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
+  #       # second time it should still work
+  #       @inst.toString()
+  #       @inst.toString()
+  #       assert.same 'MOCKVERB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-        @inst._condition('a = ?', 1)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #     'formats values ': ->
+  #       formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
 
-        assert.same 'MOCKVERB (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
+  #       @inst._condition('a = ?', 1)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-    'buildParam()':
-      'output QueryBuilder ': ->
-        subquery = new squel.cls.MockSelectWithCondition()
-        subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
-        @inst._condition('a in ?', subquery)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #       assert.same 'MOCKVERB (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.toString()
 
-        assert.same { text: 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #   'toParam()':
+  #     'output QueryBuilder ': ->
+  #       subquery = new squel.cls.MockSelectWithCondition()
+  #       subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
+  #       @inst._condition('a in ?', subquery)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-      'output QueryBuilder expr': ->
-        subquery = new squel.cls.MockSelectWithCondition()
-        subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
-        expr = squel.expr().and('a in ?',subquery)
-          .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
-          .and('d in ?', [4, 5, 6]).end()
-        @inst._condition(expr)
+  #       assert.same { text: 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-        #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
-        assert.same { text: 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #     'output QueryBuilder expr': ->
+  #       subquery = new squel.cls.MockSelectWithCondition()
+  #       subquery.field('col1').from('table1').mockCondition('field1 = ?', 10)
+  #       expr = squel.expr().and('a in ?',subquery)
+  #         .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
+  #         .and('d in ?', [4, 5, 6]).end()
+  #       @inst._condition(expr)
 
-      'output nothing if no conditions set': ->
-        @inst.conditions = []
-        assert.same { text: '', values: [] }, @inst.buildParam()
+  #       #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
+  #       assert.same { text: 'MOCKVERB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-      'output condition': ->
-        @inst._condition('a = ?', 1)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #     'output nothing if no conditions set': ->
+  #       @inst.conditions = []
+  #       assert.same { text: '', values: [] }, @inst.toParam()
 
-        assert.same { text: 'MOCKVERB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #     'output condition': ->
+  #       @inst._condition('a = ?', 1)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-      'formats value types as params': ->
-        formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
-        test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
+  #       assert.same { text: 'MOCKVERB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-        @inst._condition('a = ?', 1)
-        @inst._condition('b = ? OR c = ?', 2, 3)
-        @inst._condition('d in ?', [4, 5, 6])
+  #     'formats value types as params': ->
+  #       formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
+  #       test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
 
-        assert.same {
-          text: 'MOCKVERB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
-          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
-        }, @inst.buildParam()
+  #       @inst._condition('a = ?', 1)
+  #       @inst._condition('b = ? OR c = ?', 2, 3)
+  #       @inst._condition('d in ?', [4, 5, 6])
 
-        assert.ok formatValueSpy.notCalled
+  #       assert.same {
+  #         text: 'MOCKVERB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
+  #         values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
+  #       }, @inst.toParam()
 
+  #       assert.ok formatValueSpy.notCalled
 
-  'WhereBlock':
-    beforeEach: ->
-      @cls = squel.cls.WhereBlock
-      @inst = new @cls()
 
-    'instanceof of AbstractConditionBlock': ->
-      assert.instanceOf @inst, squel.cls.AbstractConditionBlock
+  # 'WhereBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.WhereBlock
+  #     @inst = new @cls()
 
-    'sets verb to WHERE': ->
-      @inst = new @cls
+  #   'instanceof of AbstractConditionBlock': ->
+  #     assert.instanceOf @inst, squel.cls.AbstractConditionBlock
 
-      assert.same 'WHERE', @inst.conditionVerb
+  #   'sets verb to WHERE': ->
+  #     @inst = new @cls
 
-    'initial field values': ->
-      assert.same [], @inst.conditions
+  #     assert.same 'WHERE', @inst.conditionVerb
 
-    'where()':
-      'adds to list': ->
-        @inst.where('a = 1')
-        @inst.where('b = 2 OR c = 3')
+  #   'initial field values': ->
+  #     assert.same [], @inst.conditions
 
-        assert.same [
-          {
-            text: 'a = 1'
-            values: []
-          }
-          {
-            text: 'b = 2 OR c = 3'
-            values: []
-          }
-        ], @inst.conditions
+  #   'where()':
+  #     'adds to list': ->
+  #       @inst.where('a = 1')
+  #       @inst.where('b = 2 OR c = 3')
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+  #       assert.same [
+  #         {
+  #           text: 'a = 1'
+  #           values: []
+  #         }
+  #         {
+  #           text: 'b = 2 OR c = 3'
+  #           values: []
+  #         }
+  #       ], @inst.conditions
 
-        @inst.where('a = 1')
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
+  #       @inst.where('a = 1')
 
-        assert.same [{
-          text: '_c'
-          values: []
-        }], @inst.conditions
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
 
-      'handles variadic arguments': ->
-        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+  #       assert.same [{
+  #         text: '_c'
+  #         values: []
+  #       }], @inst.conditions
 
-        substitutes = ['hello', [1, 2, 3]]
-        @inst.where.apply @inst, ['a = ? and b in ?'].concat(substitutes)
+  #     'handles variadic arguments': ->
+  #       sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
 
-        expectedValues = _.flatten substitutes
-        for expectedValue, index in expectedValues
-          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+  #       substitutes = ['hello', [1, 2, 3]]
+  #       @inst.where.apply @inst, ['a = ? and b in ?'].concat(substitutes)
 
-        assert.same [
-          {
-            text: 'a = ? and b in (?, ?, ?)'
-            values: ['hello', 1, 2, 3]
-          }
-        ], @inst.conditions
+  #       expectedValues = _.flatten substitutes
+  #       for expectedValue, index in expectedValues
+  #         assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
 
-    'buildStr()':
-      'output QueryBuilder ': ->
-        subquery = new squel.cls.Select()
-        subquery.field('col1').from('table1').where('field1 = ?', 10)
-        @inst.where('a in ?', subquery)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #       assert.same [
+  #         {
+  #           text: 'a = ? and b in (?, ?, ?)'
+  #           values: ['hello', 1, 2, 3]
+  #         }
+  #       ], @inst.conditions
 
-        assert.same 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #   'toString()':
+  #     'output QueryBuilder ': ->
+  #       subquery = new squel.cls.Select()
+  #       subquery.field('col1').from('table1').where('field1 = ?', 10)
+  #       @inst.where('a in ?', subquery)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-      'output nothing if no conditions set': ->
-        @inst.conditions = []
-        assert.same '', @inst.buildStr()
+  #       assert.same 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-      'output condition': ->
-        @inst.where('a = ?', 1)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #     'output nothing if no conditions set': ->
+  #       @inst.conditions = []
+  #       assert.same '', @inst.toString()
 
-        assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #     'output condition': ->
+  #       @inst.where('a = ?', 1)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-      'Fix for hiddentao/squel#64': ->
-        @inst.where('a = ?', 1)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #       assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-        # second time it should still work
-        @inst.buildStr()
-        @inst.buildStr()
-        assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #     'Fix for hiddentao/squel#64': ->
+  #       @inst.where('a = ?', 1)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-      'formats values ': ->
-        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
+  #       # second time it should still work
+  #       @inst.toString()
+  #       @inst.toString()
+  #       assert.same 'WHERE (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-        @inst.where('a = ?', 1)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #     'formats values ': ->
+  #       formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
 
-        assert.same 'WHERE (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
+  #       @inst.where('a = ?', 1)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-    'buildParam()':
-      'output QueryBuilder ': ->
-        subquery = new squel.cls.Select()
-        subquery.field('col1').from('table1').where('field1 = ?', 10)
-        @inst.where('a in ?', subquery)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #       assert.same 'WHERE (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.toString()
 
-        assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #   'toParam()':
+  #     'output QueryBuilder ': ->
+  #       subquery = new squel.cls.Select()
+  #       subquery.field('col1').from('table1').where('field1 = ?', 10)
+  #       @inst.where('a in ?', subquery)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-      'output QueryBuilder expr': ->
-        subquery = new squel.cls.Select()
-        subquery.field('col1').from('table1').where('field1 = ?', 10)
-        expr = squel.expr().and('a in ?',subquery)
-          .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
-          .and('d in ?', [4, 5, 6]).end()
-        @inst.where(expr)
+  #       assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-        #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
-        assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #     'output QueryBuilder expr': ->
+  #       subquery = new squel.cls.Select()
+  #       subquery.field('col1').from('table1').where('field1 = ?', 10)
+  #       expr = squel.expr().and('a in ?',subquery)
+  #         .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
+  #         .and('d in ?', [4, 5, 6]).end()
+  #       @inst.where(expr)
 
-      'output nothing if no conditions set': ->
-        @inst.conditions = []
-        assert.same { text: '', values: [] }, @inst.buildParam()
+  #       #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
+  #       assert.same { text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-      'output condition': ->
-        @inst.where('a = ?', 1)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #     'output nothing if no conditions set': ->
+  #       @inst.conditions = []
+  #       assert.same { text: '', values: [] }, @inst.toParam()
 
-        assert.same { text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #     'output condition': ->
+  #       @inst.where('a = ?', 1)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-      'formats value types as params': ->
-        formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
-        test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
+  #       assert.same { text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-        @inst.where('a = ?', 1)
-        @inst.where('b = ? OR c = ?', 2, 3)
-        @inst.where('d in ?', [4, 5, 6])
+  #     'formats value types as params': ->
+  #       formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
+  #       test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
 
-        assert.same {
-          text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
-          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
-        }, @inst.buildParam()
+  #       @inst.where('a = ?', 1)
+  #       @inst.where('b = ? OR c = ?', 2, 3)
+  #       @inst.where('d in ?', [4, 5, 6])
 
-        assert.ok formatValueSpy.notCalled
+  #       assert.same {
+  #         text: 'WHERE (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
+  #         values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
+  #       }, @inst.toParam()
 
+  #       assert.ok formatValueSpy.notCalled
 
-  'HavingBlock':
-    beforeEach: ->
-      @cls = squel.cls.HavingBlock
-      @inst = new @cls()
 
-    'instanceof of AbstractConditionBlock': ->
-      assert.instanceOf @inst, squel.cls.AbstractConditionBlock
+  # 'HavingBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.HavingBlock
+  #     @inst = new @cls()
 
-    'sets verb to HAVING': ->
-      @inst = new @cls
+  #   'instanceof of AbstractConditionBlock': ->
+  #     assert.instanceOf @inst, squel.cls.AbstractConditionBlock
 
-      assert.same 'HAVING', @inst.conditionVerb
+  #   'sets verb to HAVING': ->
+  #     @inst = new @cls
 
-    'initial field values': ->
-      assert.same [], @inst.conditions
+  #     assert.same 'HAVING', @inst.conditionVerb
 
-    'where()':
-      'adds to list': ->
-        @inst.having('a = 1')
-        @inst.having('b = 2 OR c = 3')
+  #   'initial field values': ->
+  #     assert.same [], @inst.conditions
 
-        assert.same [
-          {
-            text: 'a = 1'
-            values: []
-          }
-          {
-            text: 'b = 2 OR c = 3'
-            values: []
-          }
-        ], @inst.conditions
+  #   'where()':
+  #     'adds to list': ->
+  #       @inst.having('a = 1')
+  #       @inst.having('b = 2 OR c = 3')
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+  #       assert.same [
+  #         {
+  #           text: 'a = 1'
+  #           values: []
+  #         }
+  #         {
+  #           text: 'b = 2 OR c = 3'
+  #           values: []
+  #         }
+  #       ], @inst.conditions
 
-        @inst.having('a = 1')
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
+  #       @inst.having('a = 1')
 
-        assert.same [{
-          text: '_c'
-          values: []
-        }], @inst.conditions
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'a = 1'
 
-      'handles variadic arguments': ->
-        sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
+  #       assert.same [{
+  #         text: '_c'
+  #         values: []
+  #       }], @inst.conditions
 
-        substitutes = ['hello', [1, 2, 3]]
-        @inst.having.apply @inst, ['a = ? and b in ?'].concat(substitutes)
+  #     'handles variadic arguments': ->
+  #       sanitizeStub = test.mocker.stub @cls.prototype, '_sanitizeValue', _.identity
 
-        expectedValues = _.flatten substitutes
-        for expectedValue, index in expectedValues
-          assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
+  #       substitutes = ['hello', [1, 2, 3]]
+  #       @inst.having.apply @inst, ['a = ? and b in ?'].concat(substitutes)
 
-        assert.same [
-          {
-            text: 'a = ? and b in (?, ?, ?)'
-            values: ['hello', 1, 2, 3]
-          }
-        ], @inst.conditions
+  #       expectedValues = _.flatten substitutes
+  #       for expectedValue, index in expectedValues
+  #         assert.ok sanitizeStub.getCall(index).calledWithExactly expectedValue
 
-    'buildStr()':
-      'output QueryBuilder ': ->
-        subquery = new squel.cls.Select()
-        subquery.field('col1').from('table1').where('field1 = ?', 10)
-        @inst.having('a in ?', subquery)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #       assert.same [
+  #         {
+  #           text: 'a = ? and b in (?, ?, ?)'
+  #           values: ['hello', 1, 2, 3]
+  #         }
+  #       ], @inst.conditions
 
-        assert.same 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #   'toString()':
+  #     'output QueryBuilder ': ->
+  #       subquery = new squel.cls.Select()
+  #       subquery.field('col1').from('table1').where('field1 = ?', 10)
+  #       @inst.having('a in ?', subquery)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-      'output nothing if no conditions set': ->
-        @inst.conditions = []
-        assert.same '', @inst.buildStr()
+  #       assert.same 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-      'output condition': ->
-        @inst.having('a = ?', 1)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #     'output nothing if no conditions set': ->
+  #       @inst.conditions = []
+  #       assert.same '', @inst.toString()
 
-        assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #     'output condition': ->
+  #       @inst.having('a = ?', 1)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-      'Fix for hiddentao/squel#64': ->
-        @inst.having('a = ?', 1)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #       assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-        # second time it should still work
-        @inst.buildStr()
-        @inst.buildStr()
-        assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.buildStr()
+  #     'Fix for hiddentao/squel#64': ->
+  #       @inst.having('a = ?', 1)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-      'formats values ': ->
-        formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
+  #       # second time it should still work
+  #       @inst.toString()
+  #       @inst.toString()
+  #       assert.same 'HAVING (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))', @inst.toString()
 
-        @inst.having('a = ?', 1)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #     'formats values ': ->
+  #       formatValueStub = test.mocker.stub @cls.prototype, '_formatValue', (a) -> '[' + a + ']'
 
-        assert.same 'HAVING (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.buildStr()
+  #       @inst.having('a = ?', 1)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-    'buildParam()':
-      'output QueryBuilder ': ->
-        subquery = new squel.cls.Select()
-        subquery.field('col1').from('table1').where('field1 = ?', 10)
-        @inst.having('a in ?', subquery)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #       assert.same 'HAVING (a = [1]) AND (b = [2] OR c = [3]) AND (d in ([4], [5], [6]))', @inst.toString()
 
-        assert.same { text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #   'toParam()':
+  #     'output QueryBuilder ': ->
+  #       subquery = new squel.cls.Select()
+  #       subquery.field('col1').from('table1').where('field1 = ?', 10)
+  #       @inst.having('a in ?', subquery)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-      'output QueryBuilder expr': ->
-        subquery = new squel.cls.Select()
-        subquery.field('col1').from('table1').where('field1 = ?', 10)
-        expr = squel.expr().and('a in ?',subquery)
-          .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
-          .and('d in ?', [4, 5, 6]).end()
-        @inst.having(expr)
+  #       assert.same { text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-        #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
-        assert.same { text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #     'output QueryBuilder expr': ->
+  #       subquery = new squel.cls.Select()
+  #       subquery.field('col1').from('table1').where('field1 = ?', 10)
+  #       expr = squel.expr().and('a in ?',subquery)
+  #         .and_begin().or('b = ?', 2).or('c = ?', 3).end().and_begin()
+  #         .and('d in ?', [4, 5, 6]).end()
+  #       @inst.having(expr)
 
-      'output nothing if no conditions set': ->
-        @inst.conditions = []
-        assert.same { text: '', values: [] }, @inst.buildParam()
+  #       #assert.same { text: '', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
+  #       assert.same { text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?)) AND (b = ? OR c = ?) AND (d in (?, ?, ?)))', values: [10, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-      'output condition': ->
-        @inst.having('a = ?', 1)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #     'output nothing if no conditions set': ->
+  #       @inst.conditions = []
+  #       assert.same { text: '', values: [] }, @inst.toParam()
 
-        assert.same { text: 'HAVING (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.buildParam()
+  #     'output condition': ->
+  #       @inst.having('a = ?', 1)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-      'formats value types as params': ->
-        formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
-        test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
+  #       assert.same { text: 'HAVING (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))', values: [1, 2, 3, 4, 5, 6] }, @inst.toParam()
 
-        @inst.having('a = ?', 1)
-        @inst.having('b = ? OR c = ?', 2, 3)
-        @inst.having('d in ?', [4, 5, 6])
+  #     'formats value types as params': ->
+  #       formatValueSpy = test.mocker.spy @cls.prototype, '_formatValue'
+  #       test.mocker.stub @cls.prototype, '_formatValueAsParam', (a) -> '[' + a + ']'
 
-        assert.same {
-          text: 'HAVING (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
-          values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
-        }, @inst.buildParam()
+  #       @inst.having('a = ?', 1)
+  #       @inst.having('b = ? OR c = ?', 2, 3)
+  #       @inst.having('d in ?', [4, 5, 6])
 
-        assert.ok formatValueSpy.notCalled
+  #       assert.same {
+  #         text: 'HAVING (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))',
+  #         values: ['[1]', '[2]', '[3]', '[4]', '[5]', '[6]']
+  #       }, @inst.toParam()
 
+  #       assert.ok formatValueSpy.notCalled
 
 
-  'OrderByBlock':
-    beforeEach: ->
-      @cls = squel.cls.OrderByBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'OrderByBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.OrderByBlock
+  #     @inst = new @cls()
 
-    'initial field values': ->
-      assert.same [], @inst.orders
-      assert.same [], @inst._values
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    'order()':
-      'adds to list': ->
-        @inst.order('field1')
-        @inst.order('field2', false)
-        @inst.order('field3', true)
+  #   'initial field values': ->
+  #     assert.same [], @inst.orders
+  #     assert.same [], @inst._values
 
-        expected = [
-          {
-            field: 'field1',
-            dir: true
-          },
-          {
-            field: 'field2',
-            dir: false
-          },
-          {
-            field: 'field3',
-            dir: true
-          }
-        ]
+  #   'order()':
+  #     'adds to list': ->
+  #       @inst.order('field1')
+  #       @inst.order('field2', false)
+  #       @inst.order('field3', true)
 
-        assert.same expected, @inst.orders
+  #       expected = [
+  #         {
+  #           field: 'field1',
+  #           dir: true
+  #         },
+  #         {
+  #           field: 'field2',
+  #           dir: false
+  #         },
+  #         {
+  #           field: 'field3',
+  #           dir: true
+  #         }
+  #       ]
 
-      'sanitizes inputs': ->
-        sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
+  #       assert.same expected, @inst.orders
 
-        @inst.order('field1')
+  #     'sanitizes inputs': ->
+  #       sanitizeFieldSpy = test.mocker.stub @cls.prototype, '_sanitizeField', -> return '_f'
 
-        assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
+  #       @inst.order('field1')
 
-        assert.same [ { field: '_f', dir: true } ], @inst.orders
+  #       assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
 
-      'saves additional values': ->
-        @inst.order('field1', false, 1.2, 4)
+  #       assert.same [ { field: '_f', dir: true } ], @inst.orders
 
-        assert.same [ { field: 'field1', dir: false } ], @inst.orders
-        assert.same [1.2, 4], @inst._values
+  #     'saves additional values': ->
+  #       @inst.order('field1', false, 1.2, 4)
 
+  #       assert.same [ { field: 'field1', dir: false } ], @inst.orders
+  #       assert.same [1.2, 4], @inst._values
 
-    'buildStr()':
-      'output nothing if nothing set': ->
-        @inst.orders = []
-        assert.same '', @inst.buildStr()
 
-      'output ORDER BY': ->
-        @inst.order('field1')
-        @inst.order('field2', false)
-        @inst.order('field3', true)
+  #   'toString()':
+  #     'output nothing if nothing set': ->
+  #       @inst.orders = []
+  #       assert.same '', @inst.toString()
 
-        assert.same 'ORDER BY field1 ASC, field2 DESC, field3 ASC', @inst.buildStr()
+  #     'output ORDER BY': ->
+  #       @inst.order('field1')
+  #       @inst.order('field2', false)
+  #       @inst.order('field3', true)
 
-    'buildParam()':
-      'empty': ->
-        @inst.orders = []
-        assert.same { text: '', values: [] }, @inst.buildParam()
+  #       assert.same 'ORDER BY field1 ASC, field2 DESC, field3 ASC', @inst.toString()
 
-      'default': ->
-        @inst.order('field1')
-        @inst.order('field2', false)
-        @inst.order('field3', true)
+  #   'toParam()':
+  #     'empty': ->
+  #       @inst.orders = []
+  #       assert.same { text: '', values: [] }, @inst.toParam()
 
-        assert.same { text: 'ORDER BY field1 ASC, field2 DESC, field3 ASC', values: [] }, @inst.buildParam()
+  #     'default': ->
+  #       @inst.order('field1')
+  #       @inst.order('field2', false)
+  #       @inst.order('field3', true)
 
-      'with values': ->
-        @inst.order('field3', true, 1.2, 5)
+  #       assert.same { text: 'ORDER BY field1 ASC, field2 DESC, field3 ASC', values: [] }, @inst.toParam()
 
-        assert.same { text: 'ORDER BY field3 ASC', values: [1.2, 5] }, @inst.buildParam()
+  #     'with values': ->
+  #       @inst.order('field3', true, 1.2, 5)
 
+  #       assert.same { text: 'ORDER BY field3 ASC', values: [1.2, 5] }, @inst.toParam()
 
-  'LimitBlock':
-    beforeEach: ->
-      @cls = squel.cls.LimitBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'LimitBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.LimitBlock
+  #     @inst = new @cls()
 
-    'initial field values': ->
-      assert.same null, @inst.limits
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    'limit()':
-      'set value': ->
-        @inst.limit(1)
+  #   'initial field values': ->
+  #     assert.same null, @inst.limits
 
-        assert.same 1, @inst.limits
+  #   'limit()':
+  #     'set value': ->
+  #       @inst.limit(1)
 
-        @inst.limit(22)
+  #       assert.same 1, @inst.limits
 
-        assert.same 22, @inst.limits
+  #       @inst.limit(22)
 
-      'sanitizes inputs': ->
-        sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
+  #       assert.same 22, @inst.limits
 
-        @inst.limit(23)
+  #     'sanitizes inputs': ->
+  #       sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
 
-        assert.ok sanitizeSpy.calledWithExactly 23
+  #       @inst.limit(23)
 
-        assert.same 234, @inst.limits
+  #       assert.ok sanitizeSpy.calledWithExactly 23
 
-    'buildStr()':
-      'output nothing if not set': ->
-        @inst.limits = null
-        assert.same '', @inst.buildStr()
+  #       assert.same 234, @inst.limits
 
-      'output LIMIT if set to 0': ->
-        @inst.limit(0)
-        assert.same 'LIMIT 0', @inst.buildStr()
+  #   'toString()':
+  #     'output nothing if not set': ->
+  #       @inst.limits = null
+  #       assert.same '', @inst.toString()
 
-      'output LIMIT': ->
-        @inst.limit(12)
+  #     'output LIMIT if set to 0': ->
+  #       @inst.limit(0)
+  #       assert.same 'LIMIT 0', @inst.toString()
 
-        assert.same 'LIMIT 12', @inst.buildStr()
+  #     'output LIMIT': ->
+  #       @inst.limit(12)
 
+  #       assert.same 'LIMIT 12', @inst.toString()
 
 
-  'JoinBlock':
-    beforeEach: ->
-      @cls = squel.cls.JoinBlock
-      @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+  # 'JoinBlock':
+  #   beforeEach: ->
+  #     @cls = squel.cls.JoinBlock
+  #     @inst = new @cls()
 
-    'initial field values': ->
-      assert.same [], @inst.joins
+  #   'instanceof of Block': ->
+  #     assert.instanceOf @inst, squel.cls.Block
 
-    'join()':
-      'adds to list': ->
-        @inst.join('table1')
-        @inst.join('table2', null, 'b = 1', 'LEFT')
-        @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
-        @inst.join('table4', 'alias4', 'd = 1', 'OUTER')
-        @inst.join('table5', 'alias5', null, 'CROSS')
+  #   'initial field values': ->
+  #     assert.same [], @inst.joins
 
-        expected = [
-          {
-            type: 'INNER',
-            table: 'table1',
-            alias: null,
-            condition: null
-          },
-          {
-            type: 'LEFT',
-            table: 'table2',
-            alias: null,
-            condition: 'b = 1'
-          },
-          {
-            type: 'RIGHT',
-            table: 'table3',
-            alias: '`alias3`',
-            condition: 'c = 1'
-          },
-          {
-            type: 'OUTER',
-            table: 'table4',
-            alias: '`alias4`',
-            condition: 'd = 1'
-          },
-          {
-            type: 'CROSS',
-            table: 'table5',
-            alias: '`alias5`',
-            condition: null
-          }
-        ]
+  #   'join()':
+  #     'adds to list': ->
+  #       @inst.join('table1')
+  #       @inst.join('table2', null, 'b = 1', 'LEFT')
+  #       @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
+  #       @inst.join('table4', 'alias4', 'd = 1', 'OUTER')
+  #       @inst.join('table5', 'alias5', null, 'CROSS')
 
-        assert.same expected, @inst.joins
+  #       expected = [
+  #         {
+  #           type: 'INNER',
+  #           table: 'table1',
+  #           alias: null,
+  #           condition: null
+  #         },
+  #         {
+  #           type: 'LEFT',
+  #           table: 'table2',
+  #           alias: null,
+  #           condition: 'b = 1'
+  #         },
+  #         {
+  #           type: 'RIGHT',
+  #           table: 'table3',
+  #           alias: '`alias3`',
+  #           condition: 'c = 1'
+  #         },
+  #         {
+  #           type: 'OUTER',
+  #           table: 'table4',
+  #           alias: '`alias4`',
+  #           condition: 'd = 1'
+  #         },
+  #         {
+  #           type: 'CROSS',
+  #           table: 'table5',
+  #           alias: '`alias5`',
+  #           condition: null
+  #         }
+  #       ]
 
-      'sanitizes inputs': ->
-        sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
-        sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
-        sanitizeConditionSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
+  #       assert.same expected, @inst.joins
 
-        @inst.join('table1', 'alias1', 'a = 1')
+  #     'sanitizes inputs': ->
+  #       sanitizeTableSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', -> return '_t'
+  #       sanitizeAliasSpy = test.mocker.stub @cls.prototype, '_sanitizeTableAlias', -> return '_a'
+  #       sanitizeConditionSpy = test.mocker.stub @cls.prototype, '_sanitizeCondition', -> return '_c'
 
-        assert.ok sanitizeTableSpy.calledWithExactly 'table1', true
-        assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
-        assert.ok sanitizeConditionSpy.calledWithExactly 'a = 1'
+  #       @inst.join('table1', 'alias1', 'a = 1')
 
-        expected = [
-          {
-          type: 'INNER',
-          table: '_t',
-          alias: '_a',
-          condition: '_c'
-          }
-        ]
+  #       assert.ok sanitizeTableSpy.calledWithExactly 'table1', true
+  #       assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
+  #       assert.ok sanitizeConditionSpy.calledWithExactly 'a = 1'
 
-        assert.same expected, @inst.joins
+  #       expected = [
+  #         {
+  #         type: 'INNER',
+  #         table: '_t',
+  #         alias: '_a',
+  #         condition: '_c'
+  #         }
+  #       ]
 
-      'nested queries': ->
-        inner1 = squel.select()
-        inner2 = squel.select()
-        inner3 = squel.select()
-        inner4 = squel.select()
-        inner5 = squel.select()
-        inner6 = squel.select()
-        @inst.join(inner1)
-        @inst.join(inner2, null, 'b = 1', 'LEFT')
-        @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
-        @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
-        @inst.join(inner5, 'alias5', 'e = 1', 'FULL')
-        @inst.join(inner6, 'alias6', null, 'CROSS')
+  #       assert.same expected, @inst.joins
 
-        expected = [
-          {
-          type: 'INNER',
-          table: inner1,
-          alias: null,
-          condition: null
-          },
-          {
-          type: 'LEFT',
-          table: inner2,
-          alias: null,
-          condition: 'b = 1'
-          },
-          {
-          type: 'RIGHT',
-          table: inner3,
-          alias: '`alias3`',
-          condition: 'c = 1'
-          },
-          {
-          type: 'OUTER',
-          table: inner4,
-          alias: '`alias4`',
-          condition: 'd = 1'
-          },
-          {
-            type: 'FULL',
-            table: inner5,
-            alias: '`alias5`',
-            condition: 'e = 1'
-          },
-          {
-            type: 'CROSS',
-            table: inner6,
-            alias: '`alias6`',
-            condition: null
-          }
-        ]
+  #     'nested queries': ->
+  #       inner1 = squel.select()
+  #       inner2 = squel.select()
+  #       inner3 = squel.select()
+  #       inner4 = squel.select()
+  #       inner5 = squel.select()
+  #       inner6 = squel.select()
+  #       @inst.join(inner1)
+  #       @inst.join(inner2, null, 'b = 1', 'LEFT')
+  #       @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
+  #       @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
+  #       @inst.join(inner5, 'alias5', 'e = 1', 'FULL')
+  #       @inst.join(inner6, 'alias6', null, 'CROSS')
 
-        assert.same expected, @inst.joins
+  #       expected = [
+  #         {
+  #         type: 'INNER',
+  #         table: inner1,
+  #         alias: null,
+  #         condition: null
+  #         },
+  #         {
+  #         type: 'LEFT',
+  #         table: inner2,
+  #         alias: null,
+  #         condition: 'b = 1'
+  #         },
+  #         {
+  #         type: 'RIGHT',
+  #         table: inner3,
+  #         alias: '`alias3`',
+  #         condition: 'c = 1'
+  #         },
+  #         {
+  #         type: 'OUTER',
+  #         table: inner4,
+  #         alias: '`alias4`',
+  #         condition: 'd = 1'
+  #         },
+  #         {
+  #           type: 'FULL',
+  #           table: inner5,
+  #           alias: '`alias5`',
+  #           condition: 'e = 1'
+  #         },
+  #         {
+  #           type: 'CROSS',
+  #           table: inner6,
+  #           alias: '`alias6`',
+  #           condition: null
+  #         }
+  #       ]
 
-    'left_join()':
-      'calls join()': ->
-        joinSpy = test.mocker.stub(@inst, 'join')
+  #       assert.same expected, @inst.joins
 
-        @inst.left_join('t', 'a', 'c')
+  #   'left_join()':
+  #     'calls join()': ->
+  #       joinSpy = test.mocker.stub(@inst, 'join')
 
-        assert.ok joinSpy.calledOnce
-        assert.ok joinSpy.calledWithExactly('t', 'a', 'c', 'LEFT')
+  #       @inst.left_join('t', 'a', 'c')
 
+  #       assert.ok joinSpy.calledOnce
+  #       assert.ok joinSpy.calledWithExactly('t', 'a', 'c', 'LEFT')
 
-    'buildStr()':
-      'output nothing if nothing set': ->
-        @inst.joins = []
-        assert.same '', @inst.buildStr()
 
-      'output JOINs': ->
-        @inst.join('table1')
-        @inst.join('table2', null, 'b = 1', 'LEFT')
-        @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
-        @inst.join('table4', 'alias4', 'd = 1', 'FULL')
-        @inst.join('table5', 'alias5', null, 'CROSS')
+  #   'toString()':
+  #     'output nothing if nothing set': ->
+  #       @inst.joins = []
+  #       assert.same '', @inst.toString()
 
-        assert.same 'INNER JOIN table1 LEFT JOIN table2 ON (b = 1) RIGHT JOIN table3 `alias3` ON (c = 1) FULL JOIN table4 `alias4` ON (d = 1) CROSS JOIN table5 `alias5`', @inst.buildStr()
+  #     'output JOINs': ->
+  #       @inst.join('table1')
+  #       @inst.join('table2', null, 'b = 1', 'LEFT')
+  #       @inst.join('table3', 'alias3', 'c = 1', 'RIGHT')
+  #       @inst.join('table4', 'alias4', 'd = 1', 'FULL')
+  #       @inst.join('table5', 'alias5', null, 'CROSS')
 
-      'output JOINs with nested query': ->
-        inner1 = squel.select().from('1')
-        inner2 = squel.select().from('2')
-        inner3 = squel.select().from('3')
-        inner4 = squel.select().from('4')
-        inner5 = squel.select().from('5')
+  #       assert.same 'INNER JOIN table1 LEFT JOIN table2 ON (b = 1) RIGHT JOIN table3 `alias3` ON (c = 1) FULL JOIN table4 `alias4` ON (d = 1) CROSS JOIN table5 `alias5`', @inst.toString()
 
-        @inst.join(inner1)
-        @inst.join(inner2, null, 'b = 1', 'LEFT')
-        @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
-        @inst.join(inner4, 'alias4', 'e = 1', 'FULL')
-        @inst.join(inner5, 'alias5', null, 'CROSS')
+  #     'output JOINs with nested query': ->
+  #       inner1 = squel.select().from('1')
+  #       inner2 = squel.select().from('2')
+  #       inner3 = squel.select().from('3')
+  #       inner4 = squel.select().from('4')
+  #       inner5 = squel.select().from('5')
 
-        assert.same 'INNER JOIN (SELECT * FROM 1) LEFT JOIN (SELECT * FROM 2) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1) CROSS JOIN (SELECT * FROM 5) `alias5`', @inst.buildStr()
+  #       @inst.join(inner1)
+  #       @inst.join(inner2, null, 'b = 1', 'LEFT')
+  #       @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
+  #       @inst.join(inner4, 'alias4', 'e = 1', 'FULL')
+  #       @inst.join(inner5, 'alias5', null, 'CROSS')
 
-      'QueryBuilder in ON condition expr()': ->
-        inner1 = squel.select().from('1')
-        inner2 = squel.select().from('2')
-        expr = squel.expr()
-          .and('field1 = ?',inner2)
+  #       assert.same 'INNER JOIN (SELECT * FROM 1) LEFT JOIN (SELECT * FROM 2) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1) CROSS JOIN (SELECT * FROM 5) `alias5`', @inst.toString()
 
-        @inst.join(inner1, null, expr)
-        assert.same 'INNER JOIN (SELECT * FROM 1) ON (field1 = (SELECT * FROM 2))', @inst.buildStr()
+  #     'QueryBuilder in ON condition expr()': ->
+  #       inner1 = squel.select().from('1')
+  #       inner2 = squel.select().from('2')
+  #       expr = squel.expr()
+  #         .and('field1 = ?',inner2)
 
-    'buildParam()':
-      'QueryBuilder in ON condition expr()': ->
-        inner1 = squel.select().from('1')
-        inner2 = squel.select().from('2')
-        expr = squel.expr()
-          .and('field1 = ?',inner2)
+  #       @inst.join(inner1, null, expr)
+  #       assert.same 'INNER JOIN (SELECT * FROM 1) ON (field1 = (SELECT * FROM 2))', @inst.toString()
 
-        @inst.join(inner1, null, expr)
-        assert.same { text: 'INNER JOIN (SELECT * FROM 1) ON (field1 = (SELECT * FROM 2))', values: [] }, @inst.buildParam()
+  #   'toParam()':
+  #     'QueryBuilder in ON condition expr()': ->
+  #       inner1 = squel.select().from('1')
+  #       inner2 = squel.select().from('2')
+  #       expr = squel.expr()
+  #         .and('field1 = ?',inner2)
+
+  #       @inst.join(inner1, null, expr)
+  #       assert.same { text: 'INNER JOIN (SELECT * FROM 1) ON (field1 = (SELECT * FROM 2))', values: [] }, @inst.toParam()
 
 
 

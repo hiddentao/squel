@@ -1144,7 +1144,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       _createClass(_class6, [{
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           return {
             text: this._str,
             values: []
@@ -1182,7 +1184,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           return this._buildManyStrings(this._strings, this._values, options);
         }
       }]);
@@ -1265,7 +1269,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           var totalStr = '',
               totalValues = [];
 
@@ -1354,7 +1360,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           if (!this._hasTable()) {
             throw new Error("table() needs to be called");
           }
@@ -1387,7 +1395,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           return _get(Object.getPrototypeOf(_class10.prototype), '_toParamString', this).call(this, options);
         }
       }]);
@@ -1415,7 +1425,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           if (!this._hasTable()) {
             throw new Error("into() needs to be called");
           }
@@ -1524,7 +1536,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
           var queryBuilder = options.queryBuilder;
           var buildParameterized = options.buildParameterized;
 
@@ -1740,7 +1753,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
           var buildParameterized = options.buildParameterized;
 
 
@@ -1810,7 +1824,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
           var buildParameterized = options.buildParameterized;
 
 
@@ -1871,7 +1886,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           var totalStr = '',
               totalValues = [];
 
@@ -1952,7 +1969,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           return {
             text: this._groups.length ? 'GROUP BY ' + this._groups.join(', ') : '',
             values: []
@@ -2044,7 +2063,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           var totalStr = "",
               totalValues = [];
 
@@ -2185,7 +2206,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           var totalStr = '',
               totalValues = [];
 
@@ -2372,7 +2395,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           var totalStr = "",
               totalValues = [];
 
@@ -2498,7 +2523,9 @@ OTHER DEALINGS IN THE SOFTWARE.
         }
       }, {
         key: '_toParamString',
-        value: function _toParamString(options) {
+        value: function _toParamString() {
+          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
           var totalStr = '',
               totalValues = [];
 
