@@ -1631,7 +1631,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             throw new Error("Cannot set multiple rows of fields this way.");
           }
 
-          if (typeof value == 'undefined') {
+          if (typeof value !== 'undefined') {
             value = this._sanitizeValue(value);
           }
 
@@ -1757,13 +1757,13 @@ OTHER DEALINGS IN THE SOFTWARE.
             totalStr = _pad(totalStr, ', ');
 
             var field = this._fields[i];
-            var value = this.values[0][i];
+            var value = this._values[0][i];
 
             // e.g. field can be an expression such as `count = count + 1`
             if (typeof value === 'undefined') {
               totalStr += field;
             } else {
-              var ret = this._buildString(field + ' = ' + this.options.parameterCharacter, value, {
+              var ret = this._buildString(field + ' = ' + this.options.parameterCharacter, [value], {
                 buildParameterized: buildParameterized,
                 formattingOptions: this._valueOptions[0][i]
               });

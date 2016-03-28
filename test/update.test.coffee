@@ -49,7 +49,10 @@ test['UPDATE builder'] =
         dummy: true
 
       for block in @inst.blocks
-        assert.same expectedOptions, block.options
+        if (block instanceof squel.cls.WhereBlock)
+          assert.same _.extend({}, expectedOptions, { verb: 'WHERE'}), block.options
+        else
+          assert.same expectedOptions, block.options
 
     'override blocks': ->
       block = new squel.cls.StringBlock('SELECT')
@@ -194,7 +197,7 @@ test['UPDATE builder'] =
   'Function values':
     beforeEach: -> @inst.table('students').set('field', squel.fval('GETDATE(?, ?)', 2014, '"feb"'))
     toString: ->
-      assert.same 'UPDATE students SET field = (GETDATE(2014, "feb"))', @inst.toString()
+      assert.same 'UPDATE students SET field = (GETDATE(2014, \'"feb"\'))', @inst.toString()
     toParam: ->  
       assert.same { text: 'UPDATE students SET field = (GETDATE(?, ?))', values: [2014, '"feb"'] }, @inst.toParam()
 
@@ -223,8 +226,6 @@ test['UPDATE builder'] =
     assert.same 'UPDATE students SET field = 1', @inst.toString()
     assert.same 'UPDATE students SET field = 2, field2 = TRUE', newinst.toString()
 
-  'is nestable': ->
-    assert.same false, @inst.isNestable()
 
 
 module?.exports[require('path').basename(__filename)] = test

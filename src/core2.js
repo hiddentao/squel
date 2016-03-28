@@ -1234,7 +1234,7 @@ function _buildSquel(flavour = null) {
         throw new Error("Cannot set multiple rows of fields this way.");
       }
 
-      if (typeof value == 'undefined') {
+      if (typeof value !== 'undefined') {
         value = this._sanitizeValue(value);
       }
 
@@ -1336,7 +1336,7 @@ function _buildSquel(flavour = null) {
         totalStr = _pad(totalStr, ', ');
 
         let field = this._fields[i];
-        let value = this.values[0][i];
+        let value = this._values[0][i];
 
         // e.g. field can be an expression such as `count = count + 1`
         if (typeof value === 'undefined') {
@@ -1345,7 +1345,7 @@ function _buildSquel(flavour = null) {
         else {
           let ret = this._buildString(
             `${field} = ${this.options.parameterCharacter}`, 
-            value,
+            [value],
             {
               buildParameterized: buildParameterized,
               formattingOptions: this._valueOptions[0][i],
