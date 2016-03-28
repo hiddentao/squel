@@ -1277,13 +1277,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
             try {
               for (var _iterator4 = this._tables[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                var blk = _step4.value;
+                var _step4$value = _step4.value;
+                var table = _step4$value.table;
+                var alias = _step4$value.alias;
 
                 totalStr = _pad(totalStr, ', ');
-
-                var table = blk.table;
-                var alias = blk.alias;
-
 
                 var tableStr = table;
 
@@ -2805,7 +2803,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         _classCallCheck(this, _class28);
 
-        blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
+        blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
         return _possibleConstructorReturn(this, Object.getPrototypeOf(_class28).call(this, options, blocks));
       }
@@ -2839,7 +2837,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         _classCallCheck(this, _class30);
 
-        blocks = blocks || [new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
+        blocks = blocks || [new cls.StringBlock(options, 'DELETE'), new cls.FromTableBlock(_extend({}, options, {
+          singleTable: true
+        })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
 
         return _possibleConstructorReturn(this, Object.getPrototypeOf(_class30).call(this, options, blocks));
       }

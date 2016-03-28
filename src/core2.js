@@ -1010,10 +1010,8 @@ function _buildSquel(flavour = null) {
 
       if (this._hasTable()) {
         // retrieve the parameterised queries
-        for (let blk of this._tables) {
+        for (let { table, alias } of this._tables) {
           totalStr = _pad(totalStr, ', ');
-
-          let { table, alias } = blk;
 
           let tableStr = table;
 
@@ -2012,7 +2010,6 @@ function _buildSquel(flavour = null) {
         new cls.FunctionBlock(options),
         new cls.DistinctBlock(options),
         new cls.GetFieldBlock(options),
-        new cls.FromTableBlock(options),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
@@ -2054,7 +2051,9 @@ function _buildSquel(flavour = null) {
     constructor (options, blocks = null) {
       blocks = blocks || [
         new cls.StringBlock(options, 'DELETE'),
-        new cls.FromTableBlock(options),
+        new cls.FromTableBlock(_extend({}, options, {
+          singleTable: true
+        })),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
