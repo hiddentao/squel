@@ -536,12 +536,13 @@ function _buildSquel(flavour = null) {
 
           if (buildParameterized) {
             if (value instanceof cls.BaseBuilder) {
-              let ret = value.toParam({
+              let ret = value._toParamString({
+                buildParameterized: buildParameterized,
                 nested: true,
               });
 
               formattedStr += ret.text;
-              formattedValues.push(...ret.value);
+              formattedValues.push(...ret.values);
             } else {
               value = this._formatValueForParamArray(value);
 
@@ -1077,10 +1078,6 @@ function _buildSquel(flavour = null) {
     }
 
     _toParamString (options) {
-      if (!this._hasTable()) {
-        throw new Error("from() needs to be called");
-      }
-
       return super._toParamString(options);
     }
 
@@ -1200,7 +1197,11 @@ function _buildSquel(flavour = null) {
       }
 
       if (!totalStr.length) {
-        totalStr = "*";
+        // if select query and a table is set then all fields wanted
+        let fromTableBlock = queryBuilder && queryBuilder.getBlock(cls.FromTableBlock);
+        if (fromTableBlock && fromTableBlock._hasTable()) {
+          totalStr = "*";
+        }
       }
 
       return {
@@ -1949,6 +1950,7 @@ function _buildSquel(flavour = null) {
 
       let blockResults = this.blocks.map((b) => b._toParamString({
         buildParameterized: options.buildParameterized,
+        queryBuilder: this,
       }));
 
       let blockTexts = blockResults.map((b) => b.text);

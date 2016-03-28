@@ -51,6 +51,10 @@ test['SELECT builder'] =
       for block in @inst.blocks
         if (block instanceof squel.cls.FromTableBlock)
           assert.same _.extend({}, expectedOptions, { prefix: 'FROM'}), block.options
+        else if (block instanceof squel.cls.WhereBlock)
+          assert.same _.extend({}, expectedOptions, { verb: 'WHERE'}), block.options
+        else if (block instanceof squel.cls.HavingBlock)
+          assert.same _.extend({}, expectedOptions, { verb: 'HAVING'}), block.options
         else
           assert.same expectedOptions, block.options
 
@@ -97,9 +101,9 @@ test['SELECT builder'] =
       '>> field( squel.fval(SUM(?), squel.case().when(score > ?, 1).then(1) ), fa1)':
         beforeEach: -> @inst.field( squel.fval('SUM(?)', squel.case().when("score > ?", 1).then(1)), 'fa1')
         toString: ->
-          assert.same @inst.toString(), 'SELECT SUM(CASE WHEN (score > 1) THEN 1 ELSE NULL END) AS "fa1" FROM table, table2 `alias2`'
+          assert.same @inst.toString(), 'SELECT (SUM((CASE WHEN (score > 1) THEN 1 ELSE NULL END))) AS "fa1" FROM table, table2 `alias2`'
         toParam: ->
-          assert.same @inst.toParam(), { text: 'SELECT SUM(CASE WHEN (score > ?) THEN 1 ELSE NULL END) AS "fa1" FROM table, table2 `alias2`', values: [1] }
+          assert.same @inst.toParam(), { text: 'SELECT (SUM(CASE WHEN (score > ?) THEN 1 ELSE NULL END)) AS "fa1" FROM table, table2 `alias2`', values: [1] }
 
       '>> field(field1, fa1) >> field(field2)':
         beforeEach: -> @inst.field('field1', 'fa1').field('field2')

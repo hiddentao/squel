@@ -655,12 +655,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
               if (buildParameterized) {
                 if (value instanceof cls.BaseBuilder) {
-                  var ret = value.toParam({
+                  var ret = value._toParamString({
+                    buildParameterized: buildParameterized,
                     nested: true
                   });
 
                   formattedStr += ret.text;
-                  formattedValues.push.apply(formattedValues, _toConsumableArray(ret.value));
+                  formattedValues.push.apply(formattedValues, _toConsumableArray(ret.values));
                 } else {
                   value = this._formatValueForParamArray(value);
 
@@ -1389,10 +1390,6 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_toParamString',
         value: function _toParamString(options) {
-          if (!this._hasTable()) {
-            throw new Error("from() needs to be called");
-          }
-
           return _get(Object.getPrototypeOf(_class10.prototype), '_toParamString', this).call(this, options);
         }
       }]);
@@ -1584,7 +1581,11 @@ OTHER DEALINGS IN THE SOFTWARE.
           }
 
           if (!totalStr.length) {
-            totalStr = "*";
+            // if select query and a table is set then all fields wanted
+            var fromTableBlock = queryBuilder && queryBuilder.getBlock(cls.FromTableBlock);
+            if (fromTableBlock && fromTableBlock._hasTable()) {
+              totalStr = "*";
+            }
           }
 
           return {
@@ -2719,7 +2720,8 @@ OTHER DEALINGS IN THE SOFTWARE.
       }, {
         key: '_toParamString',
         value: function _toParamString() {
-          var _ref2;
+          var _this31 = this,
+              _ref2;
 
           var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -2727,7 +2729,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
           var blockResults = this.blocks.map(function (b) {
             return b._toParamString({
-              buildParameterized: options.buildParameterized
+              buildParameterized: options.buildParameterized,
+              queryBuilder: _this31
             });
           });
 
