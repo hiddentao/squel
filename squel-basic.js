@@ -586,9 +586,7 @@ OTHER DEALINGS IN THE SOFTWARE.
             } else if (typeofValue === "boolean") {
               value = value ? "TRUE" : "FALSE";
             } else if (value instanceof cls.BaseBuilder) {
-              value = value.toString({
-                nested: true
-              });
+              value = this._applyNestingFormatting(value.toString());
             } else if (typeofValue !== "number") {
               if (formattingOptions.dontQuote) {
                 value = '' + value;
@@ -673,7 +671,7 @@ OTHER DEALINGS IN THE SOFTWARE.
                       return paramChar;
                     }).join(', ');
 
-                    formattedStr += tmpStr;
+                    formattedStr += '(' + tmpStr + ')';
 
                     formattedValues.push.apply(formattedValues, _toConsumableArray(value));
                   } else {

@@ -473,9 +473,7 @@ function _buildSquel(flavour = null) {
           value = value ? "TRUE" : "FALSE";
         }
         else if (value instanceof cls.BaseBuilder) {
-          value = value.toString({
-            nested: true,
-          });
+          value = this._applyNestingFormatting(value.toString());
         }
         else if (typeofValue !== "number") {
           if (formattingOptions.dontQuote) {
@@ -554,7 +552,7 @@ function _buildSquel(flavour = null) {
                   return paramChar;
                 }).join(', ');
 
-                formattedStr += tmpStr;
+                formattedStr += `(${tmpStr})`;
 
                 formattedValues.push(...value);
               } else {

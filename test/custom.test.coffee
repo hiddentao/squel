@@ -33,20 +33,25 @@ test = testCreator()
 test['Custom queries'] =
   'custom query': ->
     class CommandBlock extends squel.cls.Block
-      command: (command) ->
+      command: (command, arg) ->
         @_command = command
-      compress: ->
-        @command('compress')
-      buildStr: ->
-        if (!@_command or 0 is @_command.length) then throw new Error 'command() must be called'
-        @_command.toUpperCase()
+        @_arg = arg
+      compress: (level) ->
+        @command('compress', level)
+      _toParamString: (options) ->
+        totalStr = @_command.toUpperCase()
+        totalValues = []
 
+        if not options.buildParameterized
+          totalStr += " #{@_arg}"
+        else
+          totalStr += " ?"
+          totalValues.push(@_arg)
 
-    class ParamBlock extends squel.cls.Block
-      param: (param) ->
-        @param = param
-      buildStr: ->
-        if @param then @param else ""
+        {
+          text: totalStr,
+          values: totalValues,
+        }
 
 
     class PragmaQuery extends squel.cls.QueryBuilder
@@ -54,7 +59,6 @@ test['Custom queries'] =
         blocks = [
           new squel.cls.StringBlock(options, 'PRAGMA'),
           new CommandBlock(options),
-          new ParamBlock(options)
         ]
 
         super options, blocks
@@ -62,7 +66,13 @@ test['Custom queries'] =
     # squel method
     squel.pragma = (options) -> new PragmaQuery(options)
 
-    assert.same 'PRAGMA COMPRESS test', squel.pragma().compress().param('test').toString()
+    qry = squel.pragma().compress(9)
+
+    assert.same qry.toString(), 'PRAGMA COMPRESS 9'
+    assert.same qry.toParam() , {
+      text: 'PRAGMA COMPRESS ?',
+      values: [9],
+    }
 
 
 
