@@ -38,7 +38,7 @@ gulp.task('build-full', function() {
   return gulp.src([
       './src/umd-header.js',
       './src/core.js',
-      // './src/mssql.js',
+      './src/mssql.js',
       './src/mysql.js',
       './src/postgres.js',
       './src/umd-footer.js',
@@ -68,8 +68,8 @@ gulp.task('test', function () {
       // './test/insert.test.coffee',
       // './test/select.test.coffee',
       // './test/update.test.coffee',
-      // './test/mssql.test.coffee',
-      './test/mysql.test.coffee',
+      './test/mssql.test.coffee',
+      // './test/mysql.test.coffee',
       // './test/postgres.test.coffee',
     ], { read: false })
       .pipe(mocha({
