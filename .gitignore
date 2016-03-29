@@ -1,7 +1,3 @@
-# intellij
-.idea/
-*.iml
-
 # npm
 node_modules/
 

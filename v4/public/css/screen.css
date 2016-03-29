@@ -371,6 +371,17 @@ section h3 {
 #home .right a:hover {
   background-color: #fff;
 }
+#home #old_version {
+  display: block;
+  font-size: 30px;
+  background-color: #000;
+  color: #fff;
+  line-height: 40px;
+  border-radius: 10px;
+  padding: 1em;
+  margin: 0 0 2em;
+}
+
 
 #overview ol {
   margin: 0 0 0 3em;
