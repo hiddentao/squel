@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Squel.js - SQL query string builder for Javascript</title>
+
+    <meta name="keywords" content="sql,javascript,nodejs,orm,mysql,github,vowsjs,coffeescript" />
+    <meta name="description" content="Squel is a compact, lightweight Javascript library for building SQL query strings, usable with node.js or in the browser." />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <link href='https://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/shCoreRDark.css" />
+    <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/screen.css" />
+    <link rel="stylesheet" type="text/css" media="print" href="public/css/print.css" />
+    <!--[if IE]>
+        <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/ie.css" />
+    <![endif]-->
+
+</head>
+<body>
+
+    <header>
+        <div id="logo">Squel.js</div>
+        <nav class="top">
+            <ul>
+                <li><a href="index.html" title="Guide">Guide</a></li>
+                <li><a href="api.html" title="API">API</a></li>
+                <li><a class="external" href="https://github.com/hiddentao/squel" title="Github">Github</a></li>
+                <li><a class="external" href="http://prezi.com/8fdvjo6ripkw/squeljs/" title="View the presentation">Prezi</a></li>
+            </ul>
+        </nav>
+        <nav class="guide">
+          <ul class="scrollSpy">
+            <li><a href="#installation" title="Installation instructions">Installation</a></li>
+            <li><a href="#overview" title="Overview">Overview</a></li>
+            <li><a href="#select" title="SELECT queries">SELECT</a></li>
+            <li><a href="#update" title="UPDATE queries">UPDATE</a></li>
+            <li><a href="#delete" title="DELETE queries">DELETE</a></li>
+            <li><a href="#insert" title="INSERT queries">INSERT</a></li>
+            <li><a href="#parameters" title="Parameterized queries">Parameters</a></li>
+            <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
+            <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
+            <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
+            <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
+            <li><a href="#cloning" title="Cloning">Cloning</a></li>
+            <li><a href="#db_engines" title="Database engine support">Database engines</a></li>
+          </ul>
+        </nav>
+    </header>
+
+    <section id="home">
+      <a name="home"></a>
+
+      <div class="left white_text">
+        <p class="heading">Squel.js</p>
+        <p class="sub">- lightweight Javascript library for building SQL query strings.</p>
+        <p class="sub">- usable with node.js and in the browser.</p>
+        <p class="sub">- well tested.</p>
+      </div>
+
+      <div class="right">
+        <p class="npm">
+          npm install squel
+        </p>
+        <a class="prod" href="https://raw.github.com/hiddentao/squel/master/squel-basic.min.js" title="Download production version">
+          <p class="label">Basic version</p>
+          <p class="stats">(~7 KB minified + gzipped)</p>
+        </a>
+        <a class="dev" href="https://raw.github.com/hiddentao/squel/master/squel.min.js" title="Download development version">
+          <p class="label">Basic + Database engines</p>
+          <p class="stats">(~8 KB minified + gzipped)</p>
+        </a>
+      </div>
+
+    </section>
+
+    <a name="docs"></a>
+    <section id="installation" class="white_text">
+      <a name="installation" href="#installation"><h2>Installation</h2></a>
+
+      <h3>Node.js</h3>
+
+      <pre class="brush: shell">npm install squel</pre>
+
+      <p>Once done you can use <code>require</code> to access the API:</p>
+
+      <pre class="brush: js">var squel = require("squel");</pre>
+
+      <h3>Bower</h3>
+
+      <pre class="brush: shell">bower install squel</pre>
+
+      <h3>Browser</h3>
+
+      <p>Include the following within your HTML <code>body</code> section, near the bottom:</p>
+
+      <pre class="brush: html">&lt;script type="text/javascript" src="/your/path/to/squel.min.js"&gt;&lt;/script&gt;</pre>
+
+      <p>Once loaded the <code>squel</code> API will be available in the global object:</p>
+
+      <pre class="brush: js">log( squel.VERSION );    /* version string */</pre>
+
+      <p class="warning">NOTE: It is recommended that you do NOT create queries browser-side to run on the
+        server as this massively increases your exposure to <a href="http://en.wikipedia.org/wiki/SQL_injection" target="_blank">SQL Injection</a> attacks.</p>
+
+    </section>
+
+    <section id="overview">
+      <a name="overview" href="#overview"><h2>Overview</h2></a>
+
+      <p><code>Squel</code> helps you quickly and easily build SQL query strings through an object oriented API.
+        There are two main benefits to using Squel to build your queries:</p>
+
+      <ol>
+        <li><strong>It requires less effort</strong> - instead of having to use brittle methods like string
+          concatenation and substitution you get a nice clean API to do the hard work for you.</li>
+        <li><strong>It lets you build flexibly</strong> - Sometimes you don't yet know what your final query ought
+          to look like until you've checked information from various other parts of your program. Representing the
+          query as an object which can be manipulated allows you to be flexible about how you build it.</li>
+      </ol>
+
+      <p>Ok, now you're convinced! Before you get stuck in here are a few things to be aware of...</p>
+
+      <p>Squel uses <a href="http://en.wikipedia.org/wiki/Method_chaining">method chaining</a> to
+        make things easy. For example, instead of writing:</p>
+
+        <pre class="brush: js">
+            var s = squel.select();
+            s.from("student");
+            log( s.toString() );    /* SELECT * FROM student */
+        </pre>
+
+      <p><em>Hint: You can run the example above by clicking it!</em></p>
+
+      <p>You can simply write:</p>
+
+        <pre class="brush: js">
+            log( squel.select().from("students").toString() );  /* SELECT * FROM students */
+        </pre>
+
+      What's even better, the <code>toString()</code> method gets called automatically by the Javascript interpreter
+      whenever a string representation of an object is needed. So we can actually simplify the previous statement to:
+
+        <pre class="brush: js">
+            log( '' + squel.select().from("students") );  /* SELECT * FROM students */
+        </pre>
+
+      <p><em>Note: All of Squel's builders provide the <code>toString()</code> method. It is this
+        method which constructs the final query string.</em></p>
+
+      <p>Squel does not check to see if your final query is semantically correct (i.e. that it makes
+        sense). Your database engine already does a good enough job of that. On the plus side Squel allows you
+        to use proprietary database functions and other complex constructs:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select({ separator: "\n" })
+                    .from("students")
+                    .field("name")
+                    .field("MIN(test_score)")
+                    .field("MAX(test_score)")
+                    .field("GROUP_CONCAT(DISTINCT test_score ORDER BY test_score DESC SEPARATOR ' ')")
+                    .group("name")
+                    .toString()
+            );
+            /*
+                SELECT
+                    name,
+                    MIN(test_score),
+                    MAX(test_score),
+                    GROUP_CONCAT(DISTINCT test_score ORDER BY test_score DESC SEPARATOR ' ')
+                FROM
+                    students
+                GROUP BY
+                    name
+            */
+        </pre>
+
+
+
+    </section>
+
+    <section id="select">
+    <a name="select" href="#select"><h2>SELECT</h2></a>
+
+    <p>To get an instance of the <code>SELECT</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.select();
+        </pre>
+
+    <p>The name of a table to fetch data from is provided:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .toString()
+            );
+            /* SELECT * FROM students */
+        </pre>
+
+    <p>Squel usually outputs a single line string, but you can use a different <code>separator</code> to change this look:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select({ separator: "\n" })
+                    .from("students")
+                    .toString()
+            );
+            /*
+                SELECT
+                * 
+                FROM students
+            */
+        </pre>
+
+    <h3>Multiple tables</h3>
+
+    <p>You can select data from multiple tables and provide aliases where needed:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .from("lecturers", "l")
+                    .from("admins")
+                    .toString()
+            );
+            /* SELECT * FROM students, lecturers `l`, admins */
+        </pre>
+
+    <h3>Sub-queries as tables</h3>
+
+    <p>Instead of explicitly naming tables you can use SQL sub-queries as such:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from( squel.select().from('students'), 's' )
+                    .field('s.id')
+                    .toString()
+            );
+            /*  SELECT s.id FROM (SELECT * FROM students) `s` */
+        </pre>
+
+    <h3>Fields</h3>
+
+    <p>You can specify field names on their own or by the table they belong to:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .field("id")
+                    .field("students.name")
+                    .toString()
+            );
+            /* SELECT id, students.name FROM students */
+        </pre>
+
+    <p>Field names can be given aliases in order to customize the column names in the query results :</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .field("id", "Id")
+                    .field("students.name", "Student Name")
+                    .toString()
+            );
+            /* SELECT id AS "Id", students.name AS "Student Name" FROM students */
+        </pre>
+
+    <p>Database functions can be used in place of field names for more complex results:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students", "s")
+                    .field("s.id")
+                    .field("s.test_score", "Test score")
+                    .field("DATE_FORMAT(s.date_taken, '%M %Y')", "Taken on")
+                    .toString()
+            );
+            /*
+                SELECT
+                    s.id,
+                    s.test_score AS "Test score"
+                    DATE_FORMAT(s.date_taken, '%M %Y') AS "Taken on"
+                FROM
+                    students `s`
+            */
+        </pre>
+
+    <p>You can even use a sub-query as a field specifier:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students", "s")
+                    .field(squel.select().field("MAX(score)").from("scores"), 'score')
+                    .toString()
+            );
+            /*
+                SELECT
+                    (SELECT MAX(score) FROM scores) AS "score"
+                FROM
+                    students `s`
+            */
+        </pre>
+
+    <p>If you wish to obtain <code>DISTINCT</code> results you can do so:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .field("id")
+                    .distinct()
+                    .toString()
+            );
+            /*  SELECT DISTINCT id FROM students    */
+        </pre>
+
+    <h3>Joins</h3>
+
+    <p>Squel supports <code>INNER</code>, <code>OUTER</code>, <code>LEFT</code> and <code>RIGHT</code> joins. To do an
+    <code>INNER</code> join:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .join("teachers")
+                    .toString()
+            );
+            /*  SELECT * FROM students INNER JOIN teachers */
+        </pre>
+
+    <p>You can specify table aliases:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .join("teachers", "t")
+                    .outer_join("expelled")
+                    .toString()
+            );
+            /*  SELECT * FROM students
+                    INNER JOIN teachers `t`
+                    OUTER JOIN expelled
+            */
+        </pre>
+
+    <p>You can specify sub-queries:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .join(
+                        squel.select().field('score').from('results'),
+                        't'
+                    )
+                    .outer_join("expelled")
+                    .toString()
+            );
+            /*  SELECT * FROM students
+                    INNER JOIN (SELECT score FROM results) `t`
+                    OUTER JOIN expelled
+            */
+        </pre>
+
+    <p>And you can specify JOIN-ing conditions:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("students.id")
+                    .from("students")
+                    .left_join("teachers", null, "students.id = teachers.student_id")
+                    .right_join("jailed", "j", "j.student_id = students.id")
+                    .toString()
+            );
+            /*  SELECT students.id FROM students
+                    LEFT JOIN teachers ON (students.id = teachers.student_id)
+                    RIGHT JOIN jailed `j` ON (j.student_id = students.id)
+            */
+        </pre>
+
+    <p><em>For an optional parameter such as an alias name, passing <code>null</code> is the same as omitting it.</em></p>
+
+    <p>You can also specify sub-queries in joins:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from('marks', 'm')
+                    .join( squel.select().from('students'), 's', 's.id = m.id' )
+                    .toString()
+            );
+            /*  SELECT * FROM marks `m` INNER JOIN (SELECT * FROM students) `s` ON (s.id = m.id) */
+        </pre>
+
+    <h3>Filtering</h3>
+    <a name="filtering" href="#filtering"></a>
+
+    <p>You can add <code>WHERE</code> clause filtering to your query very easily:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = 'Thomas'")
+                    .toString()
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas')  */
+        </pre>
+
+    <p>Parameters substitution is supported:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("score = ?", squel.select().field('MAX(score)').from('scores'))
+                    .toString()
+            );
+            /*  SELECT id FROM students WHERE (score = (SELECT MAX(score) FROM scores))  */
+        </pre>
+
+    <em>For more information on using parameterized queries see the <a href="#parameters">parameters documentation section</a>.</em>
+
+    <p>Multiple filters are automatically combined using <code>AND</code>:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = 'Thomas'")
+                    .where("age > 18")
+                    .toString()
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas') AND (age > 18) */
+        </pre>
+
+    <p>Also filter using <code>OR</code> or any other operator you like:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where("name = 'Thomas' OR age > 18")
+                    .where("id BETWEEN 200 and 300")
+                    .toString()
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) AND (id BETWEEN 200 and 300) */
+        </pre>
+
+    <p>You can also pass in <a href="#expressions">Expressions</a>:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .where(
+                        squel.expr().and("name = 'Thomas'").or("age > 18")
+                    )
+                    .toString()
+            );
+            /*  SELECT id FROM students WHERE (name = 'Thomas' OR age > 18) */
+        </pre>
+
+    <h3>Sorting</h3>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .order("id")
+                    .order("name")
+                    .toString()
+            );
+            /*  SELECT id FROM students ORDER BY id ASC, name ASC */
+        </pre>
+
+    <p>Use the second argument of <code>order()</code> to change the direction of a sort:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .order("id")
+                    .order("name", false)  /* using TRUE instead would be the same as omitting it. */
+                    .toString()
+            );
+            /*  SELECT id FROM students ORDER BY id ASC, name DESC */
+        </pre>
+
+    <p>Additional arguments count as parameter values, e.g. for custom sort functions::</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .order("DIST(?, ?)", true, 1, 2)
+                    .toString()
+            );
+            /*  SELECT id FROM students ORDER BY DIST(1, 2) ASC */
+        </pre>
+
+    <h3>Grouping</h3>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .group("id")
+                    .toString()
+            );
+            /*  SELECT id FROM students GR0UP BY id */
+        </pre>
+
+    <p>Grouping on multiple fields is supported:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .group("id")
+                    .group("students.name")
+                    .toString()
+            );
+            /*  SELECT id FROM students GR0UP BY id, students.name */
+        </pre>
+
+    <h3>Having</h3>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("id")
+                    .from("students")
+                    .group("id")
+                    .having("a = ?", 2)
+                    .toString()
+            );
+            /*  SELECT id FROM students GR0UP BY id HAVING (a = 2) */
+        </pre>
+
+    <h3>Ranges</h3>
+
+    <p>To <code>LIMIT</code> the number of results:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .limit(10)
+                    .toString()
+            );
+            /*  SELECT * FROM students LIMIT 10 */
+        </pre>
+
+    <p>To remove the previously set limit:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .limit(10)
+                    .limit(0)
+                    .toString()
+            );
+            /*  SELECT * FROM students */
+        </pre>
+
+    <p>To specify the <code>OFFSET</code> of the first row to return:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .offset(102)
+                    .toString()
+            );
+            /*  SELECT * FROM students OFFSET 102 */
+        </pre>
+
+    <p>Same as for <code>limit()</code>, you can remove a previously set offset:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .offset(1)
+                    .offset(0)
+                    .toString()
+            );
+            /*  SELECT * FROM students */
+        </pre>
+
+
+    <h3>Unions</h3>
+
+    A simple <code>UNION</code> query:
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .union( 
+                        squel.select()
+                            .from('scores') 
+                    )
+                    .union( 
+                        squel.select()
+                            .from('batches') 
+                    )
+                    .toString()
+            );
+            /*  SELECT * FROM students UNION (SELECT * FROM scores) UNION (SELECT * FROM batches) */
+        </pre>
+
+
+
+    <h3>Scalar values and functions</h3>
+
+    You can select a single string:
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .function('1')
+                    .toString()
+            );
+            /*  SELECT 1 */
+        </pre>
+
+    And this applies to database functions too:
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .function('MAX(?, ?)', 45, 87)
+                    .toString()
+            );
+            /*  SELECT MAX(45, 87) */
+        </pre>
+
+    </section>
+
+    <section id="update">
+      <a name="update" href="#update"><h2>UPDATE</h2></a>
+
+      <p>To get an instance of the <code>UPDATE</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.update();
+        </pre>
+
+      <p>You need to supply at least one table name and one field to update:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .set("name", "Thomas")
+                    .toString()
+            );
+            /*  UPDATE students SET name = "Thomas" */
+        </pre>
+
+      <p>Multiple table names can be supplied along with aliases:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .table("teachers", "t")
+                    .set("t.name", "Fred")
+                    .toString()
+            );
+            /*  UPDATE students, teachers `t` SET t.name = "Fred" */
+        </pre>
+
+      <h3>Field values</h3>
+
+      <p>Not all field values within a query need to be surrounded by quotes. Squel figures out how to represent each
+        field value based on its runtime type:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .set("score", 1.2)
+                    .set("graduate", false)
+                    .set("level", squel.select().field('MAX(level)').from('levels'))
+                    .toString()
+            );
+            /*  UPDATE students SET name = "Fred", age = 29, score = 1.2, graduate = FALSE, level = (SELECT MAX(level) FROM levels) */
+        </pre>
+
+        <p>You can turn off automatic quoting on a per-field basis:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .set("time", "GETDATE()", {
+                        dontQuote: true
+                    })
+                    .set("city", "London")
+                    .toString()
+            );
+            /*  UPDATE students SET time = GETDATE(), city = "London" */
+        </pre>
+
+      <p>You can even use <code>NULL</code> values:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .set("nickname", null)
+                    .toString()
+            );
+            /*  UPDATE students SET name = "Fred", age = 29, nickname = NULL */
+        </pre>
+
+      <p><em>Hint: Squel can also be configured to handle <code>Object</code> instances by <a href="#custom_types">registering custom value types</a></em>.</p>
+
+      <p>If the second parameter to <code>set()</code> is not provided then the field name is assumed to be an operation:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .set("age = age + 1")
+                    .toString()
+            );
+            /*  UPDATE students SET age = age + 1 */
+        </pre>
+
+        <p>You can also set multiple fields in a single call:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .setFields({ age: 23, name: 'Fred' })
+                    .toString()
+            );
+            /*  UPDATE students SET age = 23, name = 'Fred' */
+        </pre>
+
+      <p>Parameter substitution for parameterized queries is also supported, see the section on <a href="#parameters">Parameters</a>.</p>
+
+      <h3>Filtering, sorting and limits</h3>
+
+      <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same
+        way they are by the <a href="#select">SELECT</a> builder:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.update()
+                    .table("students")
+                    .set("name", "Fred")
+                    .set("age", 29)
+                    .where("id > 5")
+                    .where("id < 102")
+                    .order("id", false)
+                    .limit(5)
+                    .toString()
+            );
+            /*  UPDATE students SET name = "Fred", age = 29 WHERE (id > 5) AND (id < 102) ORDER BY id DESC LIMIT 5 */
+        </pre>
+
+    </section>
+
+    <section id="delete">
+      <a name="delete" href="#delete"><h2>DELETE</h2></a>
+
+      <p>To get an instance of the <code>DELETE</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.delete();
+        </pre>
+
+      <p>You can also use the alias <code>remove()</code>:</p>
+
+        <pre class="brush: js">
+            var q = squel.remove();
+        </pre>
+
+      <p>You need to supply at least the table name:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.delete()
+                    .from("students")
+                    .toString()
+            );
+            /*  DELETE FROM students */
+        </pre>
+
+      <h3>Joins</h3>
+
+      <p>The <code>join()</code> and related methods are supported the same way
+        they are by the <a href="#select">SELECT</a> builder:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.delete()
+                    .from("students", "s")
+                    .outer_join("marks", "m", "m.student_id = s.id")
+                    .toString()
+            );
+            /*  DELETE FROM students `s` OUTER JOIN marks `m` ON (m.student_id = s.id) */
+        </pre>
+
+      <h3>Filtering, sorting and limits</h3>
+
+      <p>The <code>where()</code>, <code>order()</code> and <code>limit()</code> methods are supported the same way
+        they are by the <a href="#select">SELECT</a> builder:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.delete()
+                    .from("students")
+                    .where("id > 5")
+                    .where("id < 102")
+                    .order("id", false)
+                    .limit(5)
+                    .toString()
+            );
+            /*  DELETE FROM students WHERE (id > 5) AND (id < 102) ORDER BY id DESC LIMIT 5 */
+        </pre>
+
+    </section>
+
+    <section id="insert">
+      <a name="insert" href="#insert"><h2>INSERT</h2></a>
+
+      <p>To get an instance of the <code>INSERT</code> query builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.insert();
+        </pre>
+
+      <p>At least the table name and one field must be supplied:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.insert()
+                    .into("students")
+                    .set("name", "Thomas")
+                    .toString()
+            );
+            /*  INSERT INTO students (name) VALUES ("Thomas") */
+        </pre>
+
+      <p>Squel out how to treat each field value based on its runtime type:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.insert()
+                    .into("students")
+                    .set("name", "Thomas")
+                    .set("age", 29)
+                    .set("score", 90.2)
+                    .set("graduate", true)
+                    .set("nickname", null)
+                    .set("level", squel.select().field('MAX(level)').from('levels'))
+                    .toString()
+            );
+            /*  INSERT INTO students (name, age, score, graduate, nickname, level) 
+                VALUES ('Thomas', 29, 90.2, TRUE, NULL, (SELECT MAX(level) FROM levels)) */
+        </pre>
+
+        <p>You can turn off automatic quoting on a per-field basis:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.insert()
+                    .into("students")
+                    .set("time", "GETDATE()", {
+                        dontQuote: true
+                    })
+                    .set("city", "London")
+                    .toString()
+            );
+            /*  INSERT INTO students (time, city) VALUES(GETDATE(), "London") */
+        </pre>
+
+        <h3>Multiple fields and rows</h3>
+
+        <p>You can set multiple fields in a single call:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.insert()
+                    .into("students")
+                    .setFields({ name: "Thomas", age: 29 })
+                    .toString()
+            );
+            /*  INSERT INTO students (name, age) VALUES ('Thomas', 29) */
+        </pre>
+
+        <p>You can even do a multi-row insert:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.insert()
+                    .into("students")
+                    .setFieldsRows([
+                      { name: "Thomas", age: 29 },
+                      { name: "Jane", age: 31 }
+                    ])
+                    .toString()
+            );
+            /*  INSERT INTO students (name, age) VALUES ('Thomas', 29), ('Jane', 31) */
+        </pre>
+
+      <em>Note: When doing a multi-row insertion every row specified in the parameter to <code>setFieldsRows</code> should 
+      have the same field names specified. Squel will throw an error if this is not the case.</em>
+
+        <h3>Other types</h3>
+
+      <p>Insert from a selection result:</p>
+
+      <pre class="brush: js">
+        log(
+            squel.insert()
+                .into("students")
+                .fromQuery( 
+                    ['username'], 
+                    squel.select().field('name').from('candidates') 
+                )
+                .toString()
+        );
+        /*  INSERT INTO students (username) (SELECT name FROM candidates) */
+      </pre>
+
+    </section>
+
+    <section id="parameters">
+      <a name="parameters" href="#parameters"><h2>Parameters</h2></a>
+
+      <p>
+        Squel makes it very easy to build and use parameterized queries. Every query builder provides a
+        <code>toParam()</code> method which gives you a final query string separate to any parameters values previously passed in:
+      </p>
+
+
+      <pre class="brush: js">
+        log(
+          squel.select()
+            .from("students")
+            .where("a = ? AND b = ?", "test", true)
+            .order("CALC(?, ?)", true, 1.2, false)
+            .toParam()
+        );
+
+        /*
+          {
+            text:  SELECT * FROM students WHERE (a = ? AND b = ?) ORDER BY CALC(?, ?) ASC,
+            values:  [ 'test', true, 1.2, false ]
+          }
+        */
+      </pre>
+
+      <p>Using sub-queries as parameter values:</p>
+
+        <pre class="brush: js">
+            log(
+              squel.select()
+                .from("students")
+                .where("a = ? AND b IN ?", "test", squel.select().field('score').from('results').where('c IN ?', [5, 6, 7]))
+                .toParam()
+            );
+
+            /*
+              {
+                text:  SELECT * FROM students WHERE (a = ? AND b IN (SELECT score FROM results WHERE c IN (?, ?, ?)))),
+                values:  [ 'test', 5, 6, 7 ]
+              }
+            */
+        </pre>
+
+      <p>A more complex example involving sub-queries and unions:</p>
+
+        <pre class="brush: js">
+            log(
+              squel.select()
+                .from("students")
+                .where("a IN ?", squel.select().field('score').from('results').where('c = ?', 5))
+                .union(
+                    squel.select().field('age').from('states').where('person = ?', 
+                        squel.select().field('id').from('students').where('name = ?', 'John').limit(1)
+                    )
+                )
+                .toParam()
+            );
+
+            /*
+              {
+                text:  SELECT * FROM students WHERE (a IN (SELECT score FROM results WHERE (c = ?))) UNION (SELECT age FROM states WHERE (person = (SELECT id FROM students WHERE (name = ?) LIMIT 1))),
+                values:  [ 5, 'John' ]
+              }
+            */
+        </pre>
+
+      <p>As you can see the parameter values are not specially formatted as they normally are when <code>toString()</code> 
+      is called. Also note that the parameter placeholders are non-numbered by default. To enable numbering use the
+      <code>numberedParameters</code> option:</p>
+
+      <pre class="brush: js">
+        log(
+          squel.insert({ numberedParameters: true })
+            .into("students")
+            .set("a", "test")
+            .set("b", 1)
+            .set("c", null)
+            .toParam()
+        );
+
+        /*
+          {
+            text:  INSERT INTO students (a, b, c) VALUES ($1, $2, $3)
+            values:  [ 'test', 1, null ]
+          }
+        */
+      </pre>
+
+      <em>Note: For the Postgres flavour numbered parameters are enabled by default.</em>
+
+      <p>You can change the start number:</p>
+
+      <pre class="brush: js">
+        log(
+          squel.insert()
+            .into("students")
+            .set("a", "test")
+            .set("b", 1)
+            .set("c", null)
+            .toParam({ numberedParameters: true, numberedParametersStartAt: 3 })
+        );
+
+        /*
+          {
+            text:  INSERT INTO students (a, b, c) VALUES ($3, $4, $5)
+            values:  [ 'test', 1, null ]
+          }
+        */
+      </pre>
+
+
+      <p>The <code>values</code> array returned is always flat, even for multi-row inserts:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.insert()
+                    .into("students")
+                    .setFieldsRows([
+                      { name: "Thomas", age: 29 },
+                      { name: "Jane", age: 31 }
+                    ])
+                    .toParam()
+            );
+            /*
+              {
+                text:  INSERT INTO students (name, age) VALUES (?, ?), (?, ?)
+                values:  [ 'Thomas', 29, 'Jane', 31 ]
+              }
+            */
+        </pre>
+
+
+      <p>Array values can be used to create <code>IN</code> clauses:</p>
+
+      <pre class="brush: js">
+          log(
+              squel.select()
+                  .field("id")
+                  .from("students")
+                  .where("age IN ?", [18, 19, 20])
+                  .toParam()
+          );
+
+          /*
+            {
+              text:  SELECT id FROM students WHERE (age IN (?, ?, ?)),
+              values: [ 18, 19, 20 ]
+            }
+          */
+      </pre>
+
+      <p>In general it is better to use <code>toParam()</code> rather than <code>toString()</code> when constructing the final query 
+      as it gives you the opportunity to use your database engine methods to safely escape and interpolate your parameters.</p>
+
+      <h3>Functions as values</h3>
+
+      <p>Sometimes you may wish to use SQL functions as parameter values, e.g.:</p>
+
+      <pre class="brush: js">
+          log(
+              squel.update()
+                .table('students')
+                .set('modified', 'NOW()')
+                .toString()
+          );
+
+          /*   UPDATE students SET modified = 'NOW()'   */
+      </pre>
+
+      <p>As you can see Squel automatically adds quotes since it treats the value as a string. To workaround this you can use the 
+      <code>.str()</code> method:</p>p>
+
+      <pre class="brush: js">
+          log(
+              squel.update()
+                .table('students')
+                .set('modified', squel.str('NOW()'))
+                .toString()
+          );
+
+          /*  UPDATE students SET modified = (NOW())  */
+      </pre>
+
+      <p>You can pass parameters to the functions too:</p>
+
+      <pre class="brush: js">
+          log(
+              squel.select()
+                  .from("students")
+                  .where("age IN ?", squel.str('RANGE(?, ?)', 1, 1.2))
+                  .toParam()
+          );
+
+          /*
+            {
+              text:  SELECT * FROM students WHERE (age IN (RANGE(?, ?))),
+              values: [ 1, 1.2 ]
+            }
+          */
+      </pre>
+
+
+    </section>
+
+    <section id="autoquotes">
+      <a name="autoquotes" href="#autoquotes"><h2>Automatic quotes</h2></a>
+
+      <p>By default Squel does not add quotes around table names and field names. But you can tell it to do so using the
+        <code>autoQuoteTableNames</code> and <code>autoQuoteFieldNames</code> options:</p>
+
+      <pre class="brush: js">
+        log(
+          squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
+            .from("students", "s")
+            .field("s.name", "Student name")
+            .toString()
+        );
+
+        /*   SELECT `s`.`name` AS "Student name" FROM `students` `s`  */
+      </pre>
+
+      <p>Notice how squel was smart enough to detect the period separator within <code>s.name</code> when quoting. 
+      You can turn off this behaviour if you wish:</p>
+
+      <pre class="brush: js">
+        log(
+          squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true })
+            .from("students", "s")
+            .field("s.name", "Student name", { ignorePeriodsForFieldNameQuotes: true })
+            .toString()
+        );
+
+        /*   SELECT `s.name` AS "Student name" FROM `students` `s`  */
+      </pre>
+
+      <p>You can also customize the quote character using the <code>nameQuoteCharacter</code> option:</p>
+
+
+      <pre class="brush: js">
+        log(
+          squel.select({ autoQuoteTableNames: true, autoQuoteFieldNames: true, nameQuoteCharacter: '|' })
+            .from("students")
+            .field("name", "Student name")
+            .toString()
+        );
+
+        /*   SELECT |name| AS "Student name" FROM |students|  */
+      </pre>
+
+      <p>As you can see above, Squel does however automatically add quotes to alias names. These too can be customized:</p>
+
+      <pre class="brush: js">
+        log(
+          squel.select({ tableAliasQuoteCharacter: '|', fieldAliasQuoteCharacter: '~' })
+            .from("students", "s")
+            .field("name", "Student name")
+            .toString()
+        );
+
+        /*   SELECT name AS ~Student name~ FROM students |s|  */
+      </pre>
+
+      <p>And you can turn off automatic alias quoting if you so desire:</p>
+
+      <pre class="brush: js">
+        log(
+          squel.select({ autoQuoteAliasNames: false })
+            .from("students", "s")
+            .field("name", "Student_name")
+            .toString()
+        );
+
+        /*   SELECT name AS Student_name FROM students s  */
+      </pre>
+
+    </section>
+
+    <section id="expressions">
+      <a name="expressions" href="#expressions"><h2>Expressions</h2></a>
+
+      <p>Squel lets you use use complex expressions strings in <code>WHERE</code> and <code>ON</code> clauses. For
+        example:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .from("students")
+                    .where("(id < 500 AND (id > 100 OR name <> 'Thomas') AND "
+                            + "(age BETWEEN 20 AND 25 OR (name <> RANDOMNAME(?)))) OR (nickname = 'Hardy')", 10)
+                    .toString()
+            );
+            /*  SELECT * FROM students WHERE
+                    ((id < 500 AND (id > 100 OR name <> 'Thomas') AND (age BETWEEN 20 AND 25 OR (name <> RANDOMNAME(10))))
+                        OR (nickname = 'Hardy')) */
+        </pre>
+
+      <p>But having to change an expression string like that later on will be error-prone. It would be nice if you could build it
+        the same way you build queries. Luckily Squel provides an expression builder just for this purpose. To
+        get an instance of the builder:</p>
+
+        <pre class="brush: js">
+            var q = squel.expr();
+        </pre>
+
+      <p>To build the above expression string these are the calls you would make:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.expr()
+                    .and("id < ?", 500)
+                    .and(
+                      squel.expr()
+                        .or("id > ?", 100)
+                        .or("name <> ?", 'Thomas')
+                    )
+                    .and(
+                      squel.expr()
+                        .or("age BETWEEN ? AND ?", 20, 25)
+                        .or("name <> ?", squel.str('RANDOMNAME(?)', 10))
+                    )
+                    .or("nickname = ?", 'Hardy')
+                    .toString()
+            );
+            /*  id < 500 AND (id > 100 OR name <> 'Thomas') AND (age BETWEEN 20 AND 25 OR name <> (RANDOMNAME(10)))
+                    OR nickname = 'Hardy'
+            */
+        </pre>
+
+      <p>Straight away the benefit of using the expression builder can be seen as it has simplified the
+        expression (<code>AND</code> has precendence over <code>OR</code>). Not to mention that it's easier to
+        figure out the meaning of the expression looking at this code than from the big string we were
+        using earlier.</p>
+
+      <p>As a convenience expression builder instances can be used in calls to <code>where()</code> and
+        <code>join()</code> when using the query builders:</p>
+
+        <pre class="brush: js">
+            log(
+                squel.select()
+                    .field("s.id")
+                    .from("students", "s")
+                    .where(
+                        squel.expr()
+                            .and("s.name <> 'Fred'")
+                            .and(
+                              squel.expr()
+                                .or("s.id = 5")
+                                .or("s.id = 6")
+                            )
+                    )
+                    .join("teachers", "t",
+                        squel.expr()
+                            .and("s.id = t.sid")
+                            .and("t.name = 'Frances'")
+                    )
+                    .toString()
+            );
+            /*
+                SELECT s.id FROM students `s`
+                    INNER JOIN teachers `t` ON (s.id = t.sid AND t.name = 'Frances')
+                        WHERE (s.name <> 'Fred' AND (s.id = 5 OR s.id = 6))
+            */
+        </pre>
+
+    </section>
+
+    <section id="custom_types">
+      <a name="custom_types" href="#custom_types"><h2>Custom value types</h2></a>
+
+      <p>Sometimes you might want to override how Squel formats certain types of values, e.g. <code>Date</code> instances. You could do the following:</p>
+
+      <pre class="brush: js">
+            var myDate = new Date(2012, 4, 22),
+                myDate2 = new Date(2013, 5, 30);
+
+            log(
+                squel.update()
+                    .table("students")
+                    .set("start_date", myDate.getFullYear() + '-' + (myDate.getMonth()+1) + '-' + myDate.getDate())
+                    .set("end_date", myDate2.getFullYear() + '-' + (myDate2.getMonth()+1) + '-' + myDate2.getDate())
+                    .toString()
+            );
+            /*  UPDATE students SET start_date = '2012-5-22', end_date = '2013-6-30' */
+      </pre>
+
+      <p>Functional but no so elegant. A better approach is to register the <code>Date</code> object type
+        with Squel as a custom value type. We will need to supply a handler function which will get called whenever an
+        object of type <code>Date</code> is encountered:</p>
+
+      <pre class="brush: js">
+            var myDate = new Date(2012, 4, 22),
+                myDate2 = new Date(2013, 5, 30);
+
+            /* Tell Squel how to handle Date objects */
+            squel.registerValueHandler(Date, function(date) {
+              return '"' + date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate() + '"';
+            });
+
+            log(
+                squel.update()
+                    .table("students")
+                    .set("start_date", myDate)
+                    .set("end_date", myDate2)
+                    .toString()
+            );
+            /*  UPDATE students SET start_date = ("2012-5-22"), end_date = ("2013-6-30") */
+      </pre>
+
+      <p>We can register any type of object as a custom value type, not just <code>Date</code>. Squel checks to see if
+        the runtime type of a passed-in value matches one of the registered value types - meaning that sub-types are automatically
+        supported.</p>
+
+      <pre class="brush: js">
+            /* OOP Inheritance mechanism (substitute your own favourite library for this!) */
+            Function.prototype.inheritsFrom = function( parentClassOrObject ) {
+              this.prototype = new parentClassOrObject;
+              this.prototype.constructor = this;
+              this.prototype.parent = parentClassOrObject.prototype;
+            };
+
+            /* Base type */
+            var ClassA = function() { this.a = 1; };
+
+            /* Sub-type */
+            var ClassB = function() { this.a = 2; };
+            ClassB.inheritsFrom(ClassA);
+
+            /* Register base type */
+            squel.registerValueHandler(ClassA, function(obj) {
+              return obj.a;
+            });
+
+            log(
+                squel.update()
+                    .table("students")
+                    .set("value", new ClassB())
+                    .toString()
+            );
+            /*  UPDATE students SET value = (2) */
+      </pre>
+
+      <p>We can even register handlers for primitive types such as strings and booleans. Simply pass in the 
+      primitive type name as a string:</p>
+
+      <pre class="brush: js">
+            squel.registerValueHandler('boolean', function(v) {
+              return v ? 'YES': 'NO';
+            });
+
+            log(
+                squel.update()
+                    .table("students")
+                    .set("value", true)
+                    .toString()
+            );
+            /*  UPDATE students SET value = (YES) */
+      </pre>
+
+      <p>We can even override the registered handler for a value type on a per-instance basis.</p>
+
+      <pre class="brush: js">
+            /* Global handler */
+            squel.registerValueHandler(Date, function(date) {
+              return date.getFullYear();
+            });
+
+            log(
+              squel.update()
+                .registerValueHandler(Date, function(date) {
+                  return '"[' + date.getFullYear() + ']"';
+                })
+                .table('students')
+                .set('value', new Date(2013,5,1))
+                .toString()
+            );
+            /*  UPDATE students SET value = ("[2013]") */
+      </pre>
+
+      <p>Custom value types are processed correctly for parameterised queries:</p>
+
+      <pre class="brush: js">
+            var myDate = new Date(2012, 4, 22),
+                myDate2 = new Date(2013, 5, 30);
+
+            /* Tell Squel how to handle Date objects */
+            squel.registerValueHandler(Date, function(date) {
+              return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
+            });
+
+            log(
+                squel.select()
+                    .from("students")
+                    .where("start_date >= ?", myDate)
+                    .where("end_date <= ?", myDate2)
+                    .toParam()
+            );
+
+            /*  
+            {
+              text:  SELECT * FROM students WHERE (start_date >= ?) AND (end_date <= ?),
+              values: [ '2012-5-22', '2013-6-30' ]
+            }
+            */                
+      </pre>
+
+    </section>
+
+    <section id="custom_queries">
+      <a name="custom_queries" href="#custom_queries"><h2>Custom queries</h2></a>
+
+      <p>You can customize Squel's query building mechanism quite easily. For instance, if you wanted to add
+        <code>OFFSET</code> clauses to <code>UPDATE</code> queries you could do it as such:</p>
+
+      <pre class="brush: js">
+        /* We create a convenience method to make it easy to instantiate our customized UPDATE builder */
+        squel.myupdate = function(options) {
+          return squel.update(options, [
+            new squel.cls.StringBlock(options, 'UPDATE'),
+            new squel.cls.UpdateTableBlock(options),
+            new squel.cls.SetFieldBlock(options),
+            new squel.cls.WhereBlock(options),
+            new squel.cls.OrderByBlock(options),
+            new squel.cls.OffsetBlock(options),
+            new squel.cls.LimitBlock(options)
+          ]);
+        };
+
+        log(
+          squel.myupdate()
+            .table('students')
+            .set('status', 'active')
+            .limit(10)
+            .offset(2)
+            .toString()
+        );
+
+        /* UPDATE students SET status = 'active' OFFSET 2 LIMIT 10 */
+      </pre>
+
+      <p>Hopefully you can see that it is possible to totally override the built-in query building logic. Also notice
+        that each <em>building block</em> within a query can have a different set of <code>options</code> applied to it.
+        Check out <a href="https://github.com/hiddentao/squel/blob/master/src/squel.coffee">squel.coffee</a> to see
+        the available building blocks.</p>
+
+      <p>You can also build other types of queries and query clauses not already included in Squel. Let's say
+        you wanted to build a query structured as follows: <code>PRAGMA {command} {param}</code>:</p>
+
+      <pre class="brush: js">
+        /* OOP Inheritance mechanism (substitute your own favourite library for this!) */
+        Function.prototype.inheritsFrom = function( parentClassOrObject ) {
+          this.prototype = new parentClassOrObject;
+          this.prototype.constructor = this;
+          this.prototype.parent = parentClassOrObject.prototype;
+        };
+
+
+        /* Create the 'command' clause */
+
+        var CommandBlock = function() {};
+        CommandBlock.inheritsFrom(squel.cls.Block);
+
+        /* methods prefixed with '_' are private and will not get exposed within the query builder */
+        CommandBlock.prototype._command = function(command) {
+          this.command = command;
+        };
+
+        /* this method will get exposed within the query builder */
+        CommandBlock.prototype.flush = function() {
+          this._command('flush');
+        };
+
+        /* output the query clause */
+        CommandBlock.prototype.buildStr = function() {
+          return this.command.toUpperCase();
+        };
+
+
+        /* Create the 'param' clause */
+
+        var ParamBlock = function() {};
+        ParamBlock.inheritsFrom(squel.cls.Block);
+
+        ParamBlock.prototype.param = function(p) {
+          this._p = p;
+        };
+
+        ParamBlock.prototype.buildStr = function() {
+          return this._p;
+        };
+
+
+        /* Create the 'PRAGMA' query builder */
+
+        var PragmaQuery = function(options) {
+          this.parent.constructor.call(this, options, [
+              new squel.cls.StringBlock(options, 'PRAGMA'),
+              new CommandBlock(),
+              new ParamBlock()
+          ]);
+        };
+        PragmaQuery.inheritsFrom(squel.cls.QueryBuilder);
+
+
+        /* Create squel.pragma() convenience method */
+
+        squel.pragma = function(options) {
+          return new PragmaQuery(options)
+        };
+
+
+        /* Try it out! */
+
+        log(
+          squel.pragma()
+            .flush()
+            .param('students')
+            .toString()
+        );
+
+        /* 'PRAGMA FLUSH students' */
+      </pre>
+
+
+    </section>
+
+    <section id="cloning">
+      <a name="cloning" href="#cloning"><h2>Cloning</h2></a>
+
+      <p>You can create a copy of a query builder instance using its <code>clone()</code> method. For example:</p>
+
+      <pre class="brush: js">
+          var select1 = squel.select().from('students');
+
+          var select2 = select1.clone().field('id').where('name = "david"');
+
+          log( select1.toString() );
+
+          /* SELECT * FROM students */
+
+          log( select2.toString() );
+
+          /* SELECT id FROM students WHERE (name = "david") */
+      </pre>
+
+      <p>Here is an example using an <code>INSERT</code> builder:</p>
+
+      <pre class="brush: js">
+          var ins = squel.insert().into('students').set('name', 'David');
+
+          var insMathew = ins.clone().set('name', 'Mathew');
+
+          var insMark = insMathew.clone().set('name', 'Mark');
+
+          log( insMathew.toString() );
+
+          /* INSERT INTO students (name) VALUES('Mathew') */
+
+          log( insMark.toString() );
+
+          /* INSERT INTO students (name) VALUES('Mark') */
+      </pre>
+
+    </section>
+
+    <section id="db_engines">
+      <a name="db_engines" href="#db_engines"><h2>Database engines</h2></a>
+
+      <p>Although you can use Squel's query customization mechanism to add support for your desired commands it would be
+      nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
+      <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
+      version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
+        <a href="http://www.postgresql.org/">Postgres</a>,  
+        <a href="http://msdn.microsoft.com/en-us/library/bb510741.aspx">MSSQL/Transact-SQL</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL.</p>
+
+      <em>Note: The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</em>
+
+        <h3>Postgres</h3>
+
+        The <code>postgres</code> flavor uses numbered query parameters by default. It also provides the <code>RETURNING</code> clause:
+
+      <pre class="brush: js">
+        squelPostgres = squel.useFlavour('postgres');
+
+        log(
+          squelPostgres.insert()
+            .into('table')
+            .set('field', 5)
+            .returning('*')
+            .toParam()
+        );
+
+        /*  
+            {
+                text: 'INSERT INTO table (field) VALUES ($1) RETURNING *'
+                values: [5]
+            }
+        */
+      </pre>
+
+        <h3>MySQL</h3>
+
+        The <code>mysql</code> flavour provides the <code>ON DUPLICATE KEY UPDATE</code> clause:
+
+      <pre class="brush: js">
+        squelMysql = squel.useFlavour('mysql');
+
+        log(
+          squelMysql.insert()
+            .into('table')
+            .setFields({
+                field1: 'abc',
+                field2: 3
+            })
+            .onDupUpdate('field1', 'upd')
+            .toParam()
+        );
+
+        /*  
+            {
+                text: 'INSERT INTO table (field1, field2) VALUES (?, ?) ON DUPLICATE KEY UPDATE field1 = ?'
+                values: ['abc', 3, 'upd']
+            }
+        */
+      </pre>
+
+        <h3>MSSQL/Transact-SQL</h3>
+
+        <p>Default date formatting:</p>
+
+      <pre class="brush: js">
+        squelMssql = squel.useFlavour('mssql');
+
+        log(
+          squelMssql.insert()
+            .into('table')
+            .setFields({
+                field1: new Date('2012-12-12T04:30:00Z')
+            })
+            .toString()
+        );
+
+        /*  
+            INSERT INTO table (field1) VALUES(('2012-12-12 4:30:0'))
+        */
+      </pre>
+
+        <p>TOP:</p>
+
+      <pre class="brush: js">
+        squelMysql = squel.useFlavour('mssql');
+
+        log(
+          squelMysql.select()
+            .from('table')
+            .field('field')
+            .top(10)
+            .toString()
+        );
+
+        /*  
+            SELECT TOP (10) field FROM table
+        */
+      </pre>
+
+      <p>OFFSET and FETCH NEXT:</p>
+
+      <pre class="brush: js">
+        squelMysql = squel.useFlavour('mssql');
+
+        log(
+          squelMysql.select()
+            .from('table')
+            .field('field')
+            .limit(10)
+            .offset(5)
+            .toString()
+        );
+
+        /*  
+            SELECT field FROM table OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY
+        */
+      </pre>
+
+        <p>OUTPUT INSERTED:</p>
+
+      <pre class="brush: js">
+        squelMssql = squel.useFlavour('mssql');
+
+        log(
+          squelMssql.update()
+            .table('table')
+            .output('id', 'blah')
+            .set('field', 1)
+            .toString()
+        );
+
+        /*  
+            UPDATE table SET field = 1 OUTPUT INSERTED.id AS blah
+        */
+      </pre>
+
+      <pre class="brush: js">
+        squelMssql = squel.useFlavour('mssql');
+
+        log(
+          squelMssql.insert()
+            .into('table')
+            .output('id')
+            .set('field', 1)
+            .toString()
+        );
+
+        /*  
+            INSERT INTO table (field) OUTPUT INSERTED.id VALUES (1)
+        */
+      </pre>
+
+    </section>
+
+    <footer class="white_text">
+        Developed by <a href="http://twitter.com/hiddentao">@hiddentao</a>. Source on <a href="https://github.com/hiddentao/squel">Github</a>.
+
+        View <a href="v4/index.html">v4 docs</a>.
+    </footer>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="public/js/squel.min.js"></script>
+    <script type="text/javascript" src="public/js/shCore.js"></script>
+    <script type="text/javascript" src="public/js/shBrushBash.js"></script>
+    <script type="text/javascript" src="public/js/shBrushXml.js"></script>
+    <script type="text/javascript" src="public/js/shBrushJScript.js"></script>
+    <script type="text/javascript" src="public/js/app.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        initScrollSpyMenus();
+
+        // highlight code blocks
+        SyntaxHighlighter.defaults['gutter'] = false;
+        SyntaxHighlighter.defaults['toolbar'] = false;
+        SyntaxHighlighter.highlight();
+
+        // allow viewer to execute highlighted js code blocks
+        enableRunnableSections();
+      });
+    </script>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-11640584-5']);
+      _gaq.push(['_setDomainName', 'squeljs.org']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Squel.js - API</title>
+
+  <meta name="keywords" content="sql,javascript,nodejs,orm,mysql,github,vowsjs,coffeescript" />
+  <meta name="description" content="Squel is a compact, lightweight Javascript library for building SQL query strings, usable with node.js or in the browser." />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link href='https://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/shCoreRDark.css" />
+  <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/screen.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="public/css/print.css" />
+  <!--[if IE]>
+  <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/ie.css" />
+  <![endif]-->
+
+
+</head>
+<body>
+
+
+<header>
+        <div id="logo">Squel.js (v4)</div>
+        <nav class="top">
+            <ul>
+                <li><a href="index.html" title="Guide">Guide (v4)</a></li>
+                <li><a href="api.html" title="API">API (v4)</a></li>
+                <li><a href="https://hiddentao.github.io/squel" title="Latest">View Latest docs</a></li>
+            </ul>
+        </nav>
+</header>
+
+<aside><ul class="scrollSpy"></ul></aside>
+
+<section id="api">Loading...</section>
+
+
+<footer class="white_text">
+  Developed by <a href="http://twitter.com/hiddentao">@hiddentao</a>. Source on <a href="https://github.com/hiddentao/squel">Github</a>.
+</footer>
+
+<script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
+<script type="text/javascript" src="public/js/jquery-2.0.3.js"></script>
+<script type="text/javascript" src="public/js/shCore.js"></script>
+<script type="text/javascript" src="public/js/shBrushBash.js"></script>
+<script type="text/javascript" src="public/js/shBrushXml.js"></script>
+<script type="text/javascript" src="public/js/shBrushJScript.js"></script>
+<script type="text/javascript" src="public/js/app.js"></script>
+<script type="text/javascript" src="public/js/api.js"></script>
+<script type="text/javascript">
+  $(function() {
+    var tree = {
+      'select()': {
+        desc: 'Create a SELECT query builder instance.',
+        returns: '[[cls.Select]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.function()': {
+            desc: 'Insert a function value, see [[cls.fval]].',
+            returns: 'this'
+          },
+          '.distinct()': {
+            desc: 'Insert the DISTINCT keyword.',
+            returns: 'this'
+          },
+          '.field()': {
+            desc: 'Set a field to select data for.',
+            params: {
+              name: {
+                desc: 'Name of field OR an SQL expression such as <code>DATE_FORMAT</code> OR a [[cls.QueryBuilder]] instance.',
+                type: 'String|QueryBuilder'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+            },
+            returns: 'this'
+          },
+          '.fields()': {
+            desc: 'Set fields to select data for.',
+            params: {
+              fields: {
+                desc: 'List of field:alias pairs OR Array of field names',
+                type: 'Object|Array'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+            },
+            returns: 'this'
+          },
+          '.from()': {
+            desc: 'A table to select data from.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.join()': {
+            desc: 'Add an INNER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.left_join()': {
+            desc: 'Add a LEFT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.right_join()': {
+            desc: 'Add a RIGHT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.outer_join()': {
+            desc: 'Add an OUTER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.cross_join()': {
+            desc: 'Add a CROSS JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.where()': {
+            desc: 'Add a WHERE condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: 'this'
+          },
+          '.order()': {
+            desc: 'Add an ORDER BY clause.',
+            params: {
+              field: {
+                desc: 'Name of field to sort by.',
+                type: 'String'
+              },
+              'direction': {
+                desc: 'Sort direction. <code>true</code> = ascending, <code>false</code> = descending, <code>null</code> = no direction set.',
+                type: 'Boolean',
+                defaultValue: true
+              },
+              '...': {
+                desc: 'List of parameter values specified as additional arguments.',
+                type: 'Any',
+                defaultValue: '[]'
+              }
+            },
+            returns: 'this'
+          },
+          '.group()': {
+            desc: 'Add an GROUP BY clause.',
+            params: {
+              field: {
+                desc: 'Name of field to group by.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.having()': {
+            desc: 'Add a HAVING condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: 'this'
+          },
+          '.limit()': {
+            desc: 'Add a LIMIT clause.',
+            params: {
+              limit: {
+                desc: 'Number of records to limit to.',
+                type: 'Integer'
+              }
+            },
+            returns: 'this'
+          },
+          '.offset()': {
+            desc: 'Add an OFFSET clause.',
+            params: {
+              limit: {
+                desc: 'Index of record to start fetching from.',
+                type: 'Integer'
+              }
+            },
+            returns: 'this'
+          },
+          '.top()': {
+            flavours: ['mssql'],
+            desc: 'Insert the <code>TOP</code> keyword to limit the number of rows returned.',
+            params: {
+              num: {
+                desc: 'Number of rows or percentage of rows to limit to',
+                type: 'Integer'
+              },
+            },
+            returns: 'this',
+          },
+          '.union()': {
+            desc: 'Combine with another <code>SELECT</code> using <code>UNION</code>.',
+            params: {
+              query: {
+                desc: 'Another <code>SELECT</code> query to combine this query with.',
+                type: 'QueryBuilder'
+              },
+            },
+            returns: 'this',
+          },
+          '.union_all()': {
+            desc: 'Combine with another <code>SELECT</code> using <code>UNION ALL</code>.',
+            params: {
+              query: {
+                desc: 'Another <code>SELECT</code> query to combine this query with.',
+                type: 'QueryBuilder'
+              },
+            },
+            returns: 'this',
+          },
+        }
+      }, // select
+      'update()': {
+        desc: 'Create an UPDATE query builder instance.',
+        returns: '[[cls.Update]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.table()': {
+            desc: 'A table to update.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.set()': {
+            desc: 'Set a field to a value.',
+            params: {
+              name: {
+                desc: 'Name of field or an operation.',
+                type: 'String'
+              },
+              value: {
+                type: 'Any',
+                desc: 'Value to set to field.',
+                defaultValue: 'undefined'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+              'options.dontQuote': {
+                type: 'Boolean',
+                desc: 'If set and the value is a String then it will not be quoted in the output',
+                defaultValue: 'false',
+              },
+            },
+            returns: 'this'
+          },
+          '.setFields()': {
+            desc: 'Set fields to given values.',
+            params: {
+              fields: {
+                desc: 'Field-value pairs.',
+                type: 'Object'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+            },
+            returns: 'this'
+          },
+          '.from()': {
+            flavours: ['postgres'],
+            desc: 'A table to get the update data from.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.where()': {
+            desc: 'Add a WHERE condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: 'this'
+          },
+          '.limit()': {
+            desc: 'Add a LIMIT clause.',
+            params: {
+              limit: {
+                desc: 'Number of records to limit update to.',
+                type: 'Integer'
+              }
+            },
+            returns: 'this'
+          },
+          '.offset()': {
+            desc: 'Add an OFFSET clause.',
+            params: {
+              limit: {
+                desc: 'Index of record to start updating from.',
+                type: 'Integer'
+              }
+            },
+            returns: 'this'
+          },
+          '.output()': {
+            desc: 'Add field to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              },
+            },
+            returns: 'this'
+          },
+          '.outputs()': {
+            desc: 'Add fields to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              fields: {
+                desc: 'List of field:alias pairs.',
+                type: 'Object'
+              },
+            },
+            returns: 'this'
+          },
+          '.returning()': {
+            desc: 'Add a RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              str: {
+                desc: 'What to return with the query.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          }
+        }
+      }, // update
+
+      'delete()': {
+        desc: 'Create a DELETE query builder instance.',
+        returns: '[[cls.Delete]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.target()': {
+            desc: 'The actual target table whose data is to be deleted. Used in conjunction with <code>from()</code>.',
+            flavours: ['mysql'],
+            params: {
+              table: {
+                desc: 'Name of table.',
+                type: 'String',
+              },
+            },
+            returns: 'this',
+          },
+          '.from()': {
+            desc: 'A table to delete data from.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.join()': {
+            desc: 'Add an INNER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.left_join()': {
+            desc: 'Add a LEFT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.right_join()': {
+            desc: 'Add a RIGHT JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.outer_join()': {
+            desc: 'Add an OUTER JOIN.',
+            params: {
+              name: {
+                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
+                type: 'String or [[cls.Select]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this table.',
+                defaultValue: 'null'
+              },
+              condition: {
+                type: 'String or [[cls.Expression]]',
+                desc: 'A joining ON condition.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
+          '.where()': {
+            desc: 'Add a WHERE condition.',
+            params: {
+              condition: {
+                desc: 'The condition expression.',
+                type: 'String or [[cls.Expression]]'
+              },
+              'args...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: 'this'
+          },
+          '.limit()': {
+            desc: 'Add a LIMIT clause.',
+            params: {
+              limit: {
+                desc: 'Number of records to limit deletion to.',
+                type: 'Integer'
+              }
+            },
+            returns: 'this'
+          },
+          '.offset()': {
+            desc: 'Add an OFFSET clause.',
+            params: {
+              limit: {
+                desc: 'Index of record to start deleting from.',
+                type: 'Integer'
+              }
+            },
+            returns: 'this'
+          },
+          '.output()': {
+            desc: 'Add field to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              },
+            },
+            returns: 'this'
+          },
+          '.outputs()': {
+            desc: 'Add fields to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              fields: {
+                desc: 'List of field:alias pairs.',
+                type: 'Object'
+              },
+            },
+            returns: 'this'
+          },          
+          '.returning()': {
+            desc: 'Add a RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              str: {
+                desc: 'What to return with the query.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          }
+        }
+      }, // delete
+
+      'insert()': {
+        desc: 'Create an INSERT query builder instance.',
+        returns: '[[cls.Insert]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+        children: {
+          '.into()': {
+            desc: 'The table to insert into.',
+            params: {
+              name: {
+                desc: 'Name of table.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.set()': {
+            desc: 'Set a field to a value.',
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              value: {
+                type: 'Any',
+                desc: 'Value to set to field.'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+              'options.dontQuote': {
+                type: 'Boolean',
+                desc: 'If set and the value is a String then it will not be quoted in the output',
+                defaultValue: 'false',
+              }
+            },
+            returns: 'this'
+          },
+          '.setFields()': {
+            desc: 'Set fields to given values.',
+            params: {
+              fields: {
+                desc: 'Field-value pairs.',
+                type: 'Object'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+            },
+            returns: 'this'
+          },
+          '.setFieldsRows()': {
+            desc: 'Set fields to given values in the given rows (a multi-row insert).',
+            params: {
+              fields: {
+                desc: 'An array of objects, where each object is map of field-value pairs for that row',
+                type: 'Array'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+            },
+            returns: 'this'
+          },
+          '.fromQuery()': {
+            desc: 'Insert results of given <code>SELECT</code> query',
+            params: {
+              columns: {
+                desc: 'Names of columns to insert.',
+                type: 'Array'
+              },
+              selectQry: {
+                desc: 'The query to run.',
+                type: '[[cls.Select]]'
+              },
+            },
+            returns: 'this'
+          },
+          '.onDupUpdate()': {
+            desc: 'Add an <code>ON DUPLICATE KEY UPDATE</code> clause for given field',
+            flavours: ['mysql'],
+            params: {
+              name: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              value: {
+                type: 'Any',
+                desc: 'Value to set to field.'
+              },
+              options: {
+                type: 'Object',
+                desc: 'Additional options.',
+                defaultValue: 'null',
+              },
+              'options.ignorePeriodsForFieldNameQuotes': {
+                type: 'Boolean',
+                desc: 'When <code>autoQuoteFieldNames</code> is turned on this flag instructs it to ignore the period (.) character within field names.',
+                defaultValue: 'false',
+              },
+              'options.dontQuote': {
+                type: 'Boolean',
+                desc: 'If set and the value is a String then it will not be quoted in the output',
+                defaultValue: 'false',
+              }
+            }
+          },
+          '.output()': {
+            desc: 'Add field to <code>OUTPUT</code> clause.',
+            flavours: ['mssql'],
+            params: {
+              name: {
+                desc: 'Name of field or array of field names.',
+                type: 'String|Array'
+              }
+            },
+            returns: 'this'
+          },
+          '.returning()': {
+            desc: 'Add a RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              str: {
+                desc: 'What to return with the query.',
+                type: 'String'
+              }
+            },
+            returns: 'this'
+          }
+        }
+      }, // insert
+      'case()' : {
+        desc: 'Create a <code>CASE</code> clause builder instance.',
+        returns: '[[cls.Case]]',
+        params: {
+          name: {
+            desc: 'Name of field.',
+            type: 'String',
+            defaultValue: 'null',
+          },
+          options: {
+            desc: 'Options for configuring this builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+        },
+        children: {
+          '.when()': {
+            desc: 'A <code>WHEN</code> clause',
+            params: {
+              expression: {
+                desc: 'The expression for the current case.',
+                type: 'String',
+              },
+              'values...': {
+                desc: 'Additional arguments for parameter substitution. See <a href="index.html#filtering">guide</a> for examples.',
+                type: 'One or more parameter values',
+                defaultValue: null
+              }
+            },
+            returns: 'this',
+          },
+          '.then()': {
+            desc: 'A <code>THEN</code> clause',
+            params: {
+              result: {
+                desc: 'The result for the current case.',
+                type: 'Any',
+              },
+            },
+            returns: 'this',
+          },
+          '.else()': {
+            desc: 'An <code>ELSE</code> clause',
+            params: {
+              elseValue: {
+                desc: 'The else value for the current case.',
+                type: 'Any',
+              },
+            },
+            returns: 'this',
+          },
+          '.clone()': {
+            desc: 'Clone this object instance.',
+            returns: '[[cls.Case]]'
+          },
+          '.toString()': {
+            desc: 'Build and return the final case expression string.',
+            returns: 'String'
+          },
+          '.toParam()': {
+            desc: 'Build and return the final parameterized case expression string.',
+            returns: 'Object (text: String, values: Array)'
+          }
+        }
+      }, // case
+      'expr()': {
+        desc: 'Create an SQL expression query builder instance.',
+        returns: '[[cls.Expression]]',
+        children: {
+          '.and_begin()': {
+            desc: 'Begin a nested expression to <code>AND</code> with the current expression.',
+            returns: 'this'
+          },
+          '.or_begin()': {
+            desc: 'Begin a nested expression to <code>OR</code> with the current expression.',
+            returns: 'this'
+          },
+          '.end()': {
+            desc: 'End the current expression. If we are currently inside a nested expression then this will end the nested expression.',
+            returns: 'this'
+          },
+          '.and()': {
+            desc: 'Add to the current expression using <code>AND</code>.',
+            params: {
+              expr: {
+                desc: 'The expression to add',
+                type: 'String'
+              },
+              param: {
+                desc: 'The expression parameter',
+                type: 'Any',
+                defaultValue: 'undefined'
+              }
+            },
+            returns: 'this'
+          },
+          '.or()': {
+            desc: 'Add to the current expression using <code>OR</code>.',
+            params: {
+              expr: {
+                desc: 'The expression to add',
+                type: 'String'
+              },
+              param: {
+                desc: 'The expression parameter',
+                type: 'Any',
+                defaultValue: 'undefined'
+              }
+            },
+            returns: 'this'
+          },
+          '.clone()': {
+            desc: 'Clone this object instance.',
+            returns: '[[cls.Expression]]'
+          },
+          '.toString()': {
+            desc: 'Build and return the final expression string.',
+            returns: 'String'
+          },
+          '.toParam()': {
+            desc: 'Build and return the final parameterized expression string.',
+            returns: 'Object (text: String, values: Array)'
+          }
+        }
+      }, // expr
+
+      cls: {
+        desc: 'Classes and global methods in Squel.',
+        children: {
+          '.DefaultQueryBuilderOptions': {
+            desc: 'Default configuration options for all query builders. These can be overridden in the query builder constructors.',
+            subKeys: {
+              autoQuoteAliasNames: {
+                desc: 'If <code>true</code> then alias names will be rendered inside quotes. The quote character used is configurable via the <code>tableAliasQuoteCharacter</code> and <code>fieldAliasQuoteCharacter</code> options.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              autoQuoteFieldNames: {
+                desc: 'If <code>true</code> then field names will be rendered inside quotes. The quote character used is configurable via the <code>nameQuoteCharacter</code> option.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              autoQuoteTableNames: {
+                desc: 'If <code>true</code> then table names will be rendered inside quotes. The quote character used is configurable via the <code>nameQuoteCharacter</code> option.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              customValueHandlers: {
+                desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
+                type: 'Array',
+                defaultValue: '[]'
+              },
+              fieldAliasQuoteCharacter: {
+                desc: 'The quote character used when quoting field alias names.',
+                type: 'String',
+                defaultValue: '"'
+              },
+              useAsForTableAliasNames: {
+                desc: 'Use <code>AS</code> clause when outputting table aliases.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              nameQuoteCharacter: {
+                desc: 'The quote character used when quoting table and field names.',
+                type: 'String',
+                defaultValue: '`'
+              },
+              nestedBuilder: {
+                desc: 'Whether the output of this query builder is to be nested within another builder, e.g. for <code>UNION</code> queries. Setting this flag has implications for the query builing logic and thus you should not normally need to set it yourself.',
+                type: 'Boolean',
+                defaultValue: 'false' ,
+              },
+              numberedParameters: {
+                desc: 'Whether to use numbered parameters placeholders when building parameterized query strings.',
+                type: 'Boolean',
+                defaultValue: {
+                  base: 'false',
+                  postgres: 'true'
+                }
+              },
+              numberedParametersStartAt: {
+                desc: 'The index to start numbered parameter placeholders at.',
+                type: 'Number',
+                defaultValue: '1',
+              },
+              replaceSingleQuotes: {
+                desc: 'Whether to replace single quotes within strings. The replacement is specified in <code>singleQuoteReplacement</code>.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              },
+              separator: {
+                desc: 'String used to join individual blocks in a query when it is stringified.',
+                type: 'String',
+                defaultValue: ' ' 
+              },
+              singleQuoteReplacement: {
+                desc: 'What to replace single quotes with if <code>replaceSingleQuotes</code> is enabled.',
+                type: 'String',
+                defaultValue: '\'\''
+              },
+              tableAliasQuoteCharacter: {
+                desc: 'The quote character used when quoting table alias names.',
+                type: 'String',
+                defaultValue: '`'
+              },
+            }
+          },
+          '.registerValueHandler()': {
+            desc: 'Register a custom value type handler. We may wish to use custom value types (e.g. <code>Date</code>) and have ' +
+                'Squel automatically take care of formatting them when building the output query string. Note that this ' +
+                'will override any globally registered handlers set via [[cls.registerValueHandler]].',
+            params: {
+              'type': {
+                desc: 'The class object or <code>typeof</code> string representing the value type to handle',
+                type: 'Class'
+              },
+              'handler': {
+                desc: 'The handler method to call when we wish to format this value for output in a query string',
+                type: 'Function'
+              }
+            },
+            returns: 'this'
+          },
+          '.fval()': {
+            desc: 'Construct a [[cls.FunctionBlock]] instance for inclusion within a query as a value.',
+            params: {
+              'func': {
+                desc: 'The database function, with parameter placeholders.',
+                type: 'String'
+              },
+              '...values': {
+                desc: 'The parameter values',
+                type: 'Array'
+              }
+            },
+            returns: '[[cls.FunctionBlock]]'
+          },
+          '.globalValueHandlers': {
+            desc: 'List of custom value type handlers registered via [[cls.registerValueHandler]].',
+          },
+          '.flavour': {
+            desc: 'The current "flavour" of this squel instance.',
+          },
+          '.Expression': {
+            desc: 'Expression builder class.'
+          },
+          '.Case': {
+            desc: 'CASE expression builder class.'
+          },
+          '.FunctionBlock': {
+            desc: 'Object representing a function value, see [[cls.fval()]].',
+          },
+          '.Block': {
+            desc: 'Base class for all query building blocks. Inherits from [[cls.BaseBuilder]].'
+          },
+          '.QueryBuilder': {
+            desc: 'Base class for all query builders. Inherits from [[cls.BaseBuilder]].'
+          },
+          '.Select': {
+            desc: 'SELECT query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.Update': {
+            desc: 'UPDATE query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.Delete': {
+            desc: 'DELETE query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.Insert': {
+            desc: 'INSERT query builder. Inherits from [[cls.QueryBuilder]].'
+          },
+          '.useFlavour()': {
+            desc: 'Get an instance of Squel for the given SQL flavour.',
+            params: {
+              'flavour': {
+                desc: 'The flavour of SQL to use. At the moment <code>postgres</code>, <code>mssql</code> and <code>mysql</code> are available.',
+                type: 'String'
+              }
+            },
+            returns: 'Squel instance'
+          }
+        }
+      }
+    };
+
+
+    var commonQueryBuilderMethods = {
+      '.updateOptions()': {
+        desc: 'Update query builder configuration options. This will pass on the options to all the registered [[cls.Block]] objects.',
+        params: {
+          'options': {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object'
+          }
+        }
+      },
+      '.registerValueHandler()': {
+        desc: 'Register a custom value type handler. We may wish to use custom value types (e.g. <code>Date</code>) and have ' +
+            'Squel automatically take care of formatting them when building the output query string.',
+        params: {
+          'type': {
+            desc: 'The class object or <code>typeof</code> string representing the value type to handle',
+            type: 'Class'
+          },
+          'handler': {
+            desc: 'The handler method to call when we wish to format this value for output in a query string',
+            type: 'Function'
+          }
+        },
+        returns: 'this'
+      },
+      '.isNestable()': {
+        desc: 'Get whether this query builder can be nested inside another query (e.g. inner SELECT).',
+        returns: 'Boolean'
+      },
+      '.clone()': {
+        desc: 'Clone this object instance.',
+        returns: 'Object'
+      },
+      '.toString()': {
+        desc: 'Build and return the final query string.',
+        returns: 'String'
+      },
+      '.toParam()': {
+        desc: 'Build and return the final parameterized query string along with the list of formatted parameter values.',
+        params: {
+          'options': {
+            desc: 'Additional options.',
+            type: 'Object',
+          },
+          'options.numberedParametersStartAt': {
+            desc: 'The index to start numbered parameter placeholders at.',
+            type: 'Number',
+            defaultValue: '1',
+          },
+        },
+        returns: 'Object (text: String, values: Array)'
+      }
+    };
+
+    $.extend(tree['select()'].children, commonQueryBuilderMethods);
+    $.extend(tree['update()'].children, commonQueryBuilderMethods);
+    $.extend(tree['delete()'].children, commonQueryBuilderMethods);
+    $.extend(tree['insert()'].children, commonQueryBuilderMethods);
+
+    buildApiDocs(tree);
+  });
+</script>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-11640584-5']);
+  _gaq.push(['_setDomainName', 'squeljs.org']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>
