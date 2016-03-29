@@ -428,5 +428,29 @@ test['SELECT builder'] =
           ]
         }
 
+  'Auto-Quote Query':
+    beforeEach: ->
+      @qry1 = squel.select({ autoQuoteFieldNames: true }).field('name').from('students').where('age', '>', 15)
+      @qry2 = squel.select({ autoQuoteFieldNames: true }).field('name').from('students').where('age', '<', 6)
+      @qry3 = squel.select({ autoQuoteFieldNames: true }).field('name').from('students').where('age', '=', 8)
+      @qry4 = squel.select({ autoQuoteFieldNames: true }).field('name').from('students').where('age', 'IN', [2, 10])
+      @qry1.union(@qry2)
+      @qry1.union(@qry3)
+      @qry4.union_all(@qry1)
+    toString: ->
+      assert.same @qry4.toString(), """
+        SELECT `name` FROM students WHERE (`age` IN (2, 10)) UNION ALL (SELECT `name` FROM students WHERE (`age` > 15) UNION (SELECT `name` FROM students WHERE (`age` < 6)) UNION (SELECT `name` FROM students WHERE (`age` = 8)))
+        """
+    toParam: ->
+      assert.same @qry4.toParam({ "numberedParameters": true}), {
+        "text": "SELECT `name` FROM students WHERE (`age` IN ($1, $2)) UNION ALL (SELECT `name` FROM students WHERE (`age` > $3) UNION (SELECT `name` FROM students WHERE (`age` < $4)) UNION (SELECT `name` FROM students WHERE (`age` = $5)))"
+        "values": [
+          2
+          10
+          15
+          6
+          8
+        ]
+      }
 
 module?.exports[require('path').basename(__filename)] = test

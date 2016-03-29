@@ -841,7 +841,7 @@ function _buildSquel() {
       key: '_buildExpression',
       value: function _buildExpression(field, operator) {
         var escapedKey = this._formatFieldName(field);
-        var paramChar = cls.DefaultQueryBuilderOptions.parameterCharacter;
+        var paramChar = this.options.parameterCharacter;
         var condition = escapedKey + ' ' + operator + ' ' + paramChar;
         return condition;
       }
@@ -2114,7 +2114,7 @@ function _buildSquel() {
         var validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
         if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
           // key - operator - value
-          var expr = new cls.Expression();
+          var expr = new cls.Expression(this.options);
           this._condition(expr._add('AND', field, operator, values));
         } else {
           // default squel-behaviour without auto-quoting
@@ -2148,7 +2148,7 @@ function _buildSquel() {
         var validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
         if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
           // key - operator - value
-          var expr = new cls.Expression();
+          var expr = new cls.Expression(this.options);
           this._condition(expr._add('AND', field, operator, values));
         } else {
           // default squel-behaviour without auto-quoting

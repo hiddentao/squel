@@ -1085,8 +1085,8 @@ test['Blocks'] =
 
       'output with quoting':
         beforeEach: ->
-          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = true;
-          subquery = new squel.cls.Select()
+          @inst = new @cls({ autoQuoteFieldNames: true })
+          subquery = new squel.cls.Select({ autoQuoteFieldNames: true })
           subquery.field('col1').from('table1').where('field1', '=', 10)
           @inst.where('a', 'in', subquery)
           @inst.where('d', 'in', [4, 5, 6])
@@ -1100,8 +1100,6 @@ test['Blocks'] =
             text: 'WHERE (`a` in (SELECT `col1` FROM table1 WHERE (`field1` = ?))) AND (`d` in (?, ?, ?))'
             values: [10, 4, 5, 6]
           }
-        afterEach: ->
-          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = false;
 
 
 
@@ -1145,8 +1143,8 @@ test['Blocks'] =
 
       'output with quoting':
         beforeEach: ->
-          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = true;
-          subquery = new squel.cls.Select()
+          @inst = new @cls({ autoQuoteFieldNames: true })
+          subquery = new squel.cls.Select({ autoQuoteFieldNames: true })
           subquery.field('col1').from('table1').where('field1', '=', 10)
           @inst.having('a', 'in', subquery)
           @inst.having('d', 'in', [4, 5, 6])
@@ -1160,8 +1158,6 @@ test['Blocks'] =
             text: 'HAVING (`a` in (SELECT `col1` FROM table1 WHERE (`field1` = ?))) AND (`d` in (?, ?, ?))'
             values: [10, 4, 5, 6]
           }
-        afterEach: ->
-          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = false;
 
 
   'OrderByBlock':
