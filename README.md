@@ -11,9 +11,10 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 * Works in node.js and in the browser.
 * Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
 * Supports non-standard commands for popular DB engines such as MySQL.
+* Supports paramterized queries for safe value escaping.
 * Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
-* Small: ~5 KB minified and gzipped
+* Small: ~7 KB minified and gzipped
 * And much more, [see the guide..](http://squeljs.org/)
 
 ## Installation
@@ -177,17 +178,20 @@ squel.expr()
 // test = 3 AND (inner = 1 OR inner = 2) OR (inner = 3 AND inner = 4 OR (inner IN ('str1, 'str2', NULL)))
 squel.expr()
     .and("test = 3")
-    .and_begin()
-        .or("inner = 1")
-        .or("inner = 2")
-    .end()
-    .or_begin()
-        .and("inner = ?", 3)
-        .and("inner = ?", 4)
-        .or_begin()
-            .and("inner IN ?", ['str1', 'str2', null])
-        .end()
-    .end()
+    .and(
+        squel.expr()
+            .or("inner = 1")
+            .or("inner = 2")
+    )
+    .or(
+        squel.expr()
+            .and("inner = ?", 3)
+            .and("inner = ?", 4)
+            .or(
+                squel.expr()
+                    .and("inner IN ?", ['str1', 'str2', null])
+            )
+    )
     .toString()
 
 // SELECT * FROM test INNER JOIN test2 ON (test.id = test2.id) WHERE (test = 3 OR test = 4)
@@ -325,9 +329,8 @@ Squel in the future will be usable in the above manner.
 
 To build the code and run the tests:
 
-    $ npm install -g grunt-cli
     $ npm install
-    $ grunt <-- this will build the code and run the tests
+    $ npm test <-- this will build the code and run the tests
 
 ## Releasing it
 
