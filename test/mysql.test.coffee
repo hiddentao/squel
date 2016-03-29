@@ -41,11 +41,11 @@ test['MySQL flavour'] =
       @cls = squel.cls.TargetTableBlock
       @inst = new @cls()
 
-    'instanceof of AbstractValueBlock': ->
-      assert.instanceOf @inst, squel.cls.AbstractValueBlock
+    'instanceof of FunctionBlock': ->
+      assert.instanceOf @inst, squel.cls.FunctionBlock
 
     'target()': ->
-      setSpy = test.mocker.stub @inst, '_setValue'
+      setSpy = test.mocker.stub @inst, 'function'
       sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', (v) -> return "[#{v}]"
 
       @inst.target('bla')
@@ -71,44 +71,22 @@ test['MySQL flavour'] =
         assert.ok spy.calledWithExactly('f', 'v', dummy: true)
 
 
-    'buildStr()':
-      'calls formatValue() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValue', (v) -> return "[#{v}]"
+    '_toParamString()':
+      beforeEach: ->
+        @inst.onDupUpdate('field1 = field1 + 1')
+        @inst.onDupUpdate('field2', 'value2', {dummy: true})
+        @inst.onDupUpdate('field3', 'value3')
 
-        @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
-        @inst.fieldOptions = [ [ {dummy: true}, {dummy: false}, {} ] ]
-
-        assert.same 'ON DUPLICATE KEY UPDATE field1 = [value1], field2 = [value2], field3 = [value3]', @inst.buildStr()
-
-        assert.ok formatValueSpy.calledThrice
-        assert.ok formatValueSpy.calledWithExactly 'value1', { dummy: true }
-        assert.ok formatValueSpy.calledWithExactly 'value2', { dummy: false }
-        assert.ok formatValueSpy.calledWithExactly 'value3', {}
-
-    'buildParam()':
-      'calls formatValueAsParam() for each field value': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> return "[#{v}]"
-
-        @inst.fields = [ 'field1', 'field2', 'field3' ]
-        @inst.values = [ [ 'value1', 'value2', 'value3' ] ]
-        @inst.fieldOptions = [ [ {}, {}, {} ] ]
-
-        assert.same { text: 'ON DUPLICATE KEY UPDATE field1 = ?, field2 = ?, field3 = ?', values: ['[value1]', '[value2]', '[value3]'] }, @inst.buildParam()
-
-        assert.ok formatValueSpy.calledThrice
-        assert.ok formatValueSpy.calledWithExactly 'value1'
-        assert.ok formatValueSpy.calledWithExactly 'value2'
-        assert.ok formatValueSpy.calledWithExactly 'value3'
-
-      'Fix for hiddentao/squel#63': ->
-        formatValueSpy = test.mocker.stub @cls.prototype, '_formatValueAsParam', (v) -> v
-
-        @inst.fields = [ 'age = age + 1', 'field2', 'field3' ]
-        @inst.values = [ [ undefined, 'value2', 'value3' ] ]
-        @inst.fieldOptions = [ [ {}, {}, {} ] ]
-
-        assert.same { text: 'ON DUPLICATE KEY UPDATE age = age + 1, field2 = ?, field3 = ?', values: ['value2', 'value3'] }, @inst.buildParam()
+      'non-parameterized': ->
+        assert.same @inst._toParamString(), {
+          text: 'ON DUPLICATE KEY UPDATE field1 = field1 + 1, field2 = \'value2\', field3 = \'value3\''
+          values: []
+        }
+      'parameterized': ->
+        assert.same @inst._toParamString(buildParameterized: true), {
+          text: 'ON DUPLICATE KEY UPDATE field1 = field1 + 1, field2 = ?, field3 = ?'
+          values: ['value2', 'value3']
+        }
 
 
   'DELETE build':
@@ -154,8 +132,6 @@ test['MySQL flavour'] =
 
     '>> into(table).set(field, 1).set(field1, 2).onDupUpdate(field, 5).onDupUpdate(field1, "str")':
       beforeEach: ->
-        test.mocker.spy squel.cls.BaseBuilder.prototype, '_sanitizeValue'
-        test.mocker.spy squel.cls.BaseBuilder.prototype, '_formatValue'
         @inst
           .into('table')
           .set('field', 1)
@@ -165,11 +141,6 @@ test['MySQL flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field, field1) VALUES (1, 2) ON DUPLICATE KEY UPDATE field = 5, field1 = \'str\''
 
-        assert.ok @inst._sanitizeValue.calledWithExactly(5)
-        assert.ok @inst._sanitizeValue.calledWithExactly('str')
-        assert.ok @inst._formatValue.calledWithExactly(5, {})
-        assert.ok @inst._formatValue.calledWithExactly('str', {})
-
       toParam: ->
         assert.same @inst.toParam(), {
           text: 'INSERT INTO table (field, field1) VALUES (?, ?) ON DUPLICATE KEY UPDATE field = ?, field1 = ?'
@@ -178,17 +149,12 @@ test['MySQL flavour'] =
 
     '>> into(table).set(field2, 3).onDupUpdate(field2, "str", { dontQuote: true })':
       beforeEach: ->
-        test.mocker.spy squel.cls.BaseBuilder.prototype, '_sanitizeValue'
-        test.mocker.spy squel.cls.BaseBuilder.prototype, '_formatValue'
         @inst
           .into('table')
           .set('field2', 3)
           .onDupUpdate('field2', 'str', { dontQuote: true })
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field2) VALUES (3) ON DUPLICATE KEY UPDATE field2 = str'
-
-        assert.ok @inst._sanitizeValue.calledWithExactly('str')
-        assert.ok @inst._formatValue.calledWithExactly('str', { dontQuote: true })
       toParam: ->
         assert.same @inst.toParam(), {
           text: 'INSERT INTO table (field2) VALUES (?) ON DUPLICATE KEY UPDATE field2 = ?'

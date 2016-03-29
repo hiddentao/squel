@@ -15,8 +15,8 @@ squel.flavours['mssql'] = function(_squel) {
   cls.MssqlLimitOffsetTopBlock = class extends cls.Block {
     constructor (options) {
       super(options);
-      this.limits = null;
-      this.offsets = null;
+      this._limits = null;
+      this._offsets = null;
 
       // This is setup as one block to return many as they all have to use each others data at different times
       // The build String of EITHER LIMIT OR TOP should execute, never both.
@@ -29,7 +29,7 @@ squel.flavours['mssql'] = function(_squel) {
       */
       let _limit = function(max) {
         max = this._sanitizeLimitOffset(max);
-        this._parent.limits = max;
+        this._parent._limits = max;
       };
 
       this.ParentBlock = class extends cls.Block {
@@ -45,12 +45,17 @@ squel.flavours['mssql'] = function(_squel) {
           this.limit = _limit;
         }
 
-        buildStr (queryBuilder) {
-          if (this._parent.limits && this._parent.offsets) {
-            return `FETCH NEXT ${this._parent.limits} ROWS ONLY`;
-          } else {
-            return "";
+        _toParamString () {
+          let str = "";
+
+          if (this._parent._limits && this._parent._offsets) {
+            str = `FETCH NEXT ${this._parent._limits} ROWS ONLY`;
           }
+
+          return {
+            text: str,
+            values: [],
+          };
         }
       };
 
@@ -59,25 +64,35 @@ squel.flavours['mssql'] = function(_squel) {
           super(parent);
           this.top = _limit;
         }
-        buildStr (queryBuilder) {
-          if (this._parent.limits && !this._parent.offsets) {
-            return `TOP (${this._parent.limits})`;
-          } else {
-            return "";
+        _toParamString () {
+          let str = "";
+
+          if (this._parent._limits && !this._parent._offsets) {
+            str = `TOP (${this._parent._limits})`;
+          }
+
+          return {
+            text: str,
+            values: [],
           }
         }
       };
 
       this.OffsetBlock = class extends this.ParentBlock {
         offset (start) {
-          this._parent.offsets = this._sanitizeLimitOffset(start);
+          this._parent._offsets = this._sanitizeLimitOffset(start);
         }
 
-        buildStr (queryBuilder) {
-          if (this._parent.offsets) {
-            return `OFFSET ${this._parent.offsets} ROWS`; 
-          } else {
-            return "";
+        _toParamString () {
+          let str = "";
+
+          if (this._parent._offsets) {
+            str = `OFFSET ${this._parent._offsets} ROWS`; 
+          }
+
+          return {
+            text: str,
+            values: [],
           }
         }
       };
@@ -100,15 +115,18 @@ squel.flavours['mssql'] = function(_squel) {
   cls.MssqlUpdateTopBlock = class extends cls.Block {
     constructor (options) {
       super(options);
-      this.limits = null;
+      this._limits = null;
 
       this.limit = this.top = (max) => {
-        this.limits = this._sanitizeLimitOffset(max);
+        this._limits = this._sanitizeLimitOffset(max);
       };
     }
 
-    buildStr (queryBuilder) {
-      return (this.limits) ? `TOP (${this.limits})` : "";
+    _toParamString () {
+      return {
+        text: (this._limits) ? `TOP (${this._limits})` : "",
+        values: [],
+      };
     }
   };
 
@@ -116,57 +134,36 @@ squel.flavours['mssql'] = function(_squel) {
   cls.MssqlInsertFieldValueBlock = class extends cls.InsertFieldValueBlock {
     constructor (options) {
       super(options);
-      this.outputs = [];
+      this._outputs = [];
     }
 
     // add fields to the output clause
     output (fields) {
       if ('string' === typeof fields) {
-        this.outputs.push(`INSERTED.${this._sanitizeField(fields)}`);
+        this._outputs.push(`INSERTED.${this._sanitizeField(fields)}`);
       } else {
         fields.forEach((f) => {
-          this.outputs.push(`INSERTED.${this._sanitizeField(f)}`);
+          this._outputs.push(`INSERTED.${this._sanitizeField(f)}`);
         });
       }
     }
 
-    buildStr (queryBuilder) {
-      if (0 >= this.fields.length) {
+    _toParamString (options) {
+      if (0 >= this._fields.length) {
         throw new Error("set() needs to be called");
       }
 
-      let innerStr = (this.outputs.length != 0) 
-        ? `OUTPUT ${this.outputs.join(', ')} ` 
-        : '';
+      let ret = super._toParamString(options);
 
-      return `(${this.fields.join(', ')}) ${innerStr}VALUES (${this._buildVals().join('), (')})`;
-    }
+      if (ret.text.length && 0 < this._outputs.length) {
+        let innerStr = `OUTPUT ${this._outputs.join(', ')} `;
 
-    buildParam (queryBuilder) {
-      if (0 >= this.fields.length) {
-        throw new Error("set() needs to be called");
+        let valuesPos = ret.text.indexOf('VALUES');
+
+        ret.text = ret.text.substr(0, valuesPos) + innerStr + ret.text.substr(valuesPos);
       }
 
-      // fields
-      let str = "";
-      let {vals, params} = this._buildValParams();
-
-      _forOf(this.fields, (field) => {
-        if (str.length) {
-          str += ", ";
-        }
-
-        str += field;
-      });
-
-      let innerStr = (this.outputs.length != 0) 
-        ? `OUTPUT ${this.outputs.join(', ')} ` 
-        : '';
-
-      return { 
-        text: `(${str}) ${innerStr} VALUES (${vals.join('), (')})`, 
-        values: params 
-      };
+      return ret;
     }
   };
 
@@ -186,9 +183,9 @@ squel.flavours['mssql'] = function(_squel) {
     #
     # Internally this method simply calls the field() method of this block to add each individual field.
     */
-    outputs (_outputs) {
-      for (let output in  _outputs) {
-        this.output(output, _outputs[output]);
+    outputs (outputs) {
+      for (let output in outputs) {
+        this.output(output, outputs[output]);
       }
     }
 
@@ -211,25 +208,27 @@ squel.flavours['mssql'] = function(_squel) {
     }
 
 
-    buildStr (queryBuilder) {
-      let outputs = "";
+    _toParamString (queryBuilder) {
+      let totalStr = "";
 
-      if (this._outputs.length > 0) {
-        _forOf(this._outputs, (output) => {
-          if (outputs.length) {
-            outputs += ", ";
-          }
-          outputs += output.name;
+      if (this._outputs.length) {
+        for (let output of this._outputs) {
+          totalStr = _pad(totalStr, ", ");
+
+          totalStr += output.name;
 
           if (output.alias) {
-            outputs += ` AS ${output.alias}`;
+            totalStr += ` AS ${this._formatFieldAlias(output.alias)}`;
           }
-        });
+        }
 
-        outputs = `OUTPUT ${outputs}`;
+        totalStr = `OUTPUT ${totalStr}`;
       }
 
-      return outputs;
+      return {
+        text: totalStr,
+        values: [],
+      };
     }
   }
 
@@ -244,21 +243,17 @@ squel.flavours['mssql'] = function(_squel) {
         new cls.DistinctBlock(options),
         limitOffsetTopBlock.TOP(),
         new cls.GetFieldBlock(options),
-        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
-        new cls.JoinBlock(_extend({}, options, { allowNested: true })),
+        new cls.FromTableBlock(options),
+        new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.OrderByBlock(options),
         limitOffsetTopBlock.OFFSET(),
         limitOffsetTopBlock.LIMIT(),
-        new cls.UnionBlock(_extend({}, options, { allowNested: true })),
+        new cls.UnionBlock(options),
       ];
 
       super(options, blocks);
-    }
-
-    isNestable () {
-      return true;
     }
   }
 

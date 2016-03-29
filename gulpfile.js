@@ -1,6 +1,7 @@
 require('coffee-script/register');
 
 const gulp = require('gulp'),
+  umd = require('gulp-umd'),
   path = require('path'),
   concat = require('gulp-concat'),
   insert = require('gulp-insert'),
@@ -17,15 +18,21 @@ const SQUEL_VERSION = require('./package.json').version;
 gulp.task('build-basic', function() {
 
   return gulp.src([
-      './src/umd-header.js',
       './src/core.js',
-      './src/umd-footer.js',
     ])
     .pipe( concat('squel-basic.js') )
     .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( babel({
       presets: ['es2015']
     }) )
+    .pipe( umd({
+      exports: function (file) {
+        return 'squel';
+      },
+      namespace: function(file) {
+        return 'squel';
+      }
+    }))
     .pipe( gulp.dest('./') )
     .pipe( uglify() )
     .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
@@ -36,18 +43,24 @@ gulp.task('build-basic', function() {
 
 gulp.task('build-full', function() {
   return gulp.src([
-      './src/umd-header.js',
       './src/core.js',
       './src/mssql.js',
       './src/mysql.js',
       './src/postgres.js',
-      './src/umd-footer.js',
     ])
     .pipe( concat('squel.js') )
     .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( babel({
       presets: ['es2015']
     }) )
+    .pipe( umd({
+      exports: function (file) {
+        return 'squel';
+      },
+      namespace: function(file) {
+        return 'squel';
+      }
+    }))
     .pipe( gulp.dest('./') )
     .pipe( uglify() )
     .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )

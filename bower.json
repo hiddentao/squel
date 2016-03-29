@@ -1,6 +1,10 @@
 {
   "name": "squel",
+<<<<<<< HEAD
   "version": "4.4.2",
+=======
+  "version": "5.0.0",
+>>>>>>> v5
   "main": "squel.js",
   "ignore": [
     "**/.*",

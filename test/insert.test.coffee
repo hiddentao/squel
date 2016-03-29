@@ -49,7 +49,11 @@ test['INSERT builder'] =
         dummy: true
 
       for block in @inst.blocks
-        assert.same expectedOptions, block.options
+        if (block instanceof squel.cls.WhereBlock)
+          assert.same _.extend({}, expectedOptions, { verb: 'WHERE'}), block.options
+        else
+          assert.same expectedOptions, block.options
+
 
     'override blocks': ->
       block = new squel.cls.StringBlock('SELECT')
@@ -122,7 +126,7 @@ test['INSERT builder'] =
             assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
           toParam: ->
             parameterized = @inst.toParam()
-            assert.same parameterized.text, 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
+            assert.same parameterized.text, 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
             assert.same parameterized.values, []
 
         '>> setFields({field2: \'value2\', field3: true })':
@@ -165,11 +169,11 @@ test['INSERT builder'] =
             assert.same parameterized.values, ['value2',true, 'value3',13]
 
       'Function values':
-        beforeEach: -> @inst.set('field', squel.fval('GETDATE(?, ?)', 2014, 'feb'))
+        beforeEach: -> @inst.set('field', squel.str('GETDATE(?, ?)', 2014, 'feb'))
         toString: ->
-          assert.same 'INSERT INTO table (field) VALUES ((GETDATE(2014, feb)))', @inst.toString()
+          assert.same 'INSERT INTO table (field) VALUES ((GETDATE(2014, \'feb\')))', @inst.toString()
         toParam: ->  
-          assert.same { text: 'INSERT INTO table (field) VALUES (GETDATE(?, ?))', values: [2014, 'feb'] }, @inst.toParam()
+          assert.same { text: 'INSERT INTO table (field) VALUES ((GETDATE(?, ?)))', values: [2014, 'feb'] }, @inst.toParam()
 
       '>> fromQuery([field1, field2], select query)':
         beforeEach: -> @inst.fromQuery(
@@ -177,10 +181,10 @@ test['INSERT builder'] =
             squel.select().from('students').where('a = ?', 2)
           )
         toString: ->
-          assert.same @inst.toString(), 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE (a = 2))'
+          assert.same @inst.toString(), 'INSERT INTO table (field1, field2) ((SELECT * FROM students WHERE (a = 2)))'
         toParam: ->
           parameterized = @inst.toParam()
-          assert.same parameterized.text, 'INSERT INTO table (field1, field2) (SELECT * FROM students WHERE (a = ?))'
+          assert.same parameterized.text, 'INSERT INTO table (field1, field2) ((SELECT * FROM students WHERE (a = ?)))'
           assert.same parameterized.values, [ 2 ]
 
       '>> setFieldsRows([{field1: 13, field2: \'value2\'},{field1: true, field3: \'value4\'}])': ->
@@ -208,8 +212,6 @@ test['INSERT builder'] =
     assert.same 'INSERT INTO students (field) VALUES (1)', @inst.toString()
     assert.same 'INSERT INTO students (field, field2) VALUES (2, TRUE)', newinst.toString()
 
-  'is nestable': ->
-    assert.same false, @inst.isNestable()
 
 
 module?.exports[require('path').basename(__filename)] = test

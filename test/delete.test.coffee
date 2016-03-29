@@ -49,7 +49,10 @@ test['DELETE builder'] =
         dummy: true
 
       for block in @inst.blocks
-        assert.same expectedOptions, block.options
+        if (block instanceof squel.cls.WhereBlock)
+          assert.same _.extend({}, expectedOptions, { verb: 'WHERE'}), block.options
+        else
+          assert.same expectedOptions, block.options
 
     'override blocks': ->
       block = new squel.cls.StringBlock('SELECT')
@@ -97,8 +100,6 @@ test['DELETE builder'] =
     assert.same 'DELETE FROM students LIMIT 10', @inst.toString()
     assert.same 'DELETE FROM students LIMIT 20', newinst.toString()
 
-  'is nestable': ->
-    assert.same false, @inst.isNestable()
 
 
 module?.exports[require('path').basename(__filename)] = test
