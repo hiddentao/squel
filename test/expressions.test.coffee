@@ -177,6 +177,19 @@ test['Expression builder base class'] =
             values: [3, '4', false, 2, null, 'str']
           }
 
+  'and("test", "<>", 3)':
+    beforeEach: ->
+      @inst = squel.expr({ autoQuoteFieldNames: true })
+      @inst.and("test", "<>", 3)
+
+    '>> toString()': ->
+      assert.same @inst.toString(), '`test` <> 3'
+
+    '>> toParam()': ->
+      assert.same @inst.toParam(), {
+        text: '`test` <> ?'
+        values: [3]
+      }
 
   'or("test = 3")':
     beforeEach: ->

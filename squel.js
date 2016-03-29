@@ -503,7 +503,7 @@ function _buildSquel() {
         return value;
       }
 
-      /** 
+      /**
        * Format given value for inclusion into parameter values array.
        */
 
@@ -583,10 +583,10 @@ function _buildSquel() {
         return str;
       }
 
-      /** 
-       * Build given string and its corresponding parameter values into 
+      /**
+       * Build given string and its corresponding parameter values into
        * output.
-       * 
+       *
        * @param {String} str
        * @param {Array}  values
        * @param {Object} [options] Additional options.
@@ -666,10 +666,10 @@ function _buildSquel() {
         };
       }
 
-      /** 
-       * Build all given strings and their corresponding parameter values into 
+      /**
+       * Build all given strings and their corresponding parameter values into
        * output.
-       * 
+       *
        * @param {Array} strings
        * @param {Array}  strValues array of value arrays corresponding to each string.
        * @param {Object} [options] Additional options.
@@ -713,7 +713,7 @@ function _buildSquel() {
 
       /**
        * Get parameterized representation of this instance.
-       * 
+       *
        * @param {Object} [options] Options.
        * @param {Boolean} [options.buildParameterized] Whether to build paramterized string. Default is false.
        * @param {Boolean} [options.nested] Whether this expression is nested within another.
@@ -771,10 +771,10 @@ function _buildSquel() {
    *
    * SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
    *
-   * Expressions can be nested. Nested expression contains can themselves 
-   * contain nested expressions. When rendered a nested expression will be 
+   * Expressions can be nested. Nested expression contains can themselves
+   * contain nested expressions. When rendered a nested expression will be
    * fully contained within brackets.
-   * 
+   *
    * All the build methods in this object return the object instance for chained method calling purposes.
    */
   cls.Expression = function (_cls$BaseBuilder) {
@@ -796,40 +796,54 @@ function _buildSquel() {
 
     _createClass(_class3, [{
       key: 'and',
-      value: function and(expr) {
-        for (var _len3 = arguments.length, params = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-          params[_key3 - 1] = arguments[_key3];
+      value: function and(field, operator) {
+        for (var _len3 = arguments.length, params = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+          params[_key3 - 2] = arguments[_key3];
         }
 
-        expr = this._sanitizeExpression(expr);
-
-        this._nodes.push({
-          type: 'AND',
-          expr: expr,
-          para: params
-        });
-
-        return this;
+        return this._add('AND', field, operator, params);
       }
 
       // Combine the current expression with the given expression using the union operator (OR).
 
     }, {
       key: 'or',
-      value: function or(expr) {
-        for (var _len4 = arguments.length, params = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-          params[_key4 - 1] = arguments[_key4];
+      value: function or(field, operator) {
+        for (var _len4 = arguments.length, params = Array(_len4 > 2 ? _len4 - 2 : 0), _key4 = 2; _key4 < _len4; _key4++) {
+          params[_key4 - 2] = arguments[_key4];
         }
 
-        expr = this._sanitizeExpression(expr);
+        return this._add('OR', field, operator, params);
+      }
+    }, {
+      key: '_add',
+      value: function _add(type, field, operator, params) {
 
+        var validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+        var expr = void 0;
+        if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
+          expr = this._buildExpression(field, operator);
+        } else {
+          expr = field;
+          params.unshift(operator);
+        }
+
+        this._sanitizeExpression(field);
         this._nodes.push({
-          type: 'OR',
+          type: type,
           expr: expr,
           para: params
         });
 
         return this;
+      }
+    }, {
+      key: '_buildExpression',
+      value: function _buildExpression(field, operator) {
+        var escapedKey = this._formatFieldName(field);
+        var paramChar = cls.DefaultQueryBuilderOptions.parameterCharacter;
+        var condition = escapedKey + ' ' + operator + ' ' + paramChar;
+        return condition;
       }
     }, {
       key: '_toParamString',
@@ -1989,7 +2003,7 @@ function _buildSquel() {
   cls.AbstractConditionBlock = function (_cls$Block10) {
     _inherits(_class20, _cls$Block10);
 
-    /** 
+    /**
      * @param {String} options.verb The condition verb.
      */
 
@@ -2092,12 +2106,20 @@ function _buildSquel() {
 
     _createClass(_class21, [{
       key: 'where',
-      value: function where(condition) {
-        for (var _len8 = arguments.length, values = Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
-          values[_key8 - 1] = arguments[_key8];
+      value: function where(field, operator) {
+        for (var _len8 = arguments.length, values = Array(_len8 > 2 ? _len8 - 2 : 0), _key8 = 2; _key8 < _len8; _key8++) {
+          values[_key8 - 2] = arguments[_key8];
         }
 
-        this._condition.apply(this, [condition].concat(values));
+        var validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+        if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
+          // key - operator - value
+          var expr = new cls.Expression();
+          this._condition(expr._add('AND', field, operator, values));
+        } else {
+          // default squel-behaviour without auto-quoting
+          this._condition.apply(this, arguments);
+        }
       }
     }]);
 
@@ -2118,12 +2140,20 @@ function _buildSquel() {
 
     _createClass(_class22, [{
       key: 'having',
-      value: function having(condition) {
-        for (var _len9 = arguments.length, values = Array(_len9 > 1 ? _len9 - 1 : 0), _key9 = 1; _key9 < _len9; _key9++) {
-          values[_key9 - 1] = arguments[_key9];
+      value: function having(field, operator) {
+        for (var _len9 = arguments.length, values = Array(_len9 > 2 ? _len9 - 2 : 0), _key9 = 2; _key9 < _len9; _key9++) {
+          values[_key9 - 2] = arguments[_key9];
         }
 
-        this._condition.apply(this, [condition].concat(values));
+        var validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+        if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
+          // key - operator - value
+          var expr = new cls.Expression();
+          this._condition(expr._add('AND', field, operator, values));
+        } else {
+          // default squel-behaviour without auto-quoting
+          this._condition.apply(this, arguments);
+        }
       }
     }]);
 

@@ -39,7 +39,7 @@ function _isArray(obj) {
 function _getObjectClassName (obj) {
   if (obj && obj.constructor && obj.constructor.toString) {
     let arr = obj.constructor.toString().match(/function\s*(\w+)/);
-    
+
     if (arr && 2 === arr.length) {
       return arr[1]
     }
@@ -117,7 +117,7 @@ function getValueHandler (value, ...handlerLists) {
       let typeHandler = handlers[handlerIdx];
 
       // if type is a string then use `typeof` or else use `instanceof`
-      if (typeof value === typeHandler.type || 
+      if (typeof value === typeHandler.type ||
           (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
         return typeHandler.handler;
       }
@@ -334,7 +334,7 @@ function _buildSquel(flavour = null) {
         // Builders allowed
       }
       else {
-        let typeIsValid = 
+        let typeIsValid =
           !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
         if (!typeIsValid) {
@@ -383,7 +383,7 @@ function _buildSquel(flavour = null) {
         item = `${quoteChar}${item}${quoteChar}`;
       }
 
-      return (this.options.useAsForTableAliasNames) 
+      return (this.options.useAsForTableAliasNames)
         ? `AS ${item}`
         : item;
     }
@@ -416,7 +416,7 @@ function _buildSquel(flavour = null) {
     // Format the given custom value
     _formatCustomValue (value, asParam = false) {
       // user defined custom handlers takes precedence
-      let customHandler = 
+      let customHandler =
         getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
 
       // use the custom handler if available
@@ -429,7 +429,7 @@ function _buildSquel(flavour = null) {
 
 
 
-    /** 
+    /**
      * Format given value for inclusion into parameter values array.
      */
     _formatValueForParamArray (value) {
@@ -449,7 +449,7 @@ function _buildSquel(flavour = null) {
      */
     _formatValueForQueryString (value, formattingOptions = {}) {
       let customFormattedValue = this._formatCustomValue(value);
-      
+
       // if formatting took place then return it directly
       if (customFormattedValue !== value) {
         return this._applyNestingFormatting(customFormattedValue);
@@ -502,10 +502,10 @@ function _buildSquel(flavour = null) {
     }
 
 
-    /** 
-     * Build given string and its corresponding parameter values into 
+    /**
+     * Build given string and its corresponding parameter values into
      * output.
-     * 
+     *
      * @param {String} str
      * @param {Array}  values
      * @param {Object} [options] Additional options.
@@ -557,11 +557,11 @@ function _buildSquel(flavour = null) {
               } else {
                 formattedStr += paramChar;
 
-                formattedValues.push(value);              
+                formattedValues.push(value);
               }
             }
           } else {
-            formattedStr += 
+            formattedStr +=
               this._formatValueForQueryString(value, formattingOptions);
           }
 
@@ -581,10 +581,10 @@ function _buildSquel(flavour = null) {
 
 
 
-    /** 
-     * Build all given strings and their corresponding parameter values into 
+    /**
+     * Build all given strings and their corresponding parameter values into
      * output.
-     * 
+     *
      * @param {Array} strings
      * @param {Array}  strValues array of value arrays corresponding to each string.
      * @param {Object} [options] Additional options.
@@ -612,8 +612,8 @@ function _buildSquel(flavour = null) {
       totalStr = totalStr.join(this.options.separator);
 
       return {
-        text: totalStr.length 
-          ? this._applyNestingFormatting(totalStr, !!options.nested) 
+        text: totalStr.length
+          ? this._applyNestingFormatting(totalStr, !!options.nested)
           : '',
         values: totalValues,
       };
@@ -623,7 +623,7 @@ function _buildSquel(flavour = null) {
 
     /**
      * Get parameterized representation of this instance.
-     * 
+     *
      * @param {Object} [options] Options.
      * @param {Boolean} [options.buildParameterized] Whether to build paramterized string. Default is false.
      * @param {Boolean} [options.nested] Whether this expression is nested within another.
@@ -670,10 +670,10 @@ function _buildSquel(flavour = null) {
    *
    * SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
    *
-   * Expressions can be nested. Nested expression contains can themselves 
-   * contain nested expressions. When rendered a nested expression will be 
+   * Expressions can be nested. Nested expression contains can themselves
+   * contain nested expressions. When rendered a nested expression will be
    * fully contained within brackets.
-   * 
+   *
    * All the build methods in this object return the object instance for chained method calling purposes.
    */
   cls.Expression = class extends cls.BaseBuilder {
@@ -686,33 +686,46 @@ function _buildSquel(flavour = null) {
 
 
     // Combine the current expression with the given expression using the intersection operator (AND).
-    and (expr, ...params) {
-      expr = this._sanitizeExpression(expr);
-
-      this._nodes.push({
-        type: 'AND',
-        expr: expr,
-        para: params,
-      });
-
-      return this;
+    and (field, operator, ...params) {
+      return this._add('AND', field, operator, params);
     }
 
 
 
     // Combine the current expression with the given expression using the union operator (OR).
-    or (expr, ...params) {
-      expr = this._sanitizeExpression(expr);
+    or (field, operator, ...params) {
+      return this._add('OR', field, operator, params);
+    }
 
+
+    _add(type, field, operator, params) {
+
+      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+      let expr;
+      if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
+        expr = this._buildExpression(field, operator);
+      } else {
+        expr = field;
+        params.unshift(operator);
+      }
+
+      this._sanitizeExpression(field);
       this._nodes.push({
-        type: 'OR',
+        type: type,
         expr: expr,
-        para: params,
+        para: params
       });
 
       return this;
     }
 
+
+    _buildExpression(field, operator) {
+      let escapedKey = this._formatFieldName(field);
+      let paramChar = cls.DefaultQueryBuilderOptions.parameterCharacter;
+      let condition = `${escapedKey} ${operator} ${paramChar}`;
+      return condition;
+    }
 
 
     _toParamString (options = {}) {
@@ -723,7 +736,7 @@ function _buildSquel(flavour = null) {
         let { type, expr,  para } = node;
 
 
-        let { text, values } = (expr instanceof cls.Expression) 
+        let { text, values } = (expr instanceof cls.Expression)
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -752,7 +765,7 @@ function _buildSquel(flavour = null) {
   }
 
 
- 
+
   /*
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
@@ -784,7 +797,7 @@ function _buildSquel(flavour = null) {
       this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
 
       this._cases = [];
-      this._elseValue = null;      
+      this._elseValue = null;
     }
 
     when (expression, ...values) {
@@ -802,7 +815,7 @@ function _buildSquel(flavour = null) {
       }
 
       this._cases[0].result = result;
-      
+
       return this;
     }
 
@@ -844,7 +857,7 @@ function _buildSquel(flavour = null) {
       return {
         text: totalStr,
         values: totalValues,
-      };        
+      };
     }
   }
 
@@ -892,8 +905,8 @@ function _buildSquel(flavour = null) {
       while (obj) {
         Object.getOwnPropertyNames(obj).forEach(function(prop) {
           if ('constructor' !== prop
-                && typeof obj[prop] === "function" 
-                && prop.charAt(0) !== '_' 
+                && typeof obj[prop] === "function"
+                && prop.charAt(0) !== '_'
                 && !cls.Block.prototype[prop])
           {
             ret[prop] = obj[prop];
@@ -902,7 +915,7 @@ function _buildSquel(flavour = null) {
 
         obj = Object.getPrototypeOf(obj);
       };
-      
+
       return ret;
     }
   }
@@ -934,7 +947,7 @@ function _buildSquel(flavour = null) {
 
       this._strings = [];
       this._values = [];
-    } 
+    }
 
     function (str, ...values) {
       this._strings.push(str);
@@ -984,7 +997,7 @@ function _buildSquel(flavour = null) {
 
       this._tables.push({
         table: table,
-        alias: alias,       
+        alias: alias,
       });
     }
 
@@ -1014,7 +1027,7 @@ function _buildSquel(flavour = null) {
             });
 
             tableStr = text;
-            totalValues.push(...values);            
+            totalValues.push(...values);
           }
 
           if (alias) {
@@ -1058,7 +1071,7 @@ function _buildSquel(flavour = null) {
   // FROM table
   cls.FromTableBlock = class extends cls.AbstractTableBlock {
     constructor (options) {
-      super(_extend({}, options, { 
+      super(_extend({}, options, {
         prefix: 'FROM',
       }));
     }
@@ -1077,7 +1090,7 @@ function _buildSquel(flavour = null) {
   // INTO table
   cls.IntoTableBlock = class extends cls.AbstractTableBlock {
     constructor (options) {
-      super(_extend({}, options, { 
+      super(_extend({}, options, {
         prefix: 'INTO',
         singleTable: true,
       }));
@@ -1168,7 +1181,7 @@ function _buildSquel(flavour = null) {
 
       for (let field of this._fields) {
         totalStr = _pad(totalStr, ", ");
-        
+
         let { name, alias, options } = field;
 
         if (typeof name === 'string') {
@@ -1287,7 +1300,7 @@ function _buildSquel(flavour = null) {
           // Add field only if it hasn't been added before
           if (-1 === index) {
             this._fields.push(field);
-            index = this._fields.length - 1;            
+            index = this._fields.length - 1;
           }
 
           // The first value added needs to add the array
@@ -1336,7 +1349,7 @@ function _buildSquel(flavour = null) {
         }
         else {
           let ret = this._buildString(
-            `${field} = ${this.options.parameterCharacter}`, 
+            `${field} = ${this.options.parameterCharacter}`,
             [value],
             {
               buildParameterized: buildParameterized,
@@ -1349,9 +1362,9 @@ function _buildSquel(flavour = null) {
         }
       }
 
-      return { 
-        text: `SET ${totalStr}`, 
-        values: totalValues 
+      return {
+        text: `SET ${totalStr}`,
+        values: totalValues
       };
     }
 
@@ -1374,7 +1387,7 @@ function _buildSquel(flavour = null) {
 
     _toParamString (options = {}) {
       let { buildParameterized } = options;
-      
+
       let fieldString = this._fields.join(', '),
         valueStrings = [],
         totalValues = [];
@@ -1383,24 +1396,24 @@ function _buildSquel(flavour = null) {
         valueStrings[i] = '';
 
         for (let j in this._values[i]) {
-          let ret = 
+          let ret =
             this._buildString(this.options.parameterCharacter, [this._values[i][j]], {
               buildParameterized: buildParameterized,
               formattingOptions: this._valueOptions[i][j],
             });
 
-          totalValues.push(...ret.values);          
+          totalValues.push(...ret.values);
 
           valueStrings[i] = _pad(valueStrings[i], ', ');
           valueStrings[i] += ret.text;
         }
       }
 
-      return { 
-        text: fieldString.length 
+      return {
+        text: fieldString.length
           ? `(${fieldString}) VALUES (${valueStrings.join('), (')})`
           : '',
-        values: totalValues 
+        values: totalValues
       };
     }
 
@@ -1517,7 +1530,7 @@ function _buildSquel(flavour = null) {
 
   // Abstract condition base class
   cls.AbstractConditionBlock = class extends cls.Block {
-    /** 
+    /**
      * @param {String} options.verb The condition verb.
      */
     constructor (options) {
@@ -1550,7 +1563,7 @@ function _buildSquel(flavour = null) {
       for (let { expr, values } of this._conditions) {
         totalStr = _pad(totalStr, ') AND (');
 
-        let ret = (expr instanceof cls.Expression) 
+        let ret = (expr instanceof cls.Expression)
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
             })
@@ -1579,8 +1592,16 @@ function _buildSquel(flavour = null) {
       }));
     }
 
-    where (condition, ...values) {
-      this._condition(condition, ...values);
+    where (field, operator, ...values) {
+      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+      if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
+        // key - operator - value
+        let expr = new cls.Expression();
+        this._condition(expr._add('AND', field, operator, values));
+      } else {
+        // default squel-behaviour without auto-quoting
+        this._condition.apply(this, arguments);
+      }
     }
   }
 
@@ -1593,8 +1614,16 @@ function _buildSquel(flavour = null) {
       }));
     }
 
-    having (condition, ...values) {
-      this._condition(condition, ...values);
+    having (field, operator, ...values) {
+      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+      if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
+        // key - operator - value
+        let expr = new cls.Expression();
+        this._condition(expr._add('AND', field, operator, values));
+      } else {
+        // default squel-behaviour without auto-quoting
+        this._condition.apply(this, arguments);
+      }
     }
   }
 
@@ -1620,7 +1649,7 @@ function _buildSquel(flavour = null) {
 
       this._orders.push({
         field: field,
-        dir: asc,   
+        dir: asc,
         values: values,
       });
     }
@@ -1742,7 +1771,7 @@ function _buildSquel(flavour = null) {
 
 
     _toParamString (options = {}) {
-      let totalStr = "",  
+      let totalStr = "",
         totalValues = [];
 
       for (let {type, table, alias, condition} of this._joins) {
@@ -1756,7 +1785,7 @@ function _buildSquel(flavour = null) {
             nested: true
           });
 
-          totalValues.push(...ret.values);          
+          totalValues.push(...ret.values);
           tableStr = ret.text;
         } else {
           tableStr = this._formatTableName(table);
@@ -1916,7 +1945,7 @@ function _buildSquel(flavour = null) {
       for (let block of this.blocks) {
         block.registerValueHandler(type, handler);
       }
-      
+
       super.registerValueHandler(type, handler);
 
       return this;
@@ -1958,15 +1987,15 @@ function _buildSquel(flavour = null) {
 
       if (!options.nested) {
         if (options.numberedParameters) {
-          let i = (undefined !== options.numberedParametersStartAt) 
-            ? options.numberedParametersStartAt 
+          let i = (undefined !== options.numberedParametersStartAt)
+            ? options.numberedParametersStartAt
             : 1;
 
           // construct regex for searching
           const regex = options.parameterCharacter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
           totalStr = totalStr.replace(
-            new RegExp(regex, 'g'), 
+            new RegExp(regex, 'g'),
             function() {
               return `${options.numberedParametersPrefix}${i++}`;
             }
@@ -2018,7 +2047,7 @@ function _buildSquel(flavour = null) {
       ];
 
       super(options, blocks);
-    } 
+    }
   }
 
 

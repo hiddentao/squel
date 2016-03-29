@@ -1083,6 +1083,26 @@ test['Blocks'] =
             values: [10, 2, 3, 4, 5, 6]
           }
 
+      'output with quoting':
+        beforeEach: ->
+          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = true;
+          subquery = new squel.cls.Select()
+          subquery.field('col1').from('table1').where('field1', '=', 10)
+          @inst.where('a', 'in', subquery)
+          @inst.where('d', 'in', [4, 5, 6])
+        'non-parameterized': ->
+          assert.same @inst._toParamString(), {
+            text: 'WHERE (`a` in (SELECT `col1` FROM table1 WHERE (`field1` = 10))) AND (`d` in (4, 5, 6))'
+            values: []
+          }
+        'parameterized': ->
+          assert.same @inst._toParamString(buildParameterized: true), {
+            text: 'WHERE (`a` in (SELECT `col1` FROM table1 WHERE (`field1` = ?))) AND (`d` in (?, ?, ?))'
+            values: [10, 4, 5, 6]
+          }
+        afterEach: ->
+          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = false;
+
 
 
   'HavingBlock':
@@ -1122,6 +1142,26 @@ test['Blocks'] =
             text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))'
             values: [10, 2, 3, 4, 5, 6]
           }
+
+      'output with quoting':
+        beforeEach: ->
+          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = true;
+          subquery = new squel.cls.Select()
+          subquery.field('col1').from('table1').where('field1', '=', 10)
+          @inst.having('a', 'in', subquery)
+          @inst.having('d', 'in', [4, 5, 6])
+        'non-parameterized': ->
+          assert.same @inst._toParamString(), {
+            text: 'HAVING (`a` in (SELECT `col1` FROM table1 WHERE (`field1` = 10))) AND (`d` in (4, 5, 6))'
+            values: []
+          }
+        'parameterized': ->
+          assert.same @inst._toParamString(buildParameterized: true), {
+            text: 'HAVING (`a` in (SELECT `col1` FROM table1 WHERE (`field1` = ?))) AND (`d` in (?, ?, ?))'
+            values: [10, 4, 5, 6]
+          }
+        afterEach: ->
+          squel.cls.DefaultQueryBuilderOptions.autoQuoteFieldNames = false;
 
 
   'OrderByBlock':
