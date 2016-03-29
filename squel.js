@@ -573,7 +573,7 @@ function _buildSquel() {
       value: function _applyNestingFormatting(str) {
         var nesting = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
-        if (nesting) {
+        if (str && typeof str === 'string' && nesting) {
           // don't want to apply twice
           if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
             return '(' + str + ')';

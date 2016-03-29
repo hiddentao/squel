@@ -491,7 +491,7 @@ function _buildSquel(flavour = null) {
 
 
     _applyNestingFormatting(str, nesting = true) {
-      if (nesting) {
+      if (str && typeof str === 'string' && nesting) {
         // don't want to apply twice
         if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
           return `(${str})`;
