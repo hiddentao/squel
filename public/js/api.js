@@ -35,7 +35,13 @@ var _addEntry = function(key, value) {
 
   var jqDiv = $('<article id="' + hashTag + '"></article>');
   var title = (value.title ? value.title : key);
+
   jqDiv.append('<a name="' + hashTag + '" href="#' + hashTag + '"><h2>' + title + '</h2></a>');
+
+  var inherits = '';
+  if (value.inherits) {
+    jqDiv.append('<div class="inherits">inherits from ' + _formatStr(value.inherits) + '</div>');
+  }
 
   jqDiv.append('<div class="description">' + _formatStr(value.desc) + '</div>');
 

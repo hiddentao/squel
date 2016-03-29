@@ -14,23 +14,19 @@
   <link href='https://fonts.googleapis.com/css?family=Armata' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/shCoreRDark.css" />
   <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/screen.css" />
-  <link rel="stylesheet" type="text/css" media="print" href="public/css/print.css" />
-  <!--[if IE]>
-  <link rel="stylesheet" type="text/css" media="screen, projection" href="public/css/ie.css" />
-  <![endif]-->
-
 
 </head>
 <body>
 
 
 <header>
-        <div id="logo">Squel.js (v4)</div>
+        <div id="logo">Squel.js</div>
         <nav class="top">
             <ul>
-                <li><a href="index.html" title="Guide">Guide (v4)</a></li>
-                <li><a href="api.html" title="API">API (v4)</a></li>
-                <li><a href="https://hiddentao.github.io/squel" title="Latest">View Latest docs</a></li>
+                <li><a href="index.html" title="Guide">Guide</a></li>
+                <li><a href="api.html" title="API">API</a></li>
+                <li><a class="external" href="https://github.com/hiddentao/squel" title="Github">Github</a></li>
+                <li><a class="external" href="http://prezi.com/8fdvjo6ripkw/squeljs/" title="View the presentation">Prezi</a></li>
             </ul>
         </nav>
 </header>
@@ -44,7 +40,6 @@
   Developed by <a href="http://twitter.com/hiddentao">@hiddentao</a>. Source on <a href="https://github.com/hiddentao/squel">Github</a>.
 </footer>
 
-<script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
 <script type="text/javascript" src="public/js/jquery-2.0.3.js"></script>
 <script type="text/javascript" src="public/js/shCore.js"></script>
 <script type="text/javascript" src="public/js/shBrushBash.js"></script>
@@ -72,7 +67,7 @@
         },
         children: {
           '.function()': {
-            desc: 'Insert a function value, see [[cls.fval]].',
+            desc: 'Insert a function value, see [[cls.FunctionBlock]].',
             returns: 'this'
           },
           '.distinct()': {
@@ -83,8 +78,8 @@
             desc: 'Set a field to select data for.',
             params: {
               name: {
-                desc: 'Name of field OR an SQL expression such as <code>DATE_FORMAT</code> OR a [[cls.QueryBuilder]] instance.',
-                type: 'String|QueryBuilder'
+                desc: 'Name of field OR an SQL expression such as <code>DATE_FORMAT</code> OR a builder.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -109,7 +104,7 @@
             params: {
               fields: {
                 desc: 'List of field:alias pairs OR Array of field names',
-                type: 'Object|Array'
+                type: 'Object or Array'
               },
               options: {
                 type: 'Object',
@@ -128,8 +123,8 @@
             desc: 'A table to select data from.',
             params: {
               name: {
-                desc: 'Name of table.',
-                type: 'String'
+                desc: 'Name of table or a builder.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -143,8 +138,8 @@
             desc: 'Add an INNER JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -163,8 +158,8 @@
             desc: 'Add a LEFT JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -183,8 +178,8 @@
             desc: 'Add a RIGHT JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -203,8 +198,8 @@
             desc: 'Add an OUTER JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -223,8 +218,8 @@
             desc: 'Add a CROSS JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -571,8 +566,8 @@
             desc: 'Add an INNER JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -591,8 +586,8 @@
             desc: 'Add a LEFT JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -611,8 +606,8 @@
             desc: 'Add a RIGHT JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -631,8 +626,8 @@
             desc: 'Add an OUTER JOIN.',
             params: {
               name: {
-                desc: 'The table to join on. Can be a sub query (a [[cls.Select]] instance)',
-                type: 'String or [[cls.Select]]'
+                desc: 'The table to join on. Can be a a [[cls.BaseBuilder]] instance.',
+                type: 'String or [[cls.BaseBuilder]]'
               },
               alias: {
                 type: 'String',
@@ -867,7 +862,7 @@
             params: {
               name: {
                 desc: 'Name of field or array of field names.',
-                type: 'String|Array'
+                type: 'String or Array'
               }
             },
             returns: 'this'
@@ -954,29 +949,17 @@
         desc: 'Create an SQL expression query builder instance.',
         returns: '[[cls.Expression]]',
         children: {
-          '.and_begin()': {
-            desc: 'Begin a nested expression to <code>AND</code> with the current expression.',
-            returns: 'this'
-          },
-          '.or_begin()': {
-            desc: 'Begin a nested expression to <code>OR</code> with the current expression.',
-            returns: 'this'
-          },
-          '.end()': {
-            desc: 'End the current expression. If we are currently inside a nested expression then this will end the nested expression.',
-            returns: 'this'
-          },
           '.and()': {
             desc: 'Add to the current expression using <code>AND</code>.',
             params: {
               expr: {
                 desc: 'The expression to add',
-                type: 'String'
+                type: 'String or [[cls.Expression]]'
               },
-              param: {
-                desc: 'The expression parameter',
-                type: 'Any',
-                defaultValue: 'undefined'
+              '...params': {
+                desc: 'The expression parameters supplied as additional arguments',
+                type: 'Array',
+                defaultValue: '[]'
               }
             },
             returns: 'this'
@@ -986,12 +969,12 @@
             params: {
               expr: {
                 desc: 'The expression to add',
-                type: 'String'
+                type: 'String or [[cls.Expression]]'
               },
-              param: {
-                desc: 'The expression parameter',
-                type: 'Any',
-                defaultValue: 'undefined'
+              '...params': {
+                desc: 'The expression parameters supplied as additional arguments',
+                type: 'Array',
+                defaultValue: '[]'
               }
             },
             returns: 'this'
@@ -1108,7 +1091,7 @@
             },
             returns: 'this'
           },
-          '.fval()': {
+          '.str()': {
             desc: 'Construct a [[cls.FunctionBlock]] instance for inclusion within a query as a value.',
             params: {
               'func': {
@@ -1128,31 +1111,43 @@
           '.flavour': {
             desc: 'The current "flavour" of this squel instance.',
           },
+          '.BaseBuilder': {
+            desc: 'Base class for all other builders.'
+          },
           '.Expression': {
+            inherits: '[[cls.BaseBuilder]]',
             desc: 'Expression builder class.'
           },
           '.Case': {
+            inherits: '[[cls.BaseBuilder]]',
             desc: 'CASE expression builder class.'
           },
           '.FunctionBlock': {
-            desc: 'Object representing a function value, see [[cls.fval()]].',
+            inherits: '[[cls.Block]]',
+            desc: 'Object representing a function value, see [[cls.str()]].',
           },
           '.Block': {
+            inherits: '[[cls.BaseBuilder]]',
             desc: 'Base class for all query building blocks. Inherits from [[cls.BaseBuilder]].'
           },
           '.QueryBuilder': {
+            inherits: '[[cls.BaseBuilder]]',
             desc: 'Base class for all query builders. Inherits from [[cls.BaseBuilder]].'
           },
           '.Select': {
+            inherits: '[[cls.QueryBuilder]]',
             desc: 'SELECT query builder. Inherits from [[cls.QueryBuilder]].'
           },
           '.Update': {
+            inherits: '[[cls.QueryBuilder]]',
             desc: 'UPDATE query builder. Inherits from [[cls.QueryBuilder]].'
           },
           '.Delete': {
+            inherits: '[[cls.QueryBuilder]]',
             desc: 'DELETE query builder. Inherits from [[cls.QueryBuilder]].'
           },
           '.Insert': {
+            inherits: '[[cls.QueryBuilder]]',
             desc: 'INSERT query builder. Inherits from [[cls.QueryBuilder]].'
           },
           '.useFlavour()': {
@@ -1194,10 +1189,6 @@
           }
         },
         returns: 'this'
-      },
-      '.isNestable()': {
-        desc: 'Get whether this query builder can be nested inside another query (e.g. inner SELECT).',
-        returns: 'Boolean'
       },
       '.clone()': {
         desc: 'Clone this object instance.',

@@ -415,11 +415,28 @@ section h3 {
 }
 #api article h2 {
   font-family: 'Armata', 'Courier', sans-serif;
+  margin-bottom: 5px;
 }
 #api article h2 span {
   color: #ccc;
   font-style: italic;
 }
+
+#api article .inherits {
+  display: block;
+  font-size: 50%;
+  color: #ccc;
+  margin: 0;
+}
+
+#api article .description {
+  margin-top:  1.5em;
+}
+
+#api article .inherits + .description {
+  margin-top: 1em;
+}
+
 #api article .flavours {
   background-color: #faa;
   margin-top: 1em;
@@ -500,6 +517,7 @@ aside {
   -o-border-radius: 5px;
   border-radius: 5px;
   padding: 1em;
+  font-size: 70%;
 }
 aside > ul {
   font-family: 'Armata', 'Courier', sans-serif;
