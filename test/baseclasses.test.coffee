@@ -137,16 +137,16 @@ test['Register global custom value handler'] =
     assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
 
 
-test['Function values'] = 
+test['str()'] = 
   constructor: ->
-    f = squel.fval('GETDATE(?)', 12, 23)
+    f = squel.str('GETDATE(?)', 12, 23)
     assert.ok (f instanceof squel.cls.FunctionBlock)
     assert.same 'GETDATE(?)', f._strings[0]
     assert.same [12, 23], f._values[0]
 
   'custom value handler':
     beforeEach: ->
-      @inst = squel.fval('G(?,?)', 12, 23, 65)
+      @inst = squel.str('G(?,?)', 12, 23, 65)
       
       handlerConfig = _.find squel.cls.globalValueHandlers, (hc) -> 
         hc.type is squel.cls.FunctionBlock

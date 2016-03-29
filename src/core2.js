@@ -946,13 +946,6 @@ function _buildSquel(flavour = null) {
     }
   }
 
-  // Construct a FunctionValueBlock object for use as a value
-  cls.fval = function(...args) {
-    let inst = new cls.FunctionBlock();
-    inst.function(...args);
-    return inst;
-  };
-
 
   // value handler for FunctionValueBlock objects
   cls.registerValueHandler(cls.FunctionBlock, function(value, asParam = false) {
@@ -1152,8 +1145,10 @@ function _buildSquel(flavour = null) {
       field = this._sanitizeField(field);
 
       // if field-alias combo already present then don't add
-      if (this._fields[field] && this._fields[field].alias === alias)
-      {
+      let existingField = this._fields.filter((f) => {
+        return f.name === field && f.alias === alias;
+      });
+      if (existingField.length) {
         return this;
       }
 
@@ -2106,8 +2101,12 @@ function _buildSquel(flavour = null) {
     delete: function(options, blocks) {
       return new cls.Delete(options, blocks);
     },
+    str: function(...args) {
+      let inst = new cls.FunctionBlock();
+      inst.function(...args);
+      return inst;
+    },
     registerValueHandler: cls.registerValueHandler,
-    fval: cls.fval,
   };
 
   // aliases

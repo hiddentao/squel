@@ -1194,13 +1194,6 @@ OTHER DEALINGS IN THE SOFTWARE.
       return _class7;
     }(cls.Block);
 
-    // Construct a FunctionValueBlock object for use as a value
-    cls.fval = function () {
-      var inst = new cls.FunctionBlock();
-      inst.function.apply(inst, arguments);
-      return inst;
-    };
-
     // value handler for FunctionValueBlock objects
     cls.registerValueHandler(cls.FunctionBlock, function (value) {
       var asParam = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
@@ -1524,7 +1517,10 @@ OTHER DEALINGS IN THE SOFTWARE.
           _field = this._sanitizeField(_field);
 
           // if field-alias combo already present then don't add
-          if (this._fields[_field] && this._fields[_field].alias === alias) {
+          var existingField = this._fields.filter(function (f) {
+            return f.name === _field && f.alias === alias;
+          });
+          if (existingField.length) {
             return this;
           }
 
@@ -2912,8 +2908,12 @@ OTHER DEALINGS IN THE SOFTWARE.
       delete: function _delete(options, blocks) {
         return new cls.Delete(options, blocks);
       },
-      registerValueHandler: cls.registerValueHandler,
-      fval: cls.fval
+      str: function str() {
+        var inst = new cls.FunctionBlock();
+        inst.function.apply(inst, arguments);
+        return inst;
+      },
+      registerValueHandler: cls.registerValueHandler
     };
 
     // aliases

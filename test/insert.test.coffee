@@ -169,7 +169,7 @@ test['INSERT builder'] =
             assert.same parameterized.values, ['value2',true, 'value3',13]
 
       'Function values':
-        beforeEach: -> @inst.set('field', squel.fval('GETDATE(?, ?)', 2014, 'feb'))
+        beforeEach: -> @inst.set('field', squel.str('GETDATE(?, ?)', 2014, 'feb'))
         toString: ->
           assert.same 'INSERT INTO table (field) VALUES ((GETDATE(2014, \'feb\')))', @inst.toString()
         toParam: ->  

@@ -194,8 +194,8 @@ test['UPDATE builder'] =
       toString: ->
         assert.same @inst.toString(), 'UPDATE table `t1` SET count = count + 1'
 
-  'Function values':
-    beforeEach: -> @inst.table('students').set('field', squel.fval('GETDATE(?, ?)', 2014, '"feb"'))
+  'str()':
+    beforeEach: -> @inst.table('students').set('field', squel.str('GETDATE(?, ?)', 2014, '"feb"'))
     toString: ->
       assert.same 'UPDATE students SET field = (GETDATE(2014, \'"feb"\'))', @inst.toString()
     toParam: ->  
