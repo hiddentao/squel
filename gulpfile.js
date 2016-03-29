@@ -30,7 +30,7 @@ gulp.task('build-basic', function() {
         return 'squel';
       },
       namespace: function(file) {
-        return 'Squel';
+        return 'squel';
       }
     }))
     .pipe( gulp.dest('./') )
@@ -58,7 +58,7 @@ gulp.task('build-full', function() {
         return 'squel';
       },
       namespace: function(file) {
-        return 'Squel';
+        return 'squel';
       }
     }))
     .pipe( gulp.dest('./') )
@@ -94,7 +94,7 @@ gulp.task('test', function () {
 
 
 gulp.task('default', function(cb) {
-  runSequence([/*'build-basic', */'build-full'], 'test', cb);
+  runSequence(['build-basic', 'build-full'], 'test', cb);
 });
 
 

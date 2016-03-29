@@ -4,7 +4,7 @@
   } else if (typeof exports === 'object') {
     module.exports = factory();
   } else {
-    root.Squel = factory();
+    root.squel = factory();
   }
 }(this, function() {
 'use strict';
