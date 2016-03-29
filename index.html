@@ -1402,7 +1402,7 @@
                     .set("value", new ClassB())
                     .toString()
             );
-            /*  UPDATE students SET value = (2) */
+            /*  UPDATE students SET value = 2 */
       </pre>
 
       <p>We can even register handlers for primitive types such as strings and booleans. Simply pass in the 
@@ -1526,32 +1526,26 @@
         CommandBlock.inheritsFrom(squel.cls.Block);
 
         /* methods prefixed with '_' are private and will not get exposed within the query builder */
-        CommandBlock.prototype._command = function(command) {
-          this.command = command;
-        };
-
-        /* this method will get exposed within the query builder */
-        CommandBlock.prototype.flush = function() {
-          this._command('flush');
+        CommandBlock.prototype.command = function(command, arg) {
+          this._command = command;
+          this._arg = arg;
         };
 
         /* output the query clause */
-        CommandBlock.prototype.buildStr = function() {
-          return this.command.toUpperCase();
-        };
+        CommandBlock.prototype._toParamString = function(options) {
+          var str = this._command.toUpperCase();
 
-
-        /* Create the 'param' clause */
-
-        var ParamBlock = function() {};
-        ParamBlock.inheritsFrom(squel.cls.Block);
-
-        ParamBlock.prototype.param = function(p) {
-          this._p = p;
-        };
-
-        ParamBlock.prototype.buildStr = function() {
-          return this._p;
+          if (options.buildParameterized) {
+            return {
+              text: str + (undefined !== this._arg ? ' ' + this.options.parameterCharacter : ''),
+              values: undefined !== this._arg ? [this._arg] : []
+            };
+          } else {
+            return {
+              text: str + (undefined !== this._arg ? ' ' + this._arg : ''),
+              values: []
+            };
+          }
         };
 
 
@@ -1560,8 +1554,7 @@
         var PragmaQuery = function(options) {
           this.parent.constructor.call(this, options, [
               new squel.cls.StringBlock(options, 'PRAGMA'),
-              new CommandBlock(),
-              new ParamBlock()
+              new CommandBlock(options),
           ]);
         };
         PragmaQuery.inheritsFrom(squel.cls.QueryBuilder);
@@ -1570,7 +1563,7 @@
         /* Create squel.pragma() convenience method */
 
         squel.pragma = function(options) {
-          return new PragmaQuery(options)
+          return new PragmaQuery(options);
         };
 
 
@@ -1578,12 +1571,24 @@
 
         log(
           squel.pragma()
-            .flush()
-            .param('students')
+            .command('flush', 'students')
             .toString()
         );
 
         /* 'PRAGMA FLUSH students' */
+
+        log(
+          squel.pragma()
+            .command('flush', 'students')
+            .toParam()
+        );
+
+        /* 
+          { 
+            text: 'PRAGMA FLUSH ?', 
+            values: ['students'] 
+          } 
+        */
       </pre>
 
 
