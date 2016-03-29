@@ -18,8 +18,11 @@ squel.flavours['postgres'] = function(_squel) {
       this._str = this._sanitizeField(ret);
     }
 
-    buildStr () {
-      return this._str ? `RETURNING ${this._str}` : '';
+    _toParamString () {
+      return {
+        text: this._str ? `RETURNING ${this._str}` : '',
+        values: [],
+      }
     }
   }
 
@@ -45,7 +48,7 @@ squel.flavours['postgres'] = function(_squel) {
         new cls.StringBlock(options, 'UPDATE'),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
-        new cls.FromTableBlock(_extend({}, options, { allowNested: true })),
+        new cls.FromTableBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
@@ -61,7 +64,9 @@ squel.flavours['postgres'] = function(_squel) {
     constructor (options, blocks = null) {
       blocks = blocks || [
         new cls.StringBlock(options, 'DELETE'),
-        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
+        new cls.FromTableBlock(_extend({}, options, {
+          singleTable: true
+        })),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),

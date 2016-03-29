@@ -4,9 +4,9 @@ squel.flavours['mysql'] = function(_squel) {
   let cls = _squel.cls;
 
   // target <table> in DELETE <table> FROM ...
-  cls.TargetTableBlock = class extends cls.AbstractValueBlock {
+  cls.TargetTableBlock = class extends cls.FunctionBlock {
     target (table) {
-      this._setValue( this._sanitizeTable(table) );
+      this['function'](this._sanitizeTable(table));
     }
   }
 
@@ -17,60 +17,40 @@ squel.flavours['mysql'] = function(_squel) {
       this._set(field, value, options);
     }
 
-    buildStr () {
-      let str = "";
+    _toParamString (options = {}) {
+      let totalStr = "",
+        totalValues = [];
 
-      for (let i in this.fields) {
-        let field = this.fields[i];
-        
-        if (str.length) {
-          str += ", ";
-        }
+      for (let i in this._fields) {
+        totalStr = _pad(totalStr, ', ');
 
-        let value = this.values[0][i];
+        let field = this._fields[i];
 
-        let fieldOptions = this.fieldOptions[0][i];
+        let value = this._values[0][i];
 
-        // e.g. if field is an expression such as: count = count + 1
-        if (typeof value === 'undefined') {
-          str += field;
-        }
-        else {
-          str += `${field} = ${this._formatValue(value, fieldOptions)}`;
-        }
-      }
-
-      return !str.length ? "" : `ON DUPLICATE KEY UPDATE ${str}`;
-    }
-
-    buildParam (queryBuilder) {
-      let str = "",
-        vals = [];
-
-      for (let i in this.fields) {
-        let field = this.fields[i];
-
-        if (str.length) {
-          str += ", ";
-        }
-
-        let value = this.values[0][i];
-
-        let fieldOptions = this.fieldOptions[0][i];
+        let valueOptions = this._valueOptions[0][i];
 
         // e.g. if field is an expression such as: count = count + 1
         if (typeof value === 'undefined') {
-          str += field;
-        }
-        else {
-          str += `${field} = ${this.options.parameterCharacter}`;
-          vals.push(this._formatValueAsParam(value));
+          totalStr += field;
+        } else {
+          let ret = this._buildString(
+            `${field} = ${this.options.parameterCharacter}`,
+            [value],
+            {
+              buildParameterized: options.buildParameterized,
+              formattingOptions: valueOptions,
+            }
+          );
+
+          totalStr += ret.text;
+          totalValues.push(...ret.values);
         }
       }
 
       return {
-        text: !str.length ? "" : `ON DUPLICATE KEY UPDATE ${str}`,
-        values: vals,
+        text: !totalStr.length ? "" : `ON DUPLICATE KEY UPDATE ${totalStr}`,
+        values: totalValues,
       };
     }
   }
@@ -96,7 +76,9 @@ squel.flavours['mysql'] = function(_squel) {
       blocks = blocks || [
         new cls.StringBlock(options, 'DELETE'),
         new cls.TargetTableBlock(options),
-        new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
+        new cls.FromTableBlock(_extend({}, options, { 
+          singleTable: true 
+        })),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
