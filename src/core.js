@@ -700,7 +700,7 @@ function _buildSquel(flavour = null) {
 
     _add(type, field, operator, params) {
 
-      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like', 'is', 'is not'];
       let expr;
       if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
         expr = this._buildExpression(field, operator);
@@ -1593,7 +1593,7 @@ function _buildSquel(flavour = null) {
     }
 
     where (field, operator, ...values) {
-      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like', 'is', 'is not'];
       if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
         // key - operator - value
         let expr = new cls.Expression(this.options);
@@ -1615,7 +1615,7 @@ function _buildSquel(flavour = null) {
     }
 
     having (field, operator, ...values) {
-      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like'];
+      let validOperators = ['=', '<', '>', '<=', '>=', '<>', '!=', 'in', 'not in', 'like', 'not like', 'is', 'is not'];
       if (typeof field === 'string' && typeof operator === 'string' && -1 != validOperators.indexOf(operator.toLowerCase())) {
         // key - operator - value
         let expr = new cls.Expression(this.options);
