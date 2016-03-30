@@ -828,7 +828,7 @@ function _buildSquel() {
           params.unshift(operator);
         }
 
-        this._sanitizeExpression(field);
+        expr = this._sanitizeExpression(expr);
         this._nodes.push({
           type: type,
           expr: expr,

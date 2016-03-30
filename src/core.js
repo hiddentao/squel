@@ -709,7 +709,7 @@ function _buildSquel(flavour = null) {
         params.unshift(operator);
       }
 
-      this._sanitizeExpression(field);
+      expr = this._sanitizeExpression(expr);
       this._nodes.push({
         type: type,
         expr: expr,
