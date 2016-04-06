@@ -21,7 +21,7 @@ squel.flavours['mysql'] = function(_squel) {
       let totalStr = "",
         totalValues = [];
 
-      for (let i in this._fields) {
+      for (let i = 0; i < this._fields.length; ++i) {
         totalStr = _pad(totalStr, ', ');
 
         let field = this._fields[i];

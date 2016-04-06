@@ -219,6 +219,24 @@ test['UPDATE builder'] =
         values: [1, "ISNULL('str', str)"]
       }
 
+  'fix for #223 - careful about array looping methods':
+    beforeEach: ->
+      Array::substr = () -> 1
+    afterEach: ->
+      delete Array::substr;
+    check: ->
+      @inst = squel.update()
+        .table('users')
+        .where('id = ?', 123)
+        .set('active', 1)
+        .set('regular', 0)
+        .set('moderator',1)
+
+      assert.same @inst.toParam(), {
+        text: 'UPDATE users SET active = ?, regular = ?, moderator = ? WHERE (id = ?)',
+        values: [1, 0, 1, 123],
+      }
+
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)

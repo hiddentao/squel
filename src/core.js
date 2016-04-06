@@ -87,9 +87,7 @@ function registerValueHandler (handlers, type, handler) {
     throw new Error("handler must be a function");
   }
 
-  for (let idx in handlers) {
-    let typeHandler = handlers[idx];
-
+  for (let typeHandler of handlers) {
     if (typeHandler.type === type) {
       typeHandler.handler = handler;
 
@@ -110,12 +108,8 @@ function registerValueHandler (handlers, type, handler) {
  * Get value type handler for given type
  */
 function getValueHandler (value, ...handlerLists) {
-  for (let listIdx in handlerLists) {
-    let handlers = handlerLists[listIdx];
-
-    for (let handlerIdx in handlers) {
-      let typeHandler = handlers[handlerIdx];
-
+  for (let handlers of handlerLists) {
+    for (let typeHandler of handlers) {
       // if type is a string then use `typeof` or else use `instanceof`
       if (typeof value === typeHandler.type || 
           (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
@@ -596,7 +590,7 @@ function _buildSquel(flavour = null) {
       let totalStr = [],
         totalValues = [];
 
-      for (let idx in strings) {
+      for (let idx = 0; strings.length > idx; ++idx) {
         let inputString = strings[idx],
           inputValues = strValues[idx];
 
@@ -1268,7 +1262,7 @@ function _buildSquel(flavour = null) {
       this._reset();
 
       // for each row
-      for (let i in fieldsRows) {
+      for (let i = 0; fieldsRows.length > i; ++i) {
         let fieldRow = fieldsRows[i];
 
         // for each field
@@ -1324,7 +1318,7 @@ function _buildSquel(flavour = null) {
       let totalStr = '',
         totalValues = [];
 
-      for (let i in this._fields) {
+      for (let i = 0; i<this._fields.length; ++i) {
         totalStr = _pad(totalStr, ', ');
 
         let field = this._fields[i];
@@ -1379,10 +1373,10 @@ function _buildSquel(flavour = null) {
         valueStrings = [],
         totalValues = [];
 
-      for (let i in this._values) {
+      for (let i = 0; i < this._values.length; ++i) {
         valueStrings[i] = '';
 
-        for (let j in this._values[i]) {
+        for (let j = 0; j < this._values[i].length; ++j) {
           let ret = 
             this._buildString(this.options.parameterCharacter, [this._values[i][j]], {
               buildParameterized: buildParameterized,

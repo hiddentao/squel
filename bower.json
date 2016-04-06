@@ -1,10 +1,10 @@
 {
   "name": "squel",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "main": "squel.js",
   "ignore": [
     "**/.*",
-    "Gruntfile.js",
+    "gulpfile.js",
     "node_modules",
     "public",
     "test",

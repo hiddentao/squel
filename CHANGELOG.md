@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 6 Apr 2016 (5.0.1)
+* Fix for #223 - array looping should not use `for-in`
+
 ## 29 Mar 2016 (5.0.0)
 * Complete architectural rewrite - see #201
 
