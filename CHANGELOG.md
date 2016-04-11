@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 11 Apr 2016 (5.0.1)
+* Fix for #226 - empty expressions in where clause
+
 ## 6 Apr 2016 (5.0.1)
 * Fix for #223 - array looping should not use `for-in`
 
