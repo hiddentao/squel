@@ -2086,7 +2086,7 @@ function _buildSquel() {
       value: function _toParamString() {
         var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-        var totalStr = "",
+        var totalStr = [],
             totalValues = [];
 
         var _iteratorNormalCompletion10 = true;
@@ -2099,15 +2099,17 @@ function _buildSquel() {
             var expr = _step10$value.expr;
             var values = _step10$value.values;
 
-            totalStr = _pad(totalStr, ') AND (');
-
             var ret = expr instanceof cls.Expression ? expr._toParamString({
               buildParameterized: options.buildParameterized
             }) : this._buildString(expr, values, {
               buildParameterized: options.buildParameterized
             });
 
-            totalStr += ret.text, totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+            if (ret.text.length) {
+              totalStr.push(ret.text);
+            }
+
+            totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
           }
         } catch (err) {
           _didIteratorError10 = true;
@@ -2122,6 +2124,10 @@ function _buildSquel() {
               throw _iteratorError10;
             }
           }
+        }
+
+        if (totalStr.length) {
+          totalStr = totalStr.join(') AND (');
         }
 
         return {

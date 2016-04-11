@@ -1538,12 +1538,10 @@ function _buildSquel(flavour = null) {
 
 
     _toParamString (options = {}) {
-      let totalStr = "",
+      let totalStr = [],
         totalValues = [];
 
       for (let { expr, values } of this._conditions) {
-        totalStr = _pad(totalStr, ') AND (');
-
         let ret = (expr instanceof cls.Expression) 
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
@@ -1553,8 +1551,15 @@ function _buildSquel(flavour = null) {
             })
         ;
 
-        totalStr += ret.text,
+        if (ret.text.length) {
+          totalStr.push(ret.text);
+        }
+
         totalValues.push(...ret.values);
+      }
+
+      if (totalStr.length) {
+        totalStr = totalStr.join(') AND (');
       }
 
       return {

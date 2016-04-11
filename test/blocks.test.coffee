@@ -1024,7 +1024,7 @@ test['Blocks'] =
             values: [10, 2, 3, 4, 5, 6]
           }
 
-      'Fix for hiddentao/squel#64':
+      'Fix for #64 - toString() does not change object':
         beforeEach: ->
           @inst._condition('a = ?', 1)
           @inst._condition('b = ? OR c = ?', 2, 3)
@@ -1042,6 +1042,20 @@ test['Blocks'] =
             values: [1, 2, 3, 4, 5, 6]
           }
 
+      'Fix for #226 - empty expressions':
+        beforeEach: ->
+          @inst._condition('a = ?', 1)
+          @inst._condition(squel.expr())
+        'non-parameterized': ->
+          assert.same @inst._toParamString(), {
+            text: 'ACB (a = 1)'
+            values: []
+          }
+        'parameterized': ->
+          assert.same @inst._toParamString(buildParameterized: true), {
+            text: 'ACB (a = ?)'
+            values: [1]
+          }
 
 
 
