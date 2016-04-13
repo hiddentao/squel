@@ -1,6 +1,9 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 11 Apr 2016 (5.0.1)
+## 13 Apr 2016 (5.0.3)
+* Fix for #225 - auto-quote field names had stopped working
+
+## 11 Apr 2016 (5.0.2)
 * Fix for #226 - empty expressions in where clause
 
 ## 6 Apr 2016 (5.0.1)
