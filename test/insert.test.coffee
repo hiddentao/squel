@@ -204,6 +204,17 @@ test['INSERT builder'] =
         values: [1, "ISNULL('str', str)"]
       }
 
+  'fix for #225 - autoquoting field names': ->
+    @inst = squel.insert(autoQuoteFieldNames: true)
+      .into('users')
+      .set('active', 1)
+      .set('regular', 0)
+      .set('moderator',1)
+
+      assert.same @inst.toParam(), {
+        text: 'INSERT INTO users (`active`, `regular`, `moderator`) VALUES (?, ?, ?)',
+        values: [1, 0, 1],
+      }
 
   'cloning': ->
     newinst = @inst.into('students').set('field', 1).clone()

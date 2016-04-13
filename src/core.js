@@ -1321,7 +1321,7 @@ function _buildSquel(flavour = null) {
       for (let i = 0; i<this._fields.length; ++i) {
         totalStr = _pad(totalStr, ', ');
 
-        let field = this._fields[i];
+        let field = this._formatFieldName(this._fields[i]);
         let value = this._values[0][i];
 
         // e.g. field can be an expression such as `count = count + 1`
@@ -1369,8 +1369,11 @@ function _buildSquel(flavour = null) {
     _toParamString (options = {}) {
       let { buildParameterized } = options;
       
-      let fieldString = this._fields.join(', '),
-        valueStrings = [],
+      let fieldString = this._fields
+        .map((f) => this._formatFieldName(f))
+        .join(', ');
+      
+      let valueStrings = [],
         totalValues = [];
 
       for (let i = 0; i < this._values.length; ++i) {

@@ -237,6 +237,19 @@ test['UPDATE builder'] =
         values: [1, 0, 1, 123],
       }
 
+  'fix for #225 - autoquoting field names': ->
+    @inst = squel.update(autoQuoteFieldNames: true)
+      .table('users')
+      .where('id = ?', 123)
+      .set('active', 1)
+      .set('regular', 0)
+      .set('moderator',1)
+
+      assert.same @inst.toParam(), {
+        text: 'UPDATE users SET `active` = ?, `regular` = ?, `moderator` = ? WHERE (id = ?)',
+        values: [1, 0, 1, 123],
+      }
+
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)
