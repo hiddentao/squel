@@ -3233,10 +3233,6 @@ squel.flavours['mssql'] = function (_squel) {
     }, {
       key: '_toParamString',
       value: function _toParamString(options) {
-        if (0 >= this._fields.length) {
-          throw new Error("set() needs to be called");
-        }
-
         var ret = _get(Object.getPrototypeOf(_class38.prototype), '_toParamString', this).call(this, options);
 
         if (ret.text.length && 0 < this._outputs.length) {

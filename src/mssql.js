@@ -149,10 +149,6 @@ squel.flavours['mssql'] = function(_squel) {
     }
 
     _toParamString (options) {
-      if (0 >= this._fields.length) {
-        throw new Error("set() needs to be called");
-      }
-
       let ret = super._toParamString(options);
 
       if (ret.text.length && 0 < this._outputs.length) {
