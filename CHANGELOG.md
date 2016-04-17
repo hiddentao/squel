@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 17 Apr 2016 (5.0.4)
+* Fix for #227 - MSSQL insert without fields fails
+
 ## 13 Apr 2016 (5.0.3)
 * Fix for #225 - auto-quote field names had stopped working
 
