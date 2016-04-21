@@ -557,6 +557,15 @@ test['Blocks'] =
             values: [3]
           }
 
+      'adds LATERAL keyword': ->
+        inner = squel.select().field('foo').from('bar')
+
+        @inst.field(inner, 'i', {lateral: true})
+        assert.same @inst._toParamString(), {
+          text: 'LATERAL (SELECT foo FROM bar) AS "i"'
+          values: []
+        }
+
 
 
   'AbstractSetFieldBlock':
@@ -1280,31 +1289,36 @@ test['Blocks'] =
             type: 'INNER',
             table: 'table1',
             alias: null,
-            condition: null
+            condition: null,
+            options: {}
           },
           {
             type: 'LEFT',
             table: 'table2',
             alias: null,
-            condition: 'b = 1'
+            condition: 'b = 1',
+            options: {}
           },
           {
             type: 'RIGHT',
             table: 'table3',
             alias: 'alias3',
-            condition: 'c = 1'
+            condition: 'c = 1',
+            options: {}
           },
           {
             type: 'OUTER',
             table: 'table4',
             alias: 'alias4',
-            condition: 'd = 1'
+            condition: 'd = 1',
+            options: {}
           },
           {
             type: 'CROSS',
             table: 'table5',
             alias: 'alias5',
-            condition: null
+            condition: null,
+            options: {}
           }
         ]
 
@@ -1326,7 +1340,8 @@ test['Blocks'] =
           type: 'INNER',
           table: '_t',
           alias: '_a',
-          condition: '_c'
+          condition: '_c',
+          options: {}
           }
         ]
 
@@ -1339,49 +1354,64 @@ test['Blocks'] =
         inner4 = squel.select()
         inner5 = squel.select()
         inner6 = squel.select()
+        inner7 = squel.select()
         @inst.join(inner1)
         @inst.join(inner2, null, 'b = 1', 'LEFT')
         @inst.join(inner3, 'alias3', 'c = 1', 'RIGHT')
         @inst.join(inner4, 'alias4', 'd = 1', 'OUTER')
         @inst.join(inner5, 'alias5', 'e = 1', 'FULL')
         @inst.join(inner6, 'alias6', null, 'CROSS')
+        @inst.join(inner7, null, 'true', 'LEFT', {lateral: true})
 
         expected = [
           {
           type: 'INNER',
           table: inner1,
           alias: null,
-          condition: null
+          condition: null,
+          options: {}
           },
           {
           type: 'LEFT',
           table: inner2,
           alias: null,
-          condition: 'b = 1'
+          condition: 'b = 1',
+          options: {}
           },
           {
           type: 'RIGHT',
           table: inner3,
           alias: 'alias3',
-          condition: 'c = 1'
+          condition: 'c = 1',
+          options: {}
           },
           {
           type: 'OUTER',
           table: inner4,
           alias: 'alias4',
-          condition: 'd = 1'
+          condition: 'd = 1',
+          options: {}
           },
           {
             type: 'FULL',
             table: inner5,
             alias: 'alias5',
-            condition: 'e = 1'
+            condition: 'e = 1',
+            options: {}
           },
           {
             type: 'CROSS',
             table: inner6,
             alias: 'alias6',
-            condition: null
+            condition: null,
+            options: {}
+          },
+          {
+            type: 'LEFT',
+            table: inner7,
+            alias: null,
+            condition: 'true',
+            options: {lateral: true}
           }
         ]
 
@@ -1394,7 +1424,14 @@ test['Blocks'] =
         @inst.left_join('t', 'a', 'c')
 
         assert.ok joinSpy.calledOnce
-        assert.ok joinSpy.calledWithExactly('t', 'a', 'c', 'LEFT')
+        assert.ok joinSpy.calledWithExactly('t', 'a', 'c', 'LEFT', {})
+        'with options()': ->
+          joinSpy = test.mocker.stub(@inst, 'join')
+
+          @inst.left_join('t', 'a', 'c', {lateral: true})
+
+          assert.ok joinSpy.calledOnce
+          assert.ok joinSpy.calledWithExactly('t', 'a', 'c', 'LEFT', {lateral: true})
 
 
     '_toParamString()':
@@ -1427,6 +1464,25 @@ test['Blocks'] =
           assert.same @inst._toParamString(buildParameterized: true), {
             text: 'INNER JOIN table LEFT JOIN (SELECT GETDATE(?)) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1) CROSS JOIN (SELECT * FROM 5) `alias5` ON (field1 = ?)'
             values: [2, 99]
+          }
+
+      'output JOINs with LATERAL keyword':
+        beforeEach: ->
+          inner = squel.select().from('3')
+          expr = squel.expr().and('field1 = ?', 99)
+
+          @inst.join('table', null, expr, 'LEFT', {lateral: true})
+          @inst.join(inner, null, 'true', 'INNER', {lateral: true})
+
+        'non-parameterized': ->
+          assert.same @inst._toParamString(), {
+            text: 'LEFT JOIN LATERAL table ON (field1 = 99) INNER JOIN LATERAL (SELECT * FROM 3) ON (true)'
+            values: []
+          }
+        'parameterized': ->
+          assert.same @inst._toParamString(buildParameterized: true), {
+            text: 'LEFT JOIN LATERAL table ON (field1 = ?) INNER JOIN LATERAL (SELECT * FROM 3) ON (true)'
+            values: [99]
           }
 
 
