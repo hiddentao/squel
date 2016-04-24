@@ -799,7 +799,7 @@ test['Blocks'] =
         assert.ok spy.calledWithExactly 'two'
 
       'sanitizes query': ->
-        spy = test.mocker.stub @inst, '_sanitizeQueryBuilder', -> 1
+        spy = test.mocker.stub @inst, '_sanitizeBaseBuilder', -> 1
 
         qry = 123
 

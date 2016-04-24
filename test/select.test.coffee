@@ -283,6 +283,17 @@ test['SELECT builder'] =
         assert.same @inst.toParam(), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = ?))) `meh` ON (meh.ID = ID) WHERE (school_type = ?)", "values": [6,'junior'] }
         assert.same @inst.toParam({ "numberedParameters": true}), { "text": "SELECT * FROM schools INNER JOIN (SELECT * FROM (SELECT * FROM students WHERE (age = $1))) `meh` ON (meh.ID = ID) WHERE (school_type = $2)", "values": [6,'junior'] }
 
+  'Complex table name, e.g. LATERAL (#230)':
+    beforeEach: ->
+      @inst = squel.select().from('foo').from(squel.str('LATERAL(?)', squel.select().from('bar').where('bar.id = ?', 2)), 'ss')
+    'toString': ->
+      assert.same @inst.toString(), 'SELECT * FROM foo, (LATERAL((SELECT * FROM bar WHERE (bar.id = 2)))) `ss`', 
+    'toParam': ->
+      assert.same @inst.toParam(), {
+        text: 'SELECT * FROM foo, (LATERAL((SELECT * FROM bar WHERE (bar.id = ?)))) `ss`'
+        values: [2]
+      }
+
   'cloning':
     'basic': ->
       newinst = @inst.from('students').limit(10).clone()

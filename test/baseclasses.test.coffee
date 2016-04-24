@@ -346,13 +346,13 @@ test['Builder base class'] =
       assert.same s, @inst._sanitizeField(s)
 
 
-  '_sanitizeQueryBuilder':
-    'is not query builder': ->
-      assert.throws (=> @inst._sanitizeQueryBuilder(null)), 'must be a QueryBuilder instance'
+  '_sanitizeBaseBuilder':
+    'is not base builder': ->
+      assert.throws (=> @inst._sanitizeBaseBuilder(null)), 'must be a BaseBuilder instance'
 
     'is a query builder': ->
       qry = squel.select()
-      assert.same qry, @inst._sanitizeQueryBuilder(qry)
+      assert.same qry, @inst._sanitizeBaseBuilder(qry)
 
 
   '_sanitizeTable':

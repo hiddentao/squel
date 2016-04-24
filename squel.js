@@ -402,20 +402,20 @@ function _buildSquel() {
         return item;
       }
     }, {
-      key: '_sanitizeQueryBuilder',
-      value: function _sanitizeQueryBuilder(item) {
-        if (item instanceof cls.QueryBuilder) {
+      key: '_sanitizeBaseBuilder',
+      value: function _sanitizeBaseBuilder(item) {
+        if (item instanceof cls.BaseBuilder) {
           return item;
         }
 
-        throw new Error("must be a QueryBuilder instance");
+        throw new Error("must be a BaseBuilder instance");
       }
     }, {
       key: '_sanitizeTable',
       value: function _sanitizeTable(item) {
         if (typeof item !== "string") {
           try {
-            item = this._sanitizeQueryBuilder(item);
+            item = this._sanitizeBaseBuilder(item);
           } catch (e) {
             throw new Error("table name must be a string or a query builder");
           }
@@ -1907,7 +1907,7 @@ function _buildSquel() {
           return _this20._sanitizeField(v);
         });
 
-        this._query = this._sanitizeQueryBuilder(selectQuery);
+        this._query = this._sanitizeBaseBuilder(selectQuery);
       }
     }, {
       key: '_toParamString',

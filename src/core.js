@@ -269,19 +269,19 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _sanitizeQueryBuilder (item) {
-      if (item instanceof cls.QueryBuilder) {
+    _sanitizeBaseBuilder (item) {
+      if (item instanceof cls.BaseBuilder) {
         return item;
       }
 
-      throw new Error("must be a QueryBuilder instance");
+      throw new Error("must be a BaseBuilder instance");
     }
 
 
     _sanitizeTable (item) {
       if (typeof item !== "string") {
         try {
-          item = this._sanitizeQueryBuilder(item);
+          item = this._sanitizeBaseBuilder(item);
         } catch (e) {
           throw new Error("table name must be a string or a query builder");
         }
@@ -1419,7 +1419,7 @@ function _buildSquel(flavour = null) {
         return this._sanitizeField(v);
       });
 
-      this._query = this._sanitizeQueryBuilder(selectQuery);
+      this._query = this._sanitizeBaseBuilder(selectQuery);
     }
 
     _toParamString (options = {}) {
