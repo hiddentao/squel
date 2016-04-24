@@ -6,7 +6,7 @@ A flexible and powerful SQL query string builder for Javascript.
 
 Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/).
 
-**Note: Squel version 5 or newer is not supported on Node 0.10. Please use Squel 4.4.1 for Node 0.10. The [old 4.x docs](http://hiddentao.github.io/squel/v4/index.html) are also still available.**
+**Note: The latest Squel version only works on Node 0.12 or above. Please use Squel 4.4.1 for Node <0.12. The [old 4.x docs](http://hiddentao.github.io/squel/v4/index.html) are also still available.**
 
 ## Features
 
