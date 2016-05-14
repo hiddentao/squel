@@ -1875,7 +1875,7 @@ function _buildSquel() {
         }
 
         return {
-          text: fieldString.length ? '(' + fieldString + ') VALUES (' + valueStrings.join('), (') + ')' : '',
+          text: fieldString.length ? '(' + fieldString + ') VALUES ' + this._applyNestingFormatting(valueStrings.join('), (')) : '',
           values: totalValues
         };
       }
@@ -1927,7 +1927,7 @@ function _buildSquel() {
           var values = _query$_toParamString.values;
 
 
-          totalStr = '(' + this._fields.join(', ') + ') (' + text + ')';
+          totalStr = '(' + this._fields.join(', ') + ') ' + this._applyNestingFormatting(text);
           totalValues = values;
         }
 
@@ -2923,7 +2923,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.0.4',
+    VERSION: '5.1.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

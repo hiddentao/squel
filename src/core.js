@@ -1395,7 +1395,7 @@ function _buildSquel(flavour = null) {
 
       return { 
         text: fieldString.length 
-          ? `(${fieldString}) VALUES (${valueStrings.join('), (')})`
+          ? `(${fieldString}) VALUES ${this._applyNestingFormatting(valueStrings.join('), ('))}`
           : '',
         values: totalValues 
       };
@@ -1432,7 +1432,7 @@ function _buildSquel(flavour = null) {
           nested: true,
         });
 
-        totalStr = `(${this._fields.join(', ')}) (${text})`;
+        totalStr = `(${this._fields.join(', ')}) ${this._applyNestingFormatting(text)}`;
         totalValues = values;
       }
 

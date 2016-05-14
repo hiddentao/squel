@@ -831,12 +831,12 @@ test['Blocks'] =
           @inst.fromQuery ['test', 'one', 'two'], @qry          
         'non-parameterized': ->
           assert.same @inst._toParamString(), {
-            text: "(test, one, two) ((SELECT * FROM mega WHERE (a = 5)))"
+            text: "(test, one, two) (SELECT * FROM mega WHERE (a = 5))"
             values: []
           }
         'parameterized': ->
           assert.same @inst._toParamString(buildParameterized: true), {
-            text: "(test, one, two) ((SELECT * FROM mega WHERE (a = ?)))"
+            text: "(test, one, two) (SELECT * FROM mega WHERE (a = ?))"
             values: [5]
           }
 

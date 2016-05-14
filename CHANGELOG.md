@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 14 May 2016 (5.1.0)
+* Fix for #231 - Try not to add extra brackets
+
 ## 17 Apr 2016 (5.0.4)
 * Fix for #227 - MSSQL insert without fields fails
 
