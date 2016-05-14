@@ -3,14 +3,6 @@
 squel.flavours['mysql'] = function(_squel) {
   let cls = _squel.cls;
 
-  // target <table> in DELETE <table> FROM ...
-  cls.TargetTableBlock = class extends cls.FunctionBlock {
-    target (table) {
-      this['function'](this._sanitizeTable(table));
-    }
-  }
-
-
   // ON DUPLICATE KEY UPDATE ...
   cls.MysqlOnDuplicateKeyUpdateBlock = class extends cls.AbstractSetFieldBlock {
     onDupUpdate (field, value, options) {
@@ -71,22 +63,6 @@ squel.flavours['mysql'] = function(_squel) {
     }
   }
 
-  cls.Delete = class extends cls.QueryBuilder {
-    constructor (options, blocks = null) {
-      blocks = blocks || [
-        new cls.StringBlock(options, 'DELETE'),
-        new cls.TargetTableBlock(options),
-        new cls.FromTableBlock(_extend({}, options, { 
-          singleTable: true 
-        })),
-        new cls.JoinBlock(options),
-        new cls.WhereBlock(options),
-        new cls.OrderByBlock(options),
-        new cls.LimitBlock(options),
-      ];
 
-      super(options, blocks);
-    }
-  }
 };
 

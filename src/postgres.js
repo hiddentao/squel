@@ -64,6 +64,7 @@ squel.flavours['postgres'] = function(_squel) {
     constructor (options, blocks = null) {
       blocks = blocks || [
         new cls.StringBlock(options, 'DELETE'),
+        new cls.TargetTableBlock(options),
         new cls.FromTableBlock(_extend({}, options, {
           singleTable: true
         })),

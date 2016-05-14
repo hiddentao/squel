@@ -35,24 +35,6 @@ test['MySQL flavour'] =
     squel = require "../squel"
     squel = squel.useFlavour 'mysql'
 
-  
-  'TargetTableBlock':
-    beforeEach: ->
-      @cls = squel.cls.TargetTableBlock
-      @inst = new @cls()
-
-    'instanceof of FunctionBlock': ->
-      assert.instanceOf @inst, squel.cls.FunctionBlock
-
-    'target()': ->
-      setSpy = test.mocker.stub @inst, 'function'
-      sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeTable', (v) -> return "[#{v}]"
-
-      @inst.target('bla')
-
-      assert.ok sanitizeSpy.calledWithExactly('bla')
-      assert.ok setSpy.calledWithExactly('[bla]')
-
 
   'MysqlOnDuplicateKeyUpdateBlock':
     beforeEach: ->
@@ -88,44 +70,6 @@ test['MySQL flavour'] =
           values: ['value2', 'value3']
         }
 
-
-  'DELETE build':
-    beforeEach: -> @inst = squel.delete()
-
-    'has same blocks as default': ->
-      assert.ok @inst.blocks[0] instanceof squel.cls.StringBlock
-      assert.ok @inst.blocks[1] instanceof squel.cls.TargetTableBlock
-      assert.ok @inst.blocks[2] instanceof squel.cls.FromTableBlock
-      assert.ok @inst.blocks[3] instanceof squel.cls.JoinBlock    
-      assert.ok @inst.blocks[4] instanceof squel.cls.WhereBlock    
-      assert.ok @inst.blocks[5] instanceof squel.cls.OrderByBlock   
-      assert.ok @inst.blocks[6] instanceof squel.cls.LimitBlock 
-
-    '>> target(table1).from(table1).left_join(table2, null, "table1.a = table2.b")':
-      beforeEach: ->
-        @inst.target('table1').from('table1').left_join('table2', null, 'table1.a = table2.b').where('c = ?', 3)
-      toString: ->
-        assert.same @inst.toString(),
-          'DELETE table1 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
-      toParam: ->
-        assert.same @inst.toParam(), 
-          {
-            text: 'DELETE table1 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
-            values: [3]
-          }
-
-    '>> from(table1).left_join(table2, null, "table1.a = table2.b")':
-      beforeEach: ->
-        @inst.from('table1').left_join('table2', null, 'table1.a = table2.b').where('c = ?', 3)
-      toString: ->
-        assert.same @inst.toString(),
-          'DELETE FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
-      toParam: ->
-        assert.same @inst.toParam(), 
-          {
-            text: 'DELETE FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
-            values: [3]
-          }
 
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()

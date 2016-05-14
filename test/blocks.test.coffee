@@ -326,6 +326,29 @@ test['Blocks'] =
 
 
 
+  'TargetTableBlock':
+    beforeEach: ->
+      @cls = squel.cls.TargetTableBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractTableBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractTableBlock
+
+    'check prefix': ->
+      assert.same @inst.options.prefix, undefined
+
+    'table()':
+      'calls base class handler': ->
+        baseMethodSpy = test.mocker.stub squel.cls.AbstractTableBlock.prototype, '_table'
+
+        @inst.target('table1')
+        @inst.target('table2')
+
+        assert.same 2, baseMethodSpy.callCount
+        assert.ok baseMethodSpy.calledWithExactly('table1')
+        assert.ok baseMethodSpy.calledWithExactly('table2')
+
+
 
 
   'IntoTableBlock':

@@ -1033,6 +1033,15 @@ function _buildSquel(flavour = null) {
 
 
 
+  // target table for DELETE queries, DELETE <??> FROM
+  cls.TargetTableBlock = class extends cls.AbstractTableBlock {
+    target (table) {
+      this._table(table);
+    }
+  }
+
+
+
   // Update Table
   cls.UpdateTableBlock = class extends cls.AbstractTableBlock {
     table (table, alias = null) {
@@ -1060,11 +1069,6 @@ function _buildSquel(flavour = null) {
     from (table, alias = null) {
       this._table(table, alias);
     }
-
-    _toParamString (options = {}) {
-      return super._toParamString(options);
-    }
-
   }
 
 
@@ -1089,6 +1093,7 @@ function _buildSquel(flavour = null) {
       return super._toParamString(options);
     }
   }
+
 
 
   // (SELECT) Get field
@@ -2050,6 +2055,7 @@ function _buildSquel(flavour = null) {
     constructor (options, blocks = null) {
       blocks = blocks || [
         new cls.StringBlock(options, 'DELETE'),
+        new cls.TargetTableBlock(options),
         new cls.FromTableBlock(_extend({}, options, {
           singleTable: true
         })),

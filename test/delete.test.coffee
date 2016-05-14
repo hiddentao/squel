@@ -93,6 +93,46 @@ test['DELETE builder'] =
                 toString: ->
                   assert.same @inst.toString(), 'DELETE FROM table2 `t2` INNER JOIN other_table `o` ON (o.id = t2.id) WHERE (a = 1) ORDER BY a ASC LIMIT 2'
 
+
+    '>> target(table1).from(table1).left_join(table2, null, "table1.a = table2.b")':
+      beforeEach: ->
+        @inst.target('table1').from('table1').left_join('table2', null, 'table1.a = table2.b').where('c = ?', 3)
+      toString: ->
+        assert.same @inst.toString(),
+          'DELETE table1 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
+      toParam: ->
+        assert.same @inst.toParam(), 
+          {
+            text: 'DELETE table1 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
+            values: [3]
+          }
+
+      '>> target(table2)':
+        beforeEach: ->
+          @inst.target('table2')
+        toString: ->
+          assert.same @inst.toString(),
+            'DELETE table1, table2 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
+        toParam: ->
+          assert.same @inst.toParam(), 
+            {
+              text: 'DELETE table1, table2 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
+              values: [3]
+            }
+
+    '>> from(table1).left_join(table2, null, "table1.a = table2.b")':
+      beforeEach: ->
+        @inst.from('table1').left_join('table2', null, 'table1.a = table2.b').where('c = ?', 3)
+      toString: ->
+        assert.same @inst.toString(),
+          'DELETE FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
+      toParam: ->
+        assert.same @inst.toParam(), 
+          {
+            text: 'DELETE FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
+            values: [3]
+          }
+
   'cloning': ->
     newinst = @inst.from('students').limit(10).clone()
     newinst.limit(20)
