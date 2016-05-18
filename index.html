@@ -1504,87 +1504,204 @@
         Check out <a href="https://github.com/hiddentao/squel/blob/master/src/squel.coffee">squel.coffee</a> to see
         the available building blocks.</p>
 
-      <p>You can also build other types of queries and query clauses not already included in Squel. Let's say
-        you wanted to build a query structured as follows: <code>PRAGMA {command} {param}</code>:</p>
+      <p>You can also build other types of queries and query clauses not already included in Squel. Let's say you wanted to build a query structured as follows: 
+      <code>CREATE TABLE {tableName} ({fieldName} {fieldType}, ...);</code>:</p>
 
       <pre class="brush: js">
-        /* OOP Inheritance mechanism (substitute your own favourite library for this!) */
-        Function.prototype.inheritsFrom = function( parentClassOrObject ) {
-          this.prototype = new parentClassOrObject;
-          this.prototype.constructor = this;
-          this.prototype.parent = parentClassOrObject.prototype;
-        };
+        /*
+        NOTE: All methods prefixed with '_' are internal and not exposed via the 
+        query builder.
+         */
+        
+        class CreateTableBlock extends squel.cls.Block {
+          /** The method exposed by the query builder */
+          table (name) {
+              this._name = name;
+          }
 
-
-        /* Create the 'command' clause */
-
-        var CommandBlock = function() {};
-        CommandBlock.inheritsFrom(squel.cls.Block);
-
-        /* methods prefixed with '_' are private and will not get exposed within the query builder */
-        CommandBlock.prototype.command = function(command, arg) {
-          this._command = command;
-          this._arg = arg;
-        };
-
-        /* output the query clause */
-        CommandBlock.prototype._toParamString = function(options) {
-          var str = this._command.toUpperCase();
-
-          if (options.buildParameterized) {
+          /** The method which generates the output */
+          _toParamString (options) {
             return {
-              text: str + (undefined !== this._arg ? ' ' + this.options.parameterCharacter : ''),
-              values: undefined !== this._arg ? [this._arg] : []
-            };
-          } else {
-            return {
-              text: str + (undefined !== this._arg ? ' ' + this._arg : ''),
-              values: []
+                text:   this._name,
+                values: [],  /* values for paramterized queries */
             };
           }
+        }
+
+        class CreateFieldBlock extends squel.cls.Block {
+          constructor (options) {
+            super(options);
+            this._fields = [];
+          }
+
+          /** The method exposed by the query builder */
+          field (name, type) {
+            this._fields.push({
+              name: name, type: type
+            });
+          }
+
+          /** The method which generates the output */
+          _toParamString (options) {
+            let str = this._fields.map((f) => {
+              return `${f.name} ${f.type.toUpperCase()}`;
+            }).join(', ');
+
+            return {
+              text: `(${str})`,
+              values: [],   /* values for paramterized queries */
+            };
+          }
+        }
+
+        class CreateTableQuery extends squel.cls.QueryBuilder {
+          constructor (options, blocks) {
+            super(options, blocks || [
+              new squel.cls.StringBlock(options, 'CREATE TABLE'),
+              new CreateTableBlock(options),
+              new CreateFieldBlock(options),
+            ]);
+          }
+        }        
+
+
+        /** Convenience method */
+        squel.create = function(options) {
+          return new CreateTableQuery(options);
         };
-
-
-        /* Create the 'PRAGMA' query builder */
-
-        var PragmaQuery = function(options) {
-          this.parent.constructor.call(this, options, [
-              new squel.cls.StringBlock(options, 'PRAGMA'),
-              new CommandBlock(options),
-          ]);
-        };
-        PragmaQuery.inheritsFrom(squel.cls.QueryBuilder);
-
-
-        /* Create squel.pragma() convenience method */
-
-        squel.pragma = function(options) {
-          return new PragmaQuery(options);
-        };
-
 
         /* Try it out! */
 
         log(
-          squel.pragma()
-            .command('flush', 'students')
+          squel.create()
+            .table("pet")
+            .field("name", "varchar(20)")
+            .field("owner", "varchar(20)")
+            .field("species", "varchar(20)")
+            .field("sex", "char(1)")
             .toString()
         );
 
-        /* 'PRAGMA FLUSH students' */
+        /* 
+          CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1))
+        */
+      </pre>
+      <pre class="actual-code">
+        var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-        log(
-          squel.pragma()
-            .command('flush', 'students')
-            .toParam()
-        );
+        function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+        function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+        function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+        /*
+        NOTE: All methods prefixed with '_' are internal and not exposed via the 
+        query builder.
+         */
+
+        var CreateTableBlock = function (_squel$cls$Block) {
+          _inherits(CreateTableBlock, _squel$cls$Block);
+
+          function CreateTableBlock() {
+            _classCallCheck(this, CreateTableBlock);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateTableBlock).apply(this, arguments));
+          }
+
+          _createClass(CreateTableBlock, [{
+            key: 'table',
+
+            /** The method exposed by the query builder */
+            value: function table(name) {
+              this._name = name;
+            }
+
+            /** The method which generates the output */
+
+          }, {
+            key: '_toParamString',
+            value: function _toParamString(options) {
+              return {
+                text: this._name,
+                values: [] };
+            }
+          }]);
+
+          return CreateTableBlock;
+        }(squel.cls.Block);
+
+        /* values for paramterized queries */
+
+        var CreateFieldBlock = function (_squel$cls$Block2) {
+          _inherits(CreateFieldBlock, _squel$cls$Block2);
+
+          function CreateFieldBlock(options) {
+            _classCallCheck(this, CreateFieldBlock);
+
+            var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(CreateFieldBlock).call(this, options));
+
+            _this2._fields = [];
+            return _this2;
+          }
+
+          /** The method exposed by the query builder */
+
+
+          _createClass(CreateFieldBlock, [{
+            key: 'field',
+            value: function field(name, type) {
+              this._fields.push({
+                name: name, type: type
+              });
+            }
+
+            /** The method which generates the output */
+
+          }, {
+            key: '_toParamString',
+            value: function _toParamString(options) {
+              var str = this._fields.map(function (f) {
+                return f.name + ' ' + f.type.toUpperCase();
+              }).join(', ');
+
+              return {
+                text: '(' + str + ')',
+                values: [] };
+            }
+          }]);
+
+          return CreateFieldBlock;
+        }(squel.cls.Block);
+
+        /* values for paramterized queries */
+
+        var CreateTableQuery = function (_squel$cls$QueryBuild) {
+          _inherits(CreateTableQuery, _squel$cls$QueryBuild);
+
+          function CreateTableQuery(options, blocks) {
+            _classCallCheck(this, CreateTableQuery);
+
+            return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateTableQuery).call(this, options, blocks || [new squel.cls.StringBlock(options, 'CREATE TABLE'), new CreateTableBlock(options), new CreateFieldBlock(options)]));
+          }
+
+          return CreateTableQuery;
+        }(squel.cls.QueryBuilder);
+
+        /** Convenience method */
+
+
+        squel.create = function (options) {
+          return new CreateTableQuery(options);
+        };
+
+        /* Try it out! */
+
+        log(squel.create().table("pet").field("name", "varchar(20)").field("owner", "varchar(20)").field("species", "varchar(20)").field("sex", "char(1)").toString());
 
         /* 
-          { 
-            text: 'PRAGMA FLUSH ?', 
-            values: ['students'] 
-          } 
-        */
+          CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1))
+        */        
       </pre>
 
 
@@ -1790,7 +1907,7 @@
         View <a href="v4/index.html">v4 docs</a>.
     </footer>
 
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="public/js/jquery-2.0.3.js"></script>
     <script type="text/javascript" src="public/js/squel.min.js"></script>
     <script type="text/javascript" src="public/js/shCore.js"></script>
     <script type="text/javascript" src="public/js/shBrushBash.js"></script>

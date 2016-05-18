@@ -2,10 +2,19 @@
 
 function enableRunnableSections() {
   $(".syntaxhighlighter").each(function(){
-    var $elem = $(this),
-      $codeContainer = $("table", $elem);
+    var $elem = $(this);
 
-    var code = $codeContainer.text();
+    var $codeContainer;
+
+    let $nextElem = $elem.parent().next();
+    if ($nextElem && $nextElem.hasClass('actual-code')) {
+      $codeContainer = $nextElem;
+    } else {
+      $codeContainer = $("table", $elem);
+    }
+
+    var code = '(function() { ' + $codeContainer.text() + ' })()';
+
     if ($elem.hasClass("js") && 0 <= code.indexOf("log(")) {
       $elem.addClass("executable").attr("title", "Click to run");
       $elem.click(function(e) {
@@ -38,7 +47,7 @@ function enableRunnableSections() {
         });
 
         // show result view
-        $codeContainer.after($result);
+        $('table', $elem).after($result);
       });
     }
   });
