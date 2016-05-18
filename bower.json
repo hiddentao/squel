@@ -1,6 +1,6 @@
 {
   "name": "squel",
-  "version": "5.0.4",
+  "version": "5.2.0",
   "main": "squel.js",
   "ignore": [
     "**/.*",

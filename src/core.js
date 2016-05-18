@@ -160,6 +160,8 @@ function _buildSquel(flavour = null) {
     singleQuoteReplacement: '\'\'',
     // String used to join individual blocks in a query when it's stringified
     separator: ' ',
+    // Function for formatting string values prior to insertion into query string
+    stringFormatter: null,
   };
 
   // Global custom value handlers for all instances of builder
@@ -470,6 +472,11 @@ function _buildSquel(flavour = null) {
           value = this._applyNestingFormatting(value.toString());
         }
         else if (typeofValue !== "number") {
+          // if it's a string and we have custom string formatting turned on then use that
+          if ('string' === typeofValue && this.options.stringFormatter) {
+            return this.options.stringFormatter(value);
+          }
+
           if (formattingOptions.dontQuote) {
             value = `${value}`;
           } else {

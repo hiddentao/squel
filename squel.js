@@ -275,7 +275,9 @@ function _buildSquel() {
     // The string to replace single quotes with in query strings
     singleQuoteReplacement: '\'\'',
     // String used to join individual blocks in a query when it's stringified
-    separator: ' '
+    separator: ' ',
+    // Function for formatting string values prior to insertion into query string
+    stringFormatter: null
   };
 
   // Global custom value handlers for all instances of builder
@@ -612,6 +614,11 @@ function _buildSquel() {
           } else if (value instanceof cls.BaseBuilder) {
             value = this._applyNestingFormatting(value.toString());
           } else if (typeofValue !== "number") {
+            // if it's a string and we have custom string formatting turned on then use that
+            if ('string' === typeofValue && this.options.stringFormatter) {
+              return this.options.stringFormatter(value);
+            }
+
             if (formattingOptions.dontQuote) {
               value = '' + value;
             } else {
@@ -2935,7 +2942,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.1.0',
+    VERSION: '5.2.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

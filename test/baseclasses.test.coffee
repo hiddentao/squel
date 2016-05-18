@@ -99,6 +99,7 @@ test['Default query builder options'] =
       replaceSingleQuotes: false
       singleQuoteReplacement: '\'\''
       separator: ' '
+      stringFormatter: null
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -646,24 +647,30 @@ test['Builder base class'] =
     'float': ->
       assert.same 1.2, @inst._formatValueForQueryString(1.2)
 
-    'string': ->
-      escapedValue = undefined
-      test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+    'string':
+      'have string formatter function': ->
+        @inst.options.stringFormatter = (str) -> "N(#{str})"
 
-      assert.same "'test'", @inst._formatValueForQueryString('test')
+        assert.same "N(test)", @inst._formatValueForQueryString('test')
 
-      assert.same "'test'", @inst._formatValueForQueryString('test')
-      assert.ok @inst._escapeValue.calledWithExactly('test')
-      escapedValue = 'blah'
-      assert.same "'blah'", @inst._formatValueForQueryString('test')
+      'default': ->
+        escapedValue = undefined
+        test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
 
-    'string - dont quote': ->
-      escapedValue = undefined
-      test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+        assert.same "'test'", @inst._formatValueForQueryString('test')
 
-      assert.same "test", @inst._formatValueForQueryString('test', dontQuote: true )
+        assert.same "'test'", @inst._formatValueForQueryString('test')
+        assert.ok @inst._escapeValue.calledWithExactly('test')
+        escapedValue = 'blah'
+        assert.same "'blah'", @inst._formatValueForQueryString('test')
 
-      assert.ok @inst._escapeValue.notCalled
+      'dont quote': ->
+        escapedValue = undefined
+        test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+
+        assert.same "test", @inst._formatValueForQueryString('test', dontQuote: true )
+
+        assert.ok @inst._escapeValue.notCalled
 
     'Array - recursively calls itself on each element': ->
       spy = test.mocker.spy @inst, '_formatValueForQueryString'

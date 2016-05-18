@@ -155,6 +155,7 @@ test['MSSQL flavour'] =
       replaceSingleQuotes: true
       singleQuoteReplacement: '\'\''
       separator: ' '
+      stringFormatter: null
     }, squel.cls.DefaultQueryBuilderOptions
 
 module?.exports[require('path').basename(__filename)] = test
