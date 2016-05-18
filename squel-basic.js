@@ -1888,7 +1888,7 @@ function _buildSquel() {
         }
 
         return {
-          text: fieldString.length ? '(' + fieldString + ') VALUES ' + this._applyNestingFormatting(valueStrings.join('), (')) : '',
+          text: fieldString.length ? '(' + fieldString + ') VALUES (' + valueStrings.join('), (') + ')' : '',
           values: totalValues
         };
       }
@@ -2363,8 +2363,7 @@ function _buildSquel() {
     #
     # 'alias' is an optional alias for the table name.
     #
-    # 'condition' is an optional condition (containing an SQL expression) for the JOIN. If this is an instance of
-    # an expression builder then it gets evaluated straight away.
+    # 'condition' is an optional condition (containing an SQL expression) for the JOIN.
     #
     # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
     #

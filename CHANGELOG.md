@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 18 May 2016 (5.1.1)
+* Fix for #235 - fix a regression
+
 ## 14 May 2016 (5.1.0)
 * Fix for #231 - try not to add extra brackets
 * Fix for #233 - ability to specify target table in `DELETE` queries

@@ -123,10 +123,10 @@ test['INSERT builder'] =
             @subQuery = squel.select().field('MAX(score)').from('scores')
             @inst.set( 'field',  @subQuery )
           toString: ->
-            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
+            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
           toParam: ->
             parameterized = @inst.toParam()
-            assert.same parameterized.text, 'INSERT INTO table (field) VALUES (SELECT MAX(score) FROM scores)'
+            assert.same parameterized.text, 'INSERT INTO table (field) VALUES ((SELECT MAX(score) FROM scores))'
             assert.same parameterized.values, []
 
         '>> setFields({field2: \'value2\', field3: true })':
@@ -153,7 +153,7 @@ test['INSERT builder'] =
             @inst.registerValueHandler MyClass, -> 'abcd'
             @inst.setFields({ field: new MyClass() })
           toString: ->
-            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (abcd)'
+            assert.same @inst.toString(), 'INSERT INTO table (field) VALUES ((abcd))'
           toParam: ->
             parameterized = @inst.toParam()
             assert.same parameterized.text, 'INSERT INTO table (field) VALUES (?)'
@@ -171,9 +171,9 @@ test['INSERT builder'] =
       'Function values':
         beforeEach: -> @inst.set('field', squel.str('GETDATE(?, ?)', 2014, 'feb'))
         toString: ->
-          assert.same 'INSERT INTO table (field) VALUES (GETDATE(2014, \'feb\'))', @inst.toString()
+          assert.same 'INSERT INTO table (field) VALUES ((GETDATE(2014, \'feb\')))', @inst.toString()
         toParam: ->  
-          assert.same { text: 'INSERT INTO table (field) VALUES (GETDATE(?, ?))', values: [2014, 'feb'] }, @inst.toParam()
+          assert.same { text: 'INSERT INTO table (field) VALUES ((GETDATE(?, ?)))', values: [2014, 'feb'] }, @inst.toParam()
 
       '>> fromQuery([field1, field2], select query)':
         beforeEach: -> @inst.fromQuery(
