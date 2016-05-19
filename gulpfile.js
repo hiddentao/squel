@@ -9,7 +9,8 @@ const gulp = require('gulp'),
   babel = require('gulp-babel'),
   replace = require('gulp-replace'),
   uglify = require('gulp-uglify'),
-  runSequence = require('run-sequence');
+  runSequence = require('run-sequence'),
+  argv = require('yargs').argv;
 
 
 const SQUEL_VERSION = require('./package.json').version;
@@ -71,7 +72,7 @@ gulp.task('build-full', function() {
 
 
 gulp.task('test', function () {
-  return gulp.src([
+  return gulp.src(argv.onlyTest || [
       './test/baseclasses.test.coffee',
       './test/blocks.test.coffee',
       './test/case.test.coffee',

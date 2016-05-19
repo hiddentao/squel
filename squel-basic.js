@@ -45,9 +45,7 @@ function _extend(dst) {
 
         if ((typeof src === 'undefined' ? 'undefined' : _typeof(src)) === 'object') {
           Object.getOwnPropertyNames(src).forEach(function (key) {
-            if (typeof src[key] !== 'function') {
-              dst[key] = src[key];
-            }
+            dst[key] = src[key];
           });
         }
       };
@@ -2942,7 +2940,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.2.0',
+    VERSION: '5.2.1',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

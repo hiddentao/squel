@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 18 May 2016 (5.2.1)
+* Re-fix for #109 - custom string formatting wasn't quite working
+
 ## 18 May 2016 (5.2.0)
 * Fix for #109 - custom string formatting function enabled
 * Fix for #235 - fix a regression

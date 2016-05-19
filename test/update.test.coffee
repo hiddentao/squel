@@ -201,6 +201,17 @@ test['UPDATE builder'] =
     toParam: ->  
       assert.same { text: 'UPDATE students SET field = (GETDATE(?, ?))', values: [2014, '"feb"'] }, @inst.toParam()
 
+  'string formatting':
+    beforeEach: -> 
+      @inst.updateOptions {
+        stringFormatter: (str) -> "N'#{str}'"
+      }
+      @inst.table('students').set('field', 'jack')
+    toString: ->
+      assert.same 'UPDATE students SET field = N\'jack\'', @inst.toString()
+    toParam: ->  
+      assert.same { text: 'UPDATE students SET field = ?', values: ["jack"] }, @inst.toParam()
+
   'fix for hiddentao/squel#63': ->
     newinst = @inst.table('students').set('field = field + 1')
     newinst.set('field2', 2).set('field3', true)

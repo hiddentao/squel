@@ -1,7 +1,7 @@
 {
   "name": "squel",
   "description": "SQL query string builder",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "author": "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
   "contributors": [
     "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
@@ -26,7 +26,8 @@
     "sinon": "1.6.x",
     "time-grunt": "~0.1.1",
     "uglify-js": "1.3.x",
-    "underscore": "1.4.x"
+    "underscore": "1.4.x",
+    "yargs": "^4.7.1"
   },
   "keywords": [
     "sql",

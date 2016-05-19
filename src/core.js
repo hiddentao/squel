@@ -10,9 +10,7 @@ function _extend (dst, ...sources) {
     for (let src of sources) {
       if (typeof src === 'object') {
         Object.getOwnPropertyNames(src).forEach(function (key) {
-          if (typeof src[key] !== 'function') {
-            dst[key] = src[key];
-          }
+          dst[key] = src[key];
         });
       }
     }
@@ -515,7 +513,7 @@ function _buildSquel(flavour = null) {
      * @param {Boolean} [options.formattingOptions] Formatting options for values in query string.
      * @return {Object}
      */
-    _buildString(str, values, options = {}) {
+    _buildString (str, values, options = {}) {
       let { nested, buildParameterized, formattingOptions } = options;
 
       values = values || [];
