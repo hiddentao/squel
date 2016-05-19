@@ -1067,6 +1067,11 @@
                 type: 'String',
                 defaultValue: '\'\''
               },
+              stringFormatter: {
+                desc: 'Function to call to process string values, prior to insertion into a query string.',
+                type: 'Function',
+                defaultValue: 'null' 
+              },
               tableAliasQuoteCharacter: {
                 desc: 'The quote character used when quoting table alias names.',
                 type: 'String',

@@ -39,7 +39,7 @@
             <li><a href="#parameters" title="Parameterized queries">Parameters</a></li>
             <li><a href="#autoquotes" title="Automatic quotes">Automatic quotes</a></li>
             <li><a href="#expressions" title="SQL expressions">Expressions</a></li>
-            <li><a href="#custom_types" title="Custom value types">Custom types</a></li>
+            <li><a href="#custom_formatting" title="Custom formatting">Custom formatting</a></li>
             <li><a href="#custom_queries" title="Custom queries">Custom queries</a></li>
             <li><a href="#cloning" title="Cloning">Cloning</a></li>
             <li><a href="#db_engines" title="Database engine support">Database engines</a></li>
@@ -1326,10 +1326,32 @@
 
     </section>
 
-    <section id="custom_types">
-      <a name="custom_types" href="#custom_types"><h2>Custom value types</h2></a>
+    <section id="custom_formatting">
+      <a name="custom_formatting" href="#custom_formatting"><h2>Custom formatting</h2></a>
 
-      <p>Sometimes you might want to override how Squel formats certain types of values, e.g. <code>Date</code> instances. You could do the following:</p>
+      <h3>String formatting</h3>
+
+      You can completely override how Squel formats string values prior to 
+      insertion into a query string. This can be useful if, for example, your 
+      database engine requires Unicode strings to be specially decorated:
+
+      <pre class="brush: js">
+        log(
+            squel.update({
+                stringFormatter: function(str) {
+                    return "u'" + str + "'";
+                }
+            })
+                .table("students")
+                .set("name", "Jack")
+                .toString()
+        );
+        /*  UPDATE students SET name = u'Jack' */
+      </pre>
+
+      <h3>Custom value types</h3>
+
+      <p>Sometimes you might want to override how Squel formats non-string values, e.g. <code>Date</code> instances. You could do the following:</p>
 
       <pre class="brush: js">
             var myDate = new Date(2012, 4, 22),
@@ -1346,7 +1368,7 @@
       </pre>
 
       <p>Functional but no so elegant. A better approach is to register the <code>Date</code> object type
-        with Squel as a custom value type. We will need to supply a handler function which will get called whenever an
+        with Squel as a _custom value type_. We will need to supply a handler function which will get called whenever an
         object of type <code>Date</code> is encountered:</p>
 
       <pre class="brush: js">
