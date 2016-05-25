@@ -1706,6 +1706,16 @@ function _buildSquel() {
       value: function _setFields(fields) {
         var valueOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
+        if (Array.isArray(valueOptions.exclude)) {
+          fields = Object.keys(fields);
+          .reduce(function (result, field) {
+            if (valueOptions.exclude.indexOf(field) === -1) {
+              result[field] = fields[field];
+            }
+            return result;
+          }, {})
+        }
+
         if ((typeof fields === 'undefined' ? 'undefined' : _typeof(fields)) !== 'object') {
           throw new Error("Expected an object but got " + (typeof fields === 'undefined' ? 'undefined' : _typeof(fields)));
         }
