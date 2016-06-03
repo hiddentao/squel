@@ -347,15 +347,15 @@
           },
           '.with()': {
             flavours: ['postgres'],
-            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
             params: {
               alias: {
                 desc: 'The alias that the table expression should use',
-                type: 'string'
+                type: 'String'
               },
               table: {
-                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
-                type: 'QueryBuilder'
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
@@ -534,15 +534,15 @@
           },
           '.with()': {
             flavours: ['postgres'],
-            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
             params: {
               alias: {
                 desc: 'The alias that the table expression should use',
-                type: 'string'
+                type: 'String'
               },
               table: {
-                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
-                type: 'QueryBuilder'
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
@@ -746,15 +746,15 @@
           },
           '.with()': {
             flavours: ['postgres'],
-            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
             params: {
               alias: {
                 desc: 'The alias that the table expression should use',
-                type: 'string'
+                type: 'String'
               },
               table: {
-                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
-                type: 'QueryBuilder'
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
@@ -924,15 +924,15 @@
           },
           '.with()': {
             flavours: ['postgres'],
-            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
             params: {
               alias: {
                 desc: 'The alias that the table expression should use',
-                type: 'string'
+                type: 'String'
               },
               table: {
-                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
-                type: 'QueryBuilder'
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
