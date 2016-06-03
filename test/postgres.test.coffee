@@ -49,9 +49,14 @@ test['Postgres flavour'] =
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
     '>> into(table).set(field, 1).with(alias, table)':
-      beforeEach: -> @inst.into('table').set('field', 1).with('alias', squel.select().from('table'))
+      beforeEach: -> @inst.into('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
       toString: ->
-        assert.same @inst.toString(), 'WITH alias AS (SELECT * FROM table) INSERT INTO table (field) VALUES (1)'
+        assert.same @inst.toString(), 'WITH alias AS (SELECT * FROM table WHERE (field = 2)) INSERT INTO table (field) VALUES (1)'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          "text": 'WITH alias AS (SELECT * FROM table WHERE (field = $1)) INSERT INTO table (field) VALUES ($2)',
+          "values": [2, 1]
+        }
 
   'UPDATE builder':
     beforeEach: -> @upd = squel.update()
@@ -72,9 +77,14 @@ test['Postgres flavour'] =
         assert.same @upd.toString(), 'UPDATE table SET field = 1 FROM table2'
 
     '>> table(table).set(field, 1).with(alias, table)':
-      beforeEach: -> @upd.table('table').set('field', 1).with('alias', squel.select().from('table'))
+      beforeEach: -> @upd.table('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
       toString: ->
-        assert.same @upd.toString(), 'WITH alias AS (SELECT * FROM table) UPDATE table SET field = 1'
+        assert.same @upd.toString(), 'WITH alias AS (SELECT * FROM table WHERE (field = 2)) UPDATE table SET field = 1'
+      toParam: ->
+        assert.same @upd.toParam(), {
+          "text": 'WITH alias AS (SELECT * FROM table WHERE (field = $1)) UPDATE table SET field = $2',
+          "values": [2, 1]
+        }
 
   'DELETE builder':
     beforeEach: -> @del = squel.delete()
@@ -90,9 +100,14 @@ test['Postgres flavour'] =
         assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field'
 
     '>> from(table).where(field = 1).with(alias, table)':
-      beforeEach: -> @del.from('table').where('field = 1').with('alias', squel.select().from('table'))
+      beforeEach: -> @del.from('table').where('field = ?', 1).with('alias', squel.select().from('table').where('field = ?', 2))
       toString: ->
-        assert.same @del.toString(), 'WITH alias AS (SELECT * FROM table) DELETE FROM table WHERE (field = 1)'
+        assert.same @del.toString(), 'WITH alias AS (SELECT * FROM table WHERE (field = 2)) DELETE FROM table WHERE (field = 1)'
+      toParam: ->
+        assert.same @del.toParam(), {
+          "text": 'WITH alias AS (SELECT * FROM table WHERE (field = $1)) DELETE FROM table WHERE (field = $2)',
+          "values": [2, 1]
+        }
 
   'SELECT builder':
     beforeEach: ->
