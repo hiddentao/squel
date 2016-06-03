@@ -1265,7 +1265,7 @@ function _buildSquel() {
         var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
         alias = alias ? this._sanitizeTableAlias(alias) : alias;
-        table = this._sanitizeTable(table);
+        table = this._formatTableName(this._sanitizeTable(table));
 
         if (this.options.singleTable) {
           this._tables = [];
