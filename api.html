@@ -345,6 +345,21 @@
             },
             returns: 'this',
           },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'string'
+              },
+              table: {
+                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
+                type: 'QueryBuilder'
+              }
+            },
+            returns: 'this'
+          }
         }
       }, // select
       'update()': {
@@ -513,6 +528,21 @@
               str: {
                 desc: 'What to return with the query.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'string'
+              },
+              table: {
+                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
+                type: 'QueryBuilder'
               }
             },
             returns: 'this'
@@ -713,6 +743,21 @@
               }
             },
             returns: 'this'
+          },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'string'
+              },
+              table: {
+                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
+                type: 'QueryBuilder'
+              }
+            },
+            returns: 'this'
           }
         }
       }, // delete
@@ -873,6 +918,21 @@
               str: {
                 desc: 'What to return with the query.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'string'
+              },
+              table: {
+                desc: 'Another <code>SELECT</code>, <code>UPDATE</code>, <code>INSERT</code> or <code>DELETE</code> query',
+                type: 'QueryBuilder'
               }
             },
             returns: 'this'

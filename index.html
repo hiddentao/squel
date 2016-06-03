@@ -1803,6 +1803,27 @@
         */
       </pre>
 
+        Queries containing <em>Common Table Expressions (CTEs)</em> are also supported using the <code>WITH</code> clause:
+
+      <pre class="brush: js">
+        squelPostgres = squel.useFlavour('postgres');
+
+        log(
+          squelPostgres.insert()
+            .into('table')
+            .set('field', 5)
+            .with('someAlias', squelPostgres.insert().into('otherTable').set('otherField', 3))
+            .toParam()
+        );
+
+        /*
+            {
+                text: 'WITH someAlias AS (INSERT INTO otherTable (otherField) VALUES ($1)) INSERT INTO table (field) VALUES ($2)'
+                values: [3, 5]
+            }
+        */
+      </pre>
+
         <h3>MySQL</h3>
 
         The <code>mysql</code> flavour provides the <code>ON DUPLICATE KEY UPDATE</code> clause:
