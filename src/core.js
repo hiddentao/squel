@@ -975,7 +975,7 @@ function _buildSquel(flavour = null) {
     */
     _table (table, alias = null) {
       alias = alias ? this._sanitizeTableAlias(alias) : alias;
-      table = this._sanitizeTable(table);
+      table = this._formatTableName(this._sanitizeTable(table));
 
       if (this.options.singleTable) {
         this._tables = [];
