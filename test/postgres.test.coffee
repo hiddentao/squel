@@ -48,6 +48,16 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
+    '>> into(table).set(field, 1).with(alias, table)':
+      beforeEach: -> @inst.into('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
+      toString: ->
+        assert.same @inst.toString(), 'WITH alias AS (SELECT * FROM table WHERE (field = 2)) INSERT INTO table (field) VALUES (1)'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          "text": 'WITH alias AS (SELECT * FROM table WHERE (field = $1)) INSERT INTO table (field) VALUES ($2)',
+          "values": [2, 1]
+        }
+
   'UPDATE builder':
     beforeEach: -> @upd = squel.update()
 
@@ -66,6 +76,16 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @upd.toString(), 'UPDATE table SET field = 1 FROM table2'
 
+    '>> table(table).set(field, 1).with(alias, table)':
+      beforeEach: -> @upd.table('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
+      toString: ->
+        assert.same @upd.toString(), 'WITH alias AS (SELECT * FROM table WHERE (field = 2)) UPDATE table SET field = 1'
+      toParam: ->
+        assert.same @upd.toParam(), {
+          "text": 'WITH alias AS (SELECT * FROM table WHERE (field = $1)) UPDATE table SET field = $2',
+          "values": [2, 1]
+        }
+
   'DELETE builder':
     beforeEach: -> @del = squel.delete()
 
@@ -78,6 +98,16 @@ test['Postgres flavour'] =
       beforeEach: -> @del.from('table').where('field = 1').returning('field')
       toString: ->
         assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field'
+
+    '>> from(table).where(field = 1).with(alias, table)':
+      beforeEach: -> @del.from('table').where('field = ?', 1).with('alias', squel.select().from('table').where('field = ?', 2))
+      toString: ->
+        assert.same @del.toString(), 'WITH alias AS (SELECT * FROM table WHERE (field = 2)) DELETE FROM table WHERE (field = 1)'
+      toParam: ->
+        assert.same @del.toParam(), {
+          "text": 'WITH alias AS (SELECT * FROM table WHERE (field = $1)) DELETE FROM table WHERE (field = $2)',
+          "values": [2, 1]
+        }
 
   'SELECT builder':
     beforeEach: ->
@@ -104,6 +134,40 @@ test['Postgres flavour'] =
             "text": 'SELECT field1 FROM table1 WHERE (field1 = $1)'
             "values": [2]
           }
+
+    'cte queries':
+      beforeEach: ->
+        @sel = squel.select()
+        @sel2 = squel.select()
+        @sel3 = squel.select()
+
+      '>> query1.with(alias, query2)':
+        beforeEach: ->
+          @sel.from('table1').where('field1 = ?', 1)
+          @sel2.from('table2').where('field2 = ?', 2)
+          @sel.with('someAlias', @sel2)
+        toString: ->
+          assert.same @sel.toString(), 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = 2)) SELECT * FROM table1 WHERE (field1 = 1)'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            "text": 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = $1)) SELECT * FROM table1 WHERE (field1 = $2)'
+            "values": [2, 1]
+          }
+
+      '>> query1.with(alias1, query2).with(alias2, query2)':
+        beforeEach: ->
+          @sel.from('table1').where('field1 = ?', 1)
+          @sel2.from('table2').where('field2 = ?', 2)
+          @sel3.from('table3').where('field3 = ?', 3)
+          @sel.with('someAlias', @sel2).with('anotherAlias', @sel3)
+        toString: ->
+          assert.same @sel.toString(), 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = 2)), anotherAlias AS (SELECT * FROM table3 WHERE (field3 = 3)) SELECT * FROM table1 WHERE (field1 = 1)'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            "text": 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = $1)), anotherAlias AS (SELECT * FROM table3 WHERE (field3 = $2)) SELECT * FROM table1 WHERE (field1 = $3)'
+            "values": [2, 3, 1]
+          }
+
 
     'union queries':
       beforeEach: ->

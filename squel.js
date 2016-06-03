@@ -3563,33 +3563,85 @@ squel.flavours['postgres'] = function (_squel) {
     return _class47;
   }(cls.Block);
 
-  // INSERT query builder
-  cls.Insert = function (_cls$QueryBuilder10) {
-    _inherits(_class48, _cls$QueryBuilder10);
+  // WITH
+  cls.WithBlock = function (_cls$Block20) {
+    _inherits(_class48, _cls$Block20);
 
     function _class48(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-
       _classCallCheck(this, _class48);
 
-      blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.ReturningBlock(options)];
+      var _this54 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class48).call(this, options));
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class48).call(this, options, blocks));
+      _this54._tables = [];
+      return _this54;
     }
 
-    return _class48;
-  }(cls.QueryBuilder);
+    _createClass(_class48, [{
+      key: 'with',
+      value: function _with(alias, table) {
+        this._tables.push({ alias: alias, table: table });
+      }
+    }, {
+      key: '_toParamString',
+      value: function _toParamString() {
+        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-  // UPDATE query builder
-  cls.Update = function (_cls$QueryBuilder11) {
-    _inherits(_class49, _cls$QueryBuilder11);
+        var parts = [];
+        var values = [];
+
+        var _iteratorNormalCompletion18 = true;
+        var _didIteratorError18 = false;
+        var _iteratorError18 = undefined;
+
+        try {
+          for (var _iterator18 = this._tables[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+            var _step18$value = _step18.value;
+            var alias = _step18$value.alias;
+            var table = _step18$value.table;
+
+            var ret = table._toParamString({
+              buildParameterized: options.buildParameterized,
+              nested: true
+            });
+
+            parts.push(alias + ' AS ' + ret.text);
+            values.push.apply(values, _toConsumableArray(ret.values));
+          }
+        } catch (err) {
+          _didIteratorError18 = true;
+          _iteratorError18 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion18 && _iterator18.return) {
+              _iterator18.return();
+            }
+          } finally {
+            if (_didIteratorError18) {
+              throw _iteratorError18;
+            }
+          }
+        }
+
+        return {
+          text: parts.length ? 'WITH ' + parts.join(', ') : '',
+          values: values
+        };
+      }
+    }]);
+
+    return _class48;
+  }(cls.Block);
+
+  // SELECT query builder.
+  cls.Select = function (_cls$QueryBuilder10) {
+    _inherits(_class49, _cls$QueryBuilder10);
 
     function _class49(options) {
       var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
       _classCallCheck(this, _class49);
 
-      blocks = blocks || [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.FromTableBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class49).call(this, options, blocks));
     }
@@ -3597,23 +3649,57 @@ squel.flavours['postgres'] = function (_squel) {
     return _class49;
   }(cls.QueryBuilder);
 
-  // DELETE query builder
-  cls.Delete = function (_cls$QueryBuilder12) {
-    _inherits(_class50, _cls$QueryBuilder12);
+  // INSERT query builder
+  cls.Insert = function (_cls$QueryBuilder11) {
+    _inherits(_class50, _cls$QueryBuilder11);
 
     function _class50(options) {
       var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
       _classCallCheck(this, _class50);
 
-      blocks = blocks || [new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, {
-        singleTable: true
-      })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.ReturningBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class50).call(this, options, blocks));
     }
 
     return _class50;
+  }(cls.QueryBuilder);
+
+  // UPDATE query builder
+  cls.Update = function (_cls$QueryBuilder12) {
+    _inherits(_class51, _cls$QueryBuilder12);
+
+    function _class51(options) {
+      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      _classCallCheck(this, _class51);
+
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.FromTableBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class51).call(this, options, blocks));
+    }
+
+    return _class51;
+  }(cls.QueryBuilder);
+
+  // DELETE query builder
+  cls.Delete = function (_cls$QueryBuilder13) {
+    _inherits(_class52, _cls$QueryBuilder13);
+
+    function _class52(options) {
+      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      _classCallCheck(this, _class52);
+
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, {
+        singleTable: true
+      })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class52).call(this, options, blocks));
+    }
+
+    return _class52;
   }(cls.QueryBuilder);
 };
 return squel;
