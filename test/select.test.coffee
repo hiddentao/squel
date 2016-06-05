@@ -351,6 +351,44 @@ test['SELECT builder'] =
       """
     )
 
+  '#242 - auto-quote table names':
+    beforeEach: ->
+      @inst = squel
+        .select({ autoQuoteTableNames: true })
+        .field('name')
+        .where('age > ?', 15)      
+
+    'using string': 
+      beforeEach: ->
+        @inst.from('students', 's')
+
+      toString: ->
+        assert.same @inst.toString(), """
+        SELECT name FROM `students` `s` WHERE (age > 15)
+        """
+
+      toParam: ->
+        assert.same @inst.toParam(), {
+          "text": "SELECT name FROM `students` `s` WHERE (age > ?)"
+          "values": [15]
+        }
+
+    'using query builder': 
+      beforeEach: ->
+        @inst.from(squel.select().from('students'), 's')
+
+      toString: ->
+        assert.same @inst.toString(), """
+        SELECT name FROM (SELECT * FROM students) `s` WHERE (age > 15)
+        """
+
+      toParam: ->
+        assert.same @inst.toParam(), {
+          "text": "SELECT name FROM (SELECT * FROM students) `s` WHERE (age > ?)"
+          "values": [15]
+        }
+
+
   'UNION JOINs':
     'Two Queries NO Params':
       beforeEach: ->

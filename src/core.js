@@ -1004,7 +1004,7 @@ function _buildSquel(flavour = null) {
         for (let { table, alias } of this._tables) {
           totalStr = _pad(totalStr, ', ');
 
-          let tableStr = table;
+          let tableStr;
 
           if (table instanceof cls.BaseBuilder) {
             let { text, values } = table._toParamString({
@@ -1014,6 +1014,8 @@ function _buildSquel(flavour = null) {
 
             tableStr = text;
             totalValues.push(...values);            
+          } else {
+            tableStr = this._formatTableName(table);
           }
 
           if (alias) {
