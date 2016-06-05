@@ -24,7 +24,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-squel = require "../squel-basic"
+squel = require "../dist/squel-basic"
 {_, testCreator, assert, expect, should} = require './testbase'
 test = testCreator()
 

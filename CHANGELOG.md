@@ -1,5 +1,9 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 5 June 2016 (5.3.0)
+* #158, #239 - Support for CTE queries (`WITH` clause)
+* Removed bower.json and built assets from repo
+
 ## 18 May 2016 (5.2.1)
 * Re-fix for #109 - custom string formatting wasn't quite working
 

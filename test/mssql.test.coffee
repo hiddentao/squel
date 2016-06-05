@@ -32,8 +32,8 @@ test = testCreator()
 
 test['MSSQL flavour'] =
   beforeEach: ->
-    delete require.cache[require.resolve('../squel')]
-    squel = require "../squel"
+    delete require.cache[require.resolve('../dist/squel')]
+    squel = require "../dist/squel"
     squel = squel.useFlavour 'mssql'
 
   'DATE Conversion':

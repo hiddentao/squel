@@ -19,21 +19,15 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 * Small: ~7 KB minified and gzipped
 * And much more, [see the guide..](http://squeljs.org/)
 
-## Installation
+**WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
-### node.js
+## Installation
 
 Install using [npm](http://npmjs.org/):
 
-    $ npm install squel
-
-### Browser
-
-Use [bower](https://github.com/bower/bower) if you like:
-
-    $ bower install squel
-
-**WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
+```bash
+$ npm install squel
+```
 
 ## Available files
 

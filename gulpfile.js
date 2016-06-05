@@ -34,11 +34,11 @@ gulp.task('build-basic', function() {
         return 'squel';
       }
     }))
-    .pipe( gulp.dest('./') )
+    .pipe( gulp.dest('./dist') )
     .pipe( uglify() )
     .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
     .pipe( concat('squel-basic.min.js') )
-    .pipe( gulp.dest('./') )
+    .pipe( gulp.dest('./dist') )
 });
 
 
@@ -62,11 +62,11 @@ gulp.task('build-full', function() {
         return 'squel';
       }
     }))
-    .pipe( gulp.dest('./') )
+    .pipe( gulp.dest('./dist') )
     .pipe( uglify() )
     .pipe( insert.prepend('/*! squel | https://github.com/hiddentao/squel | BSD license */') )
     .pipe( concat('squel.min.js') )
-    .pipe( gulp.dest('./') )
+    .pipe( gulp.dest('./dist') )
 });
 
 

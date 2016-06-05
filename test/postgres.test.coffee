@@ -31,8 +31,8 @@ test = testCreator()
 
 test['Postgres flavour'] =
   beforeEach: ->
-    delete require.cache[require.resolve('../squel')]
-    squel = require "../squel"
+    delete require.cache[require.resolve('../dist/squel')]
+    squel = require "../dist/squel"
     squel = squel.useFlavour 'postgres'
 
   'INSERT builder':
