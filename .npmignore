@@ -1,7 +1,4 @@
 test
 docs
 src
-Gruntfile.js
-squel-basic*
-squel.min.js
 .*
