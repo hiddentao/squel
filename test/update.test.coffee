@@ -261,6 +261,17 @@ test['UPDATE builder'] =
         values: [1, 0, 1, 123],
       }
 
+  'fix for #243 - ampersand in conditions':
+    beforeEach: ->
+      @inst = squel.update().table('a').set('a = a & ?', 2)
+    toString: ->
+      assert.same @inst.toString(), 'UPDATE a SET a = a & 2'
+    toParam: ->
+      assert.same @inst.toParam(), {
+        text: 'UPDATE a SET a = a & ?',
+        values: [2],
+      }
+
   'cloning': ->
     newinst = @inst.table('students').set('field', 1).clone()
     newinst.set('field', 2).set('field2', true)

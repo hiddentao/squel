@@ -1337,22 +1337,21 @@ function _buildSquel(flavour = null) {
         let value = this._values[0][i];
 
         // e.g. field can be an expression such as `count = count + 1`
-        if (typeof value === 'undefined') {
-          totalStr += field;
+        if (0 > field.indexOf('=')) {
+          field = `${field} = ${this.options.parameterCharacter}`;
         }
-        else {
-          let ret = this._buildString(
-            `${field} = ${this.options.parameterCharacter}`, 
-            [value],
-            {
-              buildParameterized: buildParameterized,
-              formattingOptions: this._valueOptions[0][i],
-            }
-          );
 
-          totalStr += ret.text;
-          totalValues.push(...ret.values);
-        }
+        let ret = this._buildString(
+          field,
+          [value],
+          {
+            buildParameterized: buildParameterized,
+            formattingOptions: this._valueOptions[0][i],
+          }
+        );
+
+        totalStr += ret.text;
+        totalValues.push(...ret.values);
       }
 
       return { 

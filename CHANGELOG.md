@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 13 June 2016 (5.3.2)
+* #234 - Fix handling of expression field names
+
 ## 5 June 2016 (5.3.1)
 * #158, #239 - Support for CTE queries (`WITH` clause)
 * #242 - Fix auto-quoting table names

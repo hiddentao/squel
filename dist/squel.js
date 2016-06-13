@@ -1812,17 +1812,17 @@ function _buildSquel() {
           var value = this._values[0][i];
 
           // e.g. field can be an expression such as `count = count + 1`
-          if (typeof value === 'undefined') {
-            totalStr += field;
-          } else {
-            var ret = this._buildString(field + ' = ' + this.options.parameterCharacter, [value], {
-              buildParameterized: buildParameterized,
-              formattingOptions: this._valueOptions[0][i]
-            });
-
-            totalStr += ret.text;
-            totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+          if (0 > field.indexOf('=')) {
+            field = field + ' = ' + this.options.parameterCharacter;
           }
+
+          var ret = this._buildString(field, [value], {
+            buildParameterized: buildParameterized,
+            formattingOptions: this._valueOptions[0][i]
+          });
+
+          totalStr += ret.text;
+          totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
         }
 
         return {
@@ -2942,7 +2942,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.3.1',
+    VERSION: '5.3.2',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

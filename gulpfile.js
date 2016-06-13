@@ -13,6 +13,9 @@ const gulp = require('gulp'),
   argv = require('yargs').argv;
 
 
+const onlyTest = argv.onlyTest || argv.limitTest;
+
+
 const SQUEL_VERSION = require('./package.json').version;
 
 
@@ -70,9 +73,11 @@ gulp.task('build-full', function() {
 });
 
 
+gulp.task('build', ['build-basic', 'build-full']);
+
 
 gulp.task('test', function () {
-  return gulp.src(argv.onlyTest || [
+  return gulp.src(onlyTest || [
       './test/baseclasses.test.coffee',
       './test/blocks.test.coffee',
       './test/case.test.coffee',
@@ -94,8 +99,9 @@ gulp.task('test', function () {
 });
 
 
+
 gulp.task('default', function(cb) {
-  runSequence(['build-basic', 'build-full'], 'test', cb);
+  runSequence(['build'], 'test', cb);
 });
 
 
