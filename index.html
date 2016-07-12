@@ -209,7 +209,7 @@
             );
             /*
                 SELECT
-                * 
+                *
                 FROM students
             */
         </pre>
@@ -620,13 +620,13 @@
             log(
                 squel.select()
                     .from("students")
-                    .union( 
+                    .union(
                         squel.select()
-                            .from('scores') 
+                            .from('scores')
                     )
-                    .union( 
+                    .union(
                         squel.select()
-                            .from('batches') 
+                            .from('batches')
                     )
                     .toString()
             );
@@ -889,7 +889,7 @@
                     .set("level", squel.select().field('MAX(level)').from('levels'))
                     .toString()
             );
-            /*  INSERT INTO students (name, age, score, graduate, nickname, level) 
+            /*  INSERT INTO students (name, age, score, graduate, nickname, level)
                 VALUES ('Thomas', 29, 90.2, TRUE, NULL, (SELECT MAX(level) FROM levels)) */
         </pre>
 
@@ -937,7 +937,7 @@
             /*  INSERT INTO students (name, age) VALUES ('Thomas', 29), ('Jane', 31) */
         </pre>
 
-      <em>Note: When doing a multi-row insertion every row specified in the parameter to <code>setFieldsRows</code> should 
+      <em>Note: When doing a multi-row insertion every row specified in the parameter to <code>setFieldsRows</code> should
       have the same field names specified. Squel will throw an error if this is not the case.</em>
 
         <h3>Other types</h3>
@@ -948,9 +948,9 @@
         log(
             squel.insert()
                 .into("students")
-                .fromQuery( 
-                    ['username'], 
-                    squel.select().field('name').from('candidates') 
+                .fromQuery(
+                    ['username'],
+                    squel.select().field('name').from('candidates')
                 )
                 .toString()
         );
@@ -1011,7 +1011,7 @@
                 .from("students")
                 .where("a IN ?", squel.select().field('score').from('results').where('c = ?', 5))
                 .union(
-                    squel.select().field('age').from('states').where('person = ?', 
+                    squel.select().field('age').from('states').where('person = ?',
                         squel.select().field('id').from('students').where('name = ?', 'John').limit(1)
                     )
                 )
@@ -1026,7 +1026,7 @@
             */
         </pre>
 
-      <p>As you can see the parameter values are not specially formatted as they normally are when <code>toString()</code> 
+      <p>As you can see the parameter values are not specially formatted as they normally are when <code>toString()</code>
       is called. Also note that the parameter placeholders are non-numbered by default. To enable numbering use the
       <code>numberedParameters</code> option:</p>
 
@@ -1111,7 +1111,7 @@
           */
       </pre>
 
-      <p>In general it is better to use <code>toParam()</code> rather than <code>toString()</code> when constructing the final query 
+      <p>In general it is better to use <code>toParam()</code> rather than <code>toString()</code> when constructing the final query
       as it gives you the opportunity to use your database engine methods to safely escape and interpolate your parameters.</p>
 
       <h3>Functions as values</h3>
@@ -1129,7 +1129,7 @@
           /*   UPDATE students SET modified = 'NOW()'   */
       </pre>
 
-      <p>As you can see Squel automatically adds quotes since it treats the value as a string. To workaround this you can use the 
+      <p>As you can see Squel automatically adds quotes since it treats the value as a string. To workaround this you can use the
       <code>.str()</code> method:</p>p>
 
       <pre class="brush: js">
@@ -1181,7 +1181,7 @@
         /*   SELECT `s`.`name` AS "Student name" FROM `students` `s`  */
       </pre>
 
-      <p>Notice how squel was smart enough to detect the period separator within <code>s.name</code> when quoting. 
+      <p>Notice how squel was smart enough to detect the period separator within <code>s.name</code> when quoting.
       You can turn off this behaviour if you wish:</p>
 
       <pre class="brush: js">
@@ -1331,8 +1331,8 @@
 
       <h3>String formatting</h3>
 
-      You can completely override how Squel formats string values prior to 
-      insertion into a query string. This can be useful if, for example, your 
+      You can completely override how Squel formats string values prior to
+      insertion into a query string. This can be useful if, for example, your
       database engine requires Unicode strings to be specially decorated:
 
       <pre class="brush: js">
@@ -1423,7 +1423,7 @@
             /*  UPDATE students SET value = 2 */
       </pre>
 
-      <p>We can even register handlers for primitive types such as strings and booleans. Simply pass in the 
+      <p>We can even register handlers for primitive types such as strings and booleans. Simply pass in the
       primitive type name as a string:</p>
 
       <pre class="brush: js">
@@ -1479,12 +1479,12 @@
                     .toParam()
             );
 
-            /*  
+            /*
             {
               text:  SELECT * FROM students WHERE (start_date >= ?) AND (end_date <= ?),
               values: [ '2012-5-22', '2013-6-30' ]
             }
-            */                
+            */
       </pre>
 
     </section>
@@ -1526,15 +1526,15 @@
         Check out <a href="https://github.com/hiddentao/squel/blob/master/src/squel.coffee">squel.coffee</a> to see
         the available building blocks.</p>
 
-      <p>You can also build other types of queries and query clauses not already included in Squel. Let's say you wanted to build a query structured as follows: 
+      <p>You can also build other types of queries and query clauses not already included in Squel. Let's say you wanted to build a query structured as follows:
       <code>CREATE TABLE {tableName} ({fieldName} {fieldType}, ...);</code>:</p>
 
       <pre class="brush: js">
         /*
-        NOTE: All methods prefixed with '_' are internal and not exposed via the 
+        NOTE: All methods prefixed with '_' are internal and not exposed via the
         query builder.
          */
-        
+
         class CreateTableBlock extends squel.cls.Block {
           /** The method exposed by the query builder */
           table (name) {
@@ -1584,7 +1584,7 @@
               new CreateFieldBlock(options),
             ]);
           }
-        }        
+        }
 
 
         /** Convenience method */
@@ -1604,7 +1604,7 @@
             .toString()
         );
 
-        /* 
+        /*
           CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1))
         */
       </pre>
@@ -1618,7 +1618,7 @@
         function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
         /*
-        NOTE: All methods prefixed with '_' are internal and not exposed via the 
+        NOTE: All methods prefixed with '_' are internal and not exposed via the
         query builder.
          */
 
@@ -1721,9 +1721,9 @@
 
         log(squel.create().table("pet").field("name", "varchar(20)").field("owner", "varchar(20)").field("species", "varchar(20)").field("sex", "char(1)").toString());
 
-        /* 
+        /*
           CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1))
-        */        
+        */
       </pre>
 
 
@@ -1775,7 +1775,7 @@
       nice if Squel supported non-standard SQL commands for common database engines out of the box. </p>
       <p>Well it actually does. Squel supports of the concept of SQL <em>flavours</em>, whereby a flavour is a non-standard
       version of SQL which can be loaded and used at runtime. At the moment Squel provides support for the
-        <a href="http://www.postgresql.org/">Postgres</a>,  
+        <a href="http://www.postgresql.org/">Postgres</a>,
         <a href="http://msdn.microsoft.com/en-us/library/bb510741.aspx">MSSQL/Transact-SQL</a> and <a href="http://www.mysql.com/">MySQL</a> flavours of SQL.</p>
 
       <em>Note: The <a href="api.html">API docs</a> have more details on the specific features supported by each flavour.</em>
@@ -1795,7 +1795,7 @@
             .toParam()
         );
 
-        /*  
+        /*
             {
                 text: 'INSERT INTO table (field) VALUES ($1) RETURNING *'
                 values: [5]
@@ -1824,6 +1824,22 @@
         */
       </pre>
 
+        The <code>DISTINCT ON</code> clause is also supported, by passing one or more fields:
+
+      <pre class="brush: js">
+        log(
+          squelPostgres.select()
+            .distinct('field1', 'field2')
+            .from('table')
+            .order('field1')
+            .order('field2')
+            .order('field3')
+            .toString()
+        );
+
+        /*   SELECT DISTINCT ON (field1, field2) * FROM table ORDER BY field1 ASC, field2 ASC, field3 ASC */
+      </pre>
+
         <h3>MySQL</h3>
 
         The <code>mysql</code> flavour provides the <code>ON DUPLICATE KEY UPDATE</code> clause:
@@ -1842,7 +1858,7 @@
             .toParam()
         );
 
-        /*  
+        /*
             {
                 text: 'INSERT INTO table (field1, field2) VALUES (?, ?) ON DUPLICATE KEY UPDATE field1 = ?'
                 values: ['abc', 3, 'upd']
@@ -1866,7 +1882,7 @@
             .toString()
         );
 
-        /*  
+        /*
             INSERT INTO table (field1) VALUES(('2012-12-12 4:30:0'))
         */
       </pre>
@@ -1884,7 +1900,7 @@
             .toString()
         );
 
-        /*  
+        /*
             SELECT TOP (10) field FROM table
         */
       </pre>
@@ -1903,7 +1919,7 @@
             .toString()
         );
 
-        /*  
+        /*
             SELECT field FROM table OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY
         */
       </pre>
@@ -1921,7 +1937,7 @@
             .toString()
         );
 
-        /*  
+        /*
             UPDATE table SET field = 1 OUTPUT INSERTED.id AS blah
         */
       </pre>
@@ -1937,7 +1953,7 @@
             .toString()
         );
 
-        /*  
+        /*
             INSERT INTO table (field) OUTPUT INSERTED.id VALUES (1)
         */
       </pre>

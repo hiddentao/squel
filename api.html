@@ -72,6 +72,14 @@
           },
           '.distinct()': {
             desc: 'Insert the DISTINCT keyword.',
+            params: {
+              'fields...': {
+                desc: 'One or more field names to use. If passed, this will insert a <code>DISTINCT ON</code> clause.',
+                type: 'One or more strings',
+                flavours: ['postgres'],
+                defaultValue: 'undefined'
+              }
+            },
             returns: 'this'
           },
           '.field()': {
@@ -732,7 +740,7 @@
               },
             },
             returns: 'this'
-          },          
+          },
           '.returning()': {
             desc: 'Add a RETURNING clause.',
             flavours: ['postgres'],
@@ -1120,7 +1128,7 @@
               separator: {
                 desc: 'String used to join individual blocks in a query when it is stringified.',
                 type: 'String',
-                defaultValue: ' ' 
+                defaultValue: ' '
               },
               singleQuoteReplacement: {
                 desc: 'What to replace single quotes with if <code>replaceSingleQuotes</code> is enabled.',
@@ -1130,7 +1138,7 @@
               stringFormatter: {
                 desc: 'Function to call to process string values, prior to insertion into a query string.',
                 type: 'Function',
-                defaultValue: 'null' 
+                defaultValue: 'null'
               },
               tableAliasQuoteCharacter: {
                 desc: 'The quote character used when quoting table alias names.',
