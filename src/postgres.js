@@ -58,6 +58,41 @@ squel.flavours['postgres'] = function(_squel) {
     }
   }
 
+  // DISTINCT [ON]
+  cls.DistinctOnBlock = class extends cls.Block {
+    constructor(options) {
+      super(options);
+
+      this._distinctFields = [];
+    }
+
+    distinct(...fields) {
+      this._useDistinct = true;
+
+      // Add all fields to the DISTINCT ON clause.
+      fields.forEach((field) => {
+        this._distinctFields.push(this._sanitizeField(field));
+      });
+    }
+
+    _toParamString() {
+      let text = '';
+
+      if (this._useDistinct) {
+        text = 'DISTINCT';
+
+        if (this._distinctFields.length) {
+            text += ` ON (${this._distinctFields.join(', ')})`;
+        }
+      }
+
+      return {
+        text,
+        values: []
+      };
+    }
+  }
+
   // SELECT query builder.
   cls.Select = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
@@ -65,7 +100,7 @@ squel.flavours['postgres'] = function(_squel) {
         new cls.WithBlock(options),
         new cls.StringBlock(options, 'SELECT'),
         new cls.FunctionBlock(options),
-        new cls.DistinctBlock(options),
+        new cls.DistinctOnBlock(options),
         new cls.GetFieldBlock(options),
         new cls.FromTableBlock(options),
         new cls.JoinBlock(options),
@@ -138,4 +173,3 @@ squel.flavours['postgres'] = function(_squel) {
     }
   }
 }
-

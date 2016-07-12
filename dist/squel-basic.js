@@ -460,16 +460,16 @@ function _buildSquel() {
         if (null === item) {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-            // primitives are allowed
-          } else if (item instanceof cls.BaseBuilder) {
-              // Builders allowed
-            } else {
-                var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+          // primitives are allowed
+        } else if (item instanceof cls.BaseBuilder) {
+          // Builders allowed
+        } else {
+          var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-                if (!typeIsValid) {
-                  throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-                }
-              }
+          if (!typeIsValid) {
+            throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
+          }
+        }
 
         return item;
       }

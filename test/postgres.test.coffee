@@ -135,6 +135,43 @@ test['Postgres flavour'] =
             "values": [2]
           }
 
+    'distinct queries':
+      beforeEach: ->
+        @sel.fields(['field1', 'field2']).from('table1')
+
+      '>> from(table).distinct()':
+        beforeEach: ->
+          @sel.distinct()
+        toString: ->
+          assert.same @sel.toString(), 'SELECT DISTINCT field1, field2 FROM table1'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            'text': 'SELECT DISTINCT field1, field2 FROM table1',
+            'values': []
+          }
+
+      '>> from(table).distinct(field1)':
+        beforeEach: ->
+          @sel.distinct('field1')
+        toString: ->
+          assert.same @sel.toString(), 'SELECT DISTINCT ON (field1) field1, field2 FROM table1'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            'text': 'SELECT DISTINCT ON (field1) field1, field2 FROM table1',
+            'values': []
+          }
+
+      '>> from(table).distinct(field1, field2)':
+        beforeEach: ->
+          @sel.distinct('field1', 'field2')
+        toString: ->
+          assert.same @sel.toString(), 'SELECT DISTINCT ON (field1, field2) field1, field2 FROM table1'
+        toParam: ->
+          assert.same @sel.toParam(), {
+            'text': 'SELECT DISTINCT ON (field1, field2) field1, field2 FROM table1',
+            'values': []
+          }
+
     'cte queries':
       beforeEach: ->
         @sel = squel.select()
