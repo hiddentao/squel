@@ -1824,24 +1824,7 @@
         */
       </pre>
 
-        The <code>DISTINCT ON</code> clause is also supported, by passing either a field...
-
-      <pre class="brush: js">
-        squelPostgres = squel.useFlavour('postgres');
-
-        log(
-          squelPostgres.select()
-            .distinct('field1')
-            .from('table')
-            .order('field1')
-            .order('field2')
-            .toString()
-        );
-
-        /*   SELECT DISTINCT ON (field1) * FROM table ORDER BY field1 ASC, field2 ASC */
-      </pre>
-
-        ...or an array of fields:
+        The <code>DISTINCT ON</code> clause is also supported, by passing one or more fields:
 
       <pre class="brush: js">
         log(
