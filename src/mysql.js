@@ -63,6 +63,20 @@ squel.flavours['mysql'] = function(_squel) {
     }
   }
 
+  // REPLACE query builder.
+  cls.Replace = class extends cls.QueryBuilder {
+    constructor (options, blocks = null) {
+      blocks = blocks || [
+        new cls.StringBlock(options, 'REPLACE'),
+        new cls.IntoTableBlock(options),
+        new cls.InsertFieldValueBlock(options),
+        new cls.InsertFieldsFromQueryBlock(options),
+      ];
+
+      super(options, blocks);
+    }
+  }
+
 
 };
 

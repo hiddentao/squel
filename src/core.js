@@ -2092,6 +2092,11 @@ function _buildSquel(flavour = null) {
     }
   }
 
+  // Dummy REPLACE query builder
+  cls.Replace = function(options, blocks){
+    throw new Error(`Only available on Mysql`);
+  }
+
 
   let _squel = {
     VERSION: '<<VERSION_STRING>>',
@@ -2110,6 +2115,9 @@ function _buildSquel(flavour = null) {
     },
     insert: function(options, blocks) {
       return new cls.Insert(options, blocks);
+    },
+    replace: function(options, blocks) {
+      return new cls.Replace(options, blocks);
     },
     delete: function(options, blocks) {
       return new cls.Delete(options, blocks);
