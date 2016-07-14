@@ -78,5 +78,9 @@ squel.flavours['mysql'] = function(_squel) {
   }
 
 
+  _squel.replace = function(options, blocks){
+      return new cls.Replace(options, blocks);
+  }
+
 };
 
