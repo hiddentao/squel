@@ -2091,7 +2091,7 @@ function _buildSquel(flavour = null) {
       super(options, blocks);
     }
   }
-
+  
 
   let _squel = {
     VERSION: '<<VERSION_STRING>>',

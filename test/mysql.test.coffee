@@ -106,4 +106,23 @@ test['MySQL flavour'] =
         }
 
 
+  'REPLACE builder':
+    beforeEach: -> @inst = squel.replace()
+
+    '>> into(table).set(field, 1).set(field1, 2)':
+      beforeEach: ->
+        @inst
+          .into('table')
+          .set('field', 1)
+          .set('field1', 2)
+      toString: ->
+        assert.same @inst.toString(), 'REPLACE INTO table (field, field1) VALUES (1, 2)'
+
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'REPLACE INTO table (field, field1) VALUES (?, ?)'
+          values: [1, 2]
+        }
+
+
 module?.exports[require('path').basename(__filename)] = test
