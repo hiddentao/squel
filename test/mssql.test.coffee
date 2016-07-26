@@ -138,6 +138,39 @@ test['MSSQL flavour'] =
       toString: ->
         assert.same @upt.toString(), 'DELETE FROM table OUTPUT DELETED.id AS ident, DELETED.name AS naming WHERE (a = 1)'
 
+  'cte queries':
+    beforeEach: ->
+      @sel = squel.select()
+      @sel2 = squel.select()
+      @sel3 = squel.select()
+
+    '>> query1.with(alias, query2)':
+      beforeEach: ->
+        @sel.from('table1').where('field1 = ?', 1)
+        @sel2.from('table2').where('field2 = ?', 2)
+        @sel.with('someAlias', @sel2)
+      toString: ->
+        assert.same @sel.toString(), 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = 2)) SELECT * FROM table1 WHERE (field1 = 1)'
+      toParam: ->
+        assert.same @sel.toParam(), {
+          "text": 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = ?)) SELECT * FROM table1 WHERE (field1 = ?)'
+          "values": [2, 1]
+        }
+
+    '>> query1.with(alias1, query2).with(alias2, query2)':
+      beforeEach: ->
+        @sel.from('table1').where('field1 = ?', 1)
+        @sel2.from('table2').where('field2 = ?', 2)
+        @sel3.from('table3').where('field3 = ?', 3)
+        @sel.with('someAlias', @sel2).with('anotherAlias', @sel3)
+      toString: ->
+        assert.same @sel.toString(), 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = 2)), anotherAlias AS (SELECT * FROM table3 WHERE (field3 = 3)) SELECT * FROM table1 WHERE (field1 = 1)'
+      toParam: ->
+        assert.same @sel.toParam(), {
+          "text": 'WITH someAlias AS (SELECT * FROM table2 WHERE (field2 = ?)), anotherAlias AS (SELECT * FROM table3 WHERE (field3 = ?)) SELECT * FROM table1 WHERE (field1 = ?)'
+          "values": [2, 3, 1]
+        }
+
   'Default query builder options': ->
     assert.same {
       autoQuoteTableNames: false
