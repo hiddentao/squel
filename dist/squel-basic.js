@@ -332,7 +332,6 @@ function _buildSquel() {
      * Constructor.
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
-
     function _class2(options) {
       _classCallCheck(this, _class2);
 
@@ -460,16 +459,16 @@ function _buildSquel() {
         if (null === item) {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-            // primitives are allowed
-          } else if (item instanceof cls.BaseBuilder) {
-              // Builders allowed
-            } else {
-                var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+          // primitives are allowed
+        } else if (item instanceof cls.BaseBuilder) {
+          // Builders allowed
+        } else {
+          var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-                if (!typeIsValid) {
-                  throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-                }
-              }
+          if (!typeIsValid) {
+            throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
+          }
+        }
 
         return item;
       }
@@ -842,7 +841,6 @@ function _buildSquel() {
     _inherits(_class3, _cls$BaseBuilder);
 
     // Initialise the expression.
-
     function _class3(options) {
       _classCallCheck(this, _class3);
 
@@ -1240,7 +1238,6 @@ function _buildSquel() {
      * @param {Boolean} [options.singleTable] If true then only allow one table spec.
      * @param {String} [options.prefix] String prefix for output.
      */
-
     function _class8(options, prefix) {
       _classCallCheck(this, _class8);
 
@@ -2073,7 +2070,6 @@ function _buildSquel() {
     /** 
      * @param {String} options.verb The condition verb.
      */
-
     function _class21(options) {
       _classCallCheck(this, _class21);
 
@@ -2655,7 +2651,6 @@ function _buildSquel() {
     #
     # blocks - array of cls.BaseBuilderBlock instances to build the query with.
     */
-
     function _class28(options, blocks) {
       _classCallCheck(this, _class28);
 

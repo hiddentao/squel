@@ -332,7 +332,6 @@ function _buildSquel() {
      * Constructor.
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
-
     function _class2(options) {
       _classCallCheck(this, _class2);
 
@@ -460,16 +459,16 @@ function _buildSquel() {
         if (null === item) {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-            // primitives are allowed
-          } else if (item instanceof cls.BaseBuilder) {
-              // Builders allowed
-            } else {
-                var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+          // primitives are allowed
+        } else if (item instanceof cls.BaseBuilder) {
+          // Builders allowed
+        } else {
+          var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-                if (!typeIsValid) {
-                  throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-                }
-              }
+          if (!typeIsValid) {
+            throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
+          }
+        }
 
         return item;
       }
@@ -842,7 +841,6 @@ function _buildSquel() {
     _inherits(_class3, _cls$BaseBuilder);
 
     // Initialise the expression.
-
     function _class3(options) {
       _classCallCheck(this, _class3);
 
@@ -1240,7 +1238,6 @@ function _buildSquel() {
      * @param {Boolean} [options.singleTable] If true then only allow one table spec.
      * @param {String} [options.prefix] String prefix for output.
      */
-
     function _class8(options, prefix) {
       _classCallCheck(this, _class8);
 
@@ -2073,7 +2070,6 @@ function _buildSquel() {
     /** 
      * @param {String} options.verb The condition verb.
      */
-
     function _class21(options) {
       _classCallCheck(this, _class21);
 
@@ -2655,7 +2651,6 @@ function _buildSquel() {
     #
     # blocks - array of cls.BaseBuilderBlock instances to build the query with.
     */
-
     function _class28(options, blocks) {
       _classCallCheck(this, _class28);
 
@@ -3382,7 +3377,7 @@ squel.flavours['mssql'] = function (_squel) {
 
       var limitOffsetTopBlock = new cls.MssqlLimitOffsetTopBlock(options);
 
-      blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), limitOffsetTopBlock.TOP(), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET(), limitOffsetTopBlock.LIMIT(), new cls.UnionBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'SELECT'), new cls.DistinctBlock(options), limitOffsetTopBlock.TOP(), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.OrderByBlock(options), limitOffsetTopBlock.OFFSET(), limitOffsetTopBlock.LIMIT(), new cls.UnionBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class41).call(this, options, blocks));
     }
@@ -3401,7 +3396,7 @@ squel.flavours['mssql'] = function (_squel) {
 
       _classCallCheck(this, _class42);
 
-      blocks = blocks || [new cls.StringBlock(options, 'UPDATE'), new cls.MssqlUpdateTopBlock(options), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.MssqlUpdateDeleteOutputBlock(options), new cls.WhereBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'UPDATE'), new cls.MssqlUpdateTopBlock(options), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.MssqlUpdateDeleteOutputBlock(options), new cls.WhereBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class42).call(this, options, blocks));
     }
@@ -3420,7 +3415,7 @@ squel.flavours['mssql'] = function (_squel) {
 
       _classCallCheck(this, _class43);
 
-      blocks = blocks || [new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, { singleTable: true })), new cls.JoinBlock(options), new cls.MssqlUpdateDeleteOutputBlock(_extend({}, options, { forDelete: true })), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, { singleTable: true })), new cls.JoinBlock(options), new cls.MssqlUpdateDeleteOutputBlock(_extend({}, options, { forDelete: true })), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class43).call(this, options, blocks));
     }
@@ -3437,148 +3432,28 @@ squel.flavours['mssql'] = function (_squel) {
 
       _classCallCheck(this, _class44);
 
-      blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.MssqlInsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.MssqlInsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class44).call(this, options, blocks));
     }
 
     return _class44;
   }(cls.QueryBuilder);
-};
 
-// This file contains additional Squel commands for use with MySQL
+  // WITH
+  cls.WithBlock = function (_cls$Block19) {
+    _inherits(_class45, _cls$Block19);
 
-squel.flavours['mysql'] = function (_squel) {
-  var cls = _squel.cls;
-
-  // ON DUPLICATE KEY UPDATE ...
-  cls.MysqlOnDuplicateKeyUpdateBlock = function (_cls$AbstractSetField3) {
-    _inherits(_class45, _cls$AbstractSetField3);
-
-    function _class45() {
+    function _class45(options) {
       _classCallCheck(this, _class45);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class45).apply(this, arguments));
+      var _this51 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class45).call(this, options));
+
+      _this51._tables = [];
+      return _this51;
     }
 
     _createClass(_class45, [{
-      key: 'onDupUpdate',
-      value: function onDupUpdate(field, value, options) {
-        this._set(field, value, options);
-      }
-    }, {
-      key: '_toParamString',
-      value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-        var totalStr = "",
-            totalValues = [];
-
-        for (var i = 0; i < this._fields.length; ++i) {
-          totalStr = _pad(totalStr, ', ');
-
-          var field = this._fields[i];
-
-          var value = this._values[0][i];
-
-          var valueOptions = this._valueOptions[0][i];
-
-          // e.g. if field is an expression such as: count = count + 1
-          if (typeof value === 'undefined') {
-            totalStr += field;
-          } else {
-            var ret = this._buildString(field + ' = ' + this.options.parameterCharacter, [value], {
-              buildParameterized: options.buildParameterized,
-              formattingOptions: valueOptions
-            });
-
-            totalStr += ret.text;
-            totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
-          }
-        }
-
-        return {
-          text: !totalStr.length ? "" : 'ON DUPLICATE KEY UPDATE ' + totalStr,
-          values: totalValues
-        };
-      }
-    }]);
-
-    return _class45;
-  }(cls.AbstractSetFieldBlock);
-
-  // INSERT query builder.
-  cls.Insert = function (_cls$QueryBuilder9) {
-    _inherits(_class46, _cls$QueryBuilder9);
-
-    function _class46(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-
-      _classCallCheck(this, _class46);
-
-      blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.MysqlOnDuplicateKeyUpdateBlock(options)];
-
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class46).call(this, options, blocks));
-    }
-
-    return _class46;
-  }(cls.QueryBuilder);
-};
-
-// This file contains additional Squel commands for use with the Postgres DB engine
-squel.flavours['postgres'] = function (_squel) {
-  var cls = _squel.cls;
-
-  cls.DefaultQueryBuilderOptions.numberedParameters = true;
-  cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1;
-  cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
-  cls.DefaultQueryBuilderOptions.useAsForTableAliasNames = true;
-
-  // RETURNING
-  cls.ReturningBlock = function (_cls$Block19) {
-    _inherits(_class47, _cls$Block19);
-
-    function _class47(options) {
-      _classCallCheck(this, _class47);
-
-      var _this53 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class47).call(this, options));
-
-      _this53._str = null;
-      return _this53;
-    }
-
-    _createClass(_class47, [{
-      key: 'returning',
-      value: function returning(ret) {
-        this._str = this._sanitizeField(ret);
-      }
-    }, {
-      key: '_toParamString',
-      value: function _toParamString() {
-        return {
-          text: this._str ? 'RETURNING ' + this._str : '',
-          values: []
-        };
-      }
-    }]);
-
-    return _class47;
-  }(cls.Block);
-
-  // WITH
-  cls.WithBlock = function (_cls$Block20) {
-    _inherits(_class48, _cls$Block20);
-
-    function _class48(options) {
-      _classCallCheck(this, _class48);
-
-      var _this54 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class48).call(this, options));
-
-      _this54._tables = [];
-      return _this54;
-    }
-
-    _createClass(_class48, [{
       key: 'with',
       value: function _with(alias, table) {
         this._tables.push({ alias: alias, table: table });
@@ -3631,26 +3506,236 @@ squel.flavours['postgres'] = function (_squel) {
       }
     }]);
 
-    return _class48;
+    return _class45;
   }(cls.Block);
+};
 
-  // DISTINCT [ON]
-  cls.DistinctOnBlock = function (_cls$Block21) {
-    _inherits(_class49, _cls$Block21);
+// This file contains additional Squel commands for use with MySQL
+
+squel.flavours['mysql'] = function (_squel) {
+  var cls = _squel.cls;
+
+  // ON DUPLICATE KEY UPDATE ...
+  cls.MysqlOnDuplicateKeyUpdateBlock = function (_cls$AbstractSetField3) {
+    _inherits(_class46, _cls$AbstractSetField3);
+
+    function _class46() {
+      _classCallCheck(this, _class46);
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class46).apply(this, arguments));
+    }
+
+    _createClass(_class46, [{
+      key: 'onDupUpdate',
+      value: function onDupUpdate(field, value, options) {
+        this._set(field, value, options);
+      }
+    }, {
+      key: '_toParamString',
+      value: function _toParamString() {
+        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+        var totalStr = "",
+            totalValues = [];
+
+        for (var i = 0; i < this._fields.length; ++i) {
+          totalStr = _pad(totalStr, ', ');
+
+          var field = this._fields[i];
+
+          var value = this._values[0][i];
+
+          var valueOptions = this._valueOptions[0][i];
+
+          // e.g. if field is an expression such as: count = count + 1
+          if (typeof value === 'undefined') {
+            totalStr += field;
+          } else {
+            var ret = this._buildString(field + ' = ' + this.options.parameterCharacter, [value], {
+              buildParameterized: options.buildParameterized,
+              formattingOptions: valueOptions
+            });
+
+            totalStr += ret.text;
+            totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
+          }
+        }
+
+        return {
+          text: !totalStr.length ? "" : 'ON DUPLICATE KEY UPDATE ' + totalStr,
+          values: totalValues
+        };
+      }
+    }]);
+
+    return _class46;
+  }(cls.AbstractSetFieldBlock);
+
+  // INSERT query builder.
+  cls.Insert = function (_cls$QueryBuilder9) {
+    _inherits(_class47, _cls$QueryBuilder9);
+
+    function _class47(options) {
+      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      _classCallCheck(this, _class47);
+
+      blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.MysqlOnDuplicateKeyUpdateBlock(options)];
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class47).call(this, options, blocks));
+    }
+
+    return _class47;
+  }(cls.QueryBuilder);
+
+  // REPLACE query builder.
+  cls.Replace = function (_cls$QueryBuilder10) {
+    _inherits(_class48, _cls$QueryBuilder10);
+
+    function _class48(options) {
+      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      _classCallCheck(this, _class48);
+
+      blocks = blocks || [new cls.StringBlock(options, 'REPLACE'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)];
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class48).call(this, options, blocks));
+    }
+
+    return _class48;
+  }(cls.QueryBuilder);
+
+  _squel.replace = function (options, blocks) {
+    return new cls.Replace(options, blocks);
+  };
+};
+
+// This file contains additional Squel commands for use with the Postgres DB engine
+squel.flavours['postgres'] = function (_squel) {
+  var cls = _squel.cls;
+
+  cls.DefaultQueryBuilderOptions.numberedParameters = true;
+  cls.DefaultQueryBuilderOptions.numberedParametersStartAt = 1;
+  cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
+  cls.DefaultQueryBuilderOptions.useAsForTableAliasNames = true;
+
+  // RETURNING
+  cls.ReturningBlock = function (_cls$Block20) {
+    _inherits(_class49, _cls$Block20);
 
     function _class49(options) {
       _classCallCheck(this, _class49);
 
       var _this55 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class49).call(this, options));
 
-      _this55._distinctFields = [];
+      _this55._str = null;
       return _this55;
     }
 
     _createClass(_class49, [{
+      key: 'returning',
+      value: function returning(ret) {
+        this._str = this._sanitizeField(ret);
+      }
+    }, {
+      key: '_toParamString',
+      value: function _toParamString() {
+        return {
+          text: this._str ? 'RETURNING ' + this._str : '',
+          values: []
+        };
+      }
+    }]);
+
+    return _class49;
+  }(cls.Block);
+
+  // WITH
+  cls.WithBlock = function (_cls$Block21) {
+    _inherits(_class50, _cls$Block21);
+
+    function _class50(options) {
+      _classCallCheck(this, _class50);
+
+      var _this56 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class50).call(this, options));
+
+      _this56._tables = [];
+      return _this56;
+    }
+
+    _createClass(_class50, [{
+      key: 'with',
+      value: function _with(alias, table) {
+        this._tables.push({ alias: alias, table: table });
+      }
+    }, {
+      key: '_toParamString',
+      value: function _toParamString() {
+        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+        var parts = [];
+        var values = [];
+
+        var _iteratorNormalCompletion19 = true;
+        var _didIteratorError19 = false;
+        var _iteratorError19 = undefined;
+
+        try {
+          for (var _iterator19 = this._tables[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+            var _step19$value = _step19.value;
+            var alias = _step19$value.alias;
+            var table = _step19$value.table;
+
+            var ret = table._toParamString({
+              buildParameterized: options.buildParameterized,
+              nested: true
+            });
+
+            parts.push(alias + ' AS ' + ret.text);
+            values.push.apply(values, _toConsumableArray(ret.values));
+          }
+        } catch (err) {
+          _didIteratorError19 = true;
+          _iteratorError19 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion19 && _iterator19.return) {
+              _iterator19.return();
+            }
+          } finally {
+            if (_didIteratorError19) {
+              throw _iteratorError19;
+            }
+          }
+        }
+
+        return {
+          text: parts.length ? 'WITH ' + parts.join(', ') : '',
+          values: values
+        };
+      }
+    }]);
+
+    return _class50;
+  }(cls.Block);
+
+  // DISTINCT [ON]
+  cls.DistinctOnBlock = function (_cls$Block22) {
+    _inherits(_class51, _cls$Block22);
+
+    function _class51(options) {
+      _classCallCheck(this, _class51);
+
+      var _this57 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class51).call(this, options));
+
+      _this57._distinctFields = [];
+      return _this57;
+    }
+
+    _createClass(_class51, [{
       key: 'distinct',
       value: function distinct() {
-        var _this56 = this;
+        var _this58 = this;
 
         this._useDistinct = true;
 
@@ -3661,7 +3746,7 @@ squel.flavours['postgres'] = function (_squel) {
         }
 
         fields.forEach(function (field) {
-          _this56._distinctFields.push(_this56._sanitizeField(field));
+          _this58._distinctFields.push(_this58._sanitizeField(field));
         });
       }
     }, {
@@ -3684,53 +3769,19 @@ squel.flavours['postgres'] = function (_squel) {
       }
     }]);
 
-    return _class49;
+    return _class51;
   }(cls.Block);
 
   // SELECT query builder.
-  cls.Select = function (_cls$QueryBuilder10) {
-    _inherits(_class50, _cls$QueryBuilder10);
-
-    function _class50(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-
-      _classCallCheck(this, _class50);
-
-      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctOnBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
-
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class50).call(this, options, blocks));
-    }
-
-    return _class50;
-  }(cls.QueryBuilder);
-
-  // INSERT query builder
-  cls.Insert = function (_cls$QueryBuilder11) {
-    _inherits(_class51, _cls$QueryBuilder11);
-
-    function _class51(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-
-      _classCallCheck(this, _class51);
-
-      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.ReturningBlock(options)];
-
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class51).call(this, options, blocks));
-    }
-
-    return _class51;
-  }(cls.QueryBuilder);
-
-  // UPDATE query builder
-  cls.Update = function (_cls$QueryBuilder12) {
-    _inherits(_class52, _cls$QueryBuilder12);
+  cls.Select = function (_cls$QueryBuilder11) {
+    _inherits(_class52, _cls$QueryBuilder11);
 
     function _class52(options) {
       var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
       _classCallCheck(this, _class52);
 
-      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.FromTableBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctOnBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class52).call(this, options, blocks));
     }
@@ -3738,23 +3789,57 @@ squel.flavours['postgres'] = function (_squel) {
     return _class52;
   }(cls.QueryBuilder);
 
-  // DELETE query builder
-  cls.Delete = function (_cls$QueryBuilder13) {
-    _inherits(_class53, _cls$QueryBuilder13);
+  // INSERT query builder
+  cls.Insert = function (_cls$QueryBuilder12) {
+    _inherits(_class53, _cls$QueryBuilder12);
 
     function _class53(options) {
       var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
       _classCallCheck(this, _class53);
 
-      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, {
-        singleTable: true
-      })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options), new cls.ReturningBlock(options)];
 
       return _possibleConstructorReturn(this, Object.getPrototypeOf(_class53).call(this, options, blocks));
     }
 
     return _class53;
+  }(cls.QueryBuilder);
+
+  // UPDATE query builder
+  cls.Update = function (_cls$QueryBuilder13) {
+    _inherits(_class54, _cls$QueryBuilder13);
+
+    function _class54(options) {
+      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      _classCallCheck(this, _class54);
+
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.FromTableBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class54).call(this, options, blocks));
+    }
+
+    return _class54;
+  }(cls.QueryBuilder);
+
+  // DELETE query builder
+  cls.Delete = function (_cls$QueryBuilder14) {
+    _inherits(_class55, _cls$QueryBuilder14);
+
+    function _class55(options) {
+      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+      _classCallCheck(this, _class55);
+
+      blocks = blocks || [new cls.WithBlock(options), new cls.StringBlock(options, 'DELETE'), new cls.TargetTableBlock(options), new cls.FromTableBlock(_extend({}, options, {
+        singleTable: true
+      })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.ReturningBlock(options)];
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class55).call(this, options, blocks));
+    }
+
+    return _class55;
   }(cls.QueryBuilder);
 };
 return squel;
