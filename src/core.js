@@ -1623,17 +1623,22 @@ function _buildSquel(flavour = null) {
     /**
     # Add an ORDER BY transformation for the given field in the given order.
     #
-    # To specify descending order pass false for the 'asc' parameter.
+    # To specify descending order pass false for the 'dir' parameter.
     */
-    order (field, asc, ...values) {
+    order (field, dir, ...values) {
       field = this._sanitizeField(field);
 
-      asc = (asc === undefined) ? true : asc;
-      asc = (asc !== null) ? !!asc : asc;
+      if (!(typeof dir === 'string')) {
+        if (dir === undefined) {
+          dir = 'ASC' // Default to asc
+        } else if (dir !== null) {
+          dir = dir ? 'ASC' : 'DESC'; // Convert truthy to asc
+        }
+      }
 
       this._orders.push({
         field: field,
-        dir: asc,   
+        dir: dir,   
         values: values,
       });
     }
@@ -1653,7 +1658,7 @@ function _buildSquel(flavour = null) {
         totalValues.push(...ret.values);
 
         if (dir !== null) {
-          totalStr += ` ${dir ? 'ASC' : 'DESC'}`;
+          totalStr += ` ${dir}`;
         }
       }
 
