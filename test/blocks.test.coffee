@@ -1178,17 +1178,17 @@ test['Blocks'] =
         expected = [
           {
             field: 'field1',
-            dir: true
+            dir: 'ASC'
             values: []
           },
           {
             field: 'field2',
-            dir: false
+            dir: 'DESC'
             values: []
           },
           {
             field: 'field3',
-            dir: true
+            dir: 'ASC'
             values: []
           }
         ]
@@ -1202,12 +1202,12 @@ test['Blocks'] =
 
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
 
-        assert.same @inst._orders, [ { field: '_f', dir: true, values: [] } ]
+        assert.same @inst._orders, [ { field: '_f', dir: 'ASC', values: [] } ]
 
       'saves additional values': ->
         @inst.order('field1', false, 1.2, 4)
 
-        assert.same @inst._orders, [ { field: 'field1', dir: false, values: [1.2, 4] } ]
+        assert.same @inst._orders, [ { field: 'field1', dir: 'DESC', values: [1.2, 4] } ]
 
 
     '_toParamString()':

@@ -201,6 +201,11 @@ test['SELECT builder'] =
                   toString: ->
                     assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a'
 
+                '>> order(a, \'asc nulls last\')':
+                  beforeEach: -> @inst.order('a', 'asc nulls last')
+                  toString: ->
+                    assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a asc nulls last'
+
                 '>> order(a, true)':
                   beforeEach: -> @inst.order('a', true)
                   toString: ->
