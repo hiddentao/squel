@@ -11,7 +11,7 @@ squel.flavours['mssql'] = function(_squel) {
   });
 
 
-  // LIMIT,  OFFSET x and TOP x
+  //ï¿½LIMIT,  OFFSET x and TOP x
   cls.MssqlLimitOffsetTopBlock = class extends cls.Block {
     constructor (options) {
       super(options);
@@ -87,7 +87,7 @@ squel.flavours['mssql'] = function(_squel) {
           let str = "";
 
           if (this._parent._offsets) {
-            str = `OFFSET ${this._parent._offsets} ROWS`; 
+            str = `OFFSET ${this._parent._offsets} ROWS`;
           }
 
           return {
@@ -235,6 +235,7 @@ squel.flavours['mssql'] = function(_squel) {
       let limitOffsetTopBlock = new cls.MssqlLimitOffsetTopBlock(options);
 
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, 'SELECT'),
         new cls.DistinctBlock(options),
         limitOffsetTopBlock.TOP(),
@@ -261,6 +262,7 @@ squel.flavours['mssql'] = function(_squel) {
   cls.Update = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, 'UPDATE'),
         new cls.MssqlUpdateTopBlock(options),
         new cls.UpdateTableBlock(options),
@@ -281,6 +283,7 @@ squel.flavours['mssql'] = function(_squel) {
   cls.Delete = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, 'DELETE'),
         new cls.TargetTableBlock(options),
         new cls.FromTableBlock( _extend({}, options, { singleTable: true }) ),
@@ -300,6 +303,7 @@ squel.flavours['mssql'] = function(_squel) {
   cls.Insert = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, 'INSERT'),
         new cls.IntoTableBlock(options),
         new cls.MssqlInsertFieldValueBlock(options),
@@ -307,6 +311,38 @@ squel.flavours['mssql'] = function(_squel) {
       ];
 
       super(options, blocks);
+    }
+  }
+
+  // WITH
+  cls.WithBlock = class extends cls.Block {
+    constructor (options) {
+      super(options);
+      this._tables = [];
+    }
+
+    with (alias, table) {
+      this._tables.push({alias, table});
+    }
+
+    _toParamString(options = {}) {
+      var parts  = [];
+      var values = [];
+
+      for (let {alias, table} of this._tables) {
+        let ret = table._toParamString({
+          buildParameterized: options.buildParameterized,
+          nested: true
+        });
+
+        parts.push(`${alias} AS ${ret.text}`);
+        values.push(...ret.values);
+      }
+
+      return {
+        text: parts.length ? `WITH ${parts.join(', ')}` : '',
+        values
+      };
     }
   }
 
