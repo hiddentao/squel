@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 26 Aug 2016 (5.3.4)
+* #261 - passing a string for `order` clause
+
 ## 12 Jul 2016 (5.3.3)
 * #249 - Postgres `DISTINCT ON` clause
 

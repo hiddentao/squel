@@ -2233,25 +2233,30 @@ function _buildSquel() {
     /**
     # Add an ORDER BY transformation for the given field in the given order.
     #
-    # To specify descending order pass false for the 'asc' parameter.
+    # To specify descending order pass false for the 'dir' parameter.
     */
 
 
     _createClass(_class24, [{
       key: 'order',
-      value: function order(field, asc) {
+      value: function order(field, dir) {
         for (var _len10 = arguments.length, values = Array(_len10 > 2 ? _len10 - 2 : 0), _key10 = 2; _key10 < _len10; _key10++) {
           values[_key10 - 2] = arguments[_key10];
         }
 
         field = this._sanitizeField(field);
 
-        asc = asc === undefined ? true : asc;
-        asc = asc !== null ? !!asc : asc;
+        if (!(typeof dir === 'string')) {
+          if (dir === undefined) {
+            dir = 'ASC'; // Default to asc
+          } else if (dir !== null) {
+              dir = dir ? 'ASC' : 'DESC'; // Convert truthy to asc
+            }
+        }
 
         this._orders.push({
           field: field,
-          dir: asc,
+          dir: dir,
           values: values
         });
       }
@@ -2283,7 +2288,7 @@ function _buildSquel() {
             totalStr += ret.text, totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
 
             if (dir !== null) {
-              totalStr += ' ' + (dir ? 'ASC' : 'DESC');
+              totalStr += ' ' + dir;
             }
           }
         } catch (err) {
@@ -2942,7 +2947,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.3.3',
+    VERSION: '5.3.4',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);
