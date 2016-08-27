@@ -72,6 +72,14 @@
           },
           '.distinct()': {
             desc: 'Insert the DISTINCT keyword.',
+            params: {
+              'fields...': {
+                desc: 'One or more field names to use. If passed, this will insert a <code>DISTINCT ON</code> clause.',
+                type: 'One or more strings',
+                flavours: ['postgres'],
+                defaultValue: 'undefined'
+              }
+            },
             returns: 'this'
           },
           '.field()': {
@@ -345,6 +353,21 @@
             },
             returns: 'this',
           },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'String'
+              },
+              table: {
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
+              }
+            },
+            returns: 'this'
+          }
         }
       }, // select
       'update()': {
@@ -513,6 +536,21 @@
               str: {
                 desc: 'What to return with the query.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'String'
+              },
+              table: {
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
@@ -702,7 +740,7 @@
               },
             },
             returns: 'this'
-          },          
+          },
           '.returning()': {
             desc: 'Add a RETURNING clause.',
             flavours: ['postgres'],
@@ -710,6 +748,21 @@
               str: {
                 desc: 'What to return with the query.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'String'
+              },
+              table: {
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
@@ -873,6 +926,21 @@
               str: {
                 desc: 'What to return with the query.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.with()': {
+            flavours: ['postgres'],
+            desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
+            params: {
+              alias: {
+                desc: 'The alias that the table expression should use',
+                type: 'String'
+              },
+              table: {
+                desc: 'Another query to include as a Common Table Expression',
+                type: '[[cls.QueryBuilder]]'
               }
             },
             returns: 'this'
@@ -1060,7 +1128,7 @@
               separator: {
                 desc: 'String used to join individual blocks in a query when it is stringified.',
                 type: 'String',
-                defaultValue: ' ' 
+                defaultValue: ' '
               },
               singleQuoteReplacement: {
                 desc: 'What to replace single quotes with if <code>replaceSingleQuotes</code> is enabled.',
@@ -1070,7 +1138,7 @@
               stringFormatter: {
                 desc: 'Function to call to process string values, prior to insertion into a query string.',
                 type: 'Function',
-                defaultValue: 'null' 
+                defaultValue: 'null'
               },
               tableAliasQuoteCharacter: {
                 desc: 'The quote character used when quoting table alias names.',
