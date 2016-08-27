@@ -553,12 +553,12 @@ test['Builder base class'] =
 
   '_formatCustomValue':
     'not a custom value type': ->
-      assert.same null, @inst._formatCustomValue(null)
-      assert.same 'abc', @inst._formatCustomValue('abc')
-      assert.same 12, @inst._formatCustomValue(12)
-      assert.same 1.2, @inst._formatCustomValue(1.2)
-      assert.same true, @inst._formatCustomValue(true)
-      assert.same false, @inst._formatCustomValue(false)
+      assert.same { formatted: false, value: null }, @inst._formatCustomValue(null)
+      assert.same { formatted: false, value: 'abc' }, @inst._formatCustomValue('abc')
+      assert.same { formatted: false, value: 12 }, @inst._formatCustomValue(12)
+      assert.same { formatted: false, value: 1.2 }, @inst._formatCustomValue(1.2)
+      assert.same { formatted: false, value: true }, @inst._formatCustomValue(true)
+      assert.same { formatted: false, value: false }, @inst._formatCustomValue(false)
 
     'custom value type':
       'global': ->
@@ -568,8 +568,8 @@ test['Builder base class'] =
         squel.registerValueHandler MyClass, () -> 3.14
         squel.registerValueHandler 'boolean', (v) -> 'a' + v
 
-        assert.same 3.14, @inst._formatCustomValue(myObj)
-        assert.same 'atrue', @inst._formatCustomValue(true)
+        assert.same { formatted: true, value: 3.14 }, @inst._formatCustomValue(myObj)
+        assert.same { formatted: true, value: 'atrue' }, @inst._formatCustomValue(true)
 
       'instance': ->
         class MyClass
@@ -578,18 +578,18 @@ test['Builder base class'] =
         @inst.registerValueHandler MyClass, () -> 3.14
         @inst.registerValueHandler 'number', (v) -> v + 'a'
 
-        assert.same 3.14, @inst._formatCustomValue(myObj)
-        assert.same '5.2a', @inst._formatCustomValue(5.2)
+        assert.same { formatted: true, value: 3.14}, @inst._formatCustomValue(myObj)
+        assert.same { formatted: true, value: '5.2a'}, @inst._formatCustomValue(5.2)
 
       'instance handler takes precedence over global': ->
         @inst.registerValueHandler Date, (d) -> 'hello'
         squel.registerValueHandler Date, (d) -> 'goodbye'
 
-        assert.same "hello", @inst._formatCustomValue(new Date)
+        assert.same { formatted: true, value: "hello"}, @inst._formatCustomValue(new Date)
 
         @inst = new @cls
           valueHandlers: []
-        assert.same "goodbye", @inst._formatCustomValue(new Date)
+        assert.same { formatted: true, value: "goodbye"}, @inst._formatCustomValue(new Date)
 
       'whether to format for parameterized output': ->
         @inst.registerValueHandler Date, (d, asParam) ->
@@ -597,8 +597,8 @@ test['Builder base class'] =
 
         val = new Date()
 
-        assert.same 'foo', @inst._formatCustomValue(val, true)
-        assert.same 'bar', @inst._formatCustomValue(val)
+        assert.same { formatted: true, value: 'foo'}, @inst._formatCustomValue(val, true)
+        assert.same { formatted: true, value: 'bar'}, @inst._formatCustomValue(val)
         
 
   '_formatValueForParamArray':
@@ -608,7 +608,7 @@ test['Builder base class'] =
 
     'else calls _formatCustomValue': ->
       spy = test.mocker.stub @inst, '_formatCustomValue', (v, asParam) -> 
-        'test' + (if asParam then 'foo' else 'bar')
+        { formatted: true, value: 'test' + (if asParam then 'foo' else 'bar') }
 
       assert.same 'testfoo', @inst._formatValueForParamArray(null)
       assert.same 'testfoo', @inst._formatValueForParamArray('abc')
@@ -692,7 +692,7 @@ test['Builder base class'] =
 
     'checks to see if it is custom value type first': ->
       test.mocker.stub @inst, '_formatCustomValue', (val, asParam) -> 
-        12 + (if asParam then 25 else 65)
+        { formatted: true, value: 12 + (if asParam then 25 else 65) }
       test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
       assert.same '{77}', @inst._formatValueForQueryString(123)
 

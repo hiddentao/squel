@@ -556,7 +556,10 @@ function _buildSquel() {
           value = customHandler(value, asParam);
         }
 
-        return value;
+        return {
+          formatted: !!customHandler,
+          value: value
+        };
       }
 
       /** 
@@ -573,7 +576,7 @@ function _buildSquel() {
             return _this3._formatValueForParamArray(v);
           });
         } else {
-          return this._formatCustomValue(value, true);
+          return this._formatCustomValue(value, true).value;
         }
       }
 
@@ -583,16 +586,20 @@ function _buildSquel() {
 
     }, {
       key: '_formatValueForQueryString',
-      value: function _formatValueForQueryString(value) {
+      value: function _formatValueForQueryString(initialValue) {
         var _this4 = this;
 
         var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-        var customFormattedValue = this._formatCustomValue(value);
+        var _formatCustomValue2 = this._formatCustomValue(initialValue);
+
+        var formatted = _formatCustomValue2.formatted;
+        var value = _formatCustomValue2.value;
 
         // if formatting took place then return it directly
-        if (customFormattedValue !== value) {
-          return this._applyNestingFormatting(customFormattedValue);
+
+        if (formatted) {
+          return this._applyNestingFormatting(value);
         }
 
         // if it's an array then format each element separately

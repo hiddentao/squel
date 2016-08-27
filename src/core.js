@@ -418,7 +418,10 @@ function _buildSquel(flavour = null) {
         value = customHandler(value, asParam);
       }
 
-      return value;
+      return {
+        formatted: !!customHandler,
+        value: value,
+      };
     }
 
 
@@ -432,7 +435,7 @@ function _buildSquel(flavour = null) {
           return this._formatValueForParamArray(v);
         });
       } else {
-        return this._formatCustomValue(value, true);
+        return this._formatCustomValue(value, true).value;
       }
     }
 
@@ -441,12 +444,12 @@ function _buildSquel(flavour = null) {
     /**
      * Format the given field value for inclusion into the query string
      */
-    _formatValueForQueryString (value, formattingOptions = {}) {
-      let customFormattedValue = this._formatCustomValue(value);
+    _formatValueForQueryString (initialValue, formattingOptions = {}) {
+      let { formatted, value } = this._formatCustomValue(initialValue);
       
       // if formatting took place then return it directly
-      if (customFormattedValue !== value) {
-        return this._applyNestingFormatting(customFormattedValue);
+      if (formatted) {
+        return this._applyNestingFormatting(value);
       }
 
       // if it's an array then format each element separately
