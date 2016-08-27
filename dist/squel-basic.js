@@ -366,11 +366,11 @@ function _buildSquel() {
     }, {
       key: '_sanitizeExpression',
       value: function _sanitizeExpression(expr) {
-        // If it's not an Expression builder instance
-        if (!(expr instanceof cls.Expression)) {
+        // If it's not a base builder instance
+        if (!(expr instanceof cls.BaseBuilder)) {
           // It must then be a string
           if (typeof expr !== "string") {
-            throw new Error("expression must be a string or Expression instance");
+            throw new Error("expression must be a string or builder instance");
           }
         }
 
@@ -408,7 +408,7 @@ function _buildSquel() {
           return item;
         }
 
-        throw new Error("must be a BaseBuilder instance");
+        throw new Error("must be a builder instance");
       }
     }, {
       key: '_sanitizeTable',
@@ -417,7 +417,7 @@ function _buildSquel() {
           try {
             item = this._sanitizeBaseBuilder(item);
           } catch (e) {
-            throw new Error("table name must be a string or a query builder");
+            throw new Error("table name must be a string or a builder");
           }
         } else {
           item = this._sanitizeName(item, 'table');
@@ -2954,7 +2954,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.4.0',
+    VERSION: '5.4.1',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

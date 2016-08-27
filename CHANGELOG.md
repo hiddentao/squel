@@ -1,7 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 27 Aug 2016 (5.4.0)
+## 27 Aug 2016 (5.4.1)
 * A better check for detecting when custom value formatting has been applied.
+* Allow for any builder to passed in as an expression
 
 ## 26 Aug 2016 (5.3.4)
 * #261 - passing a string for `order` clause

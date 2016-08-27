@@ -296,13 +296,17 @@ test['Builder base class'] =
         e = squel.expr().and("s.name <> 'Fred'")
         assert.same e, @inst._sanitizeExpression(e)
 
+    'if Expression': ->
+      s = squel.str('s')
+      assert.same s, @inst._sanitizeExpression(s)
+
     'if string': ->
       s = 'BLA BLA'
       assert.same 'BLA BLA', @inst._sanitizeExpression(s)
 
-    'if neither Expression nor String': ->
+    'if neither expression, builder nor String': ->
       testFn = => @inst._sanitizeExpression(1)
-      assert.throws testFn, 'expression must be a string or Expression instance'
+      assert.throws testFn, 'expression must be a string or builder instance'
 
 
   '_sanitizeName':
@@ -349,7 +353,7 @@ test['Builder base class'] =
 
   '_sanitizeBaseBuilder':
     'is not base builder': ->
-      assert.throws (=> @inst._sanitizeBaseBuilder(null)), 'must be a BaseBuilder instance'
+      assert.throws (=> @inst._sanitizeBaseBuilder(null)), 'must be a builder instance'
 
     'is a query builder': ->
       qry = squel.select()
@@ -365,7 +369,7 @@ test['Builder base class'] =
       assert.ok @inst._sanitizeName.calledWithExactly 'abc', 'table'
 
     'not a string': ->
-      assert.throws (=> @inst._sanitizeTable(null)), 'table name must be a string or a query builder'
+      assert.throws (=> @inst._sanitizeTable(null)), 'table name must be a string or a builder'
 
     'query builder': ->
       select = squel.select()

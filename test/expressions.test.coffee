@@ -57,30 +57,34 @@ test['Expression builder base class'] =
 
   'and()':
     'without an argument throws an error': ->
-      assert.throws (=> @inst.and()), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.and()), 'expression must be a string or builder instance'
     'with an array throws an error': ->
-      assert.throws (=> @inst.and([1])), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.and([1])), 'expression must be a string or builder instance'
     'with an object throws an error': ->
-      assert.throws (=> @inst.and(new Object)), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.and(new Object)), 'expression must be a string or builder instance'
     'with a function throws an error': ->
-      assert.throws (=> @inst.and(-> 1)), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.and(-> 1)), 'expression must be a string or builder instance'
     'with an Expression returns object instance': ->
       assert.same @inst, @inst.and(squel.expr())
+    'with a builder returns object instance': ->
+      assert.same @inst, @inst.and(squel.str())
     'with a string returns object instance': ->
       assert.same @inst, @inst.and('bla')
 
 
   'or()':
     'without an argument throws an error': ->
-      assert.throws (=> @inst.or()), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.or()), 'expression must be a string or builder instance'
     'with an array throws an error': ->
-      assert.throws (=> @inst.or([1])), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.or([1])), 'expression must be a string or builder instance'
     'with an object throws an error': ->
-      assert.throws (=> @inst.or(new Object)), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.or(new Object)), 'expression must be a string or builder instance'
     'with a function throws an error': ->
-      assert.throws (=> @inst.or(-> 1)), 'expression must be a string or Expression instance'
+      assert.throws (=> @inst.or(-> 1)), 'expression must be a string or builder instance'
     'with an Expression returns object instance': ->
       assert.same @inst, @inst.or(squel.expr())      
+    'with a builder returns object instance': ->
+      assert.same @inst, @inst.and(squel.str())
     'with a string returns object instance': ->
       assert.same @inst, @inst.or('bla')
 
