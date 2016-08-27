@@ -1,6 +1,6 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 27 Aug 2016 (5.4.1)
+## 27 Aug 2016 (5.4.2)
 * A better check for detecting when custom value formatting has been applied.
 * Allow for any builder to passed in as an expression
 

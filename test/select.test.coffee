@@ -482,5 +482,34 @@ test['SELECT builder'] =
           ]
         }
 
+    'Where builder expression':
+      beforeEach: ->
+        @inst = squel.select().from('table').where('a = ?', 5)
+          .where(squel.str('EXISTS(?)', squel.select().from('blah').where('b > ?', 6)))
+      toString: ->
+        assert.same @inst.toString(), """
+        SELECT * FROM table WHERE (a = 5) AND (EXISTS((SELECT * FROM blah WHERE (b > 6))))
+        """
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: "SELECT * FROM table WHERE (a = ?) AND (EXISTS((SELECT * FROM blah WHERE (b > ?))))",
+          values: [5, 6]
+        }
+        
+    'Join on builder expression':
+      beforeEach: ->
+        @inst = squel.select().from('table').join('table2', 't2', 
+          squel.str('EXISTS(?)', squel.select().from('blah').where('b > ?', 6))
+        )
+      toString: ->
+        assert.same @inst.toString(), """
+        SELECT * FROM table INNER JOIN table2 `t2` ON (EXISTS((SELECT * FROM blah WHERE (b > 6))))
+        """
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: "SELECT * FROM table INNER JOIN table2 `t2` ON (EXISTS((SELECT * FROM blah WHERE (b > ?))))",
+          values: [6]
+        }
+        
 
 module?.exports[require('path').basename(__filename)] = test

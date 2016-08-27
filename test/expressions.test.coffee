@@ -329,6 +329,16 @@ test['Expression builder base class'] =
     delete Array.prototype.last
 
 
+  'any type of builder':
+    beforeEach: ->
+      @inst.or('b = ?', 5).or(squel.select().from('blah').where('a = ?', 9))
+    toString: ->
+      assert.same @inst.toString(), "b = 5 OR (SELECT * FROM blah WHERE (a = 9))"
+    toParam: ->
+      assert.same @inst.toParam(), {
+        text: "b = ? OR (SELECT * FROM blah WHERE (a = ?))"
+        values: [5, 9]
+      }
 
 
 module?.exports[require('path').basename(__filename)] = test

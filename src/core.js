@@ -725,7 +725,7 @@ function _buildSquel(flavour = null) {
         let { type, expr,  para } = node;
 
 
-        let { text, values } = (expr instanceof cls.Expression) 
+        let { text, values } = (expr instanceof cls.BaseBuilder) 
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -1559,7 +1559,7 @@ function _buildSquel(flavour = null) {
         totalValues = [];
 
       for (let { expr, values } of this._conditions) {
-        let ret = (expr instanceof cls.Expression) 
+        let ret = (expr instanceof cls.BaseBuilder) 
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
             })
@@ -1793,7 +1793,7 @@ function _buildSquel(flavour = null) {
 
           let ret;
 
-          if (condition instanceof cls.Expression) {
+          if (condition instanceof cls.BaseBuilder) {
             ret = condition._toParamString({
               buildParameterized: options.buildParameterized,
             });

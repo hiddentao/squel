@@ -918,7 +918,7 @@ function _buildSquel() {
             var expr = node.expr;
             var para = node.para;
 
-            var _ref = expr instanceof cls.Expression ? expr._toParamString({
+            var _ref = expr instanceof cls.BaseBuilder ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true
             }) : this._buildString(expr, para, {
@@ -2131,7 +2131,7 @@ function _buildSquel() {
             var expr = _step10$value.expr;
             var values = _step10$value.values;
 
-            var ret = expr instanceof cls.Expression ? expr._toParamString({
+            var ret = expr instanceof cls.BaseBuilder ? expr._toParamString({
               buildParameterized: options.buildParameterized
             }) : this._buildString(expr, values, {
               buildParameterized: options.buildParameterized
@@ -2502,7 +2502,7 @@ function _buildSquel() {
 
               var _ret4 = void 0;
 
-              if (condition instanceof cls.Expression) {
+              if (condition instanceof cls.BaseBuilder) {
                 _ret4 = condition._toParamString({
                   buildParameterized: options.buildParameterized
                 });
@@ -2954,7 +2954,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.4.1',
+    VERSION: '5.4.2',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);
