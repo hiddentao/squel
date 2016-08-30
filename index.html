@@ -1439,7 +1439,26 @@
             );
             /*  UPDATE students SET value = (YES) */
       </pre>
+      
+      <p>Notice how the string value returned the handler did not automatically 
+        get quoted in the final query string. Values returned by custom value 
+      handlers are considered to be <em>final</em>. If you want the value to 
+    be quoted then the handler must quote it before returning the call:</p>
 
+    <pre class="brush: js">
+          squel.registerValueHandler('boolean', function(v) {
+            return '"' + (v ? 'YES': 'NO') + '"';
+          });
+
+          log(
+              squel.update()
+                  .table("students")
+                  .set("value", true)
+                  .toString()
+          );
+          /*  UPDATE students SET value = ("YES") */
+    </pre>
+    
       <p>We can even override the registered handler for a value type on a per-instance basis.</p>
 
       <pre class="brush: js">
