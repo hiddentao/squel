@@ -15,6 +15,9 @@ before_script:
 script:
   - "npm test"
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
 notifications:
   email:
     - ram@hiddentao.com
