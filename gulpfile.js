@@ -1,6 +1,7 @@
 require('coffee-script/register');
 
 const gulp = require('gulp'),
+  istanbul = require('gulp-istanbul'),
   umd = require('gulp-umd'),
   path = require('path'),
   concat = require('gulp-concat'),
@@ -76,7 +77,14 @@ gulp.task('build-full', function() {
 gulp.task('build', ['build-basic', 'build-full']);
 
 
-gulp.task('test', function () {
+gulp.task('pre-test', function () {
+  return gulp.src(['lib/*.js'])
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire());
+});
+
+
+gulp.task('test', ['pre-test'], function () {
   return gulp.src(onlyTest || [
       './test/baseclasses.test.coffee',
       './test/blocks.test.coffee',
@@ -95,6 +103,10 @@ gulp.task('test', function () {
         ui: 'exports',
         reporter: 'spec',
       }))
+      .pipe(istanbul.writeReports({
+        dir: './test-coverage'
+      }))
+      .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }))
     ;
 });
 
