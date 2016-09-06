@@ -1,6 +1,10 @@
 # squel - SQL query string builder
 
-[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png?branch=master)](http://travis-ci.org/hiddentao/squel) [![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel) [![Join the chat at https://gitter.im/hiddentao/squel](https://img.shields.io/badge/gitter-join%20chat-blue.svg)](https://gitter.im/hiddentao/squel)
+[![Build Status](https://secure.travis-ci.org/hiddentao/squel.png?branch=master)](http://travis-ci.org/hiddentao/squel)
+[![NPM module](https://badge.fury.io/js/squel.png)](https://badge.fury.io/js/squel)
+[![npm](https://img.shields.io/npm/dm/localeval.svg?maxAge=2592000)](https://www.npmjs.com/package/squel 
+[![Join the chat at https://gitter.im/hiddentao/squel](https://img.shields.io/badge/gitter-join%20chat-blue.svg)](https://gitter.im/hiddentao/squel)
+[![Follow on Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Follow&maxAge=2592000)](https://twitter.com/hiddentao)
 
 A flexible and powerful SQL query string builder for Javascript.
 
