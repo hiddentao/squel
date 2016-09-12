@@ -98,6 +98,7 @@ gulp.task('test', ['pre-test'], function () {
       './test/mssql.test.coffee',
       './test/mysql.test.coffee',
       './test/postgres.test.coffee',
+      './test/executor.test.coffee',
     ], { read: false })
       .pipe(mocha({
         ui: 'exports',
@@ -115,6 +116,3 @@ gulp.task('test', ['pre-test'], function () {
 gulp.task('default', function(cb) {
   runSequence(['build'], 'test', cb);
 });
-
-
-
