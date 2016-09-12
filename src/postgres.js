@@ -7,6 +7,56 @@ squel.flavours['postgres'] = function(_squel) {
   cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
   cls.DefaultQueryBuilderOptions.useAsForTableAliasNames = true;
 
+  // ON DUPLICATE KEY UPDATE ...
+  cls.PostgresOnConflictKeyUpdateBlock = class extends cls.AbstractSetFieldBlock {
+    onConflict (index, fields) {
+      this._dupIndex = this._sanitizeField(index);
+
+      if(fields) {
+        Object.keys(fields).forEach((key) => {
+          this._set(key, fields[key]);
+        });
+      }
+    }
+
+    _toParamString (options = {}) {
+      let totalStr = "",
+          totalValues = [];
+
+      for (let i = 0; i < this._fields.length; ++i) {
+        totalStr = _pad(totalStr, ', ');
+
+        let field = this._fields[i];
+
+        let value = this._values[0][i];
+
+        let valueOptions = this._valueOptions[0][i];
+
+        // e.g. if field is an expression such as: count = count + 1
+        if (typeof value === 'undefined') {
+          totalStr += field;
+        } else {
+          let ret = this._buildString(
+              `${field} = ${this.options.parameterCharacter}`,
+              [value],
+              {
+                buildParameterized: options.buildParameterized,
+                formattingOptions: valueOptions,
+              }
+          );
+
+          totalStr += ret.text;
+          totalValues.push(...ret.values);
+        }
+      }
+
+      return {
+        text: this._dupIndex ? (`ON CONFLICT (${this._dupIndex}) DO ` + (!totalStr.length ? "NOTHING" : `UPDATE SET ${totalStr}`)) : '',
+        values: totalValues,
+      };
+    }
+  }
+
   // RETURNING
   cls.ReturningBlock = class extends cls.Block {
     constructor (options) {
@@ -126,6 +176,7 @@ squel.flavours['postgres'] = function(_squel) {
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
         new cls.InsertFieldsFromQueryBlock(options),
+        new cls.PostgresOnConflictKeyUpdateBlock(options),
         new cls.ReturningBlock(options),
       ];
 
