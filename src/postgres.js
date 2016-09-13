@@ -7,7 +7,6 @@ squel.flavours['postgres'] = function(_squel) {
   cls.DefaultQueryBuilderOptions.autoQuoteAliasNames = false;
   cls.DefaultQueryBuilderOptions.useAsForTableAliasNames = true;
 
-  // ON DUPLICATE KEY UPDATE ...
   cls.PostgresOnConflictKeyUpdateBlock = class extends cls.AbstractSetFieldBlock {
     onConflict (index, fields) {
       this._dupIndex = this._sanitizeField(index);
