@@ -38,6 +38,16 @@ test['Postgres flavour'] =
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 
+    '>> into(table).set(field, 1).set(field,2).onConflict("field", {field2:2})':
+      beforeEach: -> @inst.into('table').set('field', 1).set('field2', 2).onConflict('field', {"field2":2})
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 2) ON CONFLICT (field) DO UPDATE SET field2 = 2'
+
+    '>> into(table).set(field, 1).set(field,2).onConflict("field")':
+      beforeEach: -> @inst.into('table').set('field', 1).set('field2', 2).onConflict('field')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 2) ON CONFLICT (field) DO NOTHING'
+
     '>> into(table).set(field, 1).returning("*")':
       beforeEach: -> @inst.into('table').set('field', 1).returning('*')
       toString: ->
