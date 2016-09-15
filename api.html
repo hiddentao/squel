@@ -908,6 +908,22 @@
               }
             }
           },
+          '.onConflict()': {
+            desc: 'Add <code>ON CONFLICT...DO UPDATE/DO NOTHING</code> clause.',
+            flavours: ['postgres'],
+            params: {
+              field: {
+                desc: 'Name of field.',
+                type: 'String'
+              },
+              fieldsToSet: {
+                desc: 'Field-value pairs.',
+                type: 'Object',
+                defaultValue: null,                
+              },
+            },
+            returns: 'this'            
+          },
           '.output()': {
             desc: 'Add field to <code>OUTPUT</code> clause.',
             flavours: ['mssql'],
