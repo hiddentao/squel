@@ -332,10 +332,11 @@ function _buildSquel() {
      * Constructor.
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
+
     function _class2(options) {
       _classCallCheck(this, _class2);
 
-      var _this = _possibleConstructorReturn(this, (_class2.__proto__ || Object.getPrototypeOf(_class2)).call(this));
+      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(_class2).call(this));
 
       var defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
 
@@ -459,16 +460,16 @@ function _buildSquel() {
         if (null === item) {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-          // primitives are allowed
-        } else if (item instanceof cls.BaseBuilder) {
-          // Builders allowed
-        } else {
-          var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+            // primitives are allowed
+          } else if (item instanceof cls.BaseBuilder) {
+              // Builders allowed
+            } else {
+                var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-          if (!typeIsValid) {
-            throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-          }
-        }
+                if (!typeIsValid) {
+                  throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
+                }
+              }
 
         return item;
       }
@@ -848,10 +849,11 @@ function _buildSquel() {
     _inherits(_class3, _cls$BaseBuilder);
 
     // Initialise the expression.
+
     function _class3(options) {
       _classCallCheck(this, _class3);
 
-      var _this5 = _possibleConstructorReturn(this, (_class3.__proto__ || Object.getPrototypeOf(_class3)).call(this, options));
+      var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class3).call(this, options));
 
       _this5._nodes = [];
       return _this5;
@@ -982,7 +984,7 @@ function _buildSquel() {
 
       _classCallCheck(this, _class4);
 
-      var _this6 = _possibleConstructorReturn(this, (_class4.__proto__ || Object.getPrototypeOf(_class4)).call(this, options));
+      var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class4).call(this, options));
 
       if (_isPlainObject(fieldName)) {
         options = fieldName;
@@ -1125,7 +1127,7 @@ function _buildSquel() {
     function _class5(options) {
       _classCallCheck(this, _class5);
 
-      return _possibleConstructorReturn(this, (_class5.__proto__ || Object.getPrototypeOf(_class5)).call(this, options));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class5).call(this, options));
     }
 
     /**
@@ -1170,7 +1172,7 @@ function _buildSquel() {
     function _class6(options, str) {
       _classCallCheck(this, _class6);
 
-      var _this8 = _possibleConstructorReturn(this, (_class6.__proto__ || Object.getPrototypeOf(_class6)).call(this, options));
+      var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class6).call(this, options));
 
       _this8._str = str;
       return _this8;
@@ -1198,7 +1200,7 @@ function _buildSquel() {
     function _class7(options) {
       _classCallCheck(this, _class7);
 
-      var _this9 = _possibleConstructorReturn(this, (_class7.__proto__ || Object.getPrototypeOf(_class7)).call(this, options));
+      var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class7).call(this, options));
 
       _this9._strings = [];
       _this9._values = [];
@@ -1245,10 +1247,11 @@ function _buildSquel() {
      * @param {Boolean} [options.singleTable] If true then only allow one table spec.
      * @param {String} [options.prefix] String prefix for output.
      */
+
     function _class8(options, prefix) {
       _classCallCheck(this, _class8);
 
-      var _this10 = _possibleConstructorReturn(this, (_class8.__proto__ || Object.getPrototypeOf(_class8)).call(this, options));
+      var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class8).call(this, options));
 
       _this10._tables = [];
       return _this10;
@@ -1376,7 +1379,7 @@ function _buildSquel() {
     function _class9() {
       _classCallCheck(this, _class9);
 
-      return _possibleConstructorReturn(this, (_class9.__proto__ || Object.getPrototypeOf(_class9)).apply(this, arguments));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class9).apply(this, arguments));
     }
 
     _createClass(_class9, [{
@@ -1396,7 +1399,7 @@ function _buildSquel() {
     function _class10() {
       _classCallCheck(this, _class10);
 
-      return _possibleConstructorReturn(this, (_class10.__proto__ || Object.getPrototypeOf(_class10)).apply(this, arguments));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class10).apply(this, arguments));
     }
 
     _createClass(_class10, [{
@@ -1415,7 +1418,7 @@ function _buildSquel() {
           throw new Error("table() needs to be called");
         }
 
-        return _get(_class10.prototype.__proto__ || Object.getPrototypeOf(_class10.prototype), '_toParamString', this).call(this, options);
+        return _get(Object.getPrototypeOf(_class10.prototype), '_toParamString', this).call(this, options);
       }
     }]);
 
@@ -1429,7 +1432,7 @@ function _buildSquel() {
     function _class11(options) {
       _classCallCheck(this, _class11);
 
-      return _possibleConstructorReturn(this, (_class11.__proto__ || Object.getPrototypeOf(_class11)).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class11).call(this, _extend({}, options, {
         prefix: 'FROM'
       })));
     }
@@ -1453,7 +1456,7 @@ function _buildSquel() {
     function _class12(options) {
       _classCallCheck(this, _class12);
 
-      return _possibleConstructorReturn(this, (_class12.__proto__ || Object.getPrototypeOf(_class12)).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class12).call(this, _extend({}, options, {
         prefix: 'INTO',
         singleTable: true
       })));
@@ -1473,7 +1476,7 @@ function _buildSquel() {
           throw new Error("into() needs to be called");
         }
 
-        return _get(_class12.prototype.__proto__ || Object.getPrototypeOf(_class12.prototype), '_toParamString', this).call(this, options);
+        return _get(Object.getPrototypeOf(_class12.prototype), '_toParamString', this).call(this, options);
       }
     }]);
 
@@ -1487,7 +1490,7 @@ function _buildSquel() {
     function _class13(options) {
       _classCallCheck(this, _class13);
 
-      var _this15 = _possibleConstructorReturn(this, (_class13.__proto__ || Object.getPrototypeOf(_class13)).call(this, options));
+      var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class13).call(this, options));
 
       _this15._fields = [];
       return _this15;
@@ -1660,7 +1663,7 @@ function _buildSquel() {
     function _class14(options) {
       _classCallCheck(this, _class14);
 
-      var _this16 = _possibleConstructorReturn(this, (_class14.__proto__ || Object.getPrototypeOf(_class14)).call(this, options));
+      var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class14).call(this, options));
 
       _this16._reset();
       return _this16;
@@ -1782,7 +1785,7 @@ function _buildSquel() {
     function _class15() {
       _classCallCheck(this, _class15);
 
-      return _possibleConstructorReturn(this, (_class15.__proto__ || Object.getPrototypeOf(_class15)).apply(this, arguments));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class15).apply(this, arguments));
     }
 
     _createClass(_class15, [{
@@ -1846,7 +1849,7 @@ function _buildSquel() {
     function _class16() {
       _classCallCheck(this, _class16);
 
-      return _possibleConstructorReturn(this, (_class16.__proto__ || Object.getPrototypeOf(_class16)).apply(this, arguments));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class16).apply(this, arguments));
     }
 
     _createClass(_class16, [{
@@ -1915,7 +1918,7 @@ function _buildSquel() {
     function _class17(options) {
       _classCallCheck(this, _class17);
 
-      var _this20 = _possibleConstructorReturn(this, (_class17.__proto__ || Object.getPrototypeOf(_class17)).call(this, options));
+      var _this20 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class17).call(this, options));
 
       _this20._fields = [];
       _this20._query = null;
@@ -1972,7 +1975,7 @@ function _buildSquel() {
     function _class18() {
       _classCallCheck(this, _class18);
 
-      return _possibleConstructorReturn(this, (_class18.__proto__ || Object.getPrototypeOf(_class18)).apply(this, arguments));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class18).apply(this, arguments));
     }
 
     _createClass(_class18, [{
@@ -2002,7 +2005,7 @@ function _buildSquel() {
     function _class19(options) {
       _classCallCheck(this, _class19);
 
-      var _this23 = _possibleConstructorReturn(this, (_class19.__proto__ || Object.getPrototypeOf(_class19)).call(this, options));
+      var _this23 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class19).call(this, options));
 
       _this23._groups = [];
       return _this23;
@@ -2038,7 +2041,7 @@ function _buildSquel() {
     function _class20(options) {
       _classCallCheck(this, _class20);
 
-      var _this24 = _possibleConstructorReturn(this, (_class20.__proto__ || Object.getPrototypeOf(_class20)).call(this, options));
+      var _this24 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class20).call(this, options));
 
       _this24._offsets = null;
       return _this24;
@@ -2077,10 +2080,11 @@ function _buildSquel() {
     /** 
      * @param {String} options.verb The condition verb.
      */
+
     function _class21(options) {
       _classCallCheck(this, _class21);
 
-      var _this25 = _possibleConstructorReturn(this, (_class21.__proto__ || Object.getPrototypeOf(_class21)).call(this, options));
+      var _this25 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class21).call(this, options));
 
       _this25._conditions = [];
       return _this25;
@@ -2175,7 +2179,7 @@ function _buildSquel() {
     function _class22(options) {
       _classCallCheck(this, _class22);
 
-      return _possibleConstructorReturn(this, (_class22.__proto__ || Object.getPrototypeOf(_class22)).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class22).call(this, _extend({}, options, {
         verb: 'WHERE'
       })));
     }
@@ -2201,7 +2205,7 @@ function _buildSquel() {
     function _class23(options) {
       _classCallCheck(this, _class23);
 
-      return _possibleConstructorReturn(this, (_class23.__proto__ || Object.getPrototypeOf(_class23)).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class23).call(this, _extend({}, options, {
         verb: 'HAVING'
       })));
     }
@@ -2227,7 +2231,7 @@ function _buildSquel() {
     function _class24(options) {
       _classCallCheck(this, _class24);
 
-      var _this28 = _possibleConstructorReturn(this, (_class24.__proto__ || Object.getPrototypeOf(_class24)).call(this, options));
+      var _this28 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class24).call(this, options));
 
       _this28._orders = [];
       return _this28;
@@ -2253,8 +2257,8 @@ function _buildSquel() {
           if (dir === undefined) {
             dir = 'ASC'; // Default to asc
           } else if (dir !== null) {
-            dir = dir ? 'ASC' : 'DESC'; // Convert truthy to asc
-          }
+              dir = dir ? 'ASC' : 'DESC'; // Convert truthy to asc
+            }
         }
 
         this._orders.push({
@@ -2326,7 +2330,7 @@ function _buildSquel() {
     function _class25(options) {
       _classCallCheck(this, _class25);
 
-      var _this29 = _possibleConstructorReturn(this, (_class25.__proto__ || Object.getPrototypeOf(_class25)).call(this, options));
+      var _this29 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class25).call(this, options));
 
       _this29._limit = null;
       return _this29;
@@ -2365,7 +2369,7 @@ function _buildSquel() {
     function _class26(options) {
       _classCallCheck(this, _class26);
 
-      var _this30 = _possibleConstructorReturn(this, (_class26.__proto__ || Object.getPrototypeOf(_class26)).call(this, options));
+      var _this30 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class26).call(this, options));
 
       _this30._joins = [];
       return _this30;
@@ -2544,7 +2548,7 @@ function _buildSquel() {
     function _class27(options) {
       _classCallCheck(this, _class27);
 
-      var _this31 = _possibleConstructorReturn(this, (_class27.__proto__ || Object.getPrototypeOf(_class27)).call(this, options));
+      var _this31 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class27).call(this, options));
 
       _this31._unions = [];
       return _this31;
@@ -2663,10 +2667,11 @@ function _buildSquel() {
     #
     # blocks - array of cls.BaseBuilderBlock instances to build the query with.
     */
+
     function _class28(options, blocks) {
       _classCallCheck(this, _class28);
 
-      var _this32 = _possibleConstructorReturn(this, (_class28.__proto__ || Object.getPrototypeOf(_class28)).call(this, options));
+      var _this32 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class28).call(this, options));
 
       _this32.blocks = blocks || [];
 
@@ -2754,7 +2759,7 @@ function _buildSquel() {
           }
         }
 
-        _get(_class28.prototype.__proto__ || Object.getPrototypeOf(_class28.prototype), 'registerValueHandler', this).call(this, type, handler);
+        _get(Object.getPrototypeOf(_class28.prototype), 'registerValueHandler', this).call(this, type, handler);
 
         return this;
       }
@@ -2889,7 +2894,7 @@ function _buildSquel() {
 
       blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
-      return _possibleConstructorReturn(this, (_class29.__proto__ || Object.getPrototypeOf(_class29)).call(this, options, blocks));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class29).call(this, options, blocks));
     }
 
     return _class29;
@@ -2906,7 +2911,7 @@ function _buildSquel() {
 
       blocks = blocks || [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
 
-      return _possibleConstructorReturn(this, (_class30.__proto__ || Object.getPrototypeOf(_class30)).call(this, options, blocks));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class30).call(this, options, blocks));
     }
 
     return _class30;
@@ -2925,7 +2930,7 @@ function _buildSquel() {
         singleTable: true
       })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
 
-      return _possibleConstructorReturn(this, (_class31.__proto__ || Object.getPrototypeOf(_class31)).call(this, options, blocks));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class31).call(this, options, blocks));
     }
 
     return _class31;
@@ -2942,14 +2947,14 @@ function _buildSquel() {
 
       blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)];
 
-      return _possibleConstructorReturn(this, (_class32.__proto__ || Object.getPrototypeOf(_class32)).call(this, options, blocks));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class32).call(this, options, blocks));
     }
 
     return _class32;
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.4.2',
+    VERSION: '5.4.3',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);
