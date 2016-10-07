@@ -1504,6 +1504,7 @@ function _buildSquel(flavour = null) {
       super(options);
 
       this._offsets = null;
+      this._value = null;
     }
 
     /**
@@ -1512,15 +1513,31 @@ function _buildSquel(flavour = null) {
     # Call this will override the previously set offset for this query. Also note that Passing 0 for 'max' will remove
     # the offset.
     */
-    offset (start) {
-      this._offsets = this._sanitizeLimitOffset(start);
+    offset (start, value = null) {
+      this._offsets = start === '?' ? '?' : this._sanitizeLimitOffset(start);
+      this._value = start === '?' ? this._sanitizeLimitOffset(value) : null;
     }
 
 
-    _toParamString () {
+    _toParamString (options = {}) {
+      let { buildParameterized } = options,
+        totalStr = '',
+        totalValues = [];
+
+      if (buildParameterized) {
+        totalStr = this._offsets ? `OFFSET ${this._offsets}` : '';
+        totalValues = this._value ? [this._value] : [];
+      } else {
+        if (null !== this._value) {
+          totalStr = `OFFSET ${this._value}`;
+        } else if (null !== this._offsets) {
+          totalStr = `OFFSET ${this._offsets}`;
+        }
+      }
+
       return {
-        text: this._offsets ? `OFFSET ${this._offsets}` : '',
-        values: [],
+        text: totalStr,
+        values: totalValues,
       };
     }
   }
@@ -1680,6 +1697,7 @@ function _buildSquel(flavour = null) {
       super(options);
 
       this._limit = null;
+      this._value = null;
     }
 
     /**
@@ -1688,15 +1706,31 @@ function _buildSquel(flavour = null) {
     # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
     # the limit.
     */
-    limit (limit) {
-      this._limit = this._sanitizeLimitOffset(limit);
+    limit (limit, value = null) {
+      this._limit = limit === '?' ? '?' : this._sanitizeLimitOffset(limit);
+      this._value = limit === '?' ? this._sanitizeLimitOffset(value) : null;
     }
 
 
-    _toParamString () {
+    _toParamString (options = {}) {
+      let { buildParameterized } = options,
+        totalStr = '',
+        totalValues = [];
+
+      if (buildParameterized) {
+        totalStr = (null !== this._limit) ? `LIMIT ${this._limit}` : '';
+        totalValues = (null !== this._value) ? [this._value] : [];
+      } else {
+        if (null !== this._value) {
+          totalStr = `LIMIT ${this._value}`;
+        } else if (null !== this._limit) {
+          totalStr = `LIMIT ${this._limit}`;
+        }
+      }
+
       return {
-        text: (null !== this._limit) ? `LIMIT ${this._limit}` : '',
-        values: [],
+        text: totalStr,
+        values: totalValues,
       };
     }
   }
