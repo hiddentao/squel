@@ -83,8 +83,8 @@ You can build parameterized queries:
 ```js
 /*
 {
-    text: "SELECT `t1`.`id`, `t1`.`name` as "My name", `t1`.`started` as "Date" FROM table `t1` WHERE age IN (RANGE(?, ?)) ORDER BY id ASC LIMIT 20",
-    values: [1, 1.2]
+    text: "SELECT `t1`.`id`, `t1`.`name` as "My name", `t1`.`started` as "Date" FROM table `t1` WHERE age IN (RANGE(?, ?)) ORDER BY id ASC LIMIT ?",
+    values: [1, 1.2, 20]
 }
 */
 squel.select({ autoQuoteFieldNames: true })
@@ -94,7 +94,7 @@ squel.select({ autoQuoteFieldNames: true })
     .field("t1.started", "Date")
     .where("age IN ?", squel.str('RANGE(?, ?)', 1, 1.2))
     .order("id")
-    .limit(20)
+    .limit("?", 20)
     .toParam()
 ```
 

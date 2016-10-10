@@ -940,10 +940,22 @@ test['Blocks'] =
         @inst.offset(1)
 
         assert.same 1, @inst._offsets
+        assert.same null, @inst._value
 
         @inst.offset(22)
 
         assert.same 22, @inst._offsets
+        assert.same null, @inst._value
+
+        @inst.offset('?', 1)
+
+        assert.same '?', @inst._offsets
+        assert.same 1, @inst._value
+        
+        @inst.offset('?', 22)
+
+        assert.same '?', @inst._offsets
+        assert.same 22, @inst._value
 
       'sanitizes inputs': ->
         sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
@@ -1246,10 +1258,22 @@ test['Blocks'] =
         @inst.limit(1)
 
         assert.same 1, @inst._limit
+        assert.same null, @inst._value
 
         @inst.limit(22)
 
         assert.same 22, @inst._limit
+        assert.same null, @inst._value
+
+        @inst.limit('?', 1)
+
+        assert.same '?', @inst._limit
+        assert.same 1, @inst._value
+        
+        @inst.limit('?', 22)
+
+        assert.same '?', @inst._limit
+        assert.same 22, @inst._value
 
       'sanitizes inputs': ->
         sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
