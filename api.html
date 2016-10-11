@@ -307,7 +307,12 @@
             params: {
               limit: {
                 desc: 'Number of records to limit to.',
-                type: 'Integer'
+                type: 'Integer or \'?\''
+              },
+              value: {
+                desc: 'Argument for parameter substitution.',
+                type: 'Integer',
+                defaultValue: null
               }
             },
             returns: 'this'
@@ -487,7 +492,12 @@
             params: {
               limit: {
                 desc: 'Number of records to limit update to.',
-                type: 'Integer'
+                type: 'Integer or \'?\''
+              },
+              value: {
+                desc: 'Argument for parameter substitution.',
+                type: 'Integer',
+                defaultValue: null
               }
             },
             returns: 'this'
@@ -699,7 +709,12 @@
             params: {
               limit: {
                 desc: 'Number of records to limit deletion to.',
-                type: 'Integer'
+                type: 'Integer or \'?\''
+              },
+              value: {
+                desc: 'Argument for parameter substitution.',
+                type: 'Integer',
+                defaultValue: null
               }
             },
             returns: 'this'
