@@ -545,15 +545,13 @@ function _buildSquel() {
 
     }, {
       key: '_formatCustomValue',
-      value: function _formatCustomValue(value) {
-        var asParam = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-
+      value: function _formatCustomValue(value, asParam, formattingOptions) {
         // user defined custom handlers takes precedence
         var customHandler = getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
 
         // use the custom handler if available
         if (customHandler) {
-          value = customHandler(value, asParam);
+          value = customHandler(value, asParam, formattingOptions);
         }
 
         return {
@@ -571,12 +569,14 @@ function _buildSquel() {
       value: function _formatValueForParamArray(value) {
         var _this3 = this;
 
+        var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
         if (_isArray(value)) {
           return value.map(function (v) {
-            return _this3._formatValueForParamArray(v);
+            return _this3._formatValueForParamArray(v, formattingOptions);
           });
         } else {
-          return this._formatCustomValue(value, true).value;
+          return this._formatCustomValue(value, true, formattingOptions).value;
         }
       }
 
@@ -591,7 +591,7 @@ function _buildSquel() {
 
         var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-        var _formatCustomValue2 = this._formatCustomValue(initialValue);
+        var _formatCustomValue2 = this._formatCustomValue(initialValue, false, formattingOptions);
 
         var formatted = _formatCustomValue2.formatted;
         var value = _formatCustomValue2.value;
@@ -699,7 +699,7 @@ function _buildSquel() {
                 formattedStr += ret.text;
                 formattedValues.push.apply(formattedValues, _toConsumableArray(ret.values));
               } else {
-                value = this._formatValueForParamArray(value);
+                value = this._formatValueForParamArray(value, formattingOptions);
 
                 if (_isArray(value)) {
                   // Array(6) -> "(??, ??, ??, ??, ??, ??)"

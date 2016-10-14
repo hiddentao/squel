@@ -408,14 +408,14 @@ function _buildSquel(flavour = null) {
 
 
     // Format the given custom value
-    _formatCustomValue (value, asParam = false) {
+    _formatCustomValue (value, asParam, formattingOptions) {
       // user defined custom handlers takes precedence
       let customHandler = 
         getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
 
       // use the custom handler if available
       if (customHandler) {
-        value = customHandler(value, asParam);
+        value = customHandler(value, asParam, formattingOptions);
       }
 
       return {
@@ -429,13 +429,13 @@ function _buildSquel(flavour = null) {
     /** 
      * Format given value for inclusion into parameter values array.
      */
-    _formatValueForParamArray (value) {
+    _formatValueForParamArray (value, formattingOptions = {}) {
       if (_isArray(value)) {
         return value.map((v) => {
-          return this._formatValueForParamArray(v);
+          return this._formatValueForParamArray(v, formattingOptions);
         });
       } else {
-        return this._formatCustomValue(value, true).value;
+        return this._formatCustomValue(value, true, formattingOptions).value;
       }
     }
 
@@ -445,7 +445,7 @@ function _buildSquel(flavour = null) {
      * Format the given field value for inclusion into the query string
      */
     _formatValueForQueryString (initialValue, formattingOptions = {}) {
-      let { formatted, value } = this._formatCustomValue(initialValue);
+      let { formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
       
       // if formatting took place then return it directly
       if (formatted) {
@@ -545,7 +545,7 @@ function _buildSquel(flavour = null) {
               formattedStr += ret.text;
               formattedValues.push(...ret.values);
             } else {
-              value = this._formatValueForParamArray(value);
+              value = this._formatValueForParamArray(value, formattingOptions);
 
               if (_isArray(value)) {
                 // Array(6) -> "(??, ??, ??, ??, ??, ??)"

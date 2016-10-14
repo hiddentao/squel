@@ -604,6 +604,14 @@ test['Builder base class'] =
         assert.same { formatted: true, value: 'foo'}, @inst._formatCustomValue(val, true)
         assert.same { formatted: true, value: 'bar'}, @inst._formatCustomValue(val)
         
+      'additional formatting options': ->
+        @inst.registerValueHandler Date, (d, asParam, options) ->
+          return if options.dontQuote then 'foo' else '"foo"'
+
+        val = new Date()
+
+        assert.same { formatted: true, value: 'foo'}, @inst._formatCustomValue(val, true, { dontQuote: true })
+        assert.same { formatted: true, value: '"foo"'}, @inst._formatCustomValue(val, true, { dontQuote: false })
 
   '_formatValueForParamArray':
     'Query builder': ->
@@ -618,16 +626,23 @@ test['Builder base class'] =
       assert.same 'testfoo', @inst._formatValueForParamArray('abc')
       assert.same 'testfoo', @inst._formatValueForParamArray(12)
       assert.same 'testfoo', @inst._formatValueForParamArray(1.2)
-      assert.same 'testfoo', @inst._formatValueForParamArray(true)
+
+      opts = { dummy: true }
+      assert.same 'testfoo', @inst._formatValueForParamArray(true, opts)
+
       assert.same 'testfoo', @inst._formatValueForParamArray(false)
 
       assert.same 6, spy.callCount
+      
+      assert.same spy.getCall(4).args[2], opts
 
     'Array - recursively calls itself on each element': ->
       spy = test.mocker.spy @inst, '_formatValueForParamArray'
 
       v = [ squel.select().from('table'), 1.2 ]
-      res = @inst._formatValueForParamArray(v)
+      
+      opts = { dummy: true }
+      res = @inst._formatValueForParamArray(v, opts)
 
       assert.same v, res
 
@@ -635,6 +650,7 @@ test['Builder base class'] =
       assert.ok spy.calledWith v[0]
       assert.ok spy.calledWith v[1]
 
+      assert.same spy.getCall(1).args[1], opts
 
 
   '_formatValueForQueryString':
@@ -783,6 +799,17 @@ test['Builder base class'] =
         text: 'a = NOW()',
         values: []
       }
+    'passes formatting options even when doing parameterized query': ->
+      spy = test.mocker.spy @inst, '_formatValueForParamArray'
+
+      options = 
+        buildParameterized: true
+        formattingOptions:
+          dontQuote: true
+
+      @inst._buildString('a = ?', [3], options)
+      
+      assert.same spy.getCall(0).args[1], options.formattingOptions
     'custom parameter character': ->
       beforeEach: ->
         @inst.options.parameterCharacter = '@@'
