@@ -214,6 +214,16 @@ test['SELECT builder'] =
                         values: [1, 2]
                       }
 
+                    '>> limit(0)':
+                      beforeEach: -> @inst.limit(0)
+                      toString: ->
+                        assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC'
+                      toParam: ->
+                        assert.same @inst.toParam(), {
+                          text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC',
+                          values: [1]
+                        }
+
                     '>> offset(3)':
                       beforeEach: -> @inst.offset(3)
                       toString: ->
@@ -223,6 +233,16 @@ test['SELECT builder'] =
                           text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ? OFFSET ?',
                           values: [1, 2, 3]
                         }
+
+                      '>> offset(0)':
+                        beforeEach: -> @inst.offset(0)
+                        toString: ->
+                          assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2'
+                        toParam: ->
+                          assert.same @inst.toParam(), {
+                            text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ?',
+                            values: [1, 2]
+                          }
 
                 '>> order(DIST(?,?), true, 2, 3)':
                   beforeEach: -> @inst.order('DIST(?, ?)', true, 2, false)

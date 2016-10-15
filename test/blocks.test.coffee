@@ -957,6 +957,11 @@ test['Blocks'] =
       'output nothing if not set': ->
         assert.same '', @inst.toString()
 
+      'output nothing if 0': ->
+        @inst._setValue(0)
+        
+        assert.same '', @inst.toString()
+
       'output verb': ->
         @inst._setValue(12)
 
@@ -964,6 +969,11 @@ test['Blocks'] =
         
     'toParam()':
       'output nothing if not set': ->
+        assert.same { text: '', values: [] }, @inst.toParam()
+
+      'output nothing if 0': ->
+        @inst._setValue(0)
+        
         assert.same { text: '', values: [] }, @inst.toParam()
 
       'output verb': ->

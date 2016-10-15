@@ -1505,7 +1505,7 @@ function _buildSquel(flavour = null) {
     constructor (options) {
       super(options);
       
-      this._value = null;
+      this._value = 0;
     }
     
     _setValue (value) {
@@ -1513,7 +1513,7 @@ function _buildSquel(flavour = null) {
     }
     
     _toParamString (options = {}) {
-      const expr = (null !== this._value) 
+      const expr = (0 < this._value) 
         ? `${this.options.verb} ${this.options.parameterCharacter}`
         : '';
       

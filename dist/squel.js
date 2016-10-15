@@ -2046,7 +2046,7 @@ function _buildSquel() {
 
       var _this24 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class20).call(this, options));
 
-      _this24._value = null;
+      _this24._value = 0;
       return _this24;
     }
 
@@ -2060,7 +2060,7 @@ function _buildSquel() {
       value: function _toParamString() {
         var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-        var expr = null !== this._value ? this.options.verb + ' ' + this.options.parameterCharacter : '';
+        var expr = 0 < this._value ? this.options.verb + ' ' + this.options.parameterCharacter : '';
 
         var values = null !== this._value ? [this._value] : [];
 
