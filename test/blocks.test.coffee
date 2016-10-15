@@ -924,7 +924,52 @@ test['Blocks'] =
 
         assert.same 'GROUP BY field1, field2', @inst.toString()
 
+  'AbstractVerbSingleValueBlock':
+    beforeEach: ->
+      @cls = squel.cls.AbstractVerbSingleValueBlock
+      @inst = new @cls({
+        verb: 'TEST'
+      })
 
+    'instanceof of Block': ->
+      assert.instanceOf @inst, squel.cls.Block
+
+    'offset()':
+      'set value': ->
+        @inst._setValue(1)
+
+        assert.same 1, @inst._value
+
+        @inst._setValue(22)
+
+        assert.same 22, @inst._value
+
+      'sanitizes inputs': ->
+        sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
+
+        @inst._setValue(23)
+
+        assert.ok sanitizeSpy.calledWithExactly 23
+
+        assert.same 234, @inst._value
+
+    'toString()':
+      'output nothing if not set': ->
+        assert.same '', @inst.toString()
+
+      'output verb': ->
+        @inst._setValue(12)
+
+        assert.same 'TEST 12', @inst.toString()
+        
+    'toParam()':
+      'output nothing if not set': ->
+        assert.same { text: '', values: [] }, @inst.toParam()
+
+      'output verb': ->
+        @inst._setValue(12)
+
+        assert.same { text: 'TEST ?', values: [12] }, @inst.toParam()
 
 
   'OffsetBlock':
@@ -932,40 +977,71 @@ test['Blocks'] =
       @cls = squel.cls.OffsetBlock
       @inst = new @cls()
 
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
+    'instanceof of AbstractVerbSingleValueBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractVerbSingleValueBlock
 
     'offset()':
-      'set value': ->
+      'calls base method': ->
+        callSpy = test.mocker.spy @cls.prototype, '_setValue'
+
         @inst.offset(1)
-
-        assert.same 1, @inst._offsets
-
-        @inst.offset(22)
-
-        assert.same 22, @inst._offsets
-
-      'sanitizes inputs': ->
-        sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
-
-        @inst.offset(23)
-
-        assert.ok sanitizeSpy.calledWithExactly 23
-
-        assert.same 234, @inst._offsets
+        
+        assert.ok callSpy.calledWithExactly 1
 
     'toString()':
       'output nothing if not set': ->
-        @inst._offsets = null
         assert.same '', @inst.toString()
 
-      'output OFFSET': ->
+      'output verb': ->
         @inst.offset(12)
 
         assert.same 'OFFSET 12', @inst.toString()
 
+    'toParam()':
+      'output nothing if not set': ->
+        assert.same { text: '', values: [] }, @inst.toParam()
+
+      'output verb': ->
+        @inst.offset(12)
+
+        assert.same { text: 'OFFSET ?', values: [12] }, @inst.toParam()
 
 
+  'LimitBlock':
+    beforeEach: ->
+      @cls = squel.cls.LimitBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractVerbSingleValueBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractVerbSingleValueBlock
+
+    'limit()':
+      'calls base method': ->
+        callSpy = test.mocker.spy @cls.prototype, '_setValue'
+
+        @inst.limit(1)
+        
+        assert.ok callSpy.calledWithExactly 1
+
+    'toString()':
+      'output nothing if not set': ->
+        assert.same '', @inst.toString()
+
+      'output verb': ->
+        @inst.limit(12)
+
+        assert.same 'LIMIT 12', @inst.toString()
+
+    'toParam()':
+      'output nothing if not set': ->
+        assert.same { text: '', values: [] }, @inst.toParam()
+
+      'output verb': ->
+        @inst.limit(12)
+
+        assert.same { text: 'LIMIT ?', values: [12] }, @inst.toParam()
+        
+        
   'AbstractConditionBlock':
     beforeEach: ->
       @cls = squel.cls.AbstractConditionBlock
@@ -1233,53 +1309,6 @@ test['Blocks'] =
           }
 
 
-  'LimitBlock':
-    beforeEach: ->
-      @cls = squel.cls.LimitBlock
-      @inst = new @cls()
-
-    'instanceof of Block': ->
-      assert.instanceOf @inst, squel.cls.Block
-
-    'limit()':
-      'set value': ->
-        @inst.limit(1)
-
-        assert.same 1, @inst._limit
-
-        @inst.limit(22)
-
-        assert.same 22, @inst._limit
-
-      'sanitizes inputs': ->
-        sanitizeSpy = test.mocker.stub @cls.prototype, '_sanitizeLimitOffset', -> return 234
-
-        @inst.limit(23)
-
-        assert.ok sanitizeSpy.calledWithExactly 23
-
-        assert.same 234, @inst._limit
-
-    '_toParamString()':
-      'output nothing if not set': ->
-        assert.same @inst._toParamString(), {
-          text: '',
-          values: []
-        }
-
-      'default':
-        beforeEach: ->
-          @inst.limit(10)
-        'non-parameterized': ->
-          assert.same @inst._toParamString(), {
-            text: 'LIMIT 10'
-            values: []
-          }
-        'parameterized': ->
-          assert.same @inst._toParamString(buildParameterized: true), {
-            text: 'LIMIT 10'
-            values: []
-          }
 
 
   'JoinBlock':

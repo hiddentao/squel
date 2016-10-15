@@ -49,14 +49,7 @@ test['SELECT builder'] =
         dummy: true
 
       for block in @inst.blocks
-        if (block instanceof squel.cls.FromTableBlock)
-          assert.same _.extend({}, expectedOptions, { prefix: 'FROM'}), block.options
-        else if (block instanceof squel.cls.WhereBlock)
-          assert.same _.extend({}, expectedOptions, { verb: 'WHERE'}), block.options
-        else if (block instanceof squel.cls.HavingBlock)
-          assert.same _.extend({}, expectedOptions, { verb: 'HAVING'}), block.options
-        else
-          assert.same expectedOptions, block.options
+        assert.same _.pick(block.options, _.keys(expectedOptions)), expectedOptions
 
     'override blocks': ->
       block = new squel.cls.StringBlock('SELECT')
@@ -215,11 +208,21 @@ test['SELECT builder'] =
                     beforeEach: -> @inst.limit(2)
                     toString: ->
                       assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2'
+                    toParam: ->
+                      assert.same @inst.toParam(), {
+                        text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ?',
+                        values: [1, 2]
+                      }
 
                     '>> offset(3)':
                       beforeEach: -> @inst.offset(3)
                       toString: ->
                         assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2 OFFSET 3'
+                      toParam: ->
+                        assert.same @inst.toParam(), {
+                          text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ? OFFSET ?',
+                          values: [1, 2, 3]
+                        }
 
                 '>> order(DIST(?,?), true, 2, 3)':
                   beforeEach: -> @inst.order('DIST(?, ?)', true, 2, false)

@@ -1496,14 +1496,42 @@ function _buildSquel(flavour = null) {
       };
     }
   }
+  
+  
+  cls.AbstractVerbSingleValueBlock = class extends cls.Block {
+    /**
+     * @param options.verb The prefix verb string.
+     */
+    constructor (options) {
+      super(options);
+      
+      this._value = null;
+    }
+    
+    _setValue (value) {
+      this._value = this._sanitizeLimitOffset(value);
+    }
+    
+    _toParamString (options = {}) {
+      const expr = (null !== this._value) 
+        ? `${this.options.verb} ${this.options.parameterCharacter}`
+        : '';
+      
+      const values = (null !== this._value) 
+        ? [this._value]
+        : [];
+        
+      return this._buildString(expr, values, options);
+    }
+  }
 
 
   // OFFSET x
-  cls.OffsetBlock = class extends cls.Block {
-    constructor (options) {
-      super(options);
-
-      this._offsets = null;
+  cls.OffsetBlock = class extends cls.AbstractVerbSingleValueBlock {
+    constructor(options) {
+      super(_extend({}, options, {
+        verb: 'OFFSET'
+      }));
     }
 
     /**
@@ -1513,19 +1541,32 @@ function _buildSquel(flavour = null) {
     # the offset.
     */
     offset (start) {
-      this._offsets = this._sanitizeLimitOffset(start);
-    }
-
-
-    _toParamString () {
-      return {
-        text: this._offsets ? `OFFSET ${this._offsets}` : '',
-        values: [],
-      };
+      this._setValue(start);
     }
   }
 
 
+  // LIMIT
+  cls.LimitBlock = class extends cls.AbstractVerbSingleValueBlock {
+    constructor(options) {
+      super(_extend({}, options, {
+        verb: 'LIMIT'
+      }));
+    }
+
+    /**
+    # Set the LIMIT transformation.
+    #
+    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+    # the limit.
+    */
+    limit (limit) {
+      this._setValue(limit);
+    }
+  }
+  
+  
+  
   // Abstract condition base class
   cls.AbstractConditionBlock = class extends cls.Block {
     /** 
@@ -1672,34 +1713,6 @@ function _buildSquel(flavour = null) {
     }
   }
 
-
-
-  // LIMIT
-  cls.LimitBlock = class extends cls.Block {
-    constructor (options) {
-      super(options);
-
-      this._limit = null;
-    }
-
-    /**
-    # Set the LIMIT transformation.
-    #
-    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
-    # the limit.
-    */
-    limit (limit) {
-      this._limit = this._sanitizeLimitOffset(limit);
-    }
-
-
-    _toParamString () {
-      return {
-        text: (null !== this._limit) ? `LIMIT ${this._limit}` : '',
-        values: [],
-      };
-    }
-  }
 
 
 

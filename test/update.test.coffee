@@ -49,10 +49,7 @@ test['UPDATE builder'] =
         dummy: true
 
       for block in @inst.blocks
-        if (block instanceof squel.cls.WhereBlock)
-          assert.same _.extend({}, expectedOptions, { verb: 'WHERE'}), block.options
-        else
-          assert.same expectedOptions, block.options
+        assert.same _.pick(block.options, _.keys(expectedOptions)), expectedOptions
 
     'override blocks': ->
       block = new squel.cls.StringBlock('SELECT')
