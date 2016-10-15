@@ -1327,7 +1327,12 @@
       }
     };
 
-    tree['replace()'].children = tree['insert()'].children;
+    tree['replace()'].children = $.extend({}, tree['insert()'].children);
+    delete tree['replace()'].children['.onDupUpdate()'];
+    delete tree['replace()'].children['.onConflict()'];
+    delete tree['replace()'].children['.output()'];
+    delete tree['replace()'].children['.returning()'];
+    delete tree['replace()'].children['.with()'];
 
     $.extend(tree['select()'].children, commonQueryBuilderMethods);
     $.extend(tree['update()'].children, commonQueryBuilderMethods);
