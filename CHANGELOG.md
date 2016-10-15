@@ -1,7 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## ??? (5.5.0)
+## 15 Oct 2016 (5.4.4)
 * #118 - pass extra formatting options (when available) to custom value handler
+* #273 - parameterized `LIMIT` and `OFFSET` queries
 
 ## 15 Sep 2016 (5.4.3)
 * #266 - Postgres `ON CONFLICT` support
