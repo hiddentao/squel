@@ -963,6 +963,25 @@
           }
         }
       }, // insert
+
+      'replace()': {
+        flavours: ['mysql'],
+        desc: 'Create a REPLACE query builder instance.',
+        returns: '[[cls.Replace]]',
+        params: {
+          options: {
+            desc: 'Options for configuring this query builder.',
+            type: 'Object',
+            defaultValue: '[[cls.DefaultQueryBuilderOptions]]'
+          },
+          blocks: {
+            type: 'Array',
+            desc: 'List of [[cls.Block]] objects which make up the functionality of this builder.',
+            defaultValue: 'null'
+          }
+        },
+      }, // replace
+
       'case()' : {
         desc: 'Create a <code>CASE</code> clause builder instance.',
         returns: '[[cls.Case]]',
@@ -1238,6 +1257,11 @@
             inherits: '[[cls.QueryBuilder]]',
             desc: 'INSERT query builder. Inherits from [[cls.QueryBuilder]].'
           },
+          '.Replace': {
+            flavours: ['mysql'],
+            inherits: '[[cls.QueryBuilder]]',
+            desc: 'REPLACE query builder. Inherits from [[cls.QueryBuilder]].'
+          },
           '.useFlavour()': {
             desc: 'Get an instance of Squel for the given SQL flavour.',
             params: {
@@ -1302,6 +1326,8 @@
         returns: 'Object (text: String, values: Array)'
       }
     };
+
+    tree['replace()'].children = tree['insert()'].children;
 
     $.extend(tree['select()'].children, commonQueryBuilderMethods);
     $.extend(tree['update()'].children, commonQueryBuilderMethods);

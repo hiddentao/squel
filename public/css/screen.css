@@ -527,7 +527,7 @@ aside > ul {
   font-family: 'Armata', 'Courier', sans-serif;
 }
 aside > ul > li {
-  margin-bottom: 1em;
+  margin-bottom: 0em;
 }
 aside > ul > li > ul {
   display: none;
