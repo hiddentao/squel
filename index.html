@@ -974,13 +974,15 @@
             .from("students")
             .where("a = ? AND b = ?", "test", true)
             .order("CALC(?, ?)", true, 1.2, false)
+            .limit(10)
+            .offset(3)
             .toParam()
         );
 
         /*
           {
-            text:  SELECT * FROM students WHERE (a = ? AND b = ?) ORDER BY CALC(?, ?) ASC,
-            values:  [ 'test', true, 1.2, false ]
+            text:  SELECT * FROM students WHERE (a = ? AND b = ?) ORDER BY CALC(?, ?) ASC LIMIT ? OFFSET ?,
+            values:  [ 'test', true, 1.2, false, 10, 3 ]
           }
         */
       </pre>
