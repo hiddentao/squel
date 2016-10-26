@@ -1,3 +1,86 @@
+/**
+* Based on Simple JavaScript Inheritance By John Resig http://ejohn.org/
+* MIT Licensed.
+*/
+const Class = (function() {
+  const fnTest = /xyz/.test(function() {
+      xyz;
+    }) ? /\b_super\b/ : /.*/;
+
+  let initializing = false,
+    
+  // The base Class implementation (does nothing)
+  _Class = function() {};
+
+  // Create a new Class that inherits from this class
+  _Class.extend = function(name, prop) {
+    const _super = this.prototype;
+
+    // Instantiate a base class (but only create the instance,
+    // don’t run the init constructor)
+    initializing = true;
+    const prototype = new this();
+    initializing = false;
+
+    // Copy the properties over onto the new prototype
+    for (let name in prop) {
+      // Check if we’re overwriting an existing function
+      prototype[name] = typeof prop[name] == "function" &&
+      typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+        ((name, fn) => {
+          return function() {
+            const tmp = this._super;
+            
+            // Add a new ._super() method that is the same method
+            // but on the super-class
+            this._super = _super[name];
+            
+            // The method only need to be bound temporarily, so we
+            // remove it when we’re done executing
+            const ret = fn.apply(this, arguments);
+            this._super = tmp;
+            
+            return ret;
+          };
+        })(name, prop[name]) : prop[name];
+    }
+    
+    prototype._name = name;
+    
+    prototype._instanceOf = function(n) {
+      if (name === n) {
+        return true;
+      } else if (_super._instanceOf) {
+        return _super._instanceOf(n);
+      } else {
+        return false;
+      }
+    }
+    
+    // The dummy class constructor
+    function __Class() {
+      // All construction is actually done in the init method
+      if (!initializing && this.init)
+        this.init.apply(this, arguments);
+    }
+    
+    // Populate our constructed prototype object
+    __Class.prototype = prototype;
+  
+    // Enforce the constructor to be what we expect
+    __Class.prototype.constructor = Class;
+  
+    // And make this class extendable
+    __Class.extend = _Class.extend;
+  
+    return __Class;
+  };
+    
+  return _Class;
+})();
+
+
+
 // append to string if non-empty
 function _pad (str, pad) {
   return (str.length) ? str + pad : str;
@@ -33,14 +116,10 @@ function _isArray(obj) {
 };
 
 
-// get class name of given object
-function _getObjectClassName (obj) {
-  if (obj && obj.constructor && obj.constructor.toString) {
-    let arr = obj.constructor.toString().match(/function\s*(\w+)/);
-    
-    if (arr && 2 === arr.length) {
-      return arr[1]
-    }
+// instanceOf check
+function _instanceOf (obj, Klass) {
+  if (obj && obj.instanceOf) {
+    return obj._instanceOf(typeof Klass !== 'string' ? Klass._name : Klass);
   }
 }
 
@@ -122,9 +201,7 @@ function getValueHandler (value, ...handlerLists) {
  * Build base squel classes and methods
  */
 function _buildSquel(flavour = null) {
-  let cls = {
-    _getObjectClassName: _getObjectClassName,
-  };
+  let cls = {};
 
   // default query builder options
   cls.DefaultQueryBuilderOptions = {
@@ -190,27 +267,24 @@ function _buildSquel(flavour = null) {
   */
 
   // Base class for cloneable builders
-  cls.Cloneable = class {
-    /**
-     * Clone this builder
-     */
-    clone () {
+  cls.Cloneable = Class.extend('Cloneable', { 
+    clone: function() {
       let newInstance = new this.constructor;
 
-      return _extend(newInstance, _clone(_extend({}, this)));
+      return _extend(newInstance, _clone(_extend({}, this)));      
     }
-  }
+  });
 
 
 
   // Base class for all builders
-  cls.BaseBuilder = class extends cls.Cloneable {
+  cls.BaseBuilder = cls.Cloneable.extend('BaseBuilder', {
     /**
      * Constructor.
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
-    constructor (options) {
-      super();
+    init: function (options) {
+      this._super();
 
       let defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
 
@@ -222,7 +296,7 @@ function _buildSquel(flavour = null) {
      *
      * Note: this will override any globally registered handler for this value type.
      */
-    registerValueHandler (type, handler) {
+    registerValueHandler: function (type, handler) {
       registerValueHandler(this.options.valueHandlers, type, handler);
 
       return this;
@@ -232,9 +306,9 @@ function _buildSquel(flavour = null) {
     /**
      * Sanitize given expression.
      */
-    _sanitizeExpression (expr) {
+    _sanitizeExpression: function (expr) {
       // If it's not a base builder instance
-      if (!(expr instanceof cls.BaseBuilder)) {
+      if (!_instanceOf(expr, cls.BaseBuilder)) {
         // It must then be a string
         if (typeof expr !== "string") {
           throw new Error("expression must be a string or builder instance");
@@ -251,7 +325,7 @@ function _buildSquel(flavour = null) {
      *
      * The 'type' parameter is used to construct a meaningful error message in case validation fails.
      */
-    _sanitizeName (value, type) {
+    _sanitizeName: function (value, type) {
       if (typeof value !== "string") {
         throw new Error(`${type} must be a string`);
       }
@@ -260,8 +334,8 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _sanitizeField (item) {
-      if (!(item instanceof cls.BaseBuilder)) {
+    _sanitizeField: function (item) {
+      if (!_instanceOf(item, cls.BaseBuilder)) {
         item = this._sanitizeName(item, "field name");
       }
 
@@ -269,8 +343,8 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _sanitizeBaseBuilder (item) {
-      if (item instanceof cls.BaseBuilder) {
+    _sanitizeBaseBuilder: function (item) {
+      if (_instanceOf(item, cls.BaseBuilder)) {
         return item;
       }
 
@@ -278,7 +352,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _sanitizeTable (item) {
+    _sanitizeTable: function (item) {
       if (typeof item !== "string") {
         try {
           item = this._sanitizeBaseBuilder(item);
@@ -292,18 +366,18 @@ function _buildSquel(flavour = null) {
       return item;
     }
 
-    _sanitizeTableAlias (item) {
+    _sanitizeTableAlias: function (item) {
       return this._sanitizeName(item, "table alias");
     }
 
 
-    _sanitizeFieldAlias (item) {
+    _sanitizeFieldAlias: function (item) {
       return this._sanitizeName(item, "field alias");
     }
 
 
     // Sanitize the given limit/offset value.
-    _sanitizeLimitOffset (value) {
+    _sanitizeLimitOffset: function (value) {
       value = parseInt(value);
 
       if (0 > value || isNaN(value)) {
@@ -314,8 +388,8 @@ function _buildSquel(flavour = null) {
     }
 
 
-    // Santize the given field value
-    _sanitizeValue (item) {
+    // Sanitize the given field value
+    _sanitizeValue: function (item) {
       let itemType = typeof item;
 
       if (null === item) {
@@ -324,7 +398,7 @@ function _buildSquel(flavour = null) {
       else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
         // primitives are allowed
       }
-      else if (item instanceof cls.BaseBuilder) {
+      else if (_instanceOf(item, cls.BaseBuilder)) {
         // Builders allowed
       }
       else {
@@ -341,14 +415,14 @@ function _buildSquel(flavour = null) {
 
 
     // Escape a string value, e.g. escape quotes and other characters within it.
-    _escapeValue (value) {
+    _escapeValue: function (value) {
       return (!this.options.replaceSingleQuotes) ? value : (
         value.replace(/\'/g, this.options.singleQuoteReplacement)
       );
     }
 
 
-    _formatTableName (item) {
+    _formatTableName: function (item) {
       if (this.options.autoQuoteTableNames) {
         const quoteChar = this.options.nameQuoteCharacter;
 
@@ -359,7 +433,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _formatFieldAlias (item) {
+    _formatFieldAlias: function (item) {
       if (this.options.autoQuoteAliasNames) {
         let quoteChar = this.options.fieldAliasQuoteCharacter;
 
@@ -370,7 +444,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _formatTableAlias (item) {
+    _formatTableAlias: function (item) {
       if (this.options.autoQuoteAliasNames) {
         let quoteChar = this.options.tableAliasQuoteCharacter;
 
@@ -383,7 +457,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _formatFieldName (item, formattingOptions = {}) {
+    _formatFieldName: function (item, formattingOptions = {}) {
       if (this.options.autoQuoteFieldNames) {
         let quoteChar = this.options.nameQuoteCharacter;
 
@@ -408,7 +482,7 @@ function _buildSquel(flavour = null) {
 
 
     // Format the given custom value
-    _formatCustomValue (value, asParam, formattingOptions) {
+    _formatCustomValue: function (value, asParam, formattingOptions) {
       // user defined custom handlers takes precedence
       let customHandler = 
         getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
@@ -429,7 +503,7 @@ function _buildSquel(flavour = null) {
     /** 
      * Format given value for inclusion into parameter values array.
      */
-    _formatValueForParamArray (value, formattingOptions = {}) {
+    _formatValueForParamArray: function (value, formattingOptions = {}) {
       if (_isArray(value)) {
         return value.map((v) => {
           return this._formatValueForParamArray(v, formattingOptions);
@@ -444,7 +518,7 @@ function _buildSquel(flavour = null) {
     /**
      * Format the given field value for inclusion into the query string
      */
-    _formatValueForQueryString (initialValue, formattingOptions = {}) {
+    _formatValueForQueryString: function (initialValue, formattingOptions = {}) {
       let { formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
       
       // if formatting took place then return it directly
@@ -469,7 +543,7 @@ function _buildSquel(flavour = null) {
         else if (typeofValue === "boolean") {
           value = value ? "TRUE" : "FALSE";
         }
-        else if (value instanceof cls.BaseBuilder) {
+        else if (_instanceOf(value, cls.BaseBuilder)) {
           value = this._applyNestingFormatting(value.toString());
         }
         else if (typeofValue !== "number") {
@@ -492,7 +566,7 @@ function _buildSquel(flavour = null) {
     }
 
 
-    _applyNestingFormatting(str, nesting = true) {
+    _applyNestingFormatting: function(str, nesting = true) {
       if (str && typeof str === 'string' && nesting) {
         // don't want to apply twice
         if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
@@ -516,7 +590,7 @@ function _buildSquel(flavour = null) {
      * @param {Boolean} [options.formattingOptions] Formatting options for values in query string.
      * @return {Object}
      */
-    _buildString (str, values, options = {}) {
+    _buildString: function (str, values, options = {}) {
       let { nested, buildParameterized, formattingOptions } = options;
 
       values = values || [];
@@ -536,7 +610,7 @@ function _buildSquel(flavour = null) {
           let value = values[++curValue];
 
           if (buildParameterized) {
-            if (value instanceof cls.BaseBuilder) {
+            if (_instanceOf(value, cls.BaseBuilder)) {
               let ret = value._toParamString({
                 buildParameterized: buildParameterized,
                 nested: true,
@@ -594,7 +668,7 @@ function _buildSquel(flavour = null) {
      * @param {Boolean} [options.nested] Whether this expression is nested within another.
      * @return {Object}
      */
-    _buildManyStrings(strings, strValues, options = {}) {
+    _buildManyStrings: function(strings, strValues, options = {}) {
       let totalStr = [],
         totalValues = [];
 
@@ -631,7 +705,7 @@ function _buildSquel(flavour = null) {
      * @param {Boolean} [options.nested] Whether this expression is nested within another.
      * @return {Object}
      */
-    _toParamString (options) {
+    _toParamString: function (options) {
       throw new Error('Not yet implemented');
     }
 
@@ -640,7 +714,7 @@ function _buildSquel(flavour = null) {
      * Get the expression string.
      * @return {String}
      */
-    toString (options = {}) {
+    toString: function (options = {}) {
       return this._toParamString(options).text;
     }
 
@@ -649,12 +723,12 @@ function _buildSquel(flavour = null) {
      * Get the parameterized expression string.
      * @return {Object}
      */
-    toParam (options = {}) {
+    toParam: function (options = {}) {
       return this._toParamString(_extend({}, options, {
         buildParameterized: true,
       }));
     }
-  }
+  });
 
 
 
@@ -678,17 +752,17 @@ function _buildSquel(flavour = null) {
    * 
    * All the build methods in this object return the object instance for chained method calling purposes.
    */
-  cls.Expression = class extends cls.BaseBuilder {
+  cls.Expression = cls.BaseBuilder.extend({
     // Initialise the expression.
-    constructor (options) {
-      super(options);
+    init (options) {
+      this._super(options);
 
       this._nodes = [];
     }
 
 
     // Combine the current expression with the given expression using the intersection operator (AND).
-    and (expr, ...params) {
+    and: function (expr, ...params) {
       expr = this._sanitizeExpression(expr);
 
       this._nodes.push({
@@ -703,7 +777,7 @@ function _buildSquel(flavour = null) {
 
 
     // Combine the current expression with the given expression using the union operator (OR).
-    or (expr, ...params) {
+    or: function (expr, ...params) {
       expr = this._sanitizeExpression(expr);
 
       this._nodes.push({
@@ -717,7 +791,7 @@ function _buildSquel(flavour = null) {
 
 
 
-    _toParamString (options = {}) {
+    _toParamString: function (options = {}) {
       let totalStr = [],
         totalValues = [];
 
@@ -725,7 +799,7 @@ function _buildSquel(flavour = null) {
         let { type, expr,  para } = node;
 
 
-        let { text, values } = (expr instanceof cls.BaseBuilder) 
+        let { text, values } = (_instanceOf(expr, cls.BaseBuilder)) 
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -750,8 +824,7 @@ function _buildSquel(flavour = null) {
         values: totalValues,
       };
     }
-
-  }
+  });
 
 
  

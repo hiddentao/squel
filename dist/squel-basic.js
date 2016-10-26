@@ -311,6 +311,7 @@ function _buildSquel() {
     _createClass(_class, [{
       key: 'clone',
 
+
       /**
        * Clone this builder
        */
@@ -318,6 +319,11 @@ function _buildSquel() {
         var newInstance = new this.constructor();
 
         return _extend(newInstance, _clone(_extend({}, this)));
+      }
+    }], [{
+      key: '_class',
+      value: function _class() {
+        return 'Cloneable';
       }
     }]);
 
