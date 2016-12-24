@@ -2964,7 +2964,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.5.0',
+    VERSION: '5.5.1',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

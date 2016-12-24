@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 24 Dec 2016 (5.5.1)
+* #255, #283 - mixing flavours
+
 ## 15 Oct 2016 (5.5.0)
 * #118 - pass extra formatting options (when available) to custom value handler
 * #273 - parameterized `LIMIT` and `OFFSET` queries
