@@ -82,17 +82,6 @@ function _isArray(obj) {
   return obj && obj.constructor.prototype === Array.prototype;
 };
 
-// get class name of given object
-function _getObjectClassName(obj) {
-  if (obj && obj.constructor && obj.constructor.toString) {
-    var arr = obj.constructor.toString().match(/function\s*(\w+)/);
-
-    if (arr && 2 === arr.length) {
-      return arr[1];
-    }
-  }
-}
-
 // clone given item
 function _clone(src) {
   if (!src) {
@@ -239,7 +228,9 @@ function _buildSquel() {
   var flavour = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
 
   var cls = {
-    _getObjectClassName: _getObjectClassName
+    _isSquelBuilder: function _isSquelBuilder(obj) {
+      return obj && !!obj._toParamString;
+    }
   };
 
   // default query builder options
@@ -367,7 +358,7 @@ function _buildSquel() {
       key: '_sanitizeExpression',
       value: function _sanitizeExpression(expr) {
         // If it's not a base builder instance
-        if (!(expr instanceof cls.BaseBuilder)) {
+        if (!cls._isSquelBuilder(expr)) {
           // It must then be a string
           if (typeof expr !== "string") {
             throw new Error("expression must be a string or builder instance");
@@ -395,7 +386,7 @@ function _buildSquel() {
     }, {
       key: '_sanitizeField',
       value: function _sanitizeField(item) {
-        if (!(item instanceof cls.BaseBuilder)) {
+        if (!cls._isSquelBuilder(item)) {
           item = this._sanitizeName(item, "field name");
         }
 
@@ -404,7 +395,7 @@ function _buildSquel() {
     }, {
       key: '_sanitizeBaseBuilder',
       value: function _sanitizeBaseBuilder(item) {
-        if (item instanceof cls.BaseBuilder) {
+        if (cls._isSquelBuilder(item)) {
           return item;
         }
 
@@ -461,7 +452,7 @@ function _buildSquel() {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
             // primitives are allowed
-          } else if (item instanceof cls.BaseBuilder) {
+          } else if (cls._isSquelBuilder(item)) {
               // Builders allowed
             } else {
                 var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
@@ -560,7 +551,7 @@ function _buildSquel() {
         };
       }
 
-      /** 
+      /**
        * Format given value for inclusion into parameter values array.
        */
 
@@ -616,7 +607,7 @@ function _buildSquel() {
             value = "NULL";
           } else if (typeofValue === "boolean") {
             value = value ? "TRUE" : "FALSE";
-          } else if (value instanceof cls.BaseBuilder) {
+          } else if (cls._isSquelBuilder(value)) {
             value = this._applyNestingFormatting(value.toString());
           } else if (typeofValue !== "number") {
             // if it's a string and we have custom string formatting turned on then use that
@@ -651,10 +642,10 @@ function _buildSquel() {
         return str;
       }
 
-      /** 
-       * Build given string and its corresponding parameter values into 
+      /**
+       * Build given string and its corresponding parameter values into
        * output.
-       * 
+       *
        * @param {String} str
        * @param {Array}  values
        * @param {Object} [options] Additional options.
@@ -690,7 +681,7 @@ function _buildSquel() {
             var value = values[++curValue];
 
             if (buildParameterized) {
-              if (value instanceof cls.BaseBuilder) {
+              if (cls._isSquelBuilder(value)) {
                 var ret = value._toParamString({
                   buildParameterized: buildParameterized,
                   nested: true
@@ -734,10 +725,10 @@ function _buildSquel() {
         };
       }
 
-      /** 
-       * Build all given strings and their corresponding parameter values into 
+      /**
+       * Build all given strings and their corresponding parameter values into
        * output.
-       * 
+       *
        * @param {Array} strings
        * @param {Array}  strValues array of value arrays corresponding to each string.
        * @param {Object} [options] Additional options.
@@ -781,7 +772,7 @@ function _buildSquel() {
 
       /**
        * Get parameterized representation of this instance.
-       * 
+       *
        * @param {Object} [options] Options.
        * @param {Boolean} [options.buildParameterized] Whether to build paramterized string. Default is false.
        * @param {Boolean} [options.nested] Whether this expression is nested within another.
@@ -839,10 +830,10 @@ function _buildSquel() {
    *
    * SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
    *
-   * Expressions can be nested. Nested expression contains can themselves 
-   * contain nested expressions. When rendered a nested expression will be 
+   * Expressions can be nested. Nested expression contains can themselves
+   * contain nested expressions. When rendered a nested expression will be
    * fully contained within brackets.
-   * 
+   *
    * All the build methods in this object return the object instance for chained method calling purposes.
    */
   cls.Expression = function (_cls$BaseBuilder) {
@@ -918,7 +909,7 @@ function _buildSquel() {
             var expr = node.expr;
             var para = node.para;
 
-            var _ref = expr instanceof cls.BaseBuilder ? expr._toParamString({
+            var _ref = cls._isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true
             }) : this._buildString(expr, para, {
@@ -1320,7 +1311,7 @@ function _buildSquel() {
 
               var tableStr = void 0;
 
-              if (table instanceof cls.BaseBuilder) {
+              if (cls._isSquelBuilder(table)) {
                 var _table$_toParamString = table._toParamString({
                   buildParameterized: options.buildParameterized,
                   nested: true
@@ -2135,7 +2126,7 @@ function _buildSquel() {
   cls.AbstractConditionBlock = function (_cls$Block10) {
     _inherits(_class23, _cls$Block10);
 
-    /** 
+    /**
      * @param {String} options.verb The condition verb.
      */
 
@@ -2189,7 +2180,7 @@ function _buildSquel() {
             var expr = _step10$value.expr;
             var values = _step10$value.values;
 
-            var ret = expr instanceof cls.BaseBuilder ? expr._toParamString({
+            var ret = cls._isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized
             }) : this._buildString(expr, values, {
               buildParameterized: options.buildParameterized
@@ -2498,7 +2489,7 @@ function _buildSquel() {
 
             var tableStr = void 0;
 
-            if (table instanceof cls.BaseBuilder) {
+            if (cls._isSquelBuilder(table)) {
               var ret = table._toParamString({
                 buildParameterized: options.buildParameterized,
                 nested: true
@@ -2521,7 +2512,7 @@ function _buildSquel() {
 
               var _ret4 = void 0;
 
-              if (condition instanceof cls.BaseBuilder) {
+              if (cls._isSquelBuilder(condition)) {
                 _ret4 = condition._toParamString({
                   buildParameterized: options.buildParameterized
                 });

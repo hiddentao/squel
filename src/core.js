@@ -33,17 +33,6 @@ function _isArray(obj) {
 };
 
 
-// get class name of given object
-function _getObjectClassName (obj) {
-  if (obj && obj.constructor && obj.constructor.toString) {
-    let arr = obj.constructor.toString().match(/function\s*(\w+)/);
-    
-    if (arr && 2 === arr.length) {
-      return arr[1]
-    }
-  }
-}
-
 
 // clone given item
 function _clone(src) {
@@ -109,7 +98,7 @@ function getValueHandler (value, ...handlerLists) {
   for (let handlers of handlerLists) {
     for (let typeHandler of handlers) {
       // if type is a string then use `typeof` or else use `instanceof`
-      if (typeof value === typeHandler.type || 
+      if (typeof value === typeHandler.type ||
           (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
         return typeHandler.handler;
       }
@@ -123,7 +112,9 @@ function getValueHandler (value, ...handlerLists) {
  */
 function _buildSquel(flavour = null) {
   let cls = {
-    _getObjectClassName: _getObjectClassName,
+    _isSquelBuilder: function (obj) {
+      return obj && !!obj._toParamString;
+    }
   };
 
   // default query builder options
@@ -234,7 +225,7 @@ function _buildSquel(flavour = null) {
      */
     _sanitizeExpression (expr) {
       // If it's not a base builder instance
-      if (!(expr instanceof cls.BaseBuilder)) {
+      if (!(cls._isSquelBuilder(expr))) {
         // It must then be a string
         if (typeof expr !== "string") {
           throw new Error("expression must be a string or builder instance");
@@ -261,7 +252,7 @@ function _buildSquel(flavour = null) {
 
 
     _sanitizeField (item) {
-      if (!(item instanceof cls.BaseBuilder)) {
+      if (!(cls._isSquelBuilder(item))) {
         item = this._sanitizeName(item, "field name");
       }
 
@@ -270,7 +261,7 @@ function _buildSquel(flavour = null) {
 
 
     _sanitizeBaseBuilder (item) {
-      if (item instanceof cls.BaseBuilder) {
+      if (cls._isSquelBuilder(item)) {
         return item;
       }
 
@@ -324,11 +315,11 @@ function _buildSquel(flavour = null) {
       else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
         // primitives are allowed
       }
-      else if (item instanceof cls.BaseBuilder) {
+      else if (cls._isSquelBuilder(item)) {
         // Builders allowed
       }
       else {
-        let typeIsValid = 
+        let typeIsValid =
           !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
         if (!typeIsValid) {
@@ -377,7 +368,7 @@ function _buildSquel(flavour = null) {
         item = `${quoteChar}${item}${quoteChar}`;
       }
 
-      return (this.options.useAsForTableAliasNames) 
+      return (this.options.useAsForTableAliasNames)
         ? `AS ${item}`
         : item;
     }
@@ -410,7 +401,7 @@ function _buildSquel(flavour = null) {
     // Format the given custom value
     _formatCustomValue (value, asParam, formattingOptions) {
       // user defined custom handlers takes precedence
-      let customHandler = 
+      let customHandler =
         getValueHandler(value, this.options.valueHandlers, cls.globalValueHandlers);
 
       // use the custom handler if available
@@ -426,7 +417,7 @@ function _buildSquel(flavour = null) {
 
 
 
-    /** 
+    /**
      * Format given value for inclusion into parameter values array.
      */
     _formatValueForParamArray (value, formattingOptions = {}) {
@@ -446,7 +437,7 @@ function _buildSquel(flavour = null) {
      */
     _formatValueForQueryString (initialValue, formattingOptions = {}) {
       let { formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
-      
+
       // if formatting took place then return it directly
       if (formatted) {
         return this._applyNestingFormatting(value);
@@ -469,7 +460,7 @@ function _buildSquel(flavour = null) {
         else if (typeofValue === "boolean") {
           value = value ? "TRUE" : "FALSE";
         }
-        else if (value instanceof cls.BaseBuilder) {
+        else if (cls._isSquelBuilder(value)) {
           value = this._applyNestingFormatting(value.toString());
         }
         else if (typeofValue !== "number") {
@@ -504,10 +495,10 @@ function _buildSquel(flavour = null) {
     }
 
 
-    /** 
-     * Build given string and its corresponding parameter values into 
+    /**
+     * Build given string and its corresponding parameter values into
      * output.
-     * 
+     *
      * @param {String} str
      * @param {Array}  values
      * @param {Object} [options] Additional options.
@@ -536,7 +527,7 @@ function _buildSquel(flavour = null) {
           let value = values[++curValue];
 
           if (buildParameterized) {
-            if (value instanceof cls.BaseBuilder) {
+            if (cls._isSquelBuilder(value)) {
               let ret = value._toParamString({
                 buildParameterized: buildParameterized,
                 nested: true,
@@ -559,11 +550,11 @@ function _buildSquel(flavour = null) {
               } else {
                 formattedStr += paramChar;
 
-                formattedValues.push(value);              
+                formattedValues.push(value);
               }
             }
           } else {
-            formattedStr += 
+            formattedStr +=
               this._formatValueForQueryString(value, formattingOptions);
           }
 
@@ -583,10 +574,10 @@ function _buildSquel(flavour = null) {
 
 
 
-    /** 
-     * Build all given strings and their corresponding parameter values into 
+    /**
+     * Build all given strings and their corresponding parameter values into
      * output.
-     * 
+     *
      * @param {Array} strings
      * @param {Array}  strValues array of value arrays corresponding to each string.
      * @param {Object} [options] Additional options.
@@ -614,8 +605,8 @@ function _buildSquel(flavour = null) {
       totalStr = totalStr.join(this.options.separator);
 
       return {
-        text: totalStr.length 
-          ? this._applyNestingFormatting(totalStr, !!options.nested) 
+        text: totalStr.length
+          ? this._applyNestingFormatting(totalStr, !!options.nested)
           : '',
         values: totalValues,
       };
@@ -625,7 +616,7 @@ function _buildSquel(flavour = null) {
 
     /**
      * Get parameterized representation of this instance.
-     * 
+     *
      * @param {Object} [options] Options.
      * @param {Boolean} [options.buildParameterized] Whether to build paramterized string. Default is false.
      * @param {Boolean} [options.nested] Whether this expression is nested within another.
@@ -672,10 +663,10 @@ function _buildSquel(flavour = null) {
    *
    * SQL expressions are used in WHERE and ON clauses to filter data by various criteria.
    *
-   * Expressions can be nested. Nested expression contains can themselves 
-   * contain nested expressions. When rendered a nested expression will be 
+   * Expressions can be nested. Nested expression contains can themselves
+   * contain nested expressions. When rendered a nested expression will be
    * fully contained within brackets.
-   * 
+   *
    * All the build methods in this object return the object instance for chained method calling purposes.
    */
   cls.Expression = class extends cls.BaseBuilder {
@@ -725,7 +716,7 @@ function _buildSquel(flavour = null) {
         let { type, expr,  para } = node;
 
 
-        let { text, values } = (expr instanceof cls.BaseBuilder) 
+        let { text, values } = (cls._isSquelBuilder(expr))
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -754,7 +745,7 @@ function _buildSquel(flavour = null) {
   }
 
 
- 
+
   /*
   # ---------------------------------------------------------------------------------------------------------
   # ---------------------------------------------------------------------------------------------------------
@@ -786,7 +777,7 @@ function _buildSquel(flavour = null) {
       this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
 
       this._cases = [];
-      this._elseValue = null;      
+      this._elseValue = null;
     }
 
     when (expression, ...values) {
@@ -804,7 +795,7 @@ function _buildSquel(flavour = null) {
       }
 
       this._cases[0].result = result;
-      
+
       return this;
     }
 
@@ -846,7 +837,7 @@ function _buildSquel(flavour = null) {
       return {
         text: totalStr,
         values: totalValues,
-      };        
+      };
     }
   }
 
@@ -894,8 +885,8 @@ function _buildSquel(flavour = null) {
       while (obj) {
         Object.getOwnPropertyNames(obj).forEach(function(prop) {
           if ('constructor' !== prop
-                && typeof obj[prop] === "function" 
-                && prop.charAt(0) !== '_' 
+                && typeof obj[prop] === "function"
+                && prop.charAt(0) !== '_'
                 && !cls.Block.prototype[prop])
           {
             ret[prop] = obj[prop];
@@ -904,7 +895,7 @@ function _buildSquel(flavour = null) {
 
         obj = Object.getPrototypeOf(obj);
       };
-      
+
       return ret;
     }
   }
@@ -936,7 +927,7 @@ function _buildSquel(flavour = null) {
 
       this._strings = [];
       this._values = [];
-    } 
+    }
 
     function (str, ...values) {
       this._strings.push(str);
@@ -986,7 +977,7 @@ function _buildSquel(flavour = null) {
 
       this._tables.push({
         table: table,
-        alias: alias,       
+        alias: alias,
       });
     }
 
@@ -1009,14 +1000,14 @@ function _buildSquel(flavour = null) {
 
           let tableStr;
 
-          if (table instanceof cls.BaseBuilder) {
+          if (cls._isSquelBuilder(table)) {
             let { text, values } = table._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
             });
 
             tableStr = text;
-            totalValues.push(...values);            
+            totalValues.push(...values);
           } else {
             tableStr = this._formatTableName(table);
           }
@@ -1071,7 +1062,7 @@ function _buildSquel(flavour = null) {
   // FROM table
   cls.FromTableBlock = class extends cls.AbstractTableBlock {
     constructor (options) {
-      super(_extend({}, options, { 
+      super(_extend({}, options, {
         prefix: 'FROM',
       }));
     }
@@ -1085,7 +1076,7 @@ function _buildSquel(flavour = null) {
   // INTO table
   cls.IntoTableBlock = class extends cls.AbstractTableBlock {
     constructor (options) {
-      super(_extend({}, options, { 
+      super(_extend({}, options, {
         prefix: 'INTO',
         singleTable: true,
       }));
@@ -1177,7 +1168,7 @@ function _buildSquel(flavour = null) {
 
       for (let field of this._fields) {
         totalStr = _pad(totalStr, ", ");
-        
+
         let { name, alias, options } = field;
 
         if (typeof name === 'string') {
@@ -1296,7 +1287,7 @@ function _buildSquel(flavour = null) {
           // Add field only if it hasn't been added before
           if (-1 === index) {
             this._fields.push(field);
-            index = this._fields.length - 1;            
+            index = this._fields.length - 1;
           }
 
           // The first value added needs to add the array
@@ -1357,9 +1348,9 @@ function _buildSquel(flavour = null) {
         totalValues.push(...ret.values);
       }
 
-      return { 
-        text: `SET ${totalStr}`, 
-        values: totalValues 
+      return {
+        text: `SET ${totalStr}`,
+        values: totalValues
       };
     }
 
@@ -1382,11 +1373,11 @@ function _buildSquel(flavour = null) {
 
     _toParamString (options = {}) {
       let { buildParameterized } = options;
-      
+
       let fieldString = this._fields
         .map((f) => this._formatFieldName(f))
         .join(', ');
-      
+
       let valueStrings = [],
         totalValues = [];
 
@@ -1394,24 +1385,24 @@ function _buildSquel(flavour = null) {
         valueStrings[i] = '';
 
         for (let j = 0; j < this._values[i].length; ++j) {
-          let ret = 
+          let ret =
             this._buildString(this.options.parameterCharacter, [this._values[i][j]], {
               buildParameterized: buildParameterized,
               formattingOptions: this._valueOptions[i][j],
             });
 
-          totalValues.push(...ret.values);          
+          totalValues.push(...ret.values);
 
           valueStrings[i] = _pad(valueStrings[i], ', ');
           valueStrings[i] += ret.text;
         }
       }
 
-      return { 
-        text: fieldString.length 
+      return {
+        text: fieldString.length
           ? `(${fieldString}) VALUES (${valueStrings.join('), (')})`
           : '',
-        values: totalValues 
+        values: totalValues
       };
     }
 
@@ -1496,31 +1487,31 @@ function _buildSquel(flavour = null) {
       };
     }
   }
-  
-  
+
+
   cls.AbstractVerbSingleValueBlock = class extends cls.Block {
     /**
      * @param options.verb The prefix verb string.
      */
     constructor (options) {
       super(options);
-      
+
       this._value = 0;
     }
-    
+
     _setValue (value) {
       this._value = this._sanitizeLimitOffset(value);
     }
-    
+
     _toParamString (options = {}) {
-      const expr = (0 < this._value) 
+      const expr = (0 < this._value)
         ? `${this.options.verb} ${this.options.parameterCharacter}`
         : '';
-      
-      const values = (null !== this._value) 
+
+      const values = (null !== this._value)
         ? [this._value]
         : [];
-        
+
       return this._buildString(expr, values, options);
     }
   }
@@ -1564,12 +1555,12 @@ function _buildSquel(flavour = null) {
       this._setValue(limit);
     }
   }
-  
-  
-  
+
+
+
   // Abstract condition base class
   cls.AbstractConditionBlock = class extends cls.Block {
-    /** 
+    /**
      * @param {String} options.verb The condition verb.
      */
     constructor (options) {
@@ -1600,7 +1591,7 @@ function _buildSquel(flavour = null) {
         totalValues = [];
 
       for (let { expr, values } of this._conditions) {
-        let ret = (expr instanceof cls.BaseBuilder) 
+        let ret = (cls._isSquelBuilder(expr))
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
             })
@@ -1682,7 +1673,7 @@ function _buildSquel(flavour = null) {
 
       this._orders.push({
         field: field,
-        dir: dir,   
+        dir: dir,
         values: values,
       });
     }
@@ -1775,7 +1766,7 @@ function _buildSquel(flavour = null) {
 
 
     _toParamString (options = {}) {
-      let totalStr = "",  
+      let totalStr = "",
         totalValues = [];
 
       for (let {type, table, alias, condition} of this._joins) {
@@ -1783,13 +1774,13 @@ function _buildSquel(flavour = null) {
 
         let tableStr;
 
-        if (table instanceof cls.BaseBuilder) {
+        if (cls._isSquelBuilder(table)) {
           let ret = table._toParamString({
             buildParameterized: options.buildParameterized,
             nested: true
           });
 
-          totalValues.push(...ret.values);          
+          totalValues.push(...ret.values);
           tableStr = ret.text;
         } else {
           tableStr = this._formatTableName(table);
@@ -1806,7 +1797,7 @@ function _buildSquel(flavour = null) {
 
           let ret;
 
-          if (condition instanceof cls.BaseBuilder) {
+          if (cls._isSquelBuilder(condition)) {
             ret = condition._toParamString({
               buildParameterized: options.buildParameterized,
             });
@@ -1949,7 +1940,7 @@ function _buildSquel(flavour = null) {
       for (let block of this.blocks) {
         block.registerValueHandler(type, handler);
       }
-      
+
       super.registerValueHandler(type, handler);
 
       return this;
@@ -1991,15 +1982,15 @@ function _buildSquel(flavour = null) {
 
       if (!options.nested) {
         if (options.numberedParameters) {
-          let i = (undefined !== options.numberedParametersStartAt) 
-            ? options.numberedParametersStartAt 
+          let i = (undefined !== options.numberedParametersStartAt)
+            ? options.numberedParametersStartAt
             : 1;
 
           // construct regex for searching
           const regex = options.parameterCharacter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
           totalStr = totalStr.replace(
-            new RegExp(regex, 'g'), 
+            new RegExp(regex, 'g'),
             function() {
               return `${options.numberedParametersPrefix}${i++}`;
             }
@@ -2051,7 +2042,7 @@ function _buildSquel(flavour = null) {
       ];
 
       super(options, blocks);
-    } 
+    }
   }
 
 
@@ -2112,7 +2103,7 @@ function _buildSquel(flavour = null) {
       super(options, blocks);
     }
   }
-  
+
 
   let _squel = {
     VERSION: '<<VERSION_STRING>>',
@@ -2197,5 +2188,3 @@ squel.useFlavour = function(flavour = null) {
     throw new Error(`Flavour not available: ${flavour}`);
   }
 }
-
-

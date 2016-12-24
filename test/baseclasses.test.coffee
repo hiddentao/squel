@@ -34,20 +34,6 @@ test['Version number'] =
 test['Default flavour'] =
   assert.isNull squel.flavour
 
-test['internal methods'] = 
-  '_getObjectClassName': ->
-    s = 'a string'
-    b = new Object()
-    c = new Error()
-    d = 1
-
-    assert.same squel.cls._getObjectClassName(0), undefined
-    assert.same squel.cls._getObjectClassName(true), 'Boolean'
-    assert.same squel.cls._getObjectClassName(1.2), 'Number'
-    assert.same squel.cls._getObjectClassName('a string'), 'String'
-    assert.same squel.cls._getObjectClassName(new Object), 'Object'
-    assert.same squel.cls._getObjectClassName(new Error), 'Error'
-
 
 test['Cloneable base class'] =
   '>> clone()': ->
@@ -138,7 +124,7 @@ test['Register global custom value handler'] =
     assert.same { type: Date, handler: handler2 }, squel.cls.globalValueHandlers[0]
 
 
-test['str()'] = 
+test['str()'] =
   constructor: ->
     f = squel.str('GETDATE(?)', 12, 23)
     assert.ok (f instanceof squel.cls.FunctionBlock)
@@ -148,8 +134,8 @@ test['str()'] =
   'custom value handler':
     beforeEach: ->
       @inst = squel.str('G(?,?)', 12, 23, 65)
-      
-      handlerConfig = _.find squel.cls.globalValueHandlers, (hc) -> 
+
+      handlerConfig = _.find squel.cls.globalValueHandlers, (hc) ->
         hc.type is squel.cls.FunctionBlock
 
       @handler = handlerConfig.handler
@@ -205,6 +191,15 @@ test['Load an SQL flavour'] =
 
     ret = squel.useFlavour flavour
     assert.same ret.flavour, flavour
+
+  'can mix flavours - #255': ->
+    squel.flavours.flavour1 = (s) -> s
+    squel.flavours.flavour2 = (s) -> s
+    squel1 = squel.useFlavour 'flavour1'
+    squel2 = squel.useFlavour 'flavour2'
+
+    expr1 = squel1.expr().and('1 = 1')
+    assert.same squel2.select().from('test', 't').where(expr1).toString(), 'SELECT * FROM test `t` WHERE (1 = 1)'
 
 
 
@@ -603,7 +598,7 @@ test['Builder base class'] =
 
         assert.same { formatted: true, value: 'foo'}, @inst._formatCustomValue(val, true)
         assert.same { formatted: true, value: 'bar'}, @inst._formatCustomValue(val)
-        
+
       'additional formatting options': ->
         @inst.registerValueHandler Date, (d, asParam, options) ->
           return if options.dontQuote then 'foo' else '"foo"'
@@ -619,7 +614,7 @@ test['Builder base class'] =
       assert.same s, @inst._formatValueForParamArray(s)
 
     'else calls _formatCustomValue': ->
-      spy = test.mocker.stub @inst, '_formatCustomValue', (v, asParam) -> 
+      spy = test.mocker.stub @inst, '_formatCustomValue', (v, asParam) ->
         { formatted: true, value: 'test' + (if asParam then 'foo' else 'bar') }
 
       assert.same 'testfoo', @inst._formatValueForParamArray(null)
@@ -633,14 +628,14 @@ test['Builder base class'] =
       assert.same 'testfoo', @inst._formatValueForParamArray(false)
 
       assert.same 6, spy.callCount
-      
+
       assert.same spy.getCall(4).args[2], opts
 
     'Array - recursively calls itself on each element': ->
       spy = test.mocker.spy @inst, '_formatValueForParamArray'
 
       v = [ squel.select().from('table'), 1.2 ]
-      
+
       opts = { dummy: true }
       res = @inst._formatValueForParamArray(v, opts)
 
@@ -711,7 +706,7 @@ test['Builder base class'] =
       assert.same '{{SELECT * FROM table}}', @inst._formatValueForQueryString(s)
 
     'checks to see if it is custom value type first': ->
-      test.mocker.stub @inst, '_formatCustomValue', (val, asParam) -> 
+      test.mocker.stub @inst, '_formatCustomValue', (val, asParam) ->
         { formatted: true, value: 12 + (if asParam then 25 else 65) }
       test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
       assert.same '{77}', @inst._formatValueForQueryString(123)
@@ -791,7 +786,7 @@ test['Builder base class'] =
           values: [3]
         }
     'string formatting options': ->
-      options = 
+      options =
         formattingOptions:
           dontQuote: true
 
@@ -802,13 +797,13 @@ test['Builder base class'] =
     'passes formatting options even when doing parameterized query': ->
       spy = test.mocker.spy @inst, '_formatValueForParamArray'
 
-      options = 
+      options =
         buildParameterized: true
         formattingOptions:
           dontQuote: true
 
       @inst._buildString('a = ?', [3], options)
-      
+
       assert.same spy.getCall(0).args[1], options.formattingOptions
     'custom parameter character': ->
       beforeEach: ->
@@ -889,7 +884,7 @@ test['Builder base class'] =
     options = {test: 2}
     assert.same @inst.toParam(options), {
       text: 'dummy'
-      values: [1]      
+      values: [1]
     }
 
     spy.should.have.been.calledOnce
@@ -1023,7 +1018,7 @@ test['QueryBuilder base class'] =
 
     'returns final query string': ->
       i = 1
-      toStringSpy = test.mocker.stub squel.cls.StringBlock.prototype, '_toParamString', -> 
+      toStringSpy = test.mocker.stub squel.cls.StringBlock.prototype, '_toParamString', ->
         {
           text: "ret#{++i}"
           values: []
@@ -1062,7 +1057,7 @@ test['QueryBuilder base class'] =
       ]
 
       i = 1
-      toStringSpy = test.mocker.stub squel.cls.StringBlock.prototype, '_toParamString', -> 
+      toStringSpy = test.mocker.stub squel.cls.StringBlock.prototype, '_toParamString', ->
         {
           text: "ret#{++i}"
           values: []
@@ -1080,7 +1075,7 @@ test['QueryBuilder base class'] =
         new squel.cls.WhereBlock({}),
       ]
 
-      @inst.blocks[0]._toParamString = test.mocker.spy -> { 
+      @inst.blocks[0]._toParamString = test.mocker.spy -> {
         text: 'a = ? AND b in (?, ?)',
         values: [1, 2, 3]
       }
@@ -1095,7 +1090,7 @@ test['QueryBuilder base class'] =
         new squel.cls.WhereBlock({}),
       ]
 
-      test.mocker.stub squel.cls.WhereBlock.prototype, '_toParamString', -> { 
+      test.mocker.stub squel.cls.WhereBlock.prototype, '_toParamString', -> {
         text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]
       }
 
@@ -1110,9 +1105,9 @@ test['QueryBuilder base class'] =
         new squel.cls.WhereBlock({}),
       ]
 
-      test.mocker.stub squel.cls.WhereBlock.prototype, '_toParamString', -> { 
+      test.mocker.stub squel.cls.WhereBlock.prototype, '_toParamString', -> {
         text: 'a = ? AND b in (?, ?)', values: [1, 2, 3]
-      } 
+      }
 
       assert.same @inst.toParam(), { text: 'a = &%1 AND b in (&%2, &%3)', values: [1, 2, 3]}
 
