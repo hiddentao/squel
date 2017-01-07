@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 7 Jan 2016 (5.6.0)
+* #256 - expression nesting
+
 ## 24 Dec 2016 (5.5.1)
 * #255, #283 - mixing flavours
 

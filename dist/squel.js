@@ -633,9 +633,32 @@ function _buildSquel() {
         var nesting = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
         if (str && typeof str === 'string' && nesting) {
-          // don't want to apply twice
-          if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
-            return '(' + str + ')';
+          // apply brackets if they're not already existing
+          var alreadyHasBrackets = '(' === str.charAt(0) && ')' === str.charAt(str.length - 1);
+
+          if (alreadyHasBrackets) {
+            // check that it's the form "((x)..(y))" rather than "(x)..(y)"
+            var idx = 0,
+                open = 1;
+
+            while (str.length - 1 > ++idx) {
+              var c = str.charAt(idx);
+
+              if ('(' === c) {
+                open++;
+              } else if (')' === c) {
+                open--;
+                if (1 > open) {
+                  alreadyHasBrackets = false;
+
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!alreadyHasBrackets) {
+            str = '(' + str + ')';
           }
         }
 
@@ -2964,7 +2987,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.5.1',
+    VERSION: '5.6.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

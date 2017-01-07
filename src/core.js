@@ -485,9 +485,32 @@ function _buildSquel(flavour = null) {
 
     _applyNestingFormatting(str, nesting = true) {
       if (str && typeof str === 'string' && nesting) {
-        // don't want to apply twice
-        if ('(' !== str.charAt(0) || ')' !== str.charAt(str.length - 1)) {
-          return `(${str})`;
+        // apply brackets if they're not already existing
+        let alreadyHasBrackets = ('(' === str.charAt(0) && ')' === str.charAt(str.length - 1));
+
+        if (alreadyHasBrackets) {
+          // check that it's the form "((x)..(y))" rather than "(x)..(y)"
+          let idx = 0,
+            open = 1;
+
+          while (str.length-1 > ++idx) {
+            const c = str.charAt(idx);
+
+            if ('(' === c) {
+              open++;
+            } else if (')' === c) {
+              open--;
+              if (1 > open) {
+                alreadyHasBrackets = false;
+
+                break;
+              }
+            }
+          }
+        }
+
+        if (!alreadyHasBrackets) {
+          str = `(${str})`;
         }
       }
 

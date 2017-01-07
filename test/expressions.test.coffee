@@ -49,7 +49,7 @@ test['Expression builder base class'] =
       })
 
       expected = _.extend({}, squel.cls.DefaultQueryBuilderOptions, {
-        separator: ',asdf'  
+        separator: ',asdf'
       })
 
       assert.same expected, e.options
@@ -82,7 +82,7 @@ test['Expression builder base class'] =
     'with a function throws an error': ->
       assert.throws (=> @inst.or(-> 1)), 'expression must be a string or builder instance'
     'with an Expression returns object instance': ->
-      assert.same @inst, @inst.or(squel.expr())      
+      assert.same @inst, @inst.or(squel.expr())
     'with a builder returns object instance': ->
       assert.same @inst, @inst.and(squel.str())
     'with a string returns object instance': ->
@@ -97,9 +97,9 @@ test['Expression builder base class'] =
       assert.same @inst.toString(), 'test = 3'
 
     '>> toParam()': ->
-      assert.same @inst.toParam(), { 
-        text: 'test = 3', 
-        values: [] 
+      assert.same @inst.toParam(), {
+        text: 'test = 3',
+        values: []
       }
 
     '>> and("flight = \'4\'")':
@@ -110,9 +110,9 @@ test['Expression builder base class'] =
         assert.same @inst.toString(), "test = 3 AND flight = '4'"
 
       '>> toParam()': ->
-        assert.same @inst.toParam(), { 
-          text: "test = 3 AND flight = '4'", 
-          values: [] 
+        assert.same @inst.toParam(), {
+          text: "test = 3 AND flight = '4'",
+          values: []
         }
 
       '>> or("dummy IN (1,2,3)")':
@@ -123,7 +123,7 @@ test['Expression builder base class'] =
           assert.same @inst.toString(), "test = 3 AND flight = '4' OR dummy IN (1,2,3)"
 
         '>> toParam()': ->
-          assert.same @inst.toParam(), { 
+          assert.same @inst.toParam(), {
             text: "test = 3 AND flight = '4' OR dummy IN (1,2,3)",
             values: [],
           }
@@ -278,7 +278,7 @@ test['Expression builder base class'] =
         }
 
     '>> and(expr().or("inner = ?", 1).or(expr().and("another = ?", 34)))':
-      beforeEach: -> 
+      beforeEach: ->
           @inst.and( squel.expr().or('inner = ?', 1).or(squel.expr().and("another = ?", 34)) )
 
       '>> toString()': ->
@@ -321,7 +321,7 @@ test['Expression builder base class'] =
 
 
   'custom array prototype methods (Issue #210)': ->
-    Array.prototype.last = () -> 
+    Array.prototype.last = () ->
       this[this.length - 1]
 
     @inst.or("foo = ?", "bar")
@@ -339,6 +339,18 @@ test['Expression builder base class'] =
         text: "b = ? OR (SELECT * FROM blah WHERE (a = ?))"
         values: [5, 9]
       }
+
+  '#286 - nesting':
+    beforeEach: ->
+      @inst = squel.expr().and(squel.expr().and(squel.expr().and('A').and('B')).or(squel.expr().and('C').and('D'))).and('E')
+    toString: ->
+      assert.same @inst.toString(), "((A AND B) OR (C AND D)) AND E"
+    toParam: ->
+      assert.same @inst.toParam(), {
+        text: "((A AND B) OR (C AND D)) AND E"
+        values: []
+      }
+
 
 
 module?.exports[require('path').basename(__filename)] = test
