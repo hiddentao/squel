@@ -112,7 +112,7 @@ squel.flavours['postgres'] = function(_squel) {
 
       return {
         text: totalStr.length > 0 ? `RETURNING ${totalStr}` : '',
-        values: [],
+        values: totalValues
       }
     }
   }

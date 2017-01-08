@@ -72,6 +72,12 @@ test['Postgres flavour'] =
       beforeEach: -> @inst.into('table').set('field', 1).returning(squel.str('id < ?', 100), 'under100')
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING (id < 100) AS under100'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          "text": 'INSERT INTO table (field) VALUES ($1) RETURNING (id < $2) AS under100',
+          "values": [1, 100]
+        }
+
 
     '>> into(table).set(field, 1).with(alias, table)':
       beforeEach: -> @inst.into('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
