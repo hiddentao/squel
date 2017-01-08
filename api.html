@@ -540,6 +540,22 @@
             },
             returns: 'this'
           },
+          '.returnField()': {
+            desc: 'Set a field to be in RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              name: {
+                desc: 'Name of field OR an SQL output expression.',
+                type: 'String or [[cls.BaseBuilder]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
           '.with()': {
             flavours: ['postgres'],
             desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
@@ -752,6 +768,22 @@
             },
             returns: 'this'
           },
+          '.returnField()': {
+            desc: 'Set a field to be in RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              name: {
+                desc: 'Name of field OR an SQL output expression.',
+                type: 'String or [[cls.BaseBuilder]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
+              }
+            },
+            returns: 'this'
+          },
           '.with()': {
             flavours: ['postgres'],
             desc: 'Combine with another query using a Common Table Expression (CTE), ie a <code>WITH</code> clause',
@@ -919,10 +951,10 @@
               fieldsToSet: {
                 desc: 'Field-value pairs.',
                 type: 'Object',
-                defaultValue: null,                
+                defaultValue: null,
               },
             },
-            returns: 'this'            
+            returns: 'this'
           },
           '.output()': {
             desc: 'Add field to <code>OUTPUT</code> clause.',
@@ -942,6 +974,22 @@
               str: {
                 desc: 'What to return with the query.',
                 type: 'String'
+              }
+            },
+            returns: 'this'
+          },
+          '.returnField()': {
+            desc: 'Set a field to be in RETURNING clause.',
+            flavours: ['postgres'],
+            params: {
+              name: {
+                desc: 'Name of field OR an SQL output expression.',
+                type: 'String or [[cls.BaseBuilder]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
               }
             },
             returns: 'this'
@@ -1332,6 +1380,7 @@
     delete tree['replace()'].children['.onConflict()'];
     delete tree['replace()'].children['.output()'];
     delete tree['replace()'].children['.returning()'];
+    delete tree['replace()'].children['.returnField()'];
     delete tree['replace()'].children['.with()'];
 
     $.extend(tree['select()'].children, commonQueryBuilderMethods);
