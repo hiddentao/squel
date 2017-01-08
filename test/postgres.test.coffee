@@ -58,6 +58,31 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
+    '>> into(table).set(field, 1).returnField("id").returnField("id")':
+      beforeEach: -> @inst.into('table').set('field', 1).returnField('id').returnField('id')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
+
+    '>> into(table).set(field, 1).returnField("id").returnField("name", "alias")':
+      beforeEach: -> @inst.into('table').set('field', 1).returnField('id').returnField('name', 'alias')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id, name AS alias'
+
+    '>> into(table).set(field, 1).returnField(squel.str("id < ?", 100), "under100")':
+      beforeEach: -> @inst.into('table').set('field', 1).returnField(squel.str('id < ?', 100), 'under100')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING (id < 100) AS under100'
+
+    '>> into(table).set(field, 1).returning("id").returnField("field")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('id')
+      returnField: -> assert.throws (=> @inst.returnField('field')),
+        'methods returning and returnField are incompatible'
+
+    '>> into(table).set(field, 1).returnField("field").returning("id")':
+      beforeEach: -> @inst.into('table').set('field', 1).returnField("field")
+      returning: -> assert.throws (=> @inst.returning('id')),
+        'methods returning and returnField are incompatible'
+
     '>> into(table).set(field, 1).with(alias, table)':
       beforeEach: -> @inst.into('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
       toString: ->
@@ -80,6 +105,11 @@ test['Postgres flavour'] =
       beforeEach: -> @upd.table('table').set('field', 1).returning('field')
       toString: ->
         assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING field'
+
+    '>> table(table).set(field, 1).returnField("name", "alias")':
+      beforeEach: -> @upd.table('table').set('field', 1).returnField("name", "alias")
+      toString: ->
+        assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING name AS alias'
 
     '>> table(table).set(field, 1).from(table2)':
       beforeEach: -> @upd.table('table').set('field', 1).from('table2')
@@ -108,6 +138,11 @@ test['Postgres flavour'] =
       beforeEach: -> @del.from('table').where('field = 1').returning('field')
       toString: ->
         assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field'
+
+    '>> from(table).where(field = 1).returnField("field", "f")':
+      beforeEach: -> @del.from('table').where('field = 1').returnField('field', 'f')
+      toString: ->
+        assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field AS f'
 
     '>> from(table).where(field = 1).with(alias, table)':
       beforeEach: -> @del.from('table').where('field = ?', 1).with('alias', squel.select().from('table').where('field = ?', 2))
