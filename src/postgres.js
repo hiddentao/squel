@@ -60,21 +60,10 @@ squel.flavours['postgres'] = function(_squel) {
   cls.ReturningBlock = class extends cls.Block {
     constructor (options) {
       super(options);
-      this._str = null;
       this._fields = [];
     }
 
-    returning (ret) {
-      if (this._fields.length > 0) {
-        throw new Error("methods returning and returnField are incompatible");
-      }
-      this._str = this._sanitizeField(ret);
-    }
-
-    returnField (field, alias = null, options = {}) {
-      if (this._str !== null) {
-        throw new Error("methods returning and returnField are incompatible");
-      }
+    returning (field, alias = null, options = {}) {
       alias = alias ? this._sanitizeFieldAlias(alias) : alias;
       field = this._sanitizeField(field);
 
@@ -94,38 +83,35 @@ squel.flavours['postgres'] = function(_squel) {
     }
 
     _toParamString (options = {}) {
-      if (this._fields.length > 0) {
-        let { queryBuilder, buildParameterized } = options;
+      let { queryBuilder, buildParameterized } = options;
 
-        let totalStr = '',
-          totalValues = [];
+      let totalStr = '',
+        totalValues = [];
 
-        for (let field of this._fields) {
-          totalStr = _pad(totalStr, ", ");
+      for (let field of this._fields) {
+        totalStr = _pad(totalStr, ", ");
 
-          let { name, alias, options } = field;
+        let { name, alias, options } = field;
 
-          if (typeof name === 'string') {
-            totalStr += this._formatFieldName(name, options);
-          } else {
-            let ret = name._toParamString({
-              nested: true,
-              buildParameterized: buildParameterized,
-            });
+        if (typeof name === 'string') {
+          totalStr += this._formatFieldName(name, options);
+        } else {
+          let ret = name._toParamString({
+            nested: true,
+            buildParameterized: buildParameterized,
+          });
 
-            totalStr += ret.text;
-            totalValues.push(...ret.values);
-          }
-
-          if (alias) {
-            totalStr += ` AS ${this._formatFieldAlias(alias)}`;
-          }
+          totalStr += ret.text;
+          totalValues.push(...ret.values);
         }
 
-        this._str = totalStr;
+        if (alias) {
+          totalStr += ` AS ${this._formatFieldAlias(alias)}`;
+        }
       }
+
       return {
-        text: this._str ? `RETURNING ${this._str}` : '',
+        text: totalStr.length > 0 ? `RETURNING ${totalStr}` : '',
         values: [],
       }
     }

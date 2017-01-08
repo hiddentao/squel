@@ -3658,28 +3658,16 @@ squel.flavours['postgres'] = function (_squel) {
 
       var _this57 = _possibleConstructorReturn(this, (_class50.__proto__ || Object.getPrototypeOf(_class50)).call(this, options));
 
-      _this57._str = null;
       _this57._fields = [];
       return _this57;
     }
 
     _createClass(_class50, [{
       key: 'returning',
-      value: function returning(ret) {
-        if (this._fields.length > 0) {
-          throw new Error("methods returning and returnField are incompatible");
-        }
-        this._str = this._sanitizeField(ret);
-      }
-    }, {
-      key: 'returnField',
-      value: function returnField(field) {
+      value: function returning(field) {
         var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
         var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-        if (this._str !== null) {
-          throw new Error("methods returning and returnField are incompatible");
-        }
         alias = alias ? this._sanitizeFieldAlias(alias) : alias;
         field = this._sanitizeField(field);
 
@@ -3701,65 +3689,61 @@ squel.flavours['postgres'] = function (_squel) {
       key: '_toParamString',
       value: function _toParamString() {
         var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-        if (this._fields.length > 0) {
-          var queryBuilder = options.queryBuilder,
-              buildParameterized = options.buildParameterized;
+        var queryBuilder = options.queryBuilder,
+            buildParameterized = options.buildParameterized;
 
 
-          var totalStr = '',
-              totalValues = [];
+        var totalStr = '',
+            totalValues = [];
 
-          var _iteratorNormalCompletion18 = true;
-          var _didIteratorError18 = false;
-          var _iteratorError18 = undefined;
+        var _iteratorNormalCompletion18 = true;
+        var _didIteratorError18 = false;
+        var _iteratorError18 = undefined;
 
-          try {
-            for (var _iterator18 = this._fields[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-              var field = _step18.value;
+        try {
+          for (var _iterator18 = this._fields[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+            var field = _step18.value;
 
-              totalStr = _pad(totalStr, ", ");
+            totalStr = _pad(totalStr, ", ");
 
-              var name = field.name,
-                  alias = field.alias,
-                  _options2 = field.options;
+            var name = field.name,
+                alias = field.alias,
+                _options2 = field.options;
 
 
-              if (typeof name === 'string') {
-                totalStr += this._formatFieldName(name, _options2);
-              } else {
-                var ret = name._toParamString({
-                  nested: true,
-                  buildParameterized: buildParameterized
-                });
+            if (typeof name === 'string') {
+              totalStr += this._formatFieldName(name, _options2);
+            } else {
+              var ret = name._toParamString({
+                nested: true,
+                buildParameterized: buildParameterized
+              });
 
-                totalStr += ret.text;
-                totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
-              }
-
-              if (alias) {
-                totalStr += ' AS ' + this._formatFieldAlias(alias);
-              }
+              totalStr += ret.text;
+              totalValues.push.apply(totalValues, _toConsumableArray(ret.values));
             }
-          } catch (err) {
-            _didIteratorError18 = true;
-            _iteratorError18 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion18 && _iterator18.return) {
-                _iterator18.return();
-              }
-            } finally {
-              if (_didIteratorError18) {
-                throw _iteratorError18;
-              }
+
+            if (alias) {
+              totalStr += ' AS ' + this._formatFieldAlias(alias);
             }
           }
-
-          this._str = totalStr;
+        } catch (err) {
+          _didIteratorError18 = true;
+          _iteratorError18 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion18 && _iterator18.return) {
+              _iterator18.return();
+            }
+          } finally {
+            if (_didIteratorError18) {
+              throw _iteratorError18;
+            }
+          }
         }
+
         return {
-          text: this._str ? 'RETURNING ' + this._str : '',
+          text: totalStr.length > 0 ? 'RETURNING ' + totalStr : '',
           values: []
         };
       }
