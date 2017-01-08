@@ -530,18 +530,7 @@
             returns: 'this'
           },
           '.returning()': {
-            desc: 'Add a RETURNING clause.',
-            flavours: ['postgres'],
-            params: {
-              str: {
-                desc: 'What to return with the query.',
-                type: 'String'
-              }
-            },
-            returns: 'this'
-          },
-          '.returnField()': {
-            desc: 'Set a field to be in RETURNING clause.',
+            desc: 'Add field to <code>RETURNING</code> clause.',
             flavours: ['postgres'],
             params: {
               name: {
@@ -758,18 +747,7 @@
             returns: 'this'
           },
           '.returning()': {
-            desc: 'Add a RETURNING clause.',
-            flavours: ['postgres'],
-            params: {
-              str: {
-                desc: 'What to return with the query.',
-                type: 'String'
-              }
-            },
-            returns: 'this'
-          },
-          '.returnField()': {
-            desc: 'Set a field to be in RETURNING clause.',
+            desc: 'Add field to <code>RETURNING</code> clause.',
             flavours: ['postgres'],
             params: {
               name: {
@@ -968,18 +946,7 @@
             returns: 'this'
           },
           '.returning()': {
-            desc: 'Add a RETURNING clause.',
-            flavours: ['postgres'],
-            params: {
-              str: {
-                desc: 'What to return with the query.',
-                type: 'String'
-              }
-            },
-            returns: 'this'
-          },
-          '.returnField()': {
-            desc: 'Set a field to be in RETURNING clause.',
+            desc: 'Add field to <code>RETURNING</code> clause.',
             flavours: ['postgres'],
             params: {
               name: {
@@ -1380,7 +1347,6 @@
     delete tree['replace()'].children['.onConflict()'];
     delete tree['replace()'].children['.output()'];
     delete tree['replace()'].children['.returning()'];
-    delete tree['replace()'].children['.returnField()'];
     delete tree['replace()'].children['.with()'];
 
     $.extend(tree['select()'].children, commonQueryBuilderMethods);
