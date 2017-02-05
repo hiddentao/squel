@@ -530,12 +530,17 @@
             returns: 'this'
           },
           '.returning()': {
-            desc: 'Add a RETURNING clause.',
+            desc: 'Add field to <code>RETURNING</code> clause.',
             flavours: ['postgres'],
             params: {
-              str: {
-                desc: 'What to return with the query.',
-                type: 'String'
+              name: {
+                desc: 'Name of field OR an SQL output expression.',
+                type: 'String or [[cls.BaseBuilder]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
               }
             },
             returns: 'this'
@@ -742,12 +747,17 @@
             returns: 'this'
           },
           '.returning()': {
-            desc: 'Add a RETURNING clause.',
+            desc: 'Add field to <code>RETURNING</code> clause.',
             flavours: ['postgres'],
             params: {
-              str: {
-                desc: 'What to return with the query.',
-                type: 'String'
+              name: {
+                desc: 'Name of field OR an SQL output expression.',
+                type: 'String or [[cls.BaseBuilder]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
               }
             },
             returns: 'this'
@@ -919,10 +929,10 @@
               fieldsToSet: {
                 desc: 'Field-value pairs.',
                 type: 'Object',
-                defaultValue: null,                
+                defaultValue: null,
               },
             },
-            returns: 'this'            
+            returns: 'this'
           },
           '.output()': {
             desc: 'Add field to <code>OUTPUT</code> clause.',
@@ -936,12 +946,17 @@
             returns: 'this'
           },
           '.returning()': {
-            desc: 'Add a RETURNING clause.',
+            desc: 'Add field to <code>RETURNING</code> clause.',
             flavours: ['postgres'],
             params: {
-              str: {
-                desc: 'What to return with the query.',
-                type: 'String'
+              name: {
+                desc: 'Name of field OR an SQL output expression.',
+                type: 'String or [[cls.BaseBuilder]]'
+              },
+              alias: {
+                type: 'String',
+                desc: 'An alias by which to refer to this field.',
+                defaultValue: 'null'
               }
             },
             returns: 'this'
