@@ -60,17 +60,59 @@ squel.flavours['postgres'] = function(_squel) {
   cls.ReturningBlock = class extends cls.Block {
     constructor (options) {
       super(options);
-      this._str = null;
+      this._fields = [];
     }
 
-    returning (ret) {
-      this._str = this._sanitizeField(ret);
+    returning (field, alias = null, options = {}) {
+      alias = alias ? this._sanitizeFieldAlias(alias) : alias;
+      field = this._sanitizeField(field);
+
+      // if field-alias combo already present then don't add
+      let existingField = this._fields.filter((f) => {
+        return f.name === field && f.alias === alias;
+      });
+      if (existingField.length) {
+        return this;
+      }
+
+      this._fields.push({
+        name: field,
+        alias: alias,
+        options: options,
+      });
     }
 
-    _toParamString () {
+    _toParamString (options = {}) {
+      let { queryBuilder, buildParameterized } = options;
+
+      let totalStr = '',
+        totalValues = [];
+
+      for (let field of this._fields) {
+        totalStr = _pad(totalStr, ", ");
+
+        let { name, alias, options } = field;
+
+        if (typeof name === 'string') {
+          totalStr += this._formatFieldName(name, options);
+        } else {
+          let ret = name._toParamString({
+            nested: true,
+            buildParameterized: buildParameterized,
+          });
+
+          totalStr += ret.text;
+          totalValues.push(...ret.values);
+        }
+
+        if (alias) {
+          totalStr += ` AS ${this._formatFieldAlias(alias)}`;
+        }
+      }
+
       return {
-        text: this._str ? `RETURNING ${this._str}` : '',
-        values: [],
+        text: totalStr.length > 0 ? `RETURNING ${totalStr}` : '',
+        values: totalValues
       }
     }
   }

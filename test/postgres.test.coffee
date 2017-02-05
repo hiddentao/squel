@@ -58,6 +58,27 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
 
+    '>> into(table).set(field, 1).returning("id").returning("id")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('id').returning('id')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id'
+
+    '>> into(table).set(field, 1).returning("id").returning("name", "alias")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning('id').returning('name', 'alias')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING id, name AS alias'
+
+    '>> into(table).set(field, 1).returning(squel.str("id < ?", 100), "under100")':
+      beforeEach: -> @inst.into('table').set('field', 1).returning(squel.str('id < ?', 100), 'under100')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field) VALUES (1) RETURNING (id < 100) AS under100'
+      toParam: ->
+        assert.same @inst.toParam(), {
+          "text": 'INSERT INTO table (field) VALUES ($1) RETURNING (id < $2) AS under100',
+          "values": [1, 100]
+        }
+
+
     '>> into(table).set(field, 1).with(alias, table)':
       beforeEach: -> @inst.into('table').set('field', 1).with('alias', squel.select().from('table').where('field = ?', 2))
       toString: ->
@@ -80,6 +101,11 @@ test['Postgres flavour'] =
       beforeEach: -> @upd.table('table').set('field', 1).returning('field')
       toString: ->
         assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING field'
+
+    '>> table(table).set(field, 1).returning("name", "alias")':
+      beforeEach: -> @upd.table('table').set('field', 1).returning("name", "alias")
+      toString: ->
+        assert.same @upd.toString(), 'UPDATE table SET field = 1 RETURNING name AS alias'
 
     '>> table(table).set(field, 1).from(table2)':
       beforeEach: -> @upd.table('table').set('field', 1).from('table2')
@@ -108,6 +134,11 @@ test['Postgres flavour'] =
       beforeEach: -> @del.from('table').where('field = 1').returning('field')
       toString: ->
         assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field'
+
+    '>> from(table).where(field = 1).returning("field", "f")':
+      beforeEach: -> @del.from('table').where('field = 1').returning('field', 'f')
+      toString: ->
+        assert.same @del.toString(), 'DELETE FROM table WHERE (field = 1) RETURNING field AS f'
 
     '>> from(table).where(field = 1).with(alias, table)':
       beforeEach: -> @del.from('table').where('field = ?', 1).with('alias', squel.select().from('table').where('field = ?', 2))
