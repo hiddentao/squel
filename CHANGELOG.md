@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 6 Feb 2016 (5.7.0)
+* #288 - more flexible `RETURNING` clauses
+
 ## 7 Jan 2016 (5.6.0)
 * #256 - expression nesting
 
