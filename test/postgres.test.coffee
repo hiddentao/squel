@@ -303,6 +303,7 @@ test['Postgres flavour'] =
       numberedParametersStartAt: 1
       separator: ' '
       stringFormatter: null
+      rawNesting: false
     }, squel.cls.DefaultQueryBuilderOptions
 
 

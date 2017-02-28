@@ -228,9 +228,15 @@ function _buildSquel() {
   var flavour = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
 
   var cls = {
-    _isSquelBuilder: function _isSquelBuilder(obj) {
+    // Get whether obj is a query builder
+    isSquelBuilder: function isSquelBuilder(obj) {
       return obj && !!obj._toParamString;
     }
+  };
+
+  // Get whether nesting should be applied for given item
+  var _shouldApplyNesting = function _shouldApplyNesting(obj) {
+    return !cls.isSquelBuilder(obj) || !obj.options.rawNesting;
   };
 
   // default query builder options
@@ -266,7 +272,9 @@ function _buildSquel() {
     // String used to join individual blocks in a query when it's stringified
     separator: ' ',
     // Function for formatting string values prior to insertion into query string
-    stringFormatter: null
+    stringFormatter: null,
+    // Whether to prevent the addition of brackets () when nesting this query builder's output
+    rawNesting: false
   };
 
   // Global custom value handlers for all instances of builder
@@ -358,7 +366,7 @@ function _buildSquel() {
       key: '_sanitizeExpression',
       value: function _sanitizeExpression(expr) {
         // If it's not a base builder instance
-        if (!cls._isSquelBuilder(expr)) {
+        if (!cls.isSquelBuilder(expr)) {
           // It must then be a string
           if (typeof expr !== "string") {
             throw new Error("expression must be a string or builder instance");
@@ -386,7 +394,7 @@ function _buildSquel() {
     }, {
       key: '_sanitizeField',
       value: function _sanitizeField(item) {
-        if (!cls._isSquelBuilder(item)) {
+        if (!cls.isSquelBuilder(item)) {
           item = this._sanitizeName(item, "field name");
         }
 
@@ -395,7 +403,7 @@ function _buildSquel() {
     }, {
       key: '_sanitizeBaseBuilder',
       value: function _sanitizeBaseBuilder(item) {
-        if (cls._isSquelBuilder(item)) {
+        if (cls.isSquelBuilder(item)) {
           return item;
         }
 
@@ -452,7 +460,7 @@ function _buildSquel() {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
             // primitives are allowed
-          } else if (cls._isSquelBuilder(item)) {
+          } else if (cls.isSquelBuilder(item)) {
               // Builders allowed
             } else {
                 var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
@@ -582,6 +590,8 @@ function _buildSquel() {
 
         var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
+        // maybe we have a cusotm value handler
+
         var _formatCustomValue2 = this._formatCustomValue(initialValue, false, formattingOptions);
 
         var formatted = _formatCustomValue2.formatted;
@@ -590,7 +600,7 @@ function _buildSquel() {
         // if formatting took place then return it directly
 
         if (formatted) {
-          return this._applyNestingFormatting(value);
+          return this._applyNestingFormatting(value, _shouldApplyNesting(initialValue));
         }
 
         // if it's an array then format each element separately
@@ -599,7 +609,7 @@ function _buildSquel() {
             return _this4._formatValueForQueryString(v);
           });
 
-          value = this._applyNestingFormatting(value.join(', '));
+          value = this._applyNestingFormatting(value.join(', '), _shouldApplyNesting(value));
         } else {
           var typeofValue = typeof value === 'undefined' ? 'undefined' : _typeof(value);
 
@@ -607,8 +617,8 @@ function _buildSquel() {
             value = "NULL";
           } else if (typeofValue === "boolean") {
             value = value ? "TRUE" : "FALSE";
-          } else if (cls._isSquelBuilder(value)) {
-            value = this._applyNestingFormatting(value.toString());
+          } else if (cls.isSquelBuilder(value)) {
+            value = this._applyNestingFormatting(value.toString(), _shouldApplyNesting(value));
           } else if (typeofValue !== "number") {
             // if it's a string and we have custom string formatting turned on then use that
             if ('string' === typeofValue && this.options.stringFormatter) {
@@ -632,7 +642,7 @@ function _buildSquel() {
       value: function _applyNestingFormatting(str) {
         var nesting = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
-        if (str && typeof str === 'string' && nesting) {
+        if (str && typeof str === 'string' && nesting && !this.options.rawNesting) {
           // apply brackets if they're not already existing
           var alreadyHasBrackets = '(' === str.charAt(0) && ')' === str.charAt(str.length - 1);
 
@@ -704,7 +714,7 @@ function _buildSquel() {
             var value = values[++curValue];
 
             if (buildParameterized) {
-              if (cls._isSquelBuilder(value)) {
+              if (cls.isSquelBuilder(value)) {
                 var ret = value._toParamString({
                   buildParameterized: buildParameterized,
                   nested: true
@@ -932,7 +942,7 @@ function _buildSquel() {
             var expr = node.expr;
             var para = node.para;
 
-            var _ref = cls._isSquelBuilder(expr) ? expr._toParamString({
+            var _ref = cls.isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true
             }) : this._buildString(expr, para, {
@@ -1334,7 +1344,7 @@ function _buildSquel() {
 
               var tableStr = void 0;
 
-              if (cls._isSquelBuilder(table)) {
+              if (cls.isSquelBuilder(table)) {
                 var _table$_toParamString = table._toParamString({
                   buildParameterized: options.buildParameterized,
                   nested: true
@@ -2203,7 +2213,7 @@ function _buildSquel() {
             var expr = _step10$value.expr;
             var values = _step10$value.values;
 
-            var ret = cls._isSquelBuilder(expr) ? expr._toParamString({
+            var ret = cls.isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized
             }) : this._buildString(expr, values, {
               buildParameterized: options.buildParameterized
@@ -2512,7 +2522,7 @@ function _buildSquel() {
 
             var tableStr = void 0;
 
-            if (cls._isSquelBuilder(table)) {
+            if (cls.isSquelBuilder(table)) {
               var ret = table._toParamString({
                 buildParameterized: options.buildParameterized,
                 nested: true
@@ -2535,7 +2545,7 @@ function _buildSquel() {
 
               var _ret4 = void 0;
 
-              if (cls._isSquelBuilder(condition)) {
+              if (cls.isSquelBuilder(condition)) {
                 _ret4 = condition._toParamString({
                   buildParameterized: options.buildParameterized
                 });
@@ -2987,7 +2997,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.7.0',
+    VERSION: '5.8.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);
@@ -3009,6 +3019,13 @@ function _buildSquel() {
     },
     str: function str() {
       var inst = new cls.FunctionBlock();
+      inst.function.apply(inst, arguments);
+      return inst;
+    },
+    rstr: function rstr() {
+      var inst = new cls.FunctionBlock({
+        rawNesting: true
+      });
       inst.function.apply(inst, arguments);
       return inst;
     },

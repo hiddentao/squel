@@ -26,6 +26,8 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 
 **WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
+_Note: See CHANGELOG.md for latest changes_
+
 ## Installation
 
 Install using [npm](http://npmjs.org/):

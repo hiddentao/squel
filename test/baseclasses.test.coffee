@@ -86,6 +86,7 @@ test['Default query builder options'] =
       singleQuoteReplacement: '\'\''
       separator: ' '
       stringFormatter: null
+      rawNesting: false
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -134,6 +135,34 @@ test['str()'] =
   'custom value handler':
     beforeEach: ->
       @inst = squel.str('G(?,?)', 12, 23, 65)
+
+      handlerConfig = _.find squel.cls.globalValueHandlers, (hc) ->
+        hc.type is squel.cls.FunctionBlock
+
+      @handler = handlerConfig.handler
+
+    toString: ->
+      assert.same @inst.toString(), @handler(@inst)
+    toParam: ->
+      assert.same @inst.toParam(), @handler(@inst, true)
+
+
+test['rstr()'] =
+  constructor: ->
+    f = squel.rstr('GETDATE(?)', 12, 23)
+    assert.ok (f instanceof squel.cls.FunctionBlock)
+    assert.same 'GETDATE(?)', f._strings[0]
+    assert.same [12, 23], f._values[0]
+
+  vsStr: ->
+    f1 = squel.str('OUTER(?)', squel.str('INNER(?)', 2))
+    assert.same 'OUTER((INNER(2)))', f1.toString()
+    f2 = squel.str('OUTER(?)', squel.rstr('INNER(?)', 2))
+    assert.same 'OUTER(INNER(2))', f2.toString()
+
+  'custom value handler':
+    beforeEach: ->
+      @inst = squel.rstr('G(?,?)', 12, 23, 65)
 
       handlerConfig = _.find squel.cls.globalValueHandlers, (hc) ->
         hc.type is squel.cls.FunctionBlock
@@ -720,6 +749,9 @@ test['Builder base class'] =
       assert.same '(77)', @inst._applyNestingFormatting('(77)')
     'no nesting': ->
       assert.same '77', @inst._applyNestingFormatting('77', false)
+    'rawNesting turned on': ->
+      @inst = new @cls({ rawNesting: true })
+      assert.same '77', @inst._applyNestingFormatting('77')
 
 
   '_buildString':
