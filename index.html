@@ -1145,6 +1145,20 @@
           /*  UPDATE students SET modified = (NOW())  */
       </pre>
 
+      <p>And if you don't want Squel to auto-add paranthesis () you can use
+        <code>.rstr()</code> instead:</p>p>
+
+      <pre class="brush: js">
+          log(
+              squel.update()
+                .table('students')
+                .set('modified', squel.rstr('NOW()'))
+                .toString()
+          );
+
+          /*  UPDATE students SET modified = NOW()  */
+      </pre>
+
       <p>You can pass parameters to the functions too:</p>
 
       <pre class="brush: js">
@@ -1441,10 +1455,10 @@
             );
             /*  UPDATE students SET value = (YES) */
       </pre>
-      
-      <p>Notice how the string value returned by the handler did not automatically 
-        get quoted in the final query string. Values returned by custom value 
-      handlers are considered to be <em>final</em>. If you want the value to 
+
+      <p>Notice how the string value returned by the handler did not automatically
+        get quoted in the final query string. Values returned by custom value
+      handlers are considered to be <em>final</em>. If you want the value to
     be quoted then the handler must quote it before returning the call:</p>
 
     <pre class="brush: js">
@@ -1460,7 +1474,7 @@
           );
           /*  UPDATE students SET value = ("YES") */
     </pre>
-    
+
       <p>We can even override the registered handler for a value type on a per-instance basis.</p>
 
       <pre class="brush: js">

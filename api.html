@@ -919,10 +919,10 @@
               fieldsToSet: {
                 desc: 'Field-value pairs.',
                 type: 'Object',
-                defaultValue: null,                
+                defaultValue: null,
               },
             },
-            returns: 'this'            
+            returns: 'this'
           },
           '.output()': {
             desc: 'Add field to <code>OUTPUT</code> clause.',
@@ -1117,7 +1117,7 @@
                 type: 'Boolean',
                 defaultValue: 'false'
               },
-              customValueHandlers: {
+              valueHandlers: {
                 desc: 'Custom value type handlers for this builder. These override the handlers set for the given value types via [[cls.registerValueHandler]]',
                 type: 'Array',
                 defaultValue: '[]'
@@ -1137,10 +1137,10 @@
                 type: 'String',
                 defaultValue: '`'
               },
-              nestedBuilder: {
-                desc: 'Whether the output of this query builder is to be nested within another builder, e.g. for <code>UNION</code> queries. Setting this flag has implications for the query builing logic and thus you should not normally need to set it yourself.',
-                type: 'Boolean',
-                defaultValue: 'false' ,
+              parameterCharacter: {
+                desc: 'String used to represent a parameter value.',
+                type: 'String',
+                defaultValue: '?',
               },
               numberedParameters: {
                 desc: 'Whether to use numbered parameters placeholders when building parameterized query strings.',
@@ -1171,7 +1171,7 @@
                 defaultValue: '\'\''
               },
               stringFormatter: {
-                desc: 'Function to call to process string values, prior to insertion into a query string.',
+                desc: 'Function to process string values, prior to insertion into a query string.',
                 type: 'Function',
                 defaultValue: 'null'
               },
@@ -1180,6 +1180,11 @@
                 type: 'String',
                 defaultValue: '`'
               },
+              rawNesting: {
+                desc: 'Whether to prevent the addition of brackets () when nesting this query builder\'s output.',
+                type: 'Boolean',
+                defaultValue: 'false'
+              }
             }
           },
           '.registerValueHandler()': {
@@ -1201,8 +1206,22 @@
           '.str()': {
             desc: 'Construct a [[cls.FunctionBlock]] instance for inclusion within a query as a value.',
             params: {
-              'func': {
-                desc: 'The database function, with parameter placeholders.',
+              'str': {
+                desc: 'The expression, with parameter placeholders.',
+                type: 'String'
+              },
+              '...values': {
+                desc: 'The parameter values',
+                type: 'Array'
+              }
+            },
+            returns: '[[cls.FunctionBlock]]'
+          },
+          '.rstr()': {
+            desc: 'Same as [[cls.str()]], but with the <code>rawNesting</code> option turned on.',
+            params: {
+              'str': {
+                desc: 'The expression, with parameter placeholders.',
                 type: 'String'
               },
               '...values': {
@@ -1271,7 +1290,17 @@
               }
             },
             returns: 'Squel instance'
-          }
+          },
+          '.isSquelBuilder()': {
+            desc: 'Get whether given object is a Squel builder instance.',
+            params: {
+              'obj': {
+                desc: 'The object.',
+                type: 'Object'
+              },
+            },
+            returns: 'Boolean'
+          },
         }
       }
     };
