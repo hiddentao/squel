@@ -1,3 +1,4 @@
+
 // append to string if non-empty
 function _pad (str, pad) {
   return (str.length) ? str + pad : str;
@@ -112,10 +113,16 @@ function getValueHandler (value, ...handlerLists) {
  */
 function _buildSquel(flavour = null) {
   let cls = {
-    _isSquelBuilder: function (obj) {
+    // Get whether obj is a query builder
+    isSquelBuilder: function (obj) {
       return obj && !!obj._toParamString;
-    }
+    },
   };
+
+  // Get whether nesting should be applied for given item
+  const _shouldApplyNesting = function (obj) {
+    return (!cls.isSquelBuilder(obj)) || !obj.options.rawNesting
+  }
 
   // default query builder options
   cls.DefaultQueryBuilderOptions = {
@@ -151,6 +158,8 @@ function _buildSquel(flavour = null) {
     separator: ' ',
     // Function for formatting string values prior to insertion into query string
     stringFormatter: null,
+    // Whether to prevent the addition of brackets () when nesting this query builder's output
+    rawNesting: false
   };
 
   // Global custom value handlers for all instances of builder
@@ -225,7 +234,7 @@ function _buildSquel(flavour = null) {
      */
     _sanitizeExpression (expr) {
       // If it's not a base builder instance
-      if (!(cls._isSquelBuilder(expr))) {
+      if (!(cls.isSquelBuilder(expr))) {
         // It must then be a string
         if (typeof expr !== "string") {
           throw new Error("expression must be a string or builder instance");
@@ -252,7 +261,7 @@ function _buildSquel(flavour = null) {
 
 
     _sanitizeField (item) {
-      if (!(cls._isSquelBuilder(item))) {
+      if (!(cls.isSquelBuilder(item))) {
         item = this._sanitizeName(item, "field name");
       }
 
@@ -261,7 +270,7 @@ function _buildSquel(flavour = null) {
 
 
     _sanitizeBaseBuilder (item) {
-      if (cls._isSquelBuilder(item)) {
+      if (cls.isSquelBuilder(item)) {
         return item;
       }
 
@@ -315,7 +324,7 @@ function _buildSquel(flavour = null) {
       else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
         // primitives are allowed
       }
-      else if (cls._isSquelBuilder(item)) {
+      else if (cls.isSquelBuilder(item)) {
         // Builders allowed
       }
       else {
@@ -397,7 +406,6 @@ function _buildSquel(flavour = null) {
     }
 
 
-
     // Format the given custom value
     _formatCustomValue (value, asParam, formattingOptions) {
       // user defined custom handlers takes precedence
@@ -436,11 +444,12 @@ function _buildSquel(flavour = null) {
      * Format the given field value for inclusion into the query string
      */
     _formatValueForQueryString (initialValue, formattingOptions = {}) {
+      // maybe we have a cusotm value handler
       let { formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
 
       // if formatting took place then return it directly
       if (formatted) {
-        return this._applyNestingFormatting(value);
+        return this._applyNestingFormatting(value, _shouldApplyNesting(initialValue));
       }
 
       // if it's an array then format each element separately
@@ -449,7 +458,7 @@ function _buildSquel(flavour = null) {
           return this._formatValueForQueryString(v);
         });
 
-        value = this._applyNestingFormatting(value.join(', '));
+        value = this._applyNestingFormatting(value.join(', '), _shouldApplyNesting(value));
       }
       else {
         let typeofValue = typeof value;
@@ -460,8 +469,8 @@ function _buildSquel(flavour = null) {
         else if (typeofValue === "boolean") {
           value = value ? "TRUE" : "FALSE";
         }
-        else if (cls._isSquelBuilder(value)) {
-          value = this._applyNestingFormatting(value.toString());
+        else if (cls.isSquelBuilder(value)) {
+          value = this._applyNestingFormatting(value.toString(), _shouldApplyNesting(value));
         }
         else if (typeofValue !== "number") {
           // if it's a string and we have custom string formatting turned on then use that
@@ -484,7 +493,7 @@ function _buildSquel(flavour = null) {
 
 
     _applyNestingFormatting(str, nesting = true) {
-      if (str && typeof str === 'string' && nesting) {
+      if (str && typeof str === 'string' && nesting && !this.options.rawNesting) {
         // apply brackets if they're not already existing
         let alreadyHasBrackets = ('(' === str.charAt(0) && ')' === str.charAt(str.length - 1));
 
@@ -550,7 +559,7 @@ function _buildSquel(flavour = null) {
           let value = values[++curValue];
 
           if (buildParameterized) {
-            if (cls._isSquelBuilder(value)) {
+            if (cls.isSquelBuilder(value)) {
               let ret = value._toParamString({
                 buildParameterized: buildParameterized,
                 nested: true,
@@ -739,7 +748,7 @@ function _buildSquel(flavour = null) {
         let { type, expr,  para } = node;
 
 
-        let { text, values } = (cls._isSquelBuilder(expr))
+        let { text, values } = (cls.isSquelBuilder(expr))
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -1023,7 +1032,7 @@ function _buildSquel(flavour = null) {
 
           let tableStr;
 
-          if (cls._isSquelBuilder(table)) {
+          if (cls.isSquelBuilder(table)) {
             let { text, values } = table._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true,
@@ -1614,7 +1623,7 @@ function _buildSquel(flavour = null) {
         totalValues = [];
 
       for (let { expr, values } of this._conditions) {
-        let ret = (cls._isSquelBuilder(expr))
+        let ret = (cls.isSquelBuilder(expr))
           ? expr._toParamString({
               buildParameterized: options.buildParameterized,
             })
@@ -1797,7 +1806,7 @@ function _buildSquel(flavour = null) {
 
         let tableStr;
 
-        if (cls._isSquelBuilder(table)) {
+        if (cls.isSquelBuilder(table)) {
           let ret = table._toParamString({
             buildParameterized: options.buildParameterized,
             nested: true
@@ -1820,7 +1829,7 @@ function _buildSquel(flavour = null) {
 
           let ret;
 
-          if (cls._isSquelBuilder(condition)) {
+          if (cls.isSquelBuilder(condition)) {
             ret = condition._toParamString({
               buildParameterized: options.buildParameterized,
             });
@@ -2151,6 +2160,13 @@ function _buildSquel(flavour = null) {
     },
     str: function(...args) {
       let inst = new cls.FunctionBlock();
+      inst.function(...args);
+      return inst;
+    },
+    rstr: function(...args) {
+      let inst = new cls.FunctionBlock({
+        rawNesting: true
+      });
       inst.function(...args);
       return inst;
     },

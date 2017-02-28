@@ -168,7 +168,7 @@ test['SELECT builder'] =
                   text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` WHERE (a = ?) GROUP BY field, field2'
                   values: [null]
                 }
-                
+
             '>> where(a = ?, 1)':
               beforeEach: -> @inst.where('a = ?', 1)
               toString: ->
@@ -315,7 +315,7 @@ test['SELECT builder'] =
     beforeEach: ->
       @inst = squel.select().from('foo').from(squel.str('LATERAL(?)', squel.select().from('bar').where('bar.id = ?', 2)), 'ss')
     'toString': ->
-      assert.same @inst.toString(), 'SELECT * FROM foo, (LATERAL((SELECT * FROM bar WHERE (bar.id = 2)))) `ss`', 
+      assert.same @inst.toString(), 'SELECT * FROM foo, (LATERAL((SELECT * FROM bar WHERE (bar.id = 2)))) `ss`',
     'toParam': ->
       assert.same @inst.toParam(), {
         text: 'SELECT * FROM foo, (LATERAL((SELECT * FROM bar WHERE (bar.id = ?)))) `ss`'
@@ -335,7 +335,7 @@ test['SELECT builder'] =
       newinst = @inst.from('table').left_join('table_2', 't', expr)
         .clone()
         .where('c = 1')
-      
+
       expr.and('b = 2')
 
       assert.same 'SELECT * FROM table LEFT JOIN table_2 `t` ON (a = 1 AND b = 2)', @inst.toString()
@@ -346,7 +346,7 @@ test['SELECT builder'] =
         .clone()
         .where('c = 1')
         .limit(35)
-      
+
       assert.same 'SELECT * FROM (SELECT * FROM students) LIMIT 30', @inst.toString()
       assert.same 'SELECT * FROM (SELECT * FROM students) WHERE (c = 1) LIMIT 35', newinst.toString()
 
@@ -360,7 +360,7 @@ test['SELECT builder'] =
       newinst = @inst.from('table').left_join('table_2', 't', expr)
         .clone()
         .where('c = 1')
-      
+
       expr.and('e = 5')
 
       assert.same @inst.toString(), 'SELECT * FROM table LEFT JOIN table_2 `t` ON ((b = 2 OR (c = 3 AND d = 4)) AND a = 1 AND e = 5)'
@@ -384,9 +384,9 @@ test['SELECT builder'] =
       @inst = squel
         .select({ autoQuoteTableNames: true })
         .field('name')
-        .where('age > ?', 15)      
+        .where('age > ?', 15)
 
-    'using string': 
+    'using string':
       beforeEach: ->
         @inst.from('students', 's')
 
@@ -401,7 +401,7 @@ test['SELECT builder'] =
           "values": [15]
         }
 
-    'using query builder': 
+    'using query builder':
       beforeEach: ->
         @inst.from(squel.select().from('students'), 's')
 
@@ -518,10 +518,10 @@ test['SELECT builder'] =
           text: "SELECT * FROM table WHERE (a = ?) AND (EXISTS((SELECT * FROM blah WHERE (b > ?))))",
           values: [5, 6]
         }
-        
+
     'Join on builder expression':
       beforeEach: ->
-        @inst = squel.select().from('table').join('table2', 't2', 
+        @inst = squel.select().from('table').join('table2', 't2',
           squel.str('EXISTS(?)', squel.select().from('blah').where('b > ?', 6))
         )
       toString: ->
@@ -533,6 +533,19 @@ test['SELECT builder'] =
           text: "SELECT * FROM table INNER JOIN table2 `t2` ON (EXISTS((SELECT * FROM blah WHERE (b > ?))))",
           values: [6]
         }
-        
+
+    '#301 - FROM rstr() with nesting':
+      beforeEach: ->
+        @inst = squel.select().from(squel.rstr("generate_series(?,?,?)",1,10,2), "tblfn(odds)")
+      toString: ->
+        assert.same @inst.toString(), """
+        SELECT * FROM generate_series(1,10,2) `tblfn(odds)`
+        """
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: "SELECT * FROM generate_series(?,?,?) `tblfn(odds)`",
+          values:[1,10,2]
+        }
+
 
 module?.exports[require('path').basename(__filename)] = test
