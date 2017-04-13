@@ -1,13 +1,13 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
-## 28 Feb 2016 (5.8.0)
+## 28 Feb 2017 (5.8.0)
 * #301 - Add `rstr()` to enable "raw" nesting of query builders
 * Renamed `_isSquelBuilder()` call to `isSquelBuilder()`
 
-## 6 Feb 2016 (5.7.0)
+## 6 Feb 2017 (5.7.0)
 * #288 - more flexible `RETURNING` clauses
 
-## 7 Jan 2016 (5.6.0)
+## 7 Jan 2017 (5.6.0)
 * #256 - expression nesting
 
 ## 24 Dec 2016 (5.5.1)
