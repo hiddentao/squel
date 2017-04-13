@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 13 Apr 2017 (5.9.0)
+* Enable custom value handlers to return values that do not get automatically nested - #292
+
 ## 28 Feb 2017 (5.8.0)
 * #301 - Add `rstr()` to enable "raw" nesting of query builders
 * Renamed `_isSquelBuilder()` call to `isSquelBuilder()`
