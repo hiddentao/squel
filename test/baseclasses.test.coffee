@@ -637,6 +637,17 @@ test['Builder base class'] =
         assert.same { formatted: true, value: 'foo'}, @inst._formatCustomValue(val, true, { dontQuote: true })
         assert.same { formatted: true, value: '"foo"'}, @inst._formatCustomValue(val, true, { dontQuote: false })
 
+      'return raw': ->
+        @inst.registerValueHandler Date, (d) ->
+          return {
+            rawNesting: true,
+            value: 'foo'
+          }
+
+        val = new Date()
+
+        assert.same { rawNesting: true, formatted: true, value: 'foo'}, @inst._formatCustomValue(val, true)
+
   '_formatValueForParamArray':
     'Query builder': ->
       s = squel.select().from('table')
@@ -739,6 +750,12 @@ test['Builder base class'] =
         { formatted: true, value: 12 + (if asParam then 25 else 65) }
       test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
       assert.same '{77}', @inst._formatValueForQueryString(123)
+
+    '#292 - custom value type specifies raw nesting': ->
+      test.mocker.stub @inst, '_formatCustomValue', (val, asParam) ->
+        { rawNesting: true, formatted: true, value: 12 }
+      test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
+      assert.same 12, @inst._formatValueForQueryString(123)
 
 
   '_applyNestingFormatting':

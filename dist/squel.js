@@ -551,11 +551,21 @@ function _buildSquel() {
         // use the custom handler if available
         if (customHandler) {
           value = customHandler(value, asParam, formattingOptions);
+
+          // custom value handler can instruct caller not to process returned value
+          if (value && value.rawNesting) {
+            return {
+              formatted: true,
+              rawNesting: true,
+              value: value.value
+            };
+          }
         }
 
         return {
           formatted: !!customHandler,
           value: value
+
         };
       }
 
@@ -594,13 +604,18 @@ function _buildSquel() {
 
         var _formatCustomValue2 = this._formatCustomValue(initialValue, false, formattingOptions);
 
+        var rawNesting = _formatCustomValue2.rawNesting;
         var formatted = _formatCustomValue2.formatted;
         var value = _formatCustomValue2.value;
 
         // if formatting took place then return it directly
 
         if (formatted) {
-          return this._applyNestingFormatting(value, _shouldApplyNesting(initialValue));
+          if (rawNesting) {
+            return value;
+          } else {
+            return this._applyNestingFormatting(value, _shouldApplyNesting(initialValue));
+          }
         }
 
         // if it's an array then format each element separately
@@ -2997,7 +3012,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.8.0',
+    VERSION: '5.9.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

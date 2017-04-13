@@ -415,11 +415,21 @@ function _buildSquel(flavour = null) {
       // use the custom handler if available
       if (customHandler) {
         value = customHandler(value, asParam, formattingOptions);
+
+        // custom value handler can instruct caller not to process returned value
+        if (value && value.rawNesting) {
+          return {
+            formatted: true,
+            rawNesting: true,
+            value: value.value
+          }
+        }
       }
 
       return {
         formatted: !!customHandler,
         value: value,
+
       };
     }
 
@@ -445,11 +455,15 @@ function _buildSquel(flavour = null) {
      */
     _formatValueForQueryString (initialValue, formattingOptions = {}) {
       // maybe we have a cusotm value handler
-      let { formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
+      let { rawNesting, formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
 
       // if formatting took place then return it directly
       if (formatted) {
-        return this._applyNestingFormatting(value, _shouldApplyNesting(initialValue));
+        if (rawNesting) {
+          return value
+        } else {
+          return this._applyNestingFormatting(value, _shouldApplyNesting(initialValue));
+        }
       }
 
       // if it's an array then format each element separately
