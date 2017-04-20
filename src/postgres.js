@@ -45,7 +45,7 @@ squel.flavours['postgres'] = function(_squel) {
           );
 
           totalStr += ret.text;
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
         }
       }
 
@@ -102,7 +102,7 @@ squel.flavours['postgres'] = function(_squel) {
           });
 
           totalStr += ret.text;
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
         }
 
         if (alias) {
@@ -139,7 +139,7 @@ squel.flavours['postgres'] = function(_squel) {
         });
 
         parts.push(`${alias} AS ${ret.text}`);
-        values.push(...ret.values);
+        ret.values.forEach(value => values.push(value));
       }
 
       return {

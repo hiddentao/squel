@@ -36,7 +36,7 @@ squel.flavours['mysql'] = function(_squel) {
           );
 
           totalStr += ret.text;
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
         }
       }
 
@@ -83,4 +83,3 @@ squel.flavours['mysql'] = function(_squel) {
   }
 
 };
-
