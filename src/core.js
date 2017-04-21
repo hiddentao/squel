@@ -95,18 +95,20 @@ function registerValueHandler (handlers, type, handler) {
 /**
  * Get value type handler for given type
  */
-function getValueHandler (value, ...handlerLists) {
-  for (let handlers of handlerLists) {
-    for (let typeHandler of handlers) {
-      // if type is a string then use `typeof` or else use `instanceof`
-      if (typeof value === typeHandler.type ||
-          (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
-        return typeHandler.handler;
-      }
+function getValueHandler (value, localHandlers, globalHandlers) {
+  return _getValueHandler(value, localHandlers) || _getValueHandler(value, globalHandlers);
+};
+
+function _getValueHandler (value, handlers) {
+  for (let i = 0; i < handlers.length; i++) {
+    const typeHandler = handlers[i];
+    // if type is a string then use `typeof` or else use `instanceof`
+    if (typeof value === typeHandler.type ||
+        (typeof typeHandler.type !== 'string' && value instanceof typeHandler.type) ) {
+      return typeHandler.handler;
     }
   }
 };
-
 
 /**
  * Build base squel classes and methods
@@ -164,7 +166,6 @@ function _buildSquel(flavour = null) {
 
   // Global custom value handlers for all instances of builder
   cls.globalValueHandlers = [];
-
 
   /*
   # ---------------------------------------------------------------------------------------------------------
@@ -224,7 +225,6 @@ function _buildSquel(flavour = null) {
      */
     registerValueHandler (type, handler) {
       registerValueHandler(this.options.valueHandlers, type, handler);
-
       return this;
     }
 
