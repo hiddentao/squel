@@ -580,7 +580,7 @@ function _buildSquel(flavour = null) {
               });
 
               formattedStr += ret.text;
-              formattedValues.push(...ret.values);
+              ret.values.forEach(value => formattedValues.push(value));
             } else {
               value = this._formatValueForParamArray(value, formattingOptions);
 
@@ -592,7 +592,7 @@ function _buildSquel(flavour = null) {
 
                 formattedStr += `(${tmpStr})`;
 
-                formattedValues.push(...value);
+                value.forEach(val => formattedValues.push(val));
               } else {
                 formattedStr += paramChar;
 
@@ -645,7 +645,7 @@ function _buildSquel(flavour = null) {
         });
 
         totalStr.push(text);
-        totalValues.push(...values);
+        values.forEach(value => totalValues.push(value));
       }
 
       totalStr = totalStr.join(this.options.separator);
@@ -777,7 +777,7 @@ function _buildSquel(flavour = null) {
         }
 
         totalStr.push(text);
-        totalValues.push(...values);
+        values.forEach(value => totalValues.push(value));
       }
 
       totalStr = totalStr.join(' ');
@@ -829,7 +829,7 @@ function _buildSquel(flavour = null) {
     when (expression, ...values) {
       this._cases.unshift({
         expression: expression,
-        values: values,
+        values: values || [],
       });
 
       return this;
@@ -865,7 +865,7 @@ function _buildSquel(flavour = null) {
         });
 
         totalStr += `WHEN ${ret.text} THEN ${this._formatValueForQueryString(result)}`;
-        totalValues.push(...ret.values);
+        ret.values.forEach(value => totalValues.push(value));
       }
 
       if (totalStr.length) {
@@ -1053,7 +1053,7 @@ function _buildSquel(flavour = null) {
             });
 
             tableStr = text;
-            totalValues.push(...values);
+            values.forEach(value => totalValues.push(value));
           } else {
             tableStr = this._formatTableName(table);
           }
@@ -1226,7 +1226,7 @@ function _buildSquel(flavour = null) {
           });
 
           totalStr += ret.text;
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
         }
 
         if (alias) {
@@ -1391,7 +1391,7 @@ function _buildSquel(flavour = null) {
         );
 
         totalStr += ret.text;
-        totalValues.push(...ret.values);
+        ret.values.forEach(value => totalValues.push(value));
       }
 
       return {
@@ -1437,7 +1437,7 @@ function _buildSquel(flavour = null) {
               formattingOptions: this._valueOptions[i][j],
             });
 
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
 
           valueStrings[i] = _pad(valueStrings[i], ', ');
           valueStrings[i] += ret.text;
@@ -1627,7 +1627,7 @@ function _buildSquel(flavour = null) {
 
       this._conditions.push({
         expr: condition,
-        values: values,
+        values: values || [],
       });
     }
 
@@ -1650,7 +1650,7 @@ function _buildSquel(flavour = null) {
           totalStr.push(ret.text);
         }
 
-        totalValues.push(...ret.values);
+        ret.values.forEach(value => totalValues.push(value));
       }
 
       if (totalStr.length) {
@@ -1720,7 +1720,7 @@ function _buildSquel(flavour = null) {
       this._orders.push({
         field: field,
         dir: dir,
-        values: values,
+        values: values || [],
       });
     }
 
@@ -1736,7 +1736,7 @@ function _buildSquel(flavour = null) {
         });
 
         totalStr += ret.text,
-        totalValues.push(...ret.values);
+        _isArray(ret.values) && ret.values.forEach(value => totalValues.push(value));
 
         if (dir !== null) {
           totalStr += ` ${dir}`;
@@ -1826,7 +1826,7 @@ function _buildSquel(flavour = null) {
             nested: true
           });
 
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
           tableStr = ret.text;
         } else {
           tableStr = this._formatTableName(table);
@@ -1854,7 +1854,7 @@ function _buildSquel(flavour = null) {
           }
 
           totalStr += this._applyNestingFormatting(ret.text);
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
         }
       }
 
@@ -1912,7 +1912,7 @@ function _buildSquel(flavour = null) {
           });
 
           tableStr = ret.text;
-          totalValues.push(...ret.values);
+          ret.values.forEach(value => totalValues.push(value));
         } else {
           totalStr = this._formatTableName(table);
         }
@@ -2024,7 +2024,8 @@ function _buildSquel(flavour = null) {
         .filter((v) => (0 < v.length))
         .join(options.separator);
 
-      let totalValues = [].concat(...blockValues);
+      let totalValues = [];
+      blockValues.forEach(block => block.forEach(value => totalValues.push(value)));
 
       if (!options.nested) {
         if (options.numberedParameters) {
