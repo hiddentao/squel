@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 21 Apr 2017 (5.9.1)
+* Performance improvements (#309, #310) - thanks [schmod](https://github.com/schmod)
+
 ## 13 Apr 2017 (5.9.0)
 * Enable custom value handlers to return values that do not get automatically nested - #292
 
