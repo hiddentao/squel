@@ -84,7 +84,7 @@ test['Expression builder base class'] =
     'with an Expression returns object instance': ->
       assert.same @inst, @inst.or(squel.expr())
     'with a builder returns object instance': ->
-      assert.same @inst, @inst.and(squel.str())
+      assert.same @inst, @inst.or(squel.str())
     'with a string returns object instance': ->
       assert.same @inst, @inst.or('bla')
 
