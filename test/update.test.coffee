@@ -77,13 +77,6 @@ test['UPDATE builder'] =
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = TRUE'
 
-      '>> set(field2, null)':
-        beforeEach: -> @inst.set('field2', null)
-        toString: ->
-          assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = NULL'
-        toParam: ->
-          assert.same @inst.toParam(), { text: 'UPDATE table `t1` SET field = 1, field2 = ?', values: [null] }
-
       '>> set(field2, "str")':
         beforeEach: -> @inst.set('field2', 'str')
         toString: ->
@@ -145,6 +138,8 @@ test['UPDATE builder'] =
         beforeEach: -> @inst.set('field2', null)
         toString: ->
           assert.same @inst.toString(), 'UPDATE table `t1` SET field = 1, field2 = NULL'
+        toParam: ->
+          assert.same @inst.toParam(), { text: 'UPDATE table `t1` SET field = ?, field2 = ?', values: [1, null] }
 
         '>> table(table2)':
           beforeEach: -> @inst.table('table2')
@@ -195,18 +190,18 @@ test['UPDATE builder'] =
     beforeEach: -> @inst.table('students').set('field', squel.str('GETDATE(?, ?)', 2014, '"feb"'))
     toString: ->
       assert.same 'UPDATE students SET field = (GETDATE(2014, \'"feb"\'))', @inst.toString()
-    toParam: ->  
+    toParam: ->
       assert.same { text: 'UPDATE students SET field = (GETDATE(?, ?))', values: [2014, '"feb"'] }, @inst.toParam()
 
   'string formatting':
-    beforeEach: -> 
+    beforeEach: ->
       @inst.updateOptions {
         stringFormatter: (str) -> "N'#{str}'"
       }
       @inst.table('students').set('field', 'jack')
     toString: ->
       assert.same 'UPDATE students SET field = N\'jack\'', @inst.toString()
-    toParam: ->  
+    toParam: ->
       assert.same { text: 'UPDATE students SET field = ?', values: ["jack"] }, @inst.toParam()
 
   'fix for hiddentao/squel#63': ->
