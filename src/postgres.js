@@ -8,8 +8,15 @@ squel.flavours['postgres'] = function(_squel) {
   cls.DefaultQueryBuilderOptions.useAsForTableAliasNames = true;
 
   cls.PostgresOnConflictKeyUpdateBlock = class extends cls.AbstractSetFieldBlock {
-    onConflict (index, fields) {
-      this._dupIndex = this._sanitizeField(index);
+    onConflict (conflictFields, fields) {
+      this._onConflict = true;
+      if (!conflictFields) {
+        return;
+      }
+      if (!_isArray(conflictFields)) {
+        conflictFields = [conflictFields];
+      }
+      this._dupFields = conflictFields.map(this._sanitizeField.bind(this));
 
       if(fields) {
         Object.keys(fields).forEach((key) => {
@@ -49,10 +56,19 @@ squel.flavours['postgres'] = function(_squel) {
         }
       }
 
-      return {
-        text: this._dupIndex ? (`ON CONFLICT (${this._dupIndex}) DO ` + (!totalStr.length ? "NOTHING" : `UPDATE SET ${totalStr}`)) : '',
+      const returned = {
+        text: '',
         values: totalValues,
       };
+
+      if (this._onConflict) {
+        // note the trailing whitespace after the join
+        const conflictFields = this._dupFields ? `(${this._dupFields.join(', ')}) ` : '';
+        const action = totalStr.length ? `UPDATE SET ${totalStr}` : `NOTHING`;
+        returned.text = `ON CONFLICT ${conflictFields}DO ${action}`;
+      }
+
+      return returned;
     }
   }
 

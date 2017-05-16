@@ -48,6 +48,21 @@ test['Postgres flavour'] =
       toString: ->
         assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 2) ON CONFLICT (field) DO NOTHING'
 
+    '>> into(table).set(field, 1).set(field,2).onConflict(["field1", "field2"], {field3:3})':
+      beforeEach: -> @inst.into('table').set('field', 1).set('field2', 2).onConflict(['field1', 'field2'], {field3: 3})
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 2) ON CONFLICT (field1, field2) DO UPDATE SET field3 = 3'
+
+    '>> into(table).set(field, 1).set(field,2).onConflict(["field1", "field2"])':
+      beforeEach: -> @inst.into('table').set('field', 1).set('field2', 2).onConflict('field')
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 2) ON CONFLICT (field) DO NOTHING'
+
+    '>> into(table).set(field, 1).set(field,2).onConflict()':
+      beforeEach: -> @inst.into('table').set('field', 1).set('field2', 2).onConflict()
+      toString: ->
+        assert.same @inst.toString(), 'INSERT INTO table (field, field2) VALUES (1, 2) ON CONFLICT DO NOTHING'
+
     '>> into(table).set(field, 1).returning("*")':
       beforeEach: -> @inst.into('table').set('field', 1).returning('*')
       toString: ->
