@@ -1,0 +1,2 @@
+#!/bin/bash
+cp ../code/dist/squel.min.js public/js
