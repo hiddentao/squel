@@ -2999,7 +2999,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.9.1',
+    VERSION: '5.10.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);
@@ -3632,10 +3632,17 @@ squel.flavours['postgres'] = function (_squel) {
 
     _createClass(_class49, [{
       key: 'onConflict',
-      value: function onConflict(index, fields) {
+      value: function onConflict(conflictFields, fields) {
         var _this56 = this;
 
-        this._dupIndex = this._sanitizeField(index);
+        this._onConflict = true;
+        if (!conflictFields) {
+          return;
+        }
+        if (!_isArray(conflictFields)) {
+          conflictFields = [conflictFields];
+        }
+        this._dupFields = conflictFields.map(this._sanitizeField.bind(this));
 
         if (fields) {
           Object.keys(fields).forEach(function (key) {
@@ -3676,10 +3683,19 @@ squel.flavours['postgres'] = function (_squel) {
           }
         }
 
-        return {
-          text: this._dupIndex ? 'ON CONFLICT (' + this._dupIndex + ') DO ' + (!totalStr.length ? "NOTHING" : 'UPDATE SET ' + totalStr) : '',
+        var returned = {
+          text: '',
           values: totalValues
         };
+
+        if (this._onConflict) {
+          // note the trailing whitespace after the join
+          var conflictFields = this._dupFields ? '(' + this._dupFields.join(', ') + ') ' : '';
+          var action = totalStr.length ? 'UPDATE SET ' + totalStr : 'NOTHING';
+          returned.text = 'ON CONFLICT ' + conflictFields + 'DO ' + action;
+        }
+
+        return returned;
       }
     }]);
 

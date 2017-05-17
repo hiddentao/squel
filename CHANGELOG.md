@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 17 May 2017 (5.10.0)
+* #317 - Postgres `ON CONFLICT` improvements, thanks [alexturek](https://github.com/alexturek)
+
 ## 21 Apr 2017 (5.9.1)
 * Performance improvements (#309, #310) - thanks [schmod](https://github.com/schmod)
 
