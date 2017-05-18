@@ -36,6 +36,7 @@
     "rdbms"
   ],
   "main": "dist/squel.js",
+  "types": "dist/squel.d.ts",
   "scripts": {
     "test": "gulp",
     "build": "gulp",
