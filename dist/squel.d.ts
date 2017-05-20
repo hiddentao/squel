@@ -8,16 +8,19 @@ declare module 'squel' {
         (...args: any[]): any;
     }
 
+    type alias = string | undefined | null;
+
     interface GenericSelect<FlavourSelect extends SqlSelect> {
       distinct(): FlavourSelect;
-      field(name: string | any, alias?: string, options?: any): FlavourSelect;
+      field(name: string | any, alias?: alias, options?: any): FlavourSelect;
       fields(fields: Object | any[]): FlavourSelect;
-      from(name: string, alias?: string): FlavourSelect;
-      join(name: string, alias?: string, condition?: string | any): FlavourSelect;
-      left_join(name: string | FlavourSelect, alias?: string, condition?: string | any): FlavourSelect;
-      right_join(name: string | FlavourSelect, alias?: string, condition?: string | any): FlavourSelect;
-      outer_join(name: string | FlavourSelect, alias?: string, condition?: string | any): FlavourSelect;
-      cross_join(name: string | FlavourSelect, alias?: string, condition?: string | any): FlavourSelect;
+      from(name: string | SqlSelect, alias?: alias): FlavourSelect;
+      function(raw: string, ...args: any[]): FlavourSelect;
+      join(name: string | SqlSelect, alias?: alias, condition?: string | any): FlavourSelect;
+      left_join(name: string | SqlSelect, alias?: alias, condition?: string | any): FlavourSelect;
+      right_join(name: string | SqlSelect, alias?: alias, condition?: string | any): FlavourSelect;
+      outer_join(name: string | SqlSelect, alias?: alias, condition?: string | any): FlavourSelect;
+      cross_join(name: string | SqlSelect, alias?: alias, condition?: string | any): FlavourSelect;
       where(condition: string | Expression, ...args: any[]): FlavourSelect;
       order(field: string, direction?: boolean, ...args: any[]): FlavourSelect;
       group(field: string): FlavourSelect;
@@ -28,6 +31,7 @@ declare module 'squel' {
       clone(): FlavourSelect;
       toString(): string;
       toParam(options?: Object, numberedParametersStartAt?: number): { text: string, values: any[] };
+      union(select: SqlSelect): FlavourSelect;
     }
 
     interface InsertSetOptions {
@@ -46,7 +50,7 @@ declare module 'squel' {
       isNestable(): boolean;
       clone(): FlavourInsert;
       toString(): string;
-      toParam(options?: { numberedParametersStartAt?: number }): { text: string, values: any[] };
+      toParam(options?: { numberedParameters?: boolean, numberedParametersStartAt?: number }): { text: string, values: any[] };
     }
 
     interface UpdateSetOptions {
@@ -55,15 +59,16 @@ declare module 'squel' {
     }
 
     interface GenericUpdate<FlavourUpdate extends SqlUpdate> {
-      table(name: string, alias?: string): FlavourUpdate;
+      table(name: string, alias?: alias): FlavourUpdate;
       set(name: string, value?: any, options?: UpdateSetOptions): FlavourUpdate;
       setFields(fields: Object, options?: { ignorePeriodsForFieldNameQuotes?: boolean }): FlavourUpdate;
       where(condition: string, ...args: any[]): FlavourUpdate;
+      order(field: string, direction?: boolean, ...args: any[]): FlavourUpdate;
       limit(limit: number): FlavourUpdate;
       offset(limit: number): FlavourUpdate;
       returning(str: string): FlavourUpdate;
       updateOptions(options: Object): FlavourUpdate;
-      registerValueHandler(type: any, handler: Handler): SqlInsert;
+      registerValueHandler(type: any, handler: Handler): FlavourUpdate;
       isNestable(): boolean;
       clone(): FlavourUpdate;
       toString(): string;
@@ -72,13 +77,14 @@ declare module 'squel' {
 
     interface GenericDelete<FlavourDelete extends SqlDelete> {
       get(table: string): FlavourDelete;
-      from(table: string, alias?: string): FlavourDelete;
-      join(name: string, alias?: string, condition?: string): FlavourDelete;
-      left_join(name: string, alias?: string, condition?: string): FlavourDelete;
-      right_join(name: string, alias?: string, condition?: string): FlavourDelete;
-      outer_join(name: string, alias?: string, condition?: string): FlavourDelete;
+      from(table: string, alias?: alias): FlavourDelete;
+      join(name: string, alias?: alias, condition?: string): FlavourDelete;
+      left_join(name: string, alias?: alias, condition?: string): FlavourDelete;
+      right_join(name: string, alias?: alias, condition?: string): FlavourDelete;
+      outer_join(name: string, alias?: alias, condition?: string): FlavourDelete;
       where(condition: string, ...args: any[]): FlavourDelete;
       limit(limit: number): FlavourDelete;
+      order(field: string, direction?: boolean, ...args: any[]): FlavourDelete;
       offset(limit: number): FlavourDelete;
       updateOptions(options: Object): FlavourDelete;
       registerValueHandler<T>(type: T|string, handler: Handler): FlavourDelete;
@@ -96,10 +102,12 @@ declare module 'squel' {
       fieldAliasQuoteCharacter?: string;
       nameQuoteCharacter?: string;
       nestedBuilder?: boolean;
+      numberedParameters?: boolean;
       numberedParametersStartAt?: number;
       replaceSingleQuotes?: boolean;
       separator?: string;
       singleQuoteReplacement?: string;
+      stringFormatter?: (val: string) => string;
       tableAliasQuoteCharacter?: string;
     }
 
@@ -128,24 +136,24 @@ declare module 'squel' {
     }
 
     interface PostgresSelect extends GenericSelect<PostgresSelect> {
-      distinct(fields?: string | string[]): PostgresSelect;
+      distinct(...fields: string[]): PostgresSelect;
       with(alias: string, table: PostgresSelect | PostgresInsert | PostgresUpdate | PostgresDelete): PostgresSelect;
     }
 
     interface PostgresInsert extends GenericInsert<PostgresInsert> {
       onConflict(index: string | string[], fields?: Object): PostgresInsert;
       with(alias: string, table: PostgresSelect | PostgresInsert | PostgresUpdate | PostgresDelete): PostgresInsert;
-      returning(fieldExpr: string | QueryBuilder, alias?: string): PostgresInsert;
+      returning(fieldExpr: string | QueryBuilder, alias?: alias): PostgresInsert;
     }
 
     interface PostgresUpdate extends GenericUpdate<PostgresUpdate> {
       with(alias: string, table: PostgresSelect | PostgresInsert | PostgresUpdate | PostgresDelete): PostgresUpdate;
-      from(name: string, alias?: string): PostgresSelect;
+      from(name: string, alias?: alias): PostgresSelect;
     }
 
     interface PostgresDelete extends GenericDelete<PostgresDelete> {
       with(alias: string, table: PostgresSelect | PostgresInsert | PostgresUpdate | PostgresDelete): PostgresDelete;
-      returning(fieldExpr: string | QueryBuilder, alias?: string): PostgresDelete;
+      returning(fieldExpr: string | QueryBuilder, alias?: alias): PostgresDelete;
     }
 
     // Flavour: mysql
@@ -194,18 +202,18 @@ declare module 'squel' {
     }
 
     interface MssqlUpdate extends GenericUpdate<MssqlUpdate> {
-      output(name: string, alias?: string): MssqlUpdate;
+      output(name: string, alias?: alias): MssqlUpdate;
       outputs(fields: StringTo<string>): MssqlUpdate;
     }
 
     interface MssqlDelete extends GenericDelete<MssqlDelete> {
-      output(name: string, alias?: string): MssqlDelete;
+      output(name: string, alias?: alias): MssqlDelete;
       outputs(fields: StringTo<string>): MssqlDelete;
     }
 
     interface Expression {
-      and(expr: string | Expression, options?: Object): Expression;
-      or(expr: string | Expression, options?: Object): Expression;
+      and(expr: string | Expression, ...args: any[]): Expression;
+      or(expr: string | Expression, ...args: any[]): Expression;
       clone(): Expression;
       toString(): string;
       toParam(): { text: string, values: any[] };
@@ -218,6 +226,8 @@ declare module 'squel' {
       VERSION: string;
       flavour: string;
       registerValueHandler<T>(type: T, handler: Handler): Squel;
+      str(rawSql: string, ...args: any[]): Expression;
+      rstr(rawSql: string, ...args: any[]): Expression;
     }
   }
 
