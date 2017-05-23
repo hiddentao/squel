@@ -62,7 +62,7 @@ declare module 'squel' {
       table(name: string, alias?: alias): FlavourUpdate;
       set(name: string, value?: any, options?: UpdateSetOptions): FlavourUpdate;
       setFields(fields: Object, options?: { ignorePeriodsForFieldNameQuotes?: boolean }): FlavourUpdate;
-      where(condition: string, ...args: any[]): FlavourUpdate;
+      where(condition: string | Expression, ...args: any[]): FlavourUpdate;
       order(field: string, direction?: boolean, ...args: any[]): FlavourUpdate;
       limit(limit: number): FlavourUpdate;
       offset(limit: number): FlavourUpdate;
@@ -82,7 +82,7 @@ declare module 'squel' {
       left_join(name: string, alias?: alias, condition?: string): FlavourDelete;
       right_join(name: string, alias?: alias, condition?: string): FlavourDelete;
       outer_join(name: string, alias?: alias, condition?: string): FlavourDelete;
-      where(condition: string, ...args: any[]): FlavourDelete;
+      where(condition: string | Expression, ...args: any[]): FlavourDelete;
       limit(limit: number): FlavourDelete;
       order(field: string, direction?: boolean, ...args: any[]): FlavourDelete;
       offset(limit: number): FlavourDelete;
