@@ -118,6 +118,7 @@ declare module 'squel' {
       delete(options?: QueryBuilderOptions, blocks?: Object[]): SqlDelete;
       remove(options?: QueryBuilderOptions, blocks?: Object[]): SqlDelete;
       expr(): Expression;
+      registerValueHandler<T>(type: T, handler: Handler): Squel;
     }
 
     // Flavour: None
@@ -225,7 +226,6 @@ declare module 'squel' {
       useFlavour(s: 'mssql'): MssqlQueryBuilder;
       VERSION: string;
       flavour: string;
-      registerValueHandler<T>(type: T, handler: Handler): Squel;
       str(rawSql: string, ...args: any[]): Expression;
       rstr(rawSql: string, ...args: any[]): Expression;
     }
