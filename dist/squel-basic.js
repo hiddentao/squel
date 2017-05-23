@@ -13,7 +13,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -89,21 +89,15 @@ function _clone(src) {
   if (typeof src.clone === 'function') {
     return src.clone();
   } else if (_isPlainObject(src) || _isArray(src)) {
-    var _ret2 = function () {
-      var ret = new src.constructor();
+    var ret = new src.constructor();
 
-      Object.getOwnPropertyNames(src).forEach(function (key) {
-        if (typeof src[key] !== 'function') {
-          ret[key] = _clone(src[key]);
-        }
-      });
+    Object.getOwnPropertyNames(src).forEach(function (key) {
+      if (typeof src[key] !== 'function') {
+        ret[key] = _clone(src[key]);
+      }
+    });
 
-      return {
-        v: ret
-      };
-    }();
-
-    if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+    return ret;
   } else {
     return JSON.parse(JSON.stringify(src));
   }
@@ -181,7 +175,7 @@ function _getValueHandler(value, handlers) {
  * Build base squel classes and methods
  */
 function _buildSquel() {
-  var flavour = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+  var flavour = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 
   var cls = {
     // Get whether obj is a query builder
@@ -287,11 +281,10 @@ function _buildSquel() {
      * Constructor.
      * this.param  {Object} options Overriding one or more of `cls.DefaultQueryBuilderOptions`.
      */
-
     function _class2(options) {
       _classCallCheck(this, _class2);
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(_class2).call(this));
+      var _this = _possibleConstructorReturn(this, (_class2.__proto__ || Object.getPrototypeOf(_class2)).call(this));
 
       var defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
 
@@ -414,16 +407,16 @@ function _buildSquel() {
         if (null === item) {
           // null is allowed
         } else if ("string" === itemType || "number" === itemType || "boolean" === itemType) {
-            // primitives are allowed
-          } else if (cls.isSquelBuilder(item)) {
-              // Builders allowed
-            } else {
-                var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
+          // primitives are allowed
+        } else if (cls.isSquelBuilder(item)) {
+          // Builders allowed
+        } else {
+          var typeIsValid = !!getValueHandler(item, this.options.valueHandlers, cls.globalValueHandlers);
 
-                if (!typeIsValid) {
-                  throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
-                }
-              }
+          if (!typeIsValid) {
+            throw new Error("field value must be a string, number, boolean, null or one of the registered custom value types");
+          }
+        }
 
         return item;
       }
@@ -471,25 +464,21 @@ function _buildSquel() {
     }, {
       key: '_formatFieldName',
       value: function _formatFieldName(item) {
-        var _this2 = this;
-
-        var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var formattingOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if (this.options.autoQuoteFieldNames) {
-          (function () {
-            var quoteChar = _this2.options.nameQuoteCharacter;
+          var quoteChar = this.options.nameQuoteCharacter;
 
-            if (formattingOptions.ignorePeriodsForFieldNameQuotes) {
-              // a.b.c -> `a.b.c`
-              item = '' + quoteChar + item + quoteChar;
-            } else {
-              // a.b.c -> `a`.`b`.`c`
-              item = item.split('.').map(function (v) {
-                // treat '*' as special case (#79)
-                return '*' === v ? v : '' + quoteChar + v + quoteChar;
-              }).join('.');
-            }
-          })();
+          if (formattingOptions.ignorePeriodsForFieldNameQuotes) {
+            // a.b.c -> `a.b.c`
+            item = '' + quoteChar + item + quoteChar;
+          } else {
+            // a.b.c -> `a`.`b`.`c`
+            item = item.split('.').map(function (v) {
+              // treat '*' as special case (#79)
+              return '*' === v ? v : '' + quoteChar + v + quoteChar;
+            }).join('.');
+          }
         }
 
         return item;
@@ -531,13 +520,13 @@ function _buildSquel() {
     }, {
       key: '_formatValueForParamArray',
       value: function _formatValueForParamArray(value) {
-        var _this3 = this;
+        var _this2 = this;
 
-        var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var formattingOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if (_isArray(value)) {
           return value.map(function (v) {
-            return _this3._formatValueForParamArray(v, formattingOptions);
+            return _this2._formatValueForParamArray(v, formattingOptions);
           });
         } else {
           return this._formatCustomValue(value, true, formattingOptions).value;
@@ -551,19 +540,18 @@ function _buildSquel() {
     }, {
       key: '_formatValueForQueryString',
       value: function _formatValueForQueryString(initialValue) {
-        var _this4 = this;
+        var _this3 = this;
 
-        var formattingOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var formattingOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         // maybe we have a cusotm value handler
-
-        var _formatCustomValue2 = this._formatCustomValue(initialValue, false, formattingOptions);
-
-        var rawNesting = _formatCustomValue2.rawNesting;
-        var formatted = _formatCustomValue2.formatted;
-        var value = _formatCustomValue2.value;
+        var _formatCustomValue2 = this._formatCustomValue(initialValue, false, formattingOptions),
+            rawNesting = _formatCustomValue2.rawNesting,
+            formatted = _formatCustomValue2.formatted,
+            value = _formatCustomValue2.value;
 
         // if formatting took place then return it directly
+
 
         if (formatted) {
           if (rawNesting) {
@@ -576,7 +564,7 @@ function _buildSquel() {
         // if it's an array then format each element separately
         if (_isArray(value)) {
           value = value.map(function (v) {
-            return _this4._formatValueForQueryString(v);
+            return _this3._formatValueForQueryString(v);
           });
 
           value = this._applyNestingFormatting(value.join(', '), _shouldApplyNesting(value));
@@ -610,7 +598,7 @@ function _buildSquel() {
     }, {
       key: '_applyNestingFormatting',
       value: function _applyNestingFormatting(str) {
-        var nesting = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var nesting = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         if (str && typeof str === 'string' && nesting && !this.options.rawNesting) {
           // apply brackets if they're not already existing
@@ -661,10 +649,10 @@ function _buildSquel() {
     }, {
       key: '_buildString',
       value: function _buildString(str, values) {
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-        var nested = options.nested;
-        var buildParameterized = options.buildParameterized;
-        var formattingOptions = options.formattingOptions;
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+        var nested = options.nested,
+            buildParameterized = options.buildParameterized,
+            formattingOptions = options.formattingOptions;
 
 
         values = values || [];
@@ -747,7 +735,7 @@ function _buildSquel() {
     }, {
       key: '_buildManyStrings',
       value: function _buildManyStrings(strings, strValues) {
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         var totalStr = [],
             totalValues = [];
@@ -759,11 +747,9 @@ function _buildSquel() {
           var _buildString2 = this._buildString(inputString, inputValues, {
             buildParameterized: options.buildParameterized,
             nested: false
-          });
-
-          var text = _buildString2.text;
-          var values = _buildString2.values;
-
+          }),
+              text = _buildString2.text,
+              values = _buildString2.values;
 
           totalStr.push(text);
           values.forEach(function (value) {
@@ -802,7 +788,7 @@ function _buildSquel() {
     }, {
       key: 'toString',
       value: function toString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         return this._toParamString(options).text;
       }
@@ -815,7 +801,7 @@ function _buildSquel() {
     }, {
       key: 'toParam',
       value: function toParam() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         return this._toParamString(_extend({}, options, {
           buildParameterized: true
@@ -849,14 +835,13 @@ function _buildSquel() {
     _inherits(_class3, _cls$BaseBuilder);
 
     // Initialise the expression.
-
     function _class3(options) {
       _classCallCheck(this, _class3);
 
-      var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class3).call(this, options));
+      var _this4 = _possibleConstructorReturn(this, (_class3.__proto__ || Object.getPrototypeOf(_class3)).call(this, options));
 
-      _this5._nodes = [];
-      return _this5;
+      _this4._nodes = [];
+      return _this4;
     }
 
     // Combine the current expression with the given expression using the intersection operator (AND).
@@ -902,7 +887,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = [],
             totalValues = [];
@@ -914,20 +899,18 @@ function _buildSquel() {
         try {
           for (var _iterator3 = this._nodes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var node = _step3.value;
-            var type = node.type;
-            var expr = node.expr;
-            var para = node.para;
+            var type = node.type,
+                expr = node.expr,
+                para = node.para;
 
             var _ref = cls.isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized,
               nested: true
             }) : this._buildString(expr, para, {
               buildParameterized: options.buildParameterized
-            });
-
-            var text = _ref.text;
-            var values = _ref.values;
-
+            }),
+                text = _ref.text,
+                values = _ref.values;
 
             if (totalStr.length) {
               totalStr.push(type);
@@ -982,11 +965,11 @@ function _buildSquel() {
     _inherits(_class4, _cls$BaseBuilder2);
 
     function _class4(fieldName) {
-      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       _classCallCheck(this, _class4);
 
-      var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class4).call(this, options));
+      var _this5 = _possibleConstructorReturn(this, (_class4.__proto__ || Object.getPrototypeOf(_class4)).call(this, options));
 
       if (_isPlainObject(fieldName)) {
         options = fieldName;
@@ -995,14 +978,14 @@ function _buildSquel() {
       }
 
       if (fieldName) {
-        _this6._fieldName = _this6._sanitizeField(fieldName);
+        _this5._fieldName = _this5._sanitizeField(fieldName);
       }
 
-      _this6.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
+      _this5.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
 
-      _this6._cases = [];
-      _this6._elseValue = null;
-      return _this6;
+      _this5._cases = [];
+      _this5._elseValue = null;
+      return _this5;
     }
 
     _createClass(_class4, [{
@@ -1040,7 +1023,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = '',
             totalValues = [];
@@ -1051,10 +1034,10 @@ function _buildSquel() {
 
         try {
           for (var _iterator4 = this._cases[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-            var _step4$value = _step4.value;
-            var expression = _step4$value.expression;
-            var _values = _step4$value.values;
-            var result = _step4$value.result;
+            var _step4$value = _step4.value,
+                expression = _step4$value.expression,
+                _values = _step4$value.values,
+                result = _step4$value.result;
 
             totalStr = _pad(totalStr, ' ');
 
@@ -1131,7 +1114,7 @@ function _buildSquel() {
     function _class5(options) {
       _classCallCheck(this, _class5);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class5).call(this, options));
+      return _possibleConstructorReturn(this, (_class5.__proto__ || Object.getPrototypeOf(_class5)).call(this, options));
     }
 
     /**
@@ -1176,16 +1159,16 @@ function _buildSquel() {
     function _class6(options, str) {
       _classCallCheck(this, _class6);
 
-      var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class6).call(this, options));
+      var _this7 = _possibleConstructorReturn(this, (_class6.__proto__ || Object.getPrototypeOf(_class6)).call(this, options));
 
-      _this8._str = str;
-      return _this8;
+      _this7._str = str;
+      return _this7;
     }
 
     _createClass(_class6, [{
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         return {
           text: this._str,
@@ -1204,11 +1187,11 @@ function _buildSquel() {
     function _class7(options) {
       _classCallCheck(this, _class7);
 
-      var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class7).call(this, options));
+      var _this8 = _possibleConstructorReturn(this, (_class7.__proto__ || Object.getPrototypeOf(_class7)).call(this, options));
 
-      _this9._strings = [];
-      _this9._values = [];
-      return _this9;
+      _this8._strings = [];
+      _this8._values = [];
+      return _this8;
     }
 
     _createClass(_class7, [{
@@ -1225,7 +1208,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         return this._buildManyStrings(this._strings, this._values, options);
       }
@@ -1236,7 +1219,7 @@ function _buildSquel() {
 
   // value handler for FunctionValueBlock objects
   cls.registerValueHandler(cls.FunctionBlock, function (value) {
-    var asParam = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+    var asParam = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
     return asParam ? value.toParam() : value.toString();
   });
@@ -1251,14 +1234,13 @@ function _buildSquel() {
      * @param {Boolean} [options.singleTable] If true then only allow one table spec.
      * @param {String} [options.prefix] String prefix for output.
      */
-
     function _class8(options, prefix) {
       _classCallCheck(this, _class8);
 
-      var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class8).call(this, options));
+      var _this9 = _possibleConstructorReturn(this, (_class8.__proto__ || Object.getPrototypeOf(_class8)).call(this, options));
 
-      _this10._tables = [];
-      return _this10;
+      _this9._tables = [];
+      return _this9;
     }
 
     /**
@@ -1273,7 +1255,7 @@ function _buildSquel() {
     _createClass(_class8, [{
       key: '_table',
       value: function _table(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
         alias = alias ? this._sanitizeTableAlias(alias) : alias;
         table = this._sanitizeTable(table);
@@ -1303,7 +1285,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = '',
             totalValues = [];
@@ -1316,9 +1298,9 @@ function _buildSquel() {
 
           try {
             for (var _iterator5 = this._tables[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _step5$value = _step5.value;
-              var table = _step5$value.table;
-              var alias = _step5$value.alias;
+              var _step5$value = _step5.value,
+                  table = _step5$value.table,
+                  alias = _step5$value.alias;
 
               totalStr = _pad(totalStr, ', ');
 
@@ -1328,11 +1310,9 @@ function _buildSquel() {
                 var _table$_toParamString = table._toParamString({
                   buildParameterized: options.buildParameterized,
                   nested: true
-                });
-
-                var text = _table$_toParamString.text;
-                var values = _table$_toParamString.values;
-
+                }),
+                    text = _table$_toParamString.text,
+                    values = _table$_toParamString.values;
 
                 tableStr = text;
                 values.forEach(function (value) {
@@ -1385,7 +1365,7 @@ function _buildSquel() {
     function _class9() {
       _classCallCheck(this, _class9);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class9).apply(this, arguments));
+      return _possibleConstructorReturn(this, (_class9.__proto__ || Object.getPrototypeOf(_class9)).apply(this, arguments));
     }
 
     _createClass(_class9, [{
@@ -1405,26 +1385,26 @@ function _buildSquel() {
     function _class10() {
       _classCallCheck(this, _class10);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class10).apply(this, arguments));
+      return _possibleConstructorReturn(this, (_class10.__proto__ || Object.getPrototypeOf(_class10)).apply(this, arguments));
     }
 
     _createClass(_class10, [{
       key: 'table',
       value: function table(_table2) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
         this._table(_table2, alias);
       }
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         if (!this._hasTable()) {
           throw new Error("table() needs to be called");
         }
 
-        return _get(Object.getPrototypeOf(_class10.prototype), '_toParamString', this).call(this, options);
+        return _get(_class10.prototype.__proto__ || Object.getPrototypeOf(_class10.prototype), '_toParamString', this).call(this, options);
       }
     }]);
 
@@ -1438,7 +1418,7 @@ function _buildSquel() {
     function _class11(options) {
       _classCallCheck(this, _class11);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class11).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, (_class11.__proto__ || Object.getPrototypeOf(_class11)).call(this, _extend({}, options, {
         prefix: 'FROM'
       })));
     }
@@ -1446,7 +1426,7 @@ function _buildSquel() {
     _createClass(_class11, [{
       key: 'from',
       value: function from(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
         this._table(table, alias);
       }
@@ -1462,7 +1442,7 @@ function _buildSquel() {
     function _class12(options) {
       _classCallCheck(this, _class12);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class12).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, (_class12.__proto__ || Object.getPrototypeOf(_class12)).call(this, _extend({}, options, {
         prefix: 'INTO',
         singleTable: true
       })));
@@ -1476,13 +1456,13 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         if (!this._hasTable()) {
           throw new Error("into() needs to be called");
         }
 
-        return _get(Object.getPrototypeOf(_class12.prototype), '_toParamString', this).call(this, options);
+        return _get(_class12.prototype.__proto__ || Object.getPrototypeOf(_class12.prototype), '_toParamString', this).call(this, options);
       }
     }]);
 
@@ -1496,10 +1476,10 @@ function _buildSquel() {
     function _class13(options) {
       _classCallCheck(this, _class13);
 
-      var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class13).call(this, options));
+      var _this14 = _possibleConstructorReturn(this, (_class13.__proto__ || Object.getPrototypeOf(_class13)).call(this, options));
 
-      _this15._fields = [];
-      return _this15;
+      _this14._fields = [];
+      return _this14;
     }
 
     /**
@@ -1517,7 +1497,7 @@ function _buildSquel() {
     _createClass(_class13, [{
       key: 'fields',
       value: function fields(_fields) {
-        var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if (_isArray(_fields)) {
           var _iteratorNormalCompletion6 = true;
@@ -1567,8 +1547,8 @@ function _buildSquel() {
     }, {
       key: 'field',
       value: function field(_field) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         alias = alias ? this._sanitizeFieldAlias(alias) : alias;
         _field = this._sanitizeField(_field);
@@ -1590,9 +1570,9 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-        var queryBuilder = options.queryBuilder;
-        var buildParameterized = options.buildParameterized;
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var queryBuilder = options.queryBuilder,
+            buildParameterized = options.buildParameterized;
 
 
         var totalStr = '',
@@ -1608,9 +1588,9 @@ function _buildSquel() {
 
             totalStr = _pad(totalStr, ", ");
 
-            var name = field.name;
-            var alias = field.alias;
-            var _options = field.options;
+            var name = field.name,
+                alias = field.alias,
+                _options = field.options;
 
 
             if (typeof name === 'string') {
@@ -1671,10 +1651,10 @@ function _buildSquel() {
     function _class14(options) {
       _classCallCheck(this, _class14);
 
-      var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class14).call(this, options));
+      var _this15 = _possibleConstructorReturn(this, (_class14.__proto__ || Object.getPrototypeOf(_class14)).call(this, options));
 
-      _this16._reset();
-      return _this16;
+      _this15._reset();
+      return _this15;
     }
 
     _createClass(_class14, [{
@@ -1691,7 +1671,7 @@ function _buildSquel() {
     }, {
       key: '_set',
       value: function _set(field, value) {
-        var valueOptions = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+        var valueOptions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         if (this._values.length > 1) {
           throw new Error("Cannot set multiple rows of fields this way.");
@@ -1721,7 +1701,7 @@ function _buildSquel() {
     }, {
       key: '_setFields',
       value: function _setFields(fields) {
-        var valueOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var valueOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if ((typeof fields === 'undefined' ? 'undefined' : _typeof(fields)) !== 'object') {
           throw new Error("Expected an object but got " + (typeof fields === 'undefined' ? 'undefined' : _typeof(fields)));
@@ -1738,7 +1718,7 @@ function _buildSquel() {
     }, {
       key: '_setFieldsRows',
       value: function _setFieldsRows(fieldsRows) {
-        var valueOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var valueOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if (!_isArray(fieldsRows)) {
           throw new Error("Expected an array of objects but got " + (typeof fieldsRows === 'undefined' ? 'undefined' : _typeof(fieldsRows)));
@@ -1793,7 +1773,7 @@ function _buildSquel() {
     function _class15() {
       _classCallCheck(this, _class15);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class15).apply(this, arguments));
+      return _possibleConstructorReturn(this, (_class15.__proto__ || Object.getPrototypeOf(_class15)).apply(this, arguments));
     }
 
     _createClass(_class15, [{
@@ -1809,7 +1789,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
         var buildParameterized = options.buildParameterized;
 
 
@@ -1859,13 +1839,13 @@ function _buildSquel() {
     function _class16() {
       _classCallCheck(this, _class16);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class16).apply(this, arguments));
+      return _possibleConstructorReturn(this, (_class16.__proto__ || Object.getPrototypeOf(_class16)).apply(this, arguments));
     }
 
     _createClass(_class16, [{
       key: 'set',
       value: function set(field, value) {
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         this._set(field, value, options);
       }
@@ -1882,14 +1862,14 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var _this19 = this;
+        var _this18 = this;
 
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
         var buildParameterized = options.buildParameterized;
 
 
         var fieldString = this._fields.map(function (f) {
-          return _this19._formatFieldName(f);
+          return _this18._formatFieldName(f);
         }).join(', ');
 
         var valueStrings = [],
@@ -1930,20 +1910,20 @@ function _buildSquel() {
     function _class17(options) {
       _classCallCheck(this, _class17);
 
-      var _this20 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class17).call(this, options));
+      var _this19 = _possibleConstructorReturn(this, (_class17.__proto__ || Object.getPrototypeOf(_class17)).call(this, options));
 
-      _this20._fields = [];
-      _this20._query = null;
-      return _this20;
+      _this19._fields = [];
+      _this19._query = null;
+      return _this19;
     }
 
     _createClass(_class17, [{
       key: 'fromQuery',
       value: function fromQuery(fields, selectQuery) {
-        var _this21 = this;
+        var _this20 = this;
 
         this._fields = fields.map(function (v) {
-          return _this21._sanitizeField(v);
+          return _this20._sanitizeField(v);
         });
 
         this._query = this._sanitizeBaseBuilder(selectQuery);
@@ -1951,7 +1931,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = '',
             totalValues = [];
@@ -1960,11 +1940,9 @@ function _buildSquel() {
           var _query$_toParamString = this._query._toParamString({
             buildParameterized: options.buildParameterized,
             nested: true
-          });
-
-          var text = _query$_toParamString.text;
-          var values = _query$_toParamString.values;
-
+          }),
+              text = _query$_toParamString.text,
+              values = _query$_toParamString.values;
 
           totalStr = '(' + this._fields.join(', ') + ') ' + this._applyNestingFormatting(text);
           totalValues = values;
@@ -1987,7 +1965,7 @@ function _buildSquel() {
     function _class18() {
       _classCallCheck(this, _class18);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class18).apply(this, arguments));
+      return _possibleConstructorReturn(this, (_class18.__proto__ || Object.getPrototypeOf(_class18)).apply(this, arguments));
     }
 
     _createClass(_class18, [{
@@ -2017,10 +1995,10 @@ function _buildSquel() {
     function _class19(options) {
       _classCallCheck(this, _class19);
 
-      var _this23 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class19).call(this, options));
+      var _this22 = _possibleConstructorReturn(this, (_class19.__proto__ || Object.getPrototypeOf(_class19)).call(this, options));
 
-      _this23._groups = [];
-      return _this23;
+      _this22._groups = [];
+      return _this22;
     }
 
     // Add a GROUP BY transformation for the given field.
@@ -2034,7 +2012,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         return {
           text: this._groups.length ? 'GROUP BY ' + this._groups.join(', ') : '',
@@ -2052,14 +2030,13 @@ function _buildSquel() {
     /**
      * @param options.verb The prefix verb string.
      */
-
     function _class20(options) {
       _classCallCheck(this, _class20);
 
-      var _this24 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class20).call(this, options));
+      var _this23 = _possibleConstructorReturn(this, (_class20.__proto__ || Object.getPrototypeOf(_class20)).call(this, options));
 
-      _this24._value = 0;
-      return _this24;
+      _this23._value = 0;
+      return _this23;
     }
 
     _createClass(_class20, [{
@@ -2070,7 +2047,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var expr = 0 < this._value ? this.options.verb + ' ' + this.options.parameterCharacter : '';
 
@@ -2090,7 +2067,7 @@ function _buildSquel() {
     function _class21(options) {
       _classCallCheck(this, _class21);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class21).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, (_class21.__proto__ || Object.getPrototypeOf(_class21)).call(this, _extend({}, options, {
         verb: 'OFFSET'
       })));
     }
@@ -2120,7 +2097,7 @@ function _buildSquel() {
     function _class22(options) {
       _classCallCheck(this, _class22);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class22).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, (_class22.__proto__ || Object.getPrototypeOf(_class22)).call(this, _extend({}, options, {
         verb: 'LIMIT'
       })));
     }
@@ -2150,14 +2127,13 @@ function _buildSquel() {
     /**
      * @param {String} options.verb The condition verb.
      */
-
     function _class23(options) {
       _classCallCheck(this, _class23);
 
-      var _this27 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class23).call(this, options));
+      var _this26 = _possibleConstructorReturn(this, (_class23.__proto__ || Object.getPrototypeOf(_class23)).call(this, options));
 
-      _this27._conditions = [];
-      return _this27;
+      _this26._conditions = [];
+      return _this26;
     }
 
     /**
@@ -2186,7 +2162,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = [],
             totalValues = [];
@@ -2197,9 +2173,9 @@ function _buildSquel() {
 
         try {
           for (var _iterator8 = this._conditions[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-            var _step8$value = _step8.value;
-            var expr = _step8$value.expr;
-            var _values2 = _step8$value.values;
+            var _step8$value = _step8.value,
+                expr = _step8$value.expr,
+                _values2 = _step8$value.values;
 
             var ret = cls.isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized
@@ -2251,7 +2227,7 @@ function _buildSquel() {
     function _class24(options) {
       _classCallCheck(this, _class24);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class24).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, (_class24.__proto__ || Object.getPrototypeOf(_class24)).call(this, _extend({}, options, {
         verb: 'WHERE'
       })));
     }
@@ -2277,7 +2253,7 @@ function _buildSquel() {
     function _class25(options) {
       _classCallCheck(this, _class25);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class25).call(this, _extend({}, options, {
+      return _possibleConstructorReturn(this, (_class25.__proto__ || Object.getPrototypeOf(_class25)).call(this, _extend({}, options, {
         verb: 'HAVING'
       })));
     }
@@ -2303,10 +2279,10 @@ function _buildSquel() {
     function _class26(options) {
       _classCallCheck(this, _class26);
 
-      var _this30 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class26).call(this, options));
+      var _this29 = _possibleConstructorReturn(this, (_class26.__proto__ || Object.getPrototypeOf(_class26)).call(this, options));
 
-      _this30._orders = [];
-      return _this30;
+      _this29._orders = [];
+      return _this29;
     }
 
     /**
@@ -2325,8 +2301,8 @@ function _buildSquel() {
           if (dir === undefined) {
             dir = 'ASC'; // Default to asc
           } else if (dir !== null) {
-              dir = dir ? 'ASC' : 'DESC'; // Convert truthy to asc
-            }
+            dir = dir ? 'ASC' : 'DESC'; // Convert truthy to asc
+          }
         }
 
         for (var _len9 = arguments.length, values = Array(_len9 > 2 ? _len9 - 2 : 0), _key9 = 2; _key9 < _len9; _key9++) {
@@ -2342,7 +2318,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = '',
             totalValues = [];
@@ -2353,10 +2329,10 @@ function _buildSquel() {
 
         try {
           for (var _iterator9 = this._orders[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-            var _step9$value = _step9.value;
-            var field = _step9$value.field;
-            var dir = _step9$value.dir;
-            var _values3 = _step9$value.values;
+            var _step9$value = _step9.value,
+                field = _step9$value.field,
+                dir = _step9$value.dir,
+                _values3 = _step9$value.values;
 
             totalStr = _pad(totalStr, ', ');
 
@@ -2404,10 +2380,10 @@ function _buildSquel() {
     function _class27(options) {
       _classCallCheck(this, _class27);
 
-      var _this31 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class27).call(this, options));
+      var _this30 = _possibleConstructorReturn(this, (_class27.__proto__ || Object.getPrototypeOf(_class27)).call(this, options));
 
-      _this31._joins = [];
-      return _this31;
+      _this30._joins = [];
+      return _this30;
     }
 
     /**
@@ -2427,9 +2403,9 @@ function _buildSquel() {
     _createClass(_class27, [{
       key: 'join',
       value: function join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
-        var type = arguments.length <= 3 || arguments[3] === undefined ? 'INNER' : arguments[3];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+        var type = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'INNER';
 
         table = this._sanitizeTable(table, true);
         alias = alias ? this._sanitizeTableAlias(alias) : alias;
@@ -2445,55 +2421,55 @@ function _buildSquel() {
     }, {
       key: 'left_join',
       value: function left_join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
         this.join(table, alias, condition, 'LEFT');
       }
     }, {
       key: 'right_join',
       value: function right_join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
         this.join(table, alias, condition, 'RIGHT');
       }
     }, {
       key: 'outer_join',
       value: function outer_join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
         this.join(table, alias, condition, 'OUTER');
       }
     }, {
       key: 'left_outer_join',
       value: function left_outer_join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
         this.join(table, alias, condition, 'LEFT OUTER');
       }
     }, {
       key: 'full_join',
       value: function full_join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
         this.join(table, alias, condition, 'FULL');
       }
     }, {
       key: 'cross_join',
       value: function cross_join(table) {
-        var alias = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-        var condition = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+        var alias = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var condition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
         this.join(table, alias, condition, 'CROSS');
       }
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = "",
             totalValues = [];
@@ -2504,11 +2480,11 @@ function _buildSquel() {
 
         try {
           for (var _iterator10 = this._joins[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var _step10$value = _step10.value;
-            var type = _step10$value.type;
-            var table = _step10$value.table;
-            var alias = _step10$value.alias;
-            var condition = _step10$value.condition;
+            var _step10$value = _step10.value,
+                type = _step10$value.type,
+                table = _step10$value.table,
+                alias = _step10$value.alias,
+                condition = _step10$value.condition;
 
             totalStr = _pad(totalStr, this.options.separator);
 
@@ -2537,20 +2513,20 @@ function _buildSquel() {
             if (condition) {
               totalStr += ' ON ';
 
-              var _ret4 = void 0;
+              var _ret2 = void 0;
 
               if (cls.isSquelBuilder(condition)) {
-                _ret4 = condition._toParamString({
+                _ret2 = condition._toParamString({
                   buildParameterized: options.buildParameterized
                 });
               } else {
-                _ret4 = this._buildString(condition, [], {
+                _ret2 = this._buildString(condition, [], {
                   buildParameterized: options.buildParameterized
                 });
               }
 
-              totalStr += this._applyNestingFormatting(_ret4.text);
-              _ret4.values.forEach(function (value) {
+              totalStr += this._applyNestingFormatting(_ret2.text);
+              _ret2.values.forEach(function (value) {
                 return totalValues.push(value);
               });
             }
@@ -2587,10 +2563,10 @@ function _buildSquel() {
     function _class28(options) {
       _classCallCheck(this, _class28);
 
-      var _this32 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class28).call(this, options));
+      var _this31 = _possibleConstructorReturn(this, (_class28.__proto__ || Object.getPrototypeOf(_class28)).call(this, options));
 
-      _this32._unions = [];
-      return _this32;
+      _this31._unions = [];
+      return _this31;
     }
 
     /**
@@ -2605,7 +2581,7 @@ function _buildSquel() {
     _createClass(_class28, [{
       key: 'union',
       value: function union(table) {
-        var type = arguments.length <= 1 || arguments[1] === undefined ? 'UNION' : arguments[1];
+        var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'UNION';
 
         table = this._sanitizeTable(table);
 
@@ -2625,7 +2601,7 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         var totalStr = '',
             totalValues = [];
@@ -2636,9 +2612,9 @@ function _buildSquel() {
 
         try {
           for (var _iterator11 = this._unions[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-            var _step11$value = _step11.value;
-            var type = _step11$value.type;
-            var table = _step11$value.table;
+            var _step11$value = _step11.value,
+                type = _step11$value.type,
+                table = _step11$value.table;
 
             totalStr = _pad(totalStr, this.options.separator);
 
@@ -2708,13 +2684,12 @@ function _buildSquel() {
     #
     # blocks - array of cls.BaseBuilderBlock instances to build the query with.
     */
-
     function _class29(options, blocks) {
       _classCallCheck(this, _class29);
 
-      var _this33 = _possibleConstructorReturn(this, Object.getPrototypeOf(_class29).call(this, options));
+      var _this32 = _possibleConstructorReturn(this, (_class29.__proto__ || Object.getPrototypeOf(_class29)).call(this, options));
 
-      _this33.blocks = blocks || [];
+      _this32.blocks = blocks || [];
 
       // Copy exposed methods into myself
       var _iteratorNormalCompletion12 = true;
@@ -2722,7 +2697,7 @@ function _buildSquel() {
       var _iteratorError12 = undefined;
 
       try {
-        for (var _iterator12 = _this33.blocks[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+        for (var _iterator12 = _this32.blocks[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
           var block = _step12.value;
 
           var exposedMethods = block.exposedMethods();
@@ -2730,19 +2705,19 @@ function _buildSquel() {
           for (var methodName in exposedMethods) {
             var methodBody = exposedMethods[methodName];
 
-            if (undefined !== _this33[methodName]) {
+            if (undefined !== _this32[methodName]) {
               throw new Error('Builder already has a builder method called: ' + methodName);
             }
 
             (function (block, name, body) {
-              _this33[name] = function () {
+              _this32[name] = function () {
                 for (var _len10 = arguments.length, args = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
                   args[_key10] = arguments[_key10];
                 }
 
                 body.call.apply(body, [block].concat(args));
 
-                return _this33;
+                return _this32;
               };
             })(block, methodName, methodBody);
           }
@@ -2762,7 +2737,7 @@ function _buildSquel() {
         }
       }
 
-      return _this33;
+      return _this32;
     }
 
     /**
@@ -2800,7 +2775,7 @@ function _buildSquel() {
           }
         }
 
-        _get(Object.getPrototypeOf(_class29.prototype), 'registerValueHandler', this).call(this, type, handler);
+        _get(_class29.prototype.__proto__ || Object.getPrototypeOf(_class29.prototype), 'registerValueHandler', this).call(this, type, handler);
 
         return this;
       }
@@ -2848,16 +2823,16 @@ function _buildSquel() {
     }, {
       key: '_toParamString',
       value: function _toParamString() {
-        var _this34 = this;
+        var _this33 = this;
 
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         options = _extend({}, this.options, options);
 
         var blockResults = this.blocks.map(function (b) {
           return b._toParamString({
             buildParameterized: options.buildParameterized,
-            queryBuilder: _this34
+            queryBuilder: _this33
           });
         });
 
@@ -2881,16 +2856,14 @@ function _buildSquel() {
 
         if (!options.nested) {
           if (options.numberedParameters) {
-            (function () {
-              var i = undefined !== options.numberedParametersStartAt ? options.numberedParametersStartAt : 1;
+            var i = undefined !== options.numberedParametersStartAt ? options.numberedParametersStartAt : 1;
 
-              // construct regex for searching
-              var regex = options.parameterCharacter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+            // construct regex for searching
+            var regex = options.parameterCharacter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
-              totalStr = totalStr.replace(new RegExp(regex, 'g'), function () {
-                return '' + options.numberedParametersPrefix + i++;
-              });
-            })();
+            totalStr = totalStr.replace(new RegExp(regex, 'g'), function () {
+              return '' + options.numberedParametersPrefix + i++;
+            });
           }
         }
 
@@ -2933,13 +2906,13 @@ function _buildSquel() {
     _inherits(_class30, _cls$QueryBuilder);
 
     function _class30(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+      var blocks = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       _classCallCheck(this, _class30);
 
       blocks = blocks || [new cls.StringBlock(options, 'SELECT'), new cls.FunctionBlock(options), new cls.DistinctBlock(options), new cls.GetFieldBlock(options), new cls.FromTableBlock(options), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.GroupByBlock(options), new cls.HavingBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options), new cls.OffsetBlock(options), new cls.UnionBlock(options)];
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class30).call(this, options, blocks));
+      return _possibleConstructorReturn(this, (_class30.__proto__ || Object.getPrototypeOf(_class30)).call(this, options, blocks));
     }
 
     return _class30;
@@ -2950,13 +2923,13 @@ function _buildSquel() {
     _inherits(_class31, _cls$QueryBuilder2);
 
     function _class31(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+      var blocks = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       _classCallCheck(this, _class31);
 
       blocks = blocks || [new cls.StringBlock(options, 'UPDATE'), new cls.UpdateTableBlock(options), new cls.SetFieldBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class31).call(this, options, blocks));
+      return _possibleConstructorReturn(this, (_class31.__proto__ || Object.getPrototypeOf(_class31)).call(this, options, blocks));
     }
 
     return _class31;
@@ -2967,7 +2940,7 @@ function _buildSquel() {
     _inherits(_class32, _cls$QueryBuilder3);
 
     function _class32(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+      var blocks = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       _classCallCheck(this, _class32);
 
@@ -2975,7 +2948,7 @@ function _buildSquel() {
         singleTable: true
       })), new cls.JoinBlock(options), new cls.WhereBlock(options), new cls.OrderByBlock(options), new cls.LimitBlock(options)];
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class32).call(this, options, blocks));
+      return _possibleConstructorReturn(this, (_class32.__proto__ || Object.getPrototypeOf(_class32)).call(this, options, blocks));
     }
 
     return _class32;
@@ -2986,13 +2959,13 @@ function _buildSquel() {
     _inherits(_class33, _cls$QueryBuilder4);
 
     function _class33(options) {
-      var blocks = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+      var blocks = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       _classCallCheck(this, _class33);
 
       blocks = blocks || [new cls.StringBlock(options, 'INSERT'), new cls.IntoTableBlock(options), new cls.InsertFieldValueBlock(options), new cls.InsertFieldsFromQueryBlock(options)];
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(_class33).call(this, options, blocks));
+      return _possibleConstructorReturn(this, (_class33.__proto__ || Object.getPrototypeOf(_class33)).call(this, options, blocks));
     }
 
     return _class33;
@@ -3066,7 +3039,7 @@ squel.flavours = {};
 
 // Setup Squel for a particular SQL flavour
 squel.useFlavour = function () {
-  var flavour = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+  var flavour = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 
   if (!flavour) {
     return squel;
