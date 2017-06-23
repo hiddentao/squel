@@ -217,11 +217,11 @@ test['SELECT builder'] =
                     '>> limit(0)':
                       beforeEach: -> @inst.limit(0)
                       toString: ->
-                        assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC'
+                        assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 0'
                       toParam: ->
                         assert.same @inst.toParam(), {
-                          text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC',
-                          values: [1]
+                          text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ?',
+                          values: [1, 0]
                         }
 
                     '>> offset(3)':
@@ -237,11 +237,11 @@ test['SELECT builder'] =
                       '>> offset(0)':
                         beforeEach: -> @inst.offset(0)
                         toString: ->
-                          assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2'
+                          assert.same @inst.toString(), 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = 1) GROUP BY field, field2 ORDER BY a ASC LIMIT 2 OFFSET 0'
                         toParam: ->
                           assert.same @inst.toParam(), {
-                            text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ?',
-                            values: [1, 2]
+                            text: 'SELECT DISTINCT field1 AS "fa1", field2 FROM table, table2 `alias2` INNER JOIN other_table WHERE (a = ?) GROUP BY field, field2 ORDER BY a ASC LIMIT ? OFFSET ?',
+                            values: [1, 2, 0]
                           }
 
                 '>> order(DIST(?,?), true, 2, 3)':
