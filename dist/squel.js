@@ -2072,7 +2072,7 @@ function _buildSquel() {
       value: function _toParamString() {
         var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-        var expr = 0 < this._value ? this.options.verb + ' ' + this.options.parameterCharacter : '';
+        var expr = 0 <= this._value ? this.options.verb + ' ' + this.options.parameterCharacter : '';
 
         var values = null !== this._value ? [this._value] : [];
 
