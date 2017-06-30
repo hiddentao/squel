@@ -134,6 +134,35 @@ declare namespace squel {
     values: any[];
   }
 
+  export interface FormattingOptions {
+    // TODO
+  }
+
+  export interface BuildManyStringOptions {
+    /**
+     * Whether to build paramterized string. Default is false.
+     */
+    buildParameterized?: boolean;
+
+    /**
+     * Whether this expression is nested within another.
+     */
+    nested?: boolean;
+  }
+
+  export interface BuildStringOptions extends BuildManyStringOptions {
+    /**
+     * Formatting options for values in query string.
+     */
+    formattingOptions?: FormattingOptions;
+  }
+
+  export interface FormatValueResult<T = any> {
+    formatted: boolean;
+    value: T;
+    rawNesting?: boolean;
+  }
+
   /**
    * Base class for all builders
    */
@@ -160,6 +189,100 @@ declare namespace squel {
      * @param options Additional options.
      */
     toParam(options?: ToParamOptions): ParamString;
+
+    /**
+     * Sanitize given expression.
+     *
+     * Note: This ensures that the type is a string or BaseBuilder, else it throws an error
+     */
+    _sanitizeExpression<T extends string | BaseBuilder>(expr: T): T;
+
+    /**
+     * Sanitize the given name.
+     *
+     * The 'type' parameter is used to construct a meaningful error message in case validation fails.
+     */
+    _sanitizeName(value: string, type: string): string;
+
+    _sanitizeField<T extends string | BaseBuilder>(item: T): T;
+
+    _sanitizeBaseBuilder<T extends BaseBuilder>(item: T): T;
+
+    _sanitizeTable<T extends string | BaseBuilder>(item: T): T;
+
+    _sanitizeTableAlias(item: string): string;
+
+    _sanitizeFieldAlias(item: string): string;
+
+    /**
+     * Sanitize the given limit/offset value.
+     */
+    _sanitizeLimitOffset(value: number): number;
+
+    /**
+     * Santize the given field value
+     */
+    _sanitizeValue<T>(item: T): T;
+
+    /**
+     * Escape a string value, e.g. escape quotes and other characters within it.
+     */
+    _escapeValue(value: string): string;
+
+    _formatTableName(item: string): string;
+
+    _formatFieldAlias(item: string): string;
+
+    _formatTableAlias(item: string): string;
+
+    _formatFieldName(item: string, formattingOptions?: {ignorePeriodsForFieldNameQuotes?: boolean}): string;
+
+    _formatCustomValue<T = any>(
+      value: T,
+      asParam: boolean,
+      formattingOptions?: FormattingOptions,
+    ): FormatValueResult<T>;
+
+    // Note: this type definition does not handle multi-dimensional arrays
+    // TODO(demurgos): Handle multidimensional arrays
+    _formatValueForParamArray<T = any>(
+      value: T[],
+      formattingOptions?: FormattingOptions,
+    ): FormatValueResult<T>[];
+
+    _formatValueForParamArray<T = any>(
+      value: T,
+      formattingOptions?: FormattingOptions,
+    ): FormatValueResult<T>;
+
+    /**
+     * Format the given field value for inclusion into the query string
+     */
+    _formatValueForQueryString(initialValue: any, formattingOptions?: FormattingOptions): string;
+
+    _applyNestingFormatting(str: string, nesting?: boolean): string;
+
+    /**
+     * Build given string and its corresponding parameter values into
+     * output.
+     *
+     * @param str
+     * @param values
+     * @param options Additional options.
+     */
+    _buildString(str: string, values: any[], options?: BuildStringOptions): ParamString;
+
+    /**
+     * Build all given strings and their corresponding parameter values into
+     * output.
+     *
+     * @param strings
+     * @param strValues array of value arrays corresponding to each string.
+     * @param options Additional options.
+     */
+    _buildManyStrings(strings: string[], strValues: any[][], options?: BuildManyStringOptions): ParamString;
+
+    _toParamString(options?: ToParamOptions): ParamString;
   }
 
   /*
@@ -169,6 +292,12 @@ declare namespace squel {
    * ---------------------------------------------------------------------------------------------------------
    * ---------------------------------------------------------------------------------------------------------
    */
+
+  export interface ExpressionNode {
+    type: "AND" | "OR";
+    expr: string | BaseBuilder;
+    para: any[];
+  }
 
   /**
    * An SQL expression builder.
@@ -182,6 +311,8 @@ declare namespace squel {
    * All the build methods in this object return the object instance for chained method calling purposes.
    */
   interface Expression extends BaseBuilder {
+    _nodes: ExpressionNode[];
+
     /**
      * Add to the current expression using `AND`.
      *
@@ -207,12 +338,21 @@ declare namespace squel {
    * ---------------------------------------------------------------------------------------------------------
    */
 
+  export interface CaseItem {
+    expression: string;
+    values: any[];
+    result?: any;
+  }
+
   /**
    * An SQL CASE expression builder.
    *
    * SQL cases are used to select proper values based on specific criteria.
    */
   interface Case extends BaseBuilder {
+    _cases: CaseItem[];
+    _elseValue: any | null;
+
     /**
      * A `WHEN` clause
      *
@@ -273,6 +413,7 @@ declare namespace squel {
    * A fixed string which always gets output
    */
   interface StringBlock extends Block {
+    _str: string;
   }
 
   interface StringBlockConstructor {
@@ -283,6 +424,9 @@ declare namespace squel {
    * A function string block
    */
   interface FunctionBlock extends Block {
+    _strings: string[];
+    _values: any[];
+
     /**
      * Insert a function value, see [[FunctionBlock]].
      */
@@ -296,6 +440,11 @@ declare namespace squel {
     function(str: string, ...value: any[]): this;
   }
 
+  export interface Table {
+    table: string | BaseBuilder;
+    alias: string | null;
+  }
+
   interface TableBlockOptions extends QueryBuilderOptions {
     /**
      * If true then only allow one table spec.
@@ -304,6 +453,23 @@ declare namespace squel {
   }
 
   interface AbstractTableBlock extends Block {
+    options: CompleteQueryBuilderOptions & TableBlockOptions;
+
+    _tables: Table[];
+
+    /**
+     * Update given table.
+     *
+     * An alias may also be specified for the table.
+     *
+     * Concrete subclasses should provide a method which calls this
+     */
+    _table(table: string | BaseBuilder, alias?: string): void;
+
+    /**
+     * get whether a table has been set
+     */
+    _hasTable(): boolean;
   }
 
   interface TargetTableBlock extends AbstractTableBlock {
@@ -368,7 +534,15 @@ declare namespace squel {
     ignorePeriodsForFieldNameQuotes?: boolean;
   }
 
+  export interface Field {
+    alias: string | null;
+    field: string | BaseBuilder;
+    options: FieldOptions;
+  }
+
   interface GetFieldBlock extends Block {
+    _fields: Field[];
+
     /**
      * Add the given field to the final result set.
      *
@@ -437,12 +611,34 @@ declare namespace squel {
   }
 
   interface AbstractSetFieldBlock extends Block {
+    _fields: (string | BaseBuilder)[];
+    _values: any[][];
+    _valueOptions: SetOptions[][];
+
+    _reset(): void;
+
+    /**
+     * Update the given field with the given value.
+     * This will override any previously set value for the given field.
+     */
+    _set(field: string | BaseBuilder, value: any, options?: SetOptions): void;
+
+    /**
+     * Insert fields based on the key/value pairs in the given object
+     */
+    _setFields(fields: {[field: string]: any}, options?: SetOptions): void;
   }
 
   interface SetFieldBlock extends AbstractSetFieldBlock {
     set(name: string, value?: any, options?: SetOptions): this;
 
     setFields(fields: {[field: string]: any}, options?: SetOptions): this;
+
+    /**
+     * Insert multiple rows for the given fields. Accepts an array of objects.
+     * This will override all previously set values for every field.
+     */
+    setFieldsRows<T extends {[field: string]: any}>(fieldsRows: T[], options?: SetFieldsOptions): void;
   }
 
   interface SetFieldMixin {
@@ -500,6 +696,8 @@ declare namespace squel {
   }
 
   interface InsertFieldsFromQueryBlock extends Block {
+    _query: null | BaseBuilder;
+
     fromQuery(columns: string[], selectQry: Select): void;
   }
 
@@ -528,6 +726,8 @@ declare namespace squel {
   }
 
   interface GroupByBlock extends Block {
+    _groups: string[];
+
     /**
      * Add a GROUP BY transformation for the given field.
      */
@@ -551,6 +751,11 @@ declare namespace squel {
   }
 
   interface AbstractVerbSingleValueBlock extends Block {
+    options: CompleteQueryBuilderOptions & VerbSingleValueBlockOptions;
+
+    _value: number;
+
+    _setValue(value: number): void;
   }
 
   interface OffsetBlock extends AbstractVerbSingleValueBlock {
@@ -598,7 +803,15 @@ declare namespace squel {
     verb?: string;
   }
 
+  interface Condition {
+    expr: string | Expression;
+    values: any[];
+  }
+
   interface AbstractConditionBlock extends Block {
+    options: CompleteQueryBuilderOptions & ConditionBlockOptions;
+
+    _conditions: Condition[];
   }
 
   interface WhereBlock extends AbstractConditionBlock {
@@ -651,7 +864,16 @@ declare namespace squel {
     order(field: string, direction?: boolean | null, ...values: any[]): this;
   }
 
+  interface Join {
+    type: string;
+    table: string | BaseBuilder;
+    alias: string | null;
+    condition: string | Expression | null;
+  }
+
   interface JoinBlock extends Block {
+    _joins: Join[];
+
     /**
      * Add a JOIN with the given table.
      *
@@ -726,7 +948,14 @@ declare namespace squel {
     cross_join(name: string | BaseBuilder, alias?: string, condition?: string | Expression): this;
   }
 
+  interface Union {
+    type: string;
+    table: QueryBuilder;
+  }
+
   interface UnionBlock extends Block {
+    _unions: Union[];
+
     /**
      * Add a UNION with the given table/query.
      *
@@ -762,10 +991,21 @@ declare namespace squel {
 
   interface Cls {
     /**
+     * Get whether obj is a query builder
+     *
+     * Note: this is a loose test checking for `_toParamString`
+     */
+    isSquelBuilder(obj: any): obj is BaseBuilder;
+
+    /**
      * Default configuration options for all query builders. These can be overridden in the query builder
      * constructors.
      */
     DefaultQueryBuilderOptions: CompleteQueryBuilderOptions;
+
+    /**
+     * Global custom value handlers for all instances of builder
+     */
     globalValueHandlers: ValueHandler<any>[];
 
     /**
@@ -839,6 +1079,8 @@ declare namespace squel {
    */
 
   interface QueryBuilder extends BaseBuilder {
+    blocks: Block[];
+
     /**
      * Update query builder configuration options. This will pass on the options to all the registered
      * [[Block]] objects.
@@ -846,6 +1088,8 @@ declare namespace squel {
      * @param options Options for configuring this query builder.
      */
     updateOptions(options: QueryBuilderOptions): void;
+
+    getBlock<B extends Block = Block>(blockType: {new(...args: any[]): B}): B;
   }
 
   /**
@@ -881,7 +1125,7 @@ declare namespace squel {
    * DELETE query builder.
    */
   interface Delete extends QueryBuilder,
-    TargetTableBlock,
+    TargetTableMixin,
     FromTableMixin,
     JoinMixin,
     WhereMixin,
@@ -1068,6 +1312,9 @@ declare namespace squel {
    * ---------------------------------------------------------------------------------------------------------
    */
   interface MssqlLimitOffsetTopBlock extends Block {
+    _limits: null | number;
+    _offsets: null | number;
+
     ParentBlock: {new(parent: Block): MssqlLimitOffsetTopBlock.ParentBlock};
     LimitBlock: {new(parent: Block): MssqlLimitOffsetTopBlock.LimitBlock};
     TopBlock: {new(parent: Block): MssqlLimitOffsetTopBlock.TopBlock};
@@ -1083,6 +1330,7 @@ declare namespace squel {
   namespace MssqlLimitOffsetTopBlock {
 
     interface ParentBlock extends Block {
+      _parent: Block;
     }
 
     interface LimitBlock extends ParentBlock {
@@ -1148,6 +1396,8 @@ declare namespace squel {
   }
 
   interface MssqlInsertFieldValueBlock extends InsertFieldValueBlock {
+    _outputs: string[];
+
     /**
      * add fields to the output clause
      */
@@ -1163,7 +1413,14 @@ declare namespace squel {
     output(name: string | string[]): this;
   }
 
+  interface Output {
+    name: string;
+    alias: string | null;
+  }
+
   interface MssqlUpdateDeleteOutputBlock extends Block {
+    _outputs: Output[];
+
     /**
      * Add the given field to the final result set.
      *
@@ -1299,6 +1556,10 @@ declare namespace squel {
 
   interface MysqlCls extends Cls {
     MysqlOnDuplicateKeyUpdateBlock: BuilderConstructor<MysqlOnDuplicateKeyUpdateBlock>;
+    Insert: {
+      new(options?: QueryBuilderOptions): MysqlInsert;
+      new(options: QueryBuilderOptions | null, blocks: Block[]): QueryBuilder;
+    };
   }
 
   /**
@@ -1317,7 +1578,7 @@ declare namespace squel {
     InsertFieldsFromQueryMixin {
   }
 
-  interface MysqlSquel extends Squel {
+  interface MysqlSquel extends Squel<Select, Update, Delete, MysqlInsert> {
     cls: MysqlCls;
     flavour: "mysql";
 
@@ -1345,7 +1606,10 @@ declare namespace squel {
    * ---------------------------------------------------------------------------------------------------------
    */
   interface PostgresOnConflictKeyUpdateBlock extends AbstractSetFieldBlock {
-    onConflict(field?: string, fieldsToSet?: {[field: string]: any}): void;
+    _onCondlict?: boolean;
+    _dupFields?: string[];
+
+    onConflict(conflictFields: string | string[], fields?: {[field: string]: any}): void;
   }
 
   interface PostgresOnConflictKeyUpdateMixin {
@@ -1359,6 +1623,8 @@ declare namespace squel {
   }
 
   interface ReturningBlock extends Block {
+    _fields: Field[];
+
     returning(name: string | BaseBuilder, alias?: string): void;
   }
 
@@ -1373,6 +1639,8 @@ declare namespace squel {
   }
 
   interface WithBlock extends Block {
+    _tables: QueryBuilder[];
+
     with(alias: string, table: QueryBuilder): void;
   }
 
@@ -1387,6 +1655,9 @@ declare namespace squel {
   }
 
   interface DistinctOnBlock extends Block {
+    _useDistinct?: boolean;
+    _distinctFields: string[];
+
     distinct(...fields: string[]): void;
   }
 
