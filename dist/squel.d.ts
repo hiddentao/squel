@@ -1606,7 +1606,7 @@ declare namespace squel {
    * ---------------------------------------------------------------------------------------------------------
    */
   interface PostgresOnConflictKeyUpdateBlock extends AbstractSetFieldBlock {
-    _onCondlict?: boolean;
+    _onConflict?: boolean;
     _dupFields?: string[];
 
     onConflict(conflictFields: string | string[], fields?: {[field: string]: any}): void;
