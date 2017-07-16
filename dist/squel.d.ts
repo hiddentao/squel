@@ -1253,13 +1253,19 @@ declare namespace squel {
 
     /**
      * Construct a [[FunctionBlock]] instance for inclusion within a query as a value.
+     *
+     * @param str The expression, with parameter placeholders.
+     * @param values The parameter values
      */
-    str(): FunctionBlock;
+    str(str: string, ...values: any[]): FunctionBlock;
 
     /**
      * Same as [[cls.str]] but with the `rawNesting` option turned on.
+     *
+     * @param str The expression, with parameter placeholders.
+     * @param values The parameter values
      */
-    rstr(): FunctionBlock;
+    rstr(str: string, ...values: any[]): FunctionBlock;
 
     /**
      * Register a custom value type handler. We may wish to use custom value types (e.g. `Date`) and have Squel
