@@ -92,16 +92,16 @@ test['Blocks'] =
       'non-parameterized': ->
         @inst = new @cls {}, 'TAG'
 
-        assert.same @inst._toParamString(), { 
+        assert.same @inst._toParamString(), {
           text: 'TAG'
-          values: [] 
+          values: []
         }
       'parameterized': ->
         @inst = new @cls {}, 'TAG'
 
-        assert.same @inst._toParamString(buildParameterized: true), { 
+        assert.same @inst._toParamString(buildParameterized: true), {
           text: 'TAG'
-          values: [] 
+          values: []
         }
 
 
@@ -120,16 +120,16 @@ test['Blocks'] =
 
     '_toParamString()':
       'when not set': ->
-        assert.same @inst._toParamString(), { 
+        assert.same @inst._toParamString(), {
           text: ''
-          values: [] 
-        } 
+          values: []
+        }
       'non-parameterized': ->
         @inst.function('bla')
         @inst.function('bla2')
 
         assert.same @inst._toParamString(), {
-          text: 'bla bla2', 
+          text: 'bla bla2',
           values: []
         }
       'parameterized': ->
@@ -137,7 +137,7 @@ test['Blocks'] =
         @inst.function('bla2 ?', 3)
 
         assert.same @inst._toParamString(buildParameterized: true), {
-          text: 'bla ? bla2 ?', 
+          text: 'bla ? bla2 ?',
           values: [2, 3]
         }
 
@@ -360,7 +360,7 @@ test['Blocks'] =
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
 
     'check prefix': ->
-      assert.same @inst.options.prefix, 'INTO'      
+      assert.same @inst.options.prefix, 'INTO'
 
     'single table': ->
       assert.ok @inst.options.singleTable
@@ -535,9 +535,9 @@ test['Blocks'] =
         assert.ok sanitizeFieldSpy.calledWithExactly 'field1'
         assert.ok sanitizeAliasSpy.calledWithExactly 'alias1'
 
-        assert.same @inst._fields, [ { 
-          name: '_f', 
-          alias: '_a' 
+        assert.same @inst._fields, [ {
+          name: '_f',
+          alias: '_a'
           options:
             dummy: true
         } ]
@@ -551,7 +551,7 @@ test['Blocks'] =
         @fromTableBlock._hasTable = -> true
 
         assert.same @inst._toParamString(queryBuilder: @queryBuilder), {
-          text: '*', 
+          text: '*',
           values: []
         }
 
@@ -851,7 +851,7 @@ test['Blocks'] =
       'default':
         beforeEach: ->
           @qry = squel.select().from('mega').where('a = ?', 5)
-          @inst.fromQuery ['test', 'one', 'two'], @qry          
+          @inst.fromQuery ['test', 'one', 'two'], @qry
         'non-parameterized': ->
           assert.same @inst._toParamString(), {
             text: "(test, one, two) (SELECT * FROM mega WHERE (a = 5))"
@@ -957,23 +957,13 @@ test['Blocks'] =
       'output nothing if not set': ->
         assert.same '', @inst.toString()
 
-      'output nothing if 0': ->
-        @inst._setValue(0)
-        
-        assert.same '', @inst.toString()
-
       'output verb': ->
         @inst._setValue(12)
 
         assert.same 'TEST 12', @inst.toString()
-        
+
     'toParam()':
       'output nothing if not set': ->
-        assert.same { text: '', values: [] }, @inst.toParam()
-
-      'output nothing if 0': ->
-        @inst._setValue(0)
-        
         assert.same { text: '', values: [] }, @inst.toParam()
 
       'output verb': ->
@@ -995,7 +985,7 @@ test['Blocks'] =
         callSpy = test.mocker.spy @cls.prototype, '_setValue'
 
         @inst.offset(1)
-        
+
         assert.ok callSpy.calledWithExactly 1
 
     'toString()':
@@ -1030,7 +1020,7 @@ test['Blocks'] =
         callSpy = test.mocker.spy @cls.prototype, '_setValue'
 
         @inst.limit(1)
-        
+
         assert.ok callSpy.calledWithExactly 1
 
     'toString()':
@@ -1050,8 +1040,8 @@ test['Blocks'] =
         @inst.limit(12)
 
         assert.same { text: 'LIMIT ?', values: [12] }, @inst.toParam()
-        
-        
+
+
   'AbstractConditionBlock':
     beforeEach: ->
       @cls = squel.cls.AbstractConditionBlock
@@ -1196,12 +1186,12 @@ test['Blocks'] =
           @inst.where('b = ? OR c = ?', 2, 3)
           @inst.where('d in ?', [4, 5, 6])
         'non-parameterized': ->
-          assert.same @inst._toParamString(), { 
+          assert.same @inst._toParamString(), {
             text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))'
             values: []
           }
         'parameterized': ->
-          assert.same @inst._toParamString(buildParameterized: true), { 
+          assert.same @inst._toParamString(buildParameterized: true), {
             text: 'WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))'
             values: [10, 2, 3, 4, 5, 6]
           }
@@ -1236,12 +1226,12 @@ test['Blocks'] =
           @inst.having('b = ? OR c = ?', 2, 3)
           @inst.having('d in ?', [4, 5, 6])
         'non-parameterized': ->
-          assert.same @inst._toParamString(), { 
+          assert.same @inst._toParamString(), {
             text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))'
             values: []
           }
         'parameterized': ->
-          assert.same @inst._toParamString(buildParameterized: true), { 
+          assert.same @inst._toParamString(buildParameterized: true), {
             text: 'HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))'
             values: [10, 2, 3, 4, 5, 6]
           }
@@ -1298,8 +1288,8 @@ test['Blocks'] =
 
     '_toParamString()':
       'empty': ->
-        assert.same @inst._toParamString(), { 
-          text: '', values: [] 
+        assert.same @inst._toParamString(), {
+          text: '', values: []
         }
 
       'default': ->
@@ -1308,14 +1298,14 @@ test['Blocks'] =
           @inst.order('field2', false)
           @inst.order('GET(?, ?)', true, 2.5 ,5)
         'non-parameterized': ->
-          assert.same @inst._toParamString(), { 
-            text: 'ORDER BY field1 ASC, field2 DESC, GET(2.5, 5) ASC', 
-            values: [] 
+          assert.same @inst._toParamString(), {
+            text: 'ORDER BY field1 ASC, field2 DESC, GET(2.5, 5) ASC',
+            values: []
           }
         'parameterized': ->
-          assert.same @inst._toParamString(buildParameterized: true), { 
-            text: 'ORDER BY field1 ASC, field2 DESC, GET(?, ?) ASC', 
-            values: [2.5, 5] 
+          assert.same @inst._toParamString(buildParameterized: true), {
+            text: 'ORDER BY field1 ASC, field2 DESC, GET(?, ?) ASC',
+            values: [2.5, 5]
           }
 
 
