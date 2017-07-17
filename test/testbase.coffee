@@ -40,7 +40,7 @@ Assert that two items are the same.
 @param {String} [message] failure message
 ###
 assert.same = (actual, expected, message) ->
-  assert.deepEqual(actual, expected, message)
+  assert.deepEqual actual, expected, message
 
 
 
@@ -62,4 +62,3 @@ module?.exports =
   assert: assert
   expect: expect
   should: should
-

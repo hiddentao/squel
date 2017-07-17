@@ -714,7 +714,6 @@ test['Builder base class'] =
 
         assert.same "'test'", @inst._formatValueForQueryString('test')
 
-        assert.same "'test'", @inst._formatValueForQueryString('test')
         assert.ok @inst._escapeValue.calledWithExactly('test')
         escapedValue = 'blah'
         assert.same "'blah'", @inst._formatValueForQueryString('test')
@@ -815,8 +814,8 @@ test['Builder base class'] =
         @s = squel.select().from('master').where('b = ?', 5)
       'non-parameterized': ->
         assert.same @inst._buildString('a = ?', [@s]), {
-          text: 'a = (SELECT * FROM master WHERE (b = ?))',
-          values: [5]
+          text: 'a = (SELECT * FROM master WHERE (b = 5))',
+          values: []
         }
       'parameterized': ->
         assert.same @inst._buildString('a = ?', [@s], { buildParameterized: true }), {
@@ -854,7 +853,7 @@ test['Builder base class'] =
       @inst._buildString('a = ?', [3], options)
 
       assert.same spy.getCall(0).args[1], options.formattingOptions
-    'custom parameter character': ->
+    'custom parameter character':
       beforeEach: ->
         @inst.options.parameterCharacter = '@@'
 
@@ -864,7 +863,7 @@ test['Builder base class'] =
           values: [],
         }
       'parameterized': ->
-        assert.same @inst._buildString('a = @@', [[1,2,3]]), {
+        assert.same @inst._buildString('a = @@', [[1,2,3]], { buildParameterized: true }), {
           text: 'a = (@@, @@, @@)',
           values: [1,2,3],
         }
@@ -898,7 +897,7 @@ test['Builder base class'] =
           values: ['elephant', 1, 2, 3, 4],
         }
 
-    'return nested': ->
+    'return nested':
       'non-parameterized': ->
         assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]], { nested: true }), {
           text: '(a = 1 b = 2)',
@@ -910,16 +909,17 @@ test['Builder base class'] =
           values: [1, 2],
         }
 
-    'custom separator': ->
-      'non-parameterized': ->
+    'custom separator':
+      beforeEach: ->
         @inst.options.separator = '|'
+      'non-parameterized': ->
         assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]]), {
-          text: '(a = 1|b = 2)',
+          text: 'a = 1|b = 2',
           values: [],
         }
       'parameterized': ->
         assert.same @inst._buildManyStrings(['a = ?', 'b = ?'], [[1], [2]], { buildParameterized: true}), {
-          text: '(a = ?|b = ?)',
+          text: 'a = ?|b = ?',
           values: [1, 2],
         }
 
@@ -1213,7 +1213,7 @@ test['QueryBuilder base class'] =
       @inst.blocks.push(block)
       assert.same block, @inst.getBlock(squel.cls.FunctionBlock)
     'invalid': ->
-      assert.throws (-> @inst.getBlock(squel.cls.FunctionBlock) )
+      assert.same undefined, @inst.getBlock(squel.cls.FunctionBlock)
 
 
 
