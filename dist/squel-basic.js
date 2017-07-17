@@ -294,6 +294,7 @@ function _buildSquel() {
       var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(_class2).call(this));
 
       var defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+      // for function values, etc we need to manually copy
       ['stringFormatter'].forEach(function (p) {
         defaults[p] = cls.DefaultQueryBuilderOptions[p];
       });
@@ -3002,7 +3003,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.11.0',
+    VERSION: '5.11.1',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);
