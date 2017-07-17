@@ -294,6 +294,9 @@ function _buildSquel() {
       var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(_class2).call(this));
 
       var defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+      ['stringFormatter'].forEach(function (p) {
+        defaults[p] = cls.DefaultQueryBuilderOptions[p];
+      });
 
       _this.options = _extend({}, defaults, options);
       return _this;
