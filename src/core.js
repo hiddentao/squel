@@ -214,6 +214,7 @@ function _buildSquel(flavour = null) {
       super();
 
       let defaults = JSON.parse(JSON.stringify(cls.DefaultQueryBuilderOptions));
+      // for function values, etc we need to manually copy
       ['stringFormatter'].forEach(p => {
         defaults[p] = cls.DefaultQueryBuilderOptions[p]
       })
