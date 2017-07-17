@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 17 Jul 2017 (5.10.1)
+* #322 - Tyepscript definitions
+
 ## 17 May 2017 (5.10.0)
 * #317 - Postgres `ON CONFLICT` improvements, thanks [alexturek](https://github.com/alexturek)
 
