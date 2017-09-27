@@ -28,7 +28,7 @@ gulp.task('build-basic', function() {
     .pipe( concat('squel-basic.js') )
     .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( babel({
-      presets: ['es2015']
+      presets: ['env']
     }) )
     .pipe( umd({
       exports: function (file) {
@@ -56,7 +56,7 @@ gulp.task('build-full', function() {
     .pipe( concat('squel.js') )
     .pipe( replace(/<<VERSION_STRING>>/i, SQUEL_VERSION) )
     .pipe( babel({
-      presets: ['es2015']
+      presets: ['env']
     }) )
     .pipe( umd({
       exports: function (file) {
@@ -115,6 +115,3 @@ gulp.task('test', ['pre-test'], function () {
 gulp.task('default', function(cb) {
   runSequence(['build'], 'test', cb);
 });
-
-
-

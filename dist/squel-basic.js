@@ -33,23 +33,23 @@ function _extend(dst) {
   }
 
   if (dst && sources) {
+    var _loop = function _loop(src) {
+      if ((typeof src === 'undefined' ? 'undefined' : _typeof(src)) === 'object') {
+        Object.getOwnPropertyNames(src).forEach(function (key) {
+          dst[key] = src[key];
+        });
+      }
+    };
+
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
 
     try {
-      var _loop = function _loop() {
+      for (var _iterator = sources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
         var src = _step.value;
 
-        if ((typeof src === 'undefined' ? 'undefined' : _typeof(src)) === 'object') {
-          Object.getOwnPropertyNames(src).forEach(function (key) {
-            dst[key] = src[key];
-          });
-        }
-      };
-
-      for (var _iterator = sources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        _loop();
+        _loop(src);
       }
     } catch (err) {
       _didIteratorError = true;
@@ -1038,10 +1038,10 @@ function _buildSquel() {
 
         try {
           for (var _iterator4 = this._cases[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-            var _step4$value = _step4.value,
-                expression = _step4$value.expression,
-                _values = _step4$value.values,
-                result = _step4$value.result;
+            var _ref2 = _step4.value;
+            var expression = _ref2.expression;
+            var _values = _ref2.values;
+            var result = _ref2.result;
 
             totalStr = _pad(totalStr, ' ');
 
@@ -1302,9 +1302,9 @@ function _buildSquel() {
 
           try {
             for (var _iterator5 = this._tables[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _step5$value = _step5.value,
-                  table = _step5$value.table,
-                  alias = _step5$value.alias;
+              var _ref3 = _step5.value;
+              var table = _ref3.table;
+              var alias = _ref3.alias;
 
               totalStr = _pad(totalStr, ', ');
 
@@ -2177,9 +2177,9 @@ function _buildSquel() {
 
         try {
           for (var _iterator8 = this._conditions[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-            var _step8$value = _step8.value,
-                expr = _step8$value.expr,
-                _values2 = _step8$value.values;
+            var _ref4 = _step8.value;
+            var expr = _ref4.expr;
+            var _values2 = _ref4.values;
 
             var ret = cls.isSquelBuilder(expr) ? expr._toParamString({
               buildParameterized: options.buildParameterized
@@ -2333,10 +2333,10 @@ function _buildSquel() {
 
         try {
           for (var _iterator9 = this._orders[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-            var _step9$value = _step9.value,
-                field = _step9$value.field,
-                dir = _step9$value.dir,
-                _values3 = _step9$value.values;
+            var _ref5 = _step9.value;
+            var field = _ref5.field;
+            var dir = _ref5.dir;
+            var _values3 = _ref5.values;
 
             totalStr = _pad(totalStr, ', ');
 
@@ -2484,11 +2484,11 @@ function _buildSquel() {
 
         try {
           for (var _iterator10 = this._joins[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var _step10$value = _step10.value,
-                type = _step10$value.type,
-                table = _step10$value.table,
-                alias = _step10$value.alias,
-                condition = _step10$value.condition;
+            var _ref6 = _step10.value;
+            var type = _ref6.type;
+            var table = _ref6.table;
+            var alias = _ref6.alias;
+            var condition = _ref6.condition;
 
             totalStr = _pad(totalStr, this.options.separator);
 
@@ -2616,9 +2616,9 @@ function _buildSquel() {
 
         try {
           for (var _iterator11 = this._unions[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-            var _step11$value = _step11.value,
-                type = _step11$value.type,
-                table = _step11$value.table;
+            var _ref7 = _step11.value;
+            var type = _ref7.type;
+            var table = _ref7.table;
 
             totalStr = _pad(totalStr, this.options.separator);
 
