@@ -1006,6 +1006,12 @@ test['Blocks'] =
 
         assert.same { text: 'OFFSET ?', values: [12] }, @inst.toParam()
 
+    'can be removed using null': ->
+        @inst.offset(1)
+        @inst.offset(null)
+
+        assert.same { text: '', values: [] }, @inst.toParam()
+
 
   'LimitBlock':
     beforeEach: ->
@@ -1040,6 +1046,12 @@ test['Blocks'] =
         @inst.limit(12)
 
         assert.same { text: 'LIMIT ?', values: [12] }, @inst.toParam()
+
+    'can be removed using null': ->
+        @inst.limit(1)
+        @inst.limit(null)
+
+        assert.same { text: '', values: [] }, @inst.toParam()
 
 
   'AbstractConditionBlock':

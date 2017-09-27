@@ -1550,7 +1550,7 @@ function _buildSquel(flavour = null) {
     }
 
     _setValue (value) {
-      this._value = this._sanitizeLimitOffset(value);
+      this._value = null !== value ? this._sanitizeLimitOffset(value) : value;
     }
 
     _toParamString (options = {}) {
@@ -1598,7 +1598,7 @@ function _buildSquel(flavour = null) {
     /**
     # Set the LIMIT transformation.
     #
-    # Call this will override the previously set limit for this query. Also note that Passing 0 for 'max' will remove
+    # Call this will override the previously set limit for this query. Also note that Passing `null` will remove
     # the limit.
     */
     limit (limit) {
