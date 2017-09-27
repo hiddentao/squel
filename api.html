@@ -306,8 +306,8 @@
             desc: 'Add a LIMIT clause.',
             params: {
               limit: {
-                desc: 'Number of records to limit to.',
-                type: 'Integer'
+                desc: 'Number of records to limit to. Use <code>null</code> to remove a previously set limit.',
+                type: 'Integer or null'
               }
             },
             returns: 'this'
@@ -316,8 +316,8 @@
             desc: 'Add an OFFSET clause.',
             params: {
               limit: {
-                desc: 'Index of record to start fetching from.',
-                type: 'Integer'
+                desc: 'Index of record to start fetching from. Use <code>null</code> to remove a previously set offset.',
+                type: 'Integer or null'
               }
             },
             returns: 'this'
@@ -486,8 +486,8 @@
             desc: 'Add a LIMIT clause.',
             params: {
               limit: {
-                desc: 'Number of records to limit update to.',
-                type: 'Integer'
+                desc: 'Number of records to limit the update to. Use <code>null</code> to remove a previously set limit.',
+                type: 'Integer or null'
               }
             },
             returns: 'this'
@@ -496,8 +496,8 @@
             desc: 'Add an OFFSET clause.',
             params: {
               limit: {
-                desc: 'Index of record to start updating from.',
-                type: 'Integer'
+                desc: 'Index of record to start updating from. Use <code>null</code> to remove a previously set offset.',
+                type: 'Integer or null'
               }
             },
             returns: 'this'
@@ -703,8 +703,8 @@
             desc: 'Add a LIMIT clause.',
             params: {
               limit: {
-                desc: 'Number of records to limit deletion to.',
-                type: 'Integer'
+                desc: 'Number of records to limit deletion to. Use <code>null</code> to remove a previously set limit.',
+                type: 'Integer or null'
               }
             },
             returns: 'this'
@@ -713,8 +713,8 @@
             desc: 'Add an OFFSET clause.',
             params: {
               limit: {
-                desc: 'Index of record to start deleting from.',
-                type: 'Integer'
+                desc: 'Index of record to start deleting from. Use <code>null</code> to remove a previously set offset.',
+                type: 'Integer or null'
               }
             },
             returns: 'this'
