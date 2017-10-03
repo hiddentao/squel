@@ -1,0 +1,9 @@
+{
+    "name": "squel",
+    "main": "dist/squel.js",
+    "ignore": [
+      "gulpfile.js",
+      "package.json",
+      "**/.*"
+    ]
+}
