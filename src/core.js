@@ -687,6 +687,15 @@ function _buildSquel(flavour = null) {
 
 
     /**
+     * Get the expression string, ignoring values, this will only return the query.
+     * @return {String}
+     */
+    toQuery (options = {}) {
+      return this.toParam(options).text;
+    }
+
+
+    /**
      * Get the parameterized expression string.
      * @return {Object}
      */
