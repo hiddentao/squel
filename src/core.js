@@ -678,11 +678,22 @@ function _buildSquel(flavour = null) {
 
 
     /**
-     * Get the expression string.
+     * Get the expression string, return just the plain query if the user doesn't want squel to replace/escape
+     * the values, the queries will just return 'select * from table where a = ?'
+     * instead of 'select * from table where a = undefined'
      * @return {String}
      */
     toString (options = {}) {
       return this._toParamString(options).text;
+    }
+
+
+    /**
+     * Get the expression string, ignoring values, this will only return the query.
+     * @return {String}
+     */
+    toQuery (options = {}) {
+      return this.toParam(options).text;
     }
 
 
