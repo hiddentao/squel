@@ -48,6 +48,45 @@ squel.flavours['mysql'] = function(_squel) {
   }
 
 
+  cls.MysqlOnDuplicateKeyUpdateFieldsBlock = class extends cls.AbstractSetFieldBlock {
+    onDupUpdateFields (fields, options) {
+      this._setFields(fields, options);
+    }
+
+    _toParamString (options = {}) {
+      let totalStr = "",
+        totalValues = [];
+
+      for (let i = 0; i < this._fields.length; ++i) {
+        totalStr = _pad(totalStr, ', ');
+
+        let field = this._fields[i];
+
+        let value = this._values[0][i];
+
+        let valueOptions = this._valueOptions[0][i];
+
+        let ret = this._buildString(
+          `${field} = ${this.options.parameterCharacter}`,
+          [value],
+          {
+            buildParameterized: options.buildParameterized,
+            formattingOptions: valueOptions,
+          }
+        );
+
+        totalStr += ret.text;
+        ret.values.forEach(value => totalValues.push(value));
+      }
+
+      return {
+        text: !totalStr.length ? "" : `ON DUPLICATE KEY UPDATE ${totalStr}`,
+        values: totalValues,
+      };
+    }
+  }
+
+
   // INSERT query builder.
   cls.Insert = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {

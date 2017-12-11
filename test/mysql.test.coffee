@@ -71,6 +71,46 @@ test['MySQL flavour'] =
         }
 
 
+  'MysqlOnDuplicateKeyUpdateFieldsBlock':
+    beforeEach: ->
+      @cls = squel.cls.MysqlOnDuplicateKeyUpdateFieldsBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractSetFieldBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
+
+    'onDupUpdateFields()':
+      'calls to _setFields()': ->
+        spy = test.mocker.stub @inst, '_setFields'
+
+        @inst.onDupUpdateFields({f: 'v'}, {dummy: true})
+
+        assert.ok spy.calledWithExactly({f: 'v'}, {dummy: true})
+
+
+    '_toParamString()':
+      beforeEach: ->
+        @inst.onDupUpdateFields(
+          {
+            field1: squel.rstr('field1 + 1'),
+            field2: 'value2',
+            field3: 'value3'
+          },
+          {dummy: true}
+        )
+
+      'non-parameterized': ->
+        assert.same @inst._toParamString(), {
+          text: 'ON DUPLICATE KEY UPDATE field1 = field1 + 1, field2 = \'value2\', field3 = \'value3\''
+          values: []
+        }
+      'parameterized': ->
+        assert.same @inst._toParamString(buildParameterized: true), {
+          text: 'ON DUPLICATE KEY UPDATE field1 = field1 + 1, field2 = ?, field3 = ?'
+          values: ['value2', 'value3']
+        }
+
+
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 
