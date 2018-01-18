@@ -1209,6 +1209,37 @@ function _buildSquel(flavour = null) {
       });
     }
 
+    /**
+    # Remove the given field from the final result set.
+    # 
+    */
+    removeField (field) {
+      field = this._sanitizeField(field);
+
+      // search by alias
+      let index = this._fields.findIndex((f) => {
+        return f.alias === field;
+      });
+
+      if (index === -1) {
+        // search by name
+        index = this._fields.findIndex((f) => {
+          return f.name === field;
+        });
+      }
+
+      if (index !== -1) {
+        this._fields.splice(index, 1);
+      }
+    }
+
+    /**
+    # Remove all fields from the final result set.
+    # 
+    */
+    removeAllFields () {
+      this._fields = [];
+    }
 
     _toParamString (options = {}) {
       let { queryBuilder, buildParameterized } = options;

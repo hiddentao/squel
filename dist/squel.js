@@ -1571,6 +1571,44 @@ function _buildSquel() {
           options: options
         });
       }
+
+      /**
+      # Remove the given field from the final result set.
+      # 
+      */
+
+    }, {
+      key: 'removeField',
+      value: function removeField(field) {
+        field = this._sanitizeField(field);
+
+        // search by alias
+        var index = this._fields.findIndex(function (f) {
+          return f.alias === field;
+        });
+
+        if (index === -1) {
+          // search by name
+          index = this._fields.findIndex(function (f) {
+            return f.name === field;
+          });
+        }
+
+        if (index !== -1) {
+          this._fields.splice(index, 1);
+        }
+      }
+
+      /**
+      # Remove all fields from the final result set.
+      # 
+      */
+
+    }, {
+      key: 'removeAllFields',
+      value: function removeAllFields() {
+        this._fields = [];
+      }
     }, {
       key: '_toParamString',
       value: function _toParamString() {

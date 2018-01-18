@@ -499,6 +499,35 @@ test['Blocks'] =
 
         assert.same expected, @inst._fields
 
+      'remove inputs': -> 
+        @inst.field('field1')
+        @inst.field('field2', 'alias2')
+        @inst.field('field1', 'alias1')
+
+        @inst.removeField('alias1')
+        @inst.removeField('field2')
+
+        expected = [
+          {
+          name: 'field1',
+          alias: null
+          options: {},
+          }
+        ]
+
+        assert.same expected, @inst._fields
+
+      'remove all inputs': -> 
+        @inst.field('field1')
+        @inst.field('field2', 'alias2')
+        @inst.field('field1', 'alias1')
+
+        @inst.removeAllFields()
+
+        expected = []
+
+        assert.same expected, @inst._fields
+
     'field() - discard duplicates':
       'saves inputs': ->
         @inst.field('field1')
