@@ -78,6 +78,16 @@ test['MSSQL flavour'] =
       toString: ->
         assert.same @sel.toString(), 'SELECT field FROM table OFFSET 5 ROWS UNION (SELECT * FROM table2 WHERE (a = 2))'
 
+    '>> from(table).field(field).outer_apply(table, alias)':
+      beforeEach: -> @sel.from('table').field('field').outer_apply('table2', 'table3')
+      toString: ->
+        assert.same @sel.toString(), 'SELECT field FROM table OUTER APPLY table2 table3'
+
+    '>> from(table).field(field).outer_apply(table, alias)':
+      beforeEach: -> @sel.from('table').field('field').cross_apply('table2', 'table3')
+      toString: ->
+        assert.same @sel.toString(), 'SELECT field FROM table CROSS APPLY table2 table3'
+
     '>> check variables arent being shared':
       toString: ->
         assert.same squel.select().from('table').field('field').top(10).toString(), 'SELECT TOP (10) field FROM table'

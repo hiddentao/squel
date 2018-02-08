@@ -1317,6 +1317,62 @@ declare namespace squel {
    * ---------------------------------------------------------------------------------------------------------
    * ---------------------------------------------------------------------------------------------------------
    */
+  interface Apply {
+    type: string;
+    table: string | BaseBuilder;
+    alias: string | null;
+  }
+
+  interface MssqlApplyBlock extends Block {
+    _applies: Apply[];
+
+    /**
+     * Add an APPLY with the given table.
+     *
+     * 'table' is the name of the table to apply with.
+     *
+     * 'alias' is an optional alias for the table name.
+     *
+     * 'type' must be either one of OUTER or CROSS. Default is 'CROSS'.
+     */
+    apply(
+      name: string | BaseBuilder,
+      alias?: string,
+      type?: "CROSS" | "OUTER",
+    ): this;
+
+    outer_apply(name: string | BaseBuilder, alias?: string): this;
+
+    cross_join(name: string | BaseBuilder, alias?: string): this;
+  }
+
+  interface MssqlApplyMixin {
+    /**
+     * Add a CROSS APPLY.
+     *
+     * @param name The table to apply with. Can be a a [[BaseBuilder]] instance.
+     * @param alias An alias by which to refer to this table. Default is `null`.
+     * @param type The type of apply. Either CROSS or OUTER. Default is CROSS`.
+     */
+    apply(name: string | BaseBuilder, alias?: string, type?: "CROSS" | "APPLY"): this;
+    
+    /**
+     * Add a CROSS APPLY.
+     *
+     * @param name The table to apply with. Can be a a [[BaseBuilder]] instance.
+     * @param alias An alias by which to refer to this table. Default is `null`.
+     */
+    cross_apply(name: string | BaseBuilder, alias?: string): this;
+
+    /**
+     * Add an OUTER APPLY.
+     *
+     * @param name The table to apply with. Can be a a [[BaseBuilder]] instance.
+     * @param alias An alias by which to refer to this table. Default is `null`.
+     */
+    outer_apply(name: string | BaseBuilder, alias?: string): this;
+  }
+
   interface MssqlLimitOffsetTopBlock extends Block {
     _limits: null | number;
     _offsets: null | number;
@@ -1466,6 +1522,7 @@ declare namespace squel {
   }
 
   interface MssqlCls extends Cls {
+    MssqlApplyBlock: BuilderConstructor<MssqlApplyBlock>;
     MssqlLimitOffsetTopBlock: BuilderConstructor<MssqlLimitOffsetTopBlock>;
     MssqlUpdateTopBlock: BuilderConstructor<MssqlUpdateTopBlock>;
     MssqlInsertFieldValueBlock: BuilderConstructor<MssqlInsertFieldValueBlock>;
@@ -1493,6 +1550,7 @@ declare namespace squel {
    * MS-SQL SELECT query builder.
    */
   interface MssqlSelect extends Select,
+    MssqlApplyMixin,
     MssqlLimitOffsetTopBlock.TopMixin,
     MssqlLimitOffsetTopBlock.LimitMixin,
     MssqlLimitOffsetTopBlock.OffsetMixin {
