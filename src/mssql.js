@@ -11,7 +11,82 @@ squel.flavours['mssql'] = function(_squel) {
   });
 
 
-  // LIMIT,  OFFSET x and TOP x
+  // CROSS/OUTER APPLY
+   //Â JOIN
+   cls.MssqlApplyBlock = class extends cls.Block {
+    constructor (options) {
+      super(options);
+
+      this._applies = [];
+    }
+
+    /**
+    # Add a JOIN with the given table.
+    #
+    # 'table' is the name of the table to join with.
+    #
+    # 'alias' is an optional alias for the table name.
+    #
+    # 'condition' is an optional condition (containing an SQL expression) for the JOIN.
+    #
+    # 'type' must be either one of INNER, OUTER, LEFT or RIGHT. Default is 'INNER'.
+    #
+    */
+    apply (table, alias = null, type = 'CROSS') {
+      table = this._sanitizeTable(table, true);
+      alias = alias ? this._sanitizeTableAlias(alias) : alias;
+      
+      this._applies.push({
+        type: type,
+        table: table,
+        alias: alias
+      });
+    }
+
+    outer_apply (table, alias) {
+      this.apply(table, alias, 'OUTER');
+    }
+
+    cross_apply (table, alias) {
+      this.apply(table, alias, 'CROSS')
+    }
+
+    _toParamString (options = {}) {
+      let totalStr = "",
+        totalValues = [];
+
+      for (let {type, table, alias} of this._applies) {
+        totalStr = _pad(totalStr, this.options.separator);
+
+        let tableStr;
+
+        if (cls.isSquelBuilder(table)) {
+          let ret = table._toParamString({
+            buildParameterized: options.buildParameterized,
+            nested: true
+          });
+
+          ret.values.forEach(value => totalValues.push(value));
+          tableStr = ret.text;
+        } else {
+          tableStr = this._formatTableName(table);
+        }
+
+        totalStr += `${type} APPLY ${tableStr}`;
+
+        if (alias) {
+          totalStr += ` ${this._formatTableAlias(alias)}`;
+        }
+      }
+
+      return {
+        text: totalStr,
+        values: totalValues,
+      };
+    }
+  }
+
+  //ï¿½LIMIT,  OFFSET x and TOP x
   cls.MssqlLimitOffsetTopBlock = class extends cls.Block {
     constructor (options) {
       super(options);
@@ -241,6 +316,7 @@ squel.flavours['mssql'] = function(_squel) {
         new cls.GetFieldBlock(options),
         new cls.FromTableBlock(options),
         new cls.JoinBlock(options),
+        new cls.MssqlApplyBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.OrderByBlock(options),
