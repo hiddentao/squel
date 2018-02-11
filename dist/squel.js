@@ -430,7 +430,7 @@ function _buildSquel() {
     }, {
       key: '_escapeValue',
       value: function _escapeValue(value) {
-        return !this.options.replaceSingleQuotes ? value : value.replace(/\'/g, this.options.singleQuoteReplacement);
+        return this.options.replaceSingleQuotes && value ? value.replace(/\'/g, this.options.singleQuoteReplacement) : value;
       }
     }, {
       key: '_formatTableName',
