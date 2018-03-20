@@ -346,9 +346,9 @@ function _buildSquel(flavour = null) {
 
     // Escape a string value, e.g. escape quotes and other characters within it.
     _escapeValue (value) {
-      return (!this.options.replaceSingleQuotes) ? value : (
+      return (this.options.replaceSingleQuotes && value) ? (
         value.replace(/\'/g, this.options.singleQuoteReplacement)
-      );
+      ) : value;
     }
 
 
