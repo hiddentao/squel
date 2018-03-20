@@ -11,8 +11,6 @@ A flexible and powerful SQL query string builder for Javascript.
 
 Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/).
 
-**Note: The latest Squel version only works on Node 0.12 or above. Please use Squel 4.4.1 for Node <0.12. The [old 4.x docs](http://hiddentao.github.io/squel/v4/index.html) are also still available.**
-
 ## Features
 
 * Works in node.js and in the browser.
@@ -26,7 +24,8 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 
 **WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
-_Note: See CHANGELOG.md for latest changes_
+_Note: Squel is suitable for production use, but you may wish to consider more
+actively developed alternatives such as [Knex](http://knexjs.org/)_
 
 ## Installation
 
@@ -365,6 +364,10 @@ Instructions for creating a new release of squel are in `RELEASE.md`.
 ## Contributing
 
 Contributions are welcome! Please see `CONTRIBUTING.md`.
+
+## Older verions
+
+**Note: The latest Squel version only works on Node 0.12 or above. Please use Squel 4.4.1 for Node <0.12. The [old 4.x docs](http://hiddentao.github.io/squel/v4/index.html) are also still available.**
 
 
 ## Ports to other languages
