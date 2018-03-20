@@ -509,6 +509,9 @@ test['Builder base class'] =
       @inst.options.singleQuoteReplacement = '--'
       assert.same "te--st", @inst._escapeValue("te'st")
 
+      @inst.options.singleQuoteReplacement = '--'
+      assert.same undefined, @inst._escapeValue()
+
   '_formatTableName':
     'default': ->
       assert.same 'abc', @inst._formatTableName('abc')
