@@ -100,6 +100,7 @@ gulp.task('test', ['pre-test'], function () {
       // './test/postgres.test.coffee',
     ], { read: false })
       .pipe(mocha({
+        timeout: 30000,
         ui: 'exports',
         reporter: 'spec',
       }))
