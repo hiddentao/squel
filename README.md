@@ -9,7 +9,7 @@
 
 A flexible and powerful SQL query string builder for Javascript.
 
-Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/).
+Full documentation (guide and API) at [https://hiddentao.com/squel/](https://hiddentao.com/squel/).
 
 ## Features
 
@@ -20,7 +20,7 @@ Full documentation (guide and API) at [http://squeljs.org/](http://squeljs.org/)
 * Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
 * Small: ~7 KB minified and gzipped
-* And much more, [see the guide..](http://squeljs.org/)
+* And much more, [see the guide..](https://hiddentao.com/squel/)
 
 **WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
@@ -244,7 +244,7 @@ squel.update().
 ```
 
 
-_Note that custom value handlers can be overridden on a per-instance basis (see the [docs](http://squeljs.org/))_
+_Note that custom value handlers can be overridden on a per-instance basis (see the [docs](https://hiddentao.com/squel/))_
 
 ### Custom queries
 
