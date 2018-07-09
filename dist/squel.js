@@ -33,7 +33,9 @@ function _extend(dst) {
   }
 
   if (dst && sources) {
-    var _loop = function _loop(src) {
+    var _loop = function _loop(srcIndex) {
+      var src = sources[srcIndex];
+
       if ((typeof src === 'undefined' ? 'undefined' : _typeof(src)) === 'object') {
         Object.getOwnPropertyNames(src).forEach(function (key) {
           dst[key] = src[key];
@@ -41,29 +43,8 @@ function _extend(dst) {
       }
     };
 
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = sources[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var src = _step.value;
-
-        _loop(src);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
+    for (var srcIndex in sources) {
+      _loop(srcIndex);
     }
   }
 
@@ -119,32 +100,13 @@ function _registerValueHandler(handlers, type, handler) {
     throw new Error("handler must be a function");
   }
 
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
+  for (var typeHandlerIndex in handlers) {
+    var typeHandler = handlers[typeHandlerIndex];
 
-  try {
-    for (var _iterator2 = handlers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var typeHandler = _step2.value;
+    if (typeHandler.type === type) {
+      typeHandler.handler = handler;
 
-      if (typeHandler.type === type) {
-        typeHandler.handler = handler;
-
-        return;
-      }
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
+      return;
     }
   }
 
@@ -896,48 +858,29 @@ function _buildSquel() {
         var totalStr = [],
             totalValues = [];
 
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
+        for (var nodeIndex in this._nodes) {
+          var _nodes$nodeIndex = this._nodes[nodeIndex],
+              type = _nodes$nodeIndex.type,
+              expr = _nodes$nodeIndex.expr,
+              para = _nodes$nodeIndex.para;
 
-        try {
-          for (var _iterator3 = this._nodes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            var node = _step3.value;
-            var type = node.type,
-                expr = node.expr,
-                para = node.para;
+          var _ref = cls.isSquelBuilder(expr) ? expr._toParamString({
+            buildParameterized: options.buildParameterized,
+            nested: true
+          }) : this._buildString(expr, para, {
+            buildParameterized: options.buildParameterized
+          }),
+              text = _ref.text,
+              values = _ref.values;
 
-            var _ref = cls.isSquelBuilder(expr) ? expr._toParamString({
-              buildParameterized: options.buildParameterized,
-              nested: true
-            }) : this._buildString(expr, para, {
-              buildParameterized: options.buildParameterized
-            }),
-                text = _ref.text,
-                values = _ref.values;
-
-            if (totalStr.length) {
-              totalStr.push(type);
-            }
-
-            totalStr.push(text);
-            values.forEach(function (value) {
-              return totalValues.push(value);
-            });
+          if (totalStr.length) {
+            totalStr.push(type);
           }
-        } catch (err) {
-          _didIteratorError3 = true;
-          _iteratorError3 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-              _iterator3.return();
-            }
-          } finally {
-            if (_didIteratorError3) {
-              throw _iteratorError3;
-            }
-          }
+
+          totalStr.push(text);
+          values.forEach(function (value) {
+            return totalValues.push(value);
+          });
         }
 
         totalStr = totalStr.join(' ');
@@ -1032,42 +975,24 @@ function _buildSquel() {
         var totalStr = '',
             totalValues = [];
 
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
+        for (var caseIndex in this._cases) {
+          var _cases$caseIndex = this._cases[caseIndex],
+              expression = _cases$caseIndex.expression,
+              _values = _cases$caseIndex.values,
+              result = _cases$caseIndex.result;
 
-        try {
-          for (var _iterator4 = this._cases[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-            var _ref2 = _step4.value;
-            var expression = _ref2.expression;
-            var _values = _ref2.values;
-            var result = _ref2.result;
 
-            totalStr = _pad(totalStr, ' ');
+          totalStr = _pad(totalStr, ' ');
 
-            var ret = this._buildString(expression, _values, {
-              buildParameterized: options.buildParameterized,
-              nested: true
-            });
+          var ret = this._buildString(expression, _values, {
+            buildParameterized: options.buildParameterized,
+            nested: true
+          });
 
-            totalStr += 'WHEN ' + ret.text + ' THEN ' + this._formatValueForQueryString(result);
-            ret.values.forEach(function (value) {
-              return totalValues.push(value);
-            });
-          }
-        } catch (err) {
-          _didIteratorError4 = true;
-          _iteratorError4 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-              _iterator4.return();
-            }
-          } finally {
-            if (_didIteratorError4) {
-              throw _iteratorError4;
-            }
-          }
+          totalStr += 'WHEN ' + ret.text + ' THEN ' + this._formatValueForQueryString(result);
+          ret.values.forEach(function (value) {
+            return totalValues.push(value);
+          });
         }
 
         if (totalStr.length) {
@@ -1118,7 +1043,10 @@ function _buildSquel() {
     function _class5(options) {
       _classCallCheck(this, _class5);
 
-      return _possibleConstructorReturn(this, (_class5.__proto__ || Object.getPrototypeOf(_class5)).call(this, options));
+      var _this6 = _possibleConstructorReturn(this, (_class5.__proto__ || Object.getPrototypeOf(_class5)).call(this, options));
+
+      _this6._recalculateExposedMethods();
+      return _this6;
     }
 
     /**
@@ -1128,13 +1056,28 @@ function _buildSquel() {
     #   methods prefixed with _
     #   constructor and toString()
     #
-    # @return Object key -> function pairs
+    # @return {Object} key -> function pairs
     */
 
 
     _createClass(_class5, [{
       key: 'exposedMethods',
       value: function exposedMethods() {
+        return this._exposedMethods;
+      }
+
+      /**
+       * Recalculate exposed methods.
+       */
+
+    }, {
+      key: '_recalculateExposedMethods',
+      value: function _recalculateExposedMethods() {
+        this._exposedMethods = this.constructor._exposedMethods;
+        if (this._exposedMethods) {
+          return;
+        }
+
         var ret = {};
 
         var obj = this;
@@ -1149,7 +1092,8 @@ function _buildSquel() {
           obj = Object.getPrototypeOf(obj);
         };
 
-        return ret;
+        // save on constructor so that we don't have to repeat again
+        this.constructor._exposedMethods = this._exposedMethods = ret;
       }
     }]);
 
@@ -1296,55 +1240,37 @@ function _buildSquel() {
 
         if (this._hasTable()) {
           // retrieve the parameterised queries
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
+          for (var tableIndex in this._tables) {
+            var _tables$tableIndex = this._tables[tableIndex],
+                table = _tables$tableIndex.table,
+                alias = _tables$tableIndex.alias;
 
-          try {
-            for (var _iterator5 = this._tables[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _ref3 = _step5.value;
-              var table = _ref3.table;
-              var alias = _ref3.alias;
 
-              totalStr = _pad(totalStr, ', ');
+            totalStr = _pad(totalStr, ', ');
 
-              var tableStr = void 0;
+            var tableStr = void 0;
 
-              if (cls.isSquelBuilder(table)) {
-                var _table$_toParamString = table._toParamString({
-                  buildParameterized: options.buildParameterized,
-                  nested: true
-                }),
-                    text = _table$_toParamString.text,
-                    values = _table$_toParamString.values;
+            if (cls.isSquelBuilder(table)) {
+              var _table$_toParamString = table._toParamString({
+                buildParameterized: options.buildParameterized,
+                nested: true
+              }),
+                  text = _table$_toParamString.text,
+                  values = _table$_toParamString.values;
 
-                tableStr = text;
-                values.forEach(function (value) {
-                  return totalValues.push(value);
-                });
-              } else {
-                tableStr = this._formatTableName(table);
-              }
-
-              if (alias) {
-                tableStr += ' ' + this._formatTableAlias(alias);
-              }
-
-              totalStr += tableStr;
+              tableStr = text;
+              values.forEach(function (value) {
+                return totalValues.push(value);
+              });
+            } else {
+              tableStr = this._formatTableName(table);
             }
-          } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
-              }
-            } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
-              }
+
+            if (alias) {
+              tableStr += ' ' + this._formatTableAlias(alias);
             }
+
+            totalStr += tableStr;
           }
 
           if (this.options.prefix) {
@@ -1504,35 +1430,14 @@ function _buildSquel() {
         var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if (_isArray(_fields)) {
-          var _iteratorNormalCompletion6 = true;
-          var _didIteratorError6 = false;
-          var _iteratorError6 = undefined;
-
-          try {
-            for (var _iterator6 = _fields[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var field = _step6.value;
-
-              this.field(field, null, options);
-            }
-          } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                _iterator6.return();
-              }
-            } finally {
-              if (_didIteratorError6) {
-                throw _iteratorError6;
-              }
-            }
+          for (var fieldIndex in _fields) {
+            this.field(_fields[fieldIndex], null, options);
           }
         } else {
-          for (var _field2 in _fields) {
-            var alias = _fields[_field2];
+          for (var field in _fields) {
+            var alias = _fields[field];
 
-            this.field(_field2, alias, options);
+            this.field(field, alias, options);
           }
         }
       }
@@ -1582,51 +1487,31 @@ function _buildSquel() {
         var totalStr = '',
             totalValues = [];
 
-        var _iteratorNormalCompletion7 = true;
-        var _didIteratorError7 = false;
-        var _iteratorError7 = undefined;
+        for (var fieldIndex in this._fields) {
+          totalStr = _pad(totalStr, ", ");
 
-        try {
-          for (var _iterator7 = this._fields[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-            var field = _step7.value;
-
-            totalStr = _pad(totalStr, ", ");
-
-            var name = field.name,
-                alias = field.alias,
-                _options = field.options;
+          var _fields$fieldIndex = this._fields[fieldIndex],
+              name = _fields$fieldIndex.name,
+              alias = _fields$fieldIndex.alias,
+              _options = _fields$fieldIndex.options;
 
 
-            if (typeof name === 'string') {
-              totalStr += this._formatFieldName(name, _options);
-            } else {
-              var ret = name._toParamString({
-                nested: true,
-                buildParameterized: buildParameterized
-              });
+          if (typeof name === 'string') {
+            totalStr += this._formatFieldName(name, _options);
+          } else {
+            var ret = name._toParamString({
+              nested: true,
+              buildParameterized: buildParameterized
+            });
 
-              totalStr += ret.text;
-              ret.values.forEach(function (value) {
-                return totalValues.push(value);
-              });
-            }
-
-            if (alias) {
-              totalStr += ' AS ' + this._formatFieldAlias(alias);
-            }
+            totalStr += ret.text;
+            ret.values.forEach(function (value) {
+              return totalValues.push(value);
+            });
           }
-        } catch (err) {
-          _didIteratorError7 = true;
-          _iteratorError7 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion7 && _iterator7.return) {
-              _iterator7.return();
-            }
-          } finally {
-            if (_didIteratorError7) {
-              throw _iteratorError7;
-            }
+
+          if (alias) {
+            totalStr += ' AS ' + this._formatFieldAlias(alias);
           }
         }
 
@@ -2171,43 +2056,25 @@ function _buildSquel() {
         var totalStr = [],
             totalValues = [];
 
-        var _iteratorNormalCompletion8 = true;
-        var _didIteratorError8 = false;
-        var _iteratorError8 = undefined;
+        for (var conditionIndex in this._conditions) {
+          var _conditions$condition = this._conditions[conditionIndex],
+              expr = _conditions$condition.expr,
+              _values2 = _conditions$condition.values;
 
-        try {
-          for (var _iterator8 = this._conditions[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-            var _ref4 = _step8.value;
-            var expr = _ref4.expr;
-            var _values2 = _ref4.values;
 
-            var ret = cls.isSquelBuilder(expr) ? expr._toParamString({
-              buildParameterized: options.buildParameterized
-            }) : this._buildString(expr, _values2, {
-              buildParameterized: options.buildParameterized
-            });
+          var ret = cls.isSquelBuilder(expr) ? expr._toParamString({
+            buildParameterized: options.buildParameterized
+          }) : this._buildString(expr, _values2, {
+            buildParameterized: options.buildParameterized
+          });
 
-            if (ret.text.length) {
-              totalStr.push(ret.text);
-            }
-
-            ret.values.forEach(function (value) {
-              return totalValues.push(value);
-            });
+          if (ret.text.length) {
+            totalStr.push(ret.text);
           }
-        } catch (err) {
-          _didIteratorError8 = true;
-          _iteratorError8 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion8 && _iterator8.return) {
-              _iterator8.return();
-            }
-          } finally {
-            if (_didIteratorError8) {
-              throw _iteratorError8;
-            }
-          }
+
+          ret.values.forEach(function (value) {
+            return totalValues.push(value);
+          });
         }
 
         if (totalStr.length) {
@@ -2327,43 +2194,25 @@ function _buildSquel() {
         var totalStr = '',
             totalValues = [];
 
-        var _iteratorNormalCompletion9 = true;
-        var _didIteratorError9 = false;
-        var _iteratorError9 = undefined;
+        for (var orderIndex in this._orders) {
+          var _orders$orderIndex = this._orders[orderIndex],
+              field = _orders$orderIndex.field,
+              dir = _orders$orderIndex.dir,
+              _values3 = _orders$orderIndex.values;
 
-        try {
-          for (var _iterator9 = this._orders[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-            var _ref5 = _step9.value;
-            var field = _ref5.field;
-            var dir = _ref5.dir;
-            var _values3 = _ref5.values;
 
-            totalStr = _pad(totalStr, ', ');
+          totalStr = _pad(totalStr, ', ');
 
-            var ret = this._buildString(field, _values3, {
-              buildParameterized: options.buildParameterized
-            });
+          var ret = this._buildString(field, _values3, {
+            buildParameterized: options.buildParameterized
+          });
 
-            totalStr += ret.text, _isArray(ret.values) && ret.values.forEach(function (value) {
-              return totalValues.push(value);
-            });
+          totalStr += ret.text, _isArray(ret.values) && ret.values.forEach(function (value) {
+            return totalValues.push(value);
+          });
 
-            if (dir !== null) {
-              totalStr += ' ' + dir;
-            }
-          }
-        } catch (err) {
-          _didIteratorError9 = true;
-          _iteratorError9 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion9 && _iterator9.return) {
-              _iterator9.return();
-            }
-          } finally {
-            if (_didIteratorError9) {
-              throw _iteratorError9;
-            }
+          if (dir !== null) {
+            totalStr += ' ' + dir;
           }
         }
 
@@ -2478,75 +2327,57 @@ function _buildSquel() {
         var totalStr = "",
             totalValues = [];
 
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+        for (var joinIndex in this._joins) {
+          var _joins$joinIndex = this._joins[joinIndex],
+              type = _joins$joinIndex.type,
+              table = _joins$joinIndex.table,
+              alias = _joins$joinIndex.alias,
+              condition = _joins$joinIndex.condition;
 
-        try {
-          for (var _iterator10 = this._joins[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var _ref6 = _step10.value;
-            var type = _ref6.type;
-            var table = _ref6.table;
-            var alias = _ref6.alias;
-            var condition = _ref6.condition;
 
-            totalStr = _pad(totalStr, this.options.separator);
+          totalStr = _pad(totalStr, this.options.separator);
 
-            var tableStr = void 0;
+          var tableStr = void 0;
 
-            if (cls.isSquelBuilder(table)) {
-              var ret = table._toParamString({
-                buildParameterized: options.buildParameterized,
-                nested: true
-              });
+          if (cls.isSquelBuilder(table)) {
+            var ret = table._toParamString({
+              buildParameterized: options.buildParameterized,
+              nested: true
+            });
 
-              ret.values.forEach(function (value) {
-                return totalValues.push(value);
-              });
-              tableStr = ret.text;
-            } else {
-              tableStr = this._formatTableName(table);
-            }
-
-            totalStr += type + ' JOIN ' + tableStr;
-
-            if (alias) {
-              totalStr += ' ' + this._formatTableAlias(alias);
-            }
-
-            if (condition) {
-              totalStr += ' ON ';
-
-              var _ret2 = void 0;
-
-              if (cls.isSquelBuilder(condition)) {
-                _ret2 = condition._toParamString({
-                  buildParameterized: options.buildParameterized
-                });
-              } else {
-                _ret2 = this._buildString(condition, [], {
-                  buildParameterized: options.buildParameterized
-                });
-              }
-
-              totalStr += this._applyNestingFormatting(_ret2.text);
-              _ret2.values.forEach(function (value) {
-                return totalValues.push(value);
-              });
-            }
+            ret.values.forEach(function (value) {
+              return totalValues.push(value);
+            });
+            tableStr = ret.text;
+          } else {
+            tableStr = this._formatTableName(table);
           }
-        } catch (err) {
-          _didIteratorError10 = true;
-          _iteratorError10 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion10 && _iterator10.return) {
-              _iterator10.return();
+
+          totalStr += type + ' JOIN ' + tableStr;
+
+          if (alias) {
+            totalStr += ' ' + this._formatTableAlias(alias);
+          }
+
+          if (condition) {
+            totalStr += ' ON ';
+
+            var _ret2 = void 0;
+
+            if (cls.isSquelBuilder(condition)) {
+              _ret2 = condition._toParamString({
+                buildParameterized: options.buildParameterized
+              });
+            } else {
+              _ret2 = this._buildString(condition, [], {
+                buildParameterized: options.buildParameterized
+              });
             }
-          } finally {
-            if (_didIteratorError10) {
-              throw _iteratorError10;
-            }
+
+            totalStr += this._applyNestingFormatting(_ret2.text);
+            _ret2.values.forEach(function (value) {
+              return totalValues.push(value);
+            });
           }
         }
 
@@ -2610,49 +2441,31 @@ function _buildSquel() {
         var totalStr = '',
             totalValues = [];
 
-        var _iteratorNormalCompletion11 = true;
-        var _didIteratorError11 = false;
-        var _iteratorError11 = undefined;
+        for (var unionIndex in this._unions) {
+          var _unions$unionIndex = this._unions[unionIndex],
+              type = _unions$unionIndex.type,
+              table = _unions$unionIndex.table;
 
-        try {
-          for (var _iterator11 = this._unions[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-            var _ref7 = _step11.value;
-            var type = _ref7.type;
-            var table = _ref7.table;
 
-            totalStr = _pad(totalStr, this.options.separator);
+          totalStr = _pad(totalStr, this.options.separator);
 
-            var tableStr = void 0;
+          var tableStr = void 0;
 
-            if (table instanceof cls.BaseBuilder) {
-              var ret = table._toParamString({
-                buildParameterized: options.buildParameterized,
-                nested: true
-              });
+          if (table instanceof cls.BaseBuilder) {
+            var ret = table._toParamString({
+              buildParameterized: options.buildParameterized,
+              nested: true
+            });
 
-              tableStr = ret.text;
-              ret.values.forEach(function (value) {
-                return totalValues.push(value);
-              });
-            } else {
-              totalStr = this._formatTableName(table);
-            }
-
-            totalStr += type + ' ' + tableStr;
+            tableStr = ret.text;
+            ret.values.forEach(function (value) {
+              return totalValues.push(value);
+            });
+          } else {
+            totalStr = this._formatTableName(table);
           }
-        } catch (err) {
-          _didIteratorError11 = true;
-          _iteratorError11 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion11 && _iterator11.return) {
-              _iterator11.return();
-            }
-          } finally {
-            if (_didIteratorError11) {
-              throw _iteratorError11;
-            }
-          }
+
+          totalStr += type + ' ' + tableStr;
         }
 
         return {
@@ -2696,51 +2509,31 @@ function _buildSquel() {
       _this32.blocks = blocks || [];
 
       // Copy exposed methods into myself
-      var _iteratorNormalCompletion12 = true;
-      var _didIteratorError12 = false;
-      var _iteratorError12 = undefined;
+      for (var blockIndex in _this32.blocks) {
+        var block = _this32.blocks[blockIndex];
 
-      try {
-        for (var _iterator12 = _this32.blocks[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-          var block = _step12.value;
+        var exposedMethods = block.exposedMethods();
 
-          var exposedMethods = block.exposedMethods();
+        for (var methodName in exposedMethods) {
+          var methodBody = exposedMethods[methodName];
 
-          for (var methodName in exposedMethods) {
-            var methodBody = exposedMethods[methodName];
-
-            if (undefined !== _this32[methodName]) {
-              throw new Error('Builder already has a builder method called: ' + methodName);
-            }
-
-            (function (block, name, body) {
-              _this32[name] = function () {
-                for (var _len10 = arguments.length, args = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-                  args[_key10] = arguments[_key10];
-                }
-
-                body.call.apply(body, [block].concat(args));
-
-                return _this32;
-              };
-            })(block, methodName, methodBody);
+          if (undefined !== _this32[methodName]) {
+            throw new Error('Builder already has a builder method called: ' + methodName);
           }
-        }
-      } catch (err) {
-        _didIteratorError12 = true;
-        _iteratorError12 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion12 && _iterator12.return) {
-            _iterator12.return();
-          }
-        } finally {
-          if (_didIteratorError12) {
-            throw _iteratorError12;
-          }
+
+          (function (block, name, body) {
+            _this32[name] = function () {
+              for (var _len10 = arguments.length, args = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+                args[_key10] = arguments[_key10];
+              }
+
+              body.call.apply(body, [block].concat(args));
+
+              return _this32;
+            };
+          })(block, methodName, methodBody);
         }
       }
-
       return _this32;
     }
 
@@ -2754,29 +2547,8 @@ function _buildSquel() {
     _createClass(_class29, [{
       key: 'registerValueHandler',
       value: function registerValueHandler(type, handler) {
-        var _iteratorNormalCompletion13 = true;
-        var _didIteratorError13 = false;
-        var _iteratorError13 = undefined;
-
-        try {
-          for (var _iterator13 = this.blocks[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-            var block = _step13.value;
-
-            block.registerValueHandler(type, handler);
-          }
-        } catch (err) {
-          _didIteratorError13 = true;
-          _iteratorError13 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion13 && _iterator13.return) {
-              _iterator13.return();
-            }
-          } finally {
-            if (_didIteratorError13) {
-              throw _iteratorError13;
-            }
-          }
+        for (var blockIndex in this.blocks) {
+          this.blocks[blockIndex].registerValueHandler(type, handler);
         }
 
         _get(_class29.prototype.__proto__ || Object.getPrototypeOf(_class29.prototype), 'registerValueHandler', this).call(this, type, handler);
@@ -2796,29 +2568,10 @@ function _buildSquel() {
       value: function updateOptions(options) {
         this.options = _extend({}, this.options, options);
 
-        var _iteratorNormalCompletion14 = true;
-        var _didIteratorError14 = false;
-        var _iteratorError14 = undefined;
+        for (var blockIndex in this.blocks) {
+          var block = this.blocks[blockIndex];
 
-        try {
-          for (var _iterator14 = this.blocks[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-            var block = _step14.value;
-
-            block.options = _extend({}, block.options, options);
-          }
-        } catch (err) {
-          _didIteratorError14 = true;
-          _iteratorError14 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion14 && _iterator14.return) {
-              _iterator14.return();
-            }
-          } finally {
-            if (_didIteratorError14) {
-              throw _iteratorError14;
-            }
-          }
+          block.options = _extend({}, block.options, options);
         }
       }
 
@@ -3368,13 +3121,13 @@ squel.flavours['mssql'] = function (_squel) {
         var totalStr = "";
 
         if (this._outputs.length) {
-          var _iteratorNormalCompletion15 = true;
-          var _didIteratorError15 = false;
-          var _iteratorError15 = undefined;
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
 
           try {
-            for (var _iterator15 = this._outputs[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-              var output = _step15.value;
+            for (var _iterator = this._outputs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var output = _step.value;
 
               totalStr = _pad(totalStr, ", ");
 
@@ -3385,16 +3138,16 @@ squel.flavours['mssql'] = function (_squel) {
               }
             }
           } catch (err) {
-            _didIteratorError15 = true;
-            _iteratorError15 = err;
+            _didIteratorError = true;
+            _iteratorError = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion15 && _iterator15.return) {
-                _iterator15.return();
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
               }
             } finally {
-              if (_didIteratorError15) {
-                throw _iteratorError15;
+              if (_didIteratorError) {
+                throw _iteratorError;
               }
             }
           }
@@ -3726,13 +3479,13 @@ squel.flavours['postgres'] = function (_squel) {
         var totalStr = '',
             totalValues = [];
 
-        var _iteratorNormalCompletion16 = true;
-        var _didIteratorError16 = false;
-        var _iteratorError16 = undefined;
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
 
         try {
-          for (var _iterator16 = this._fields[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-            var field = _step16.value;
+          for (var _iterator2 = this._fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var field = _step2.value;
 
             totalStr = _pad(totalStr, ", ");
 
@@ -3760,16 +3513,16 @@ squel.flavours['postgres'] = function (_squel) {
             }
           }
         } catch (err) {
-          _didIteratorError16 = true;
-          _iteratorError16 = err;
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion16 && _iterator16.return) {
-              _iterator16.return();
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
             }
           } finally {
-            if (_didIteratorError16) {
-              throw _iteratorError16;
+            if (_didIteratorError2) {
+              throw _iteratorError2;
             }
           }
         }
@@ -3810,15 +3563,15 @@ squel.flavours['postgres'] = function (_squel) {
         var parts = [];
         var values = [];
 
-        var _iteratorNormalCompletion17 = true;
-        var _didIteratorError17 = false;
-        var _iteratorError17 = undefined;
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator17 = this._tables[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-            var _ref8 = _step17.value;
-            var alias = _ref8.alias;
-            var table = _ref8.table;
+          for (var _iterator3 = this._tables[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            var _ref2 = _step3.value;
+            var alias = _ref2.alias;
+            var table = _ref2.table;
 
             var ret = table._toParamString({
               buildParameterized: options.buildParameterized,
@@ -3831,16 +3584,16 @@ squel.flavours['postgres'] = function (_squel) {
             });
           }
         } catch (err) {
-          _didIteratorError17 = true;
-          _iteratorError17 = err;
+          _didIteratorError3 = true;
+          _iteratorError3 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion17 && _iterator17.return) {
-              _iterator17.return();
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+              _iterator3.return();
             }
           } finally {
-            if (_didIteratorError17) {
-              throw _iteratorError17;
+            if (_didIteratorError3) {
+              throw _iteratorError3;
             }
           }
         }
