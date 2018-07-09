@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 9 Jul 2018 (5.12.2)
+* Fix Node.js CVE (update growl dev dependency)
+
 ## 17 Jul 2017 (5.11.1)
 * #322 - Tyepscript definitions
 * #321 - Allow `LIMIT` and `OFFSET` with `0`
