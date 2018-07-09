@@ -13,6 +13,7 @@
     "benchmark": "^2.1.4",
     "chai": "1.5.x",
     "coffee-script": "^1.10.0",
+    "growl": "^1.10.5",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.0",
