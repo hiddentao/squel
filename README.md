@@ -372,7 +372,6 @@ Contributions are welcome! Please see `CONTRIBUTING.md`.
 
 ## Ports to other languages
 
-* .NET - https://github.com/seymourpoler/PetProjects/tree/master/SQUEL
 * .NET - https://github.com/seymourpoler/Squel.net
 * Crystal - https://github.com/seymourpoler/Squel.crystal
 
