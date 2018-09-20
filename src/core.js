@@ -1,3 +1,4 @@
+const escape = require('sql-escape-string')
 
 // append to string if non-empty
 function _pad (str, pad) {
@@ -345,10 +346,15 @@ function _buildSquel(flavour = null) {
 
 
     // Escape a string value, e.g. escape quotes and other characters within it.
+    // Will escape string value by default unless replaceSingleQuotes is provided
     _escapeValue (value) {
-      return (this.options.replaceSingleQuotes && value) ? (
-        value.replace(/\'/g, this.options.singleQuoteReplacement)
-      ) : value;
+      if (!value) {
+        return `''`;
+      }
+
+      return this.options.replaceSingleQuotes ? (
+        "'" + value.replace(/\'/g, this.options.singleQuoteReplacement) + "'"
+      ) : escape(value);
     }
 
 
@@ -499,9 +505,7 @@ function _buildSquel(flavour = null) {
           if (formattingOptions.dontQuote) {
             value = `${value}`;
           } else {
-            let escapedValue = this._escapeValue(value);
-
-            value = `'${escapedValue}'`;
+            value = this._escapeValue(value);
           }
         }
       }

@@ -1,8 +1,7 @@
 // This file contains additional Squel commands for use with MySQL
-
-const escape = require('sql-escape-string')
-
 squel.flavours['mysql'] = function(_squel) {
+  const escape = require('sql-escape-string')
+
   let cls = _squel.cls;
 
   // add default stringFormatter for MySQL

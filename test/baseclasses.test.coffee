@@ -501,16 +501,16 @@ test['Builder base class'] =
 
   '_escapeValue': ->
       @inst.options.replaceSingleQuotes = false
-      assert.same "te'st", @inst._escapeValue("te'st")
+      assert.same "'te''st'", @inst._escapeValue("te'st")
 
       @inst.options.replaceSingleQuotes = true
-      assert.same "te''st", @inst._escapeValue("te'st")
+      assert.same "'te''st'", @inst._escapeValue("te'st")
 
       @inst.options.singleQuoteReplacement = '--'
-      assert.same "te--st", @inst._escapeValue("te'st")
+      assert.same "'te--st'", @inst._escapeValue("te'st")
 
       @inst.options.singleQuoteReplacement = '--'
-      assert.same undefined, @inst._escapeValue()
+      assert.same "''", @inst._escapeValue()
 
   '_formatTableName':
     'default': ->
@@ -712,14 +712,10 @@ test['Builder base class'] =
         assert.same "N(test)", @inst._formatValueForQueryString('test')
 
       'default': ->
-        escapedValue = undefined
-        test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
 
+        assert.same "''", @inst._formatValueForQueryString('')
         assert.same "'test'", @inst._formatValueForQueryString('test')
-
-        assert.ok @inst._escapeValue.calledWithExactly('test')
-        escapedValue = 'blah'
-        assert.same "'blah'", @inst._formatValueForQueryString('test')
+        assert.same "'test'''", @inst._formatValueForQueryString('test\'')
 
       'dont quote': ->
         escapedValue = undefined

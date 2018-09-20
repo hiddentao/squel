@@ -21,6 +21,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var escape = require('sql-escape-string');
+
 // append to string if non-empty
 function _pad(str, pad) {
   return str.length ? str + pad : str;
@@ -426,11 +428,16 @@ function _buildSquel() {
       }
 
       // Escape a string value, e.g. escape quotes and other characters within it.
+      // Will escape string value by default unless replaceSingleQuotes is provided
 
     }, {
       key: '_escapeValue',
       value: function _escapeValue(value) {
-        return this.options.replaceSingleQuotes && value ? value.replace(/\'/g, this.options.singleQuoteReplacement) : value;
+        if (!value) {
+          return '\'\'';
+        }
+
+        return this.options.replaceSingleQuotes ? "'" + value.replace(/\'/g, this.options.singleQuoteReplacement) + "'" : escape(value);
       }
     }, {
       key: '_formatTableName',
@@ -590,9 +597,7 @@ function _buildSquel() {
             if (formattingOptions.dontQuote) {
               value = '' + value;
             } else {
-              var escapedValue = this._escapeValue(value);
-
-              value = '\'' + escapedValue + '\'';
+              value = this._escapeValue(value);
             }
           }
         }
