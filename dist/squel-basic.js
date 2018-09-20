@@ -584,7 +584,7 @@ function _buildSquel() {
           } else if (typeofValue !== "number") {
             // if it's a string and we have custom string formatting turned on then use that
             if ('string' === typeofValue && this.options.stringFormatter) {
-              return this.options.stringFormatter(value);
+              return this.options.stringFormatter(value, formattingOptions);
             }
 
             if (formattingOptions.dontQuote) {
