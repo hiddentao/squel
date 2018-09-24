@@ -308,8 +308,8 @@ test['Postgres flavour'] =
       autoQuoteFieldNames: false
       autoQuoteAliasNames: false
       useAsForTableAliasNames: true
-      nameQuoteCharacter: '`'
-      tableAliasQuoteCharacter: '`'
+      nameQuoteCharacter: '"'
+      tableAliasQuoteCharacter: '"'
       fieldAliasQuoteCharacter: '"'
       valueHandlers: []
       parameterCharacter: '?'
