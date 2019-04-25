@@ -3104,10 +3104,10 @@ squel.flavours['mssql'] = function (_squel) {
       _this38.ParentBlock = function (_cls$Block15) {
         _inherits(_class35, _cls$Block15);
 
-        function _class35(parent) {
+        function _class35(options, parent) {
           _classCallCheck(this, _class35);
 
-          var _this39 = _possibleConstructorReturn(this, (_class35.__proto__ || Object.getPrototypeOf(_class35)).call(this, parent.options));
+          var _this39 = _possibleConstructorReturn(this, (_class35.__proto__ || Object.getPrototypeOf(_class35)).call(this, options));
 
           _this39._parent = parent;
           return _this39;
@@ -3119,10 +3119,10 @@ squel.flavours['mssql'] = function (_squel) {
       _this38.LimitBlock = function (_this38$ParentBlock) {
         _inherits(_class36, _this38$ParentBlock);
 
-        function _class36(parent) {
+        function _class36(options, parent) {
           _classCallCheck(this, _class36);
 
-          var _this40 = _possibleConstructorReturn(this, (_class36.__proto__ || Object.getPrototypeOf(_class36)).call(this, parent));
+          var _this40 = _possibleConstructorReturn(this, (_class36.__proto__ || Object.getPrototypeOf(_class36)).call(this, options, parent));
 
           _this40.limit = _limit;
           return _this40;
@@ -3150,10 +3150,10 @@ squel.flavours['mssql'] = function (_squel) {
       _this38.TopBlock = function (_this38$ParentBlock2) {
         _inherits(_class37, _this38$ParentBlock2);
 
-        function _class37(parent) {
+        function _class37(options, parent) {
           _classCallCheck(this, _class37);
 
-          var _this41 = _possibleConstructorReturn(this, (_class37.__proto__ || Object.getPrototypeOf(_class37)).call(this, parent));
+          var _this41 = _possibleConstructorReturn(this, (_class37.__proto__ || Object.getPrototypeOf(_class37)).call(this, options, parent));
 
           _this41.top = _limit;
           return _this41;
@@ -3216,17 +3216,17 @@ squel.flavours['mssql'] = function (_squel) {
     _createClass(_class34, [{
       key: 'LIMIT',
       value: function LIMIT() {
-        return new this.LimitBlock(this);
+        return new this.LimitBlock(this.options, this);
       }
     }, {
       key: 'TOP',
       value: function TOP() {
-        return new this.TopBlock(this);
+        return new this.TopBlock(this.options, this);
       }
     }, {
       key: 'OFFSET',
       value: function OFFSET() {
-        return new this.OffsetBlock(this);
+        return new this.OffsetBlock(this.options, this);
       }
     }]);
 
