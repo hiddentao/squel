@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 18 Jun 2019 (5.13.0)
+* Added note to top of README stating that Squel is no longer actively maintained.
+
 ## 9 Jul 2018 (5.12.2)
 * Fix Node.js CVE (update growl dev dependency)
 
