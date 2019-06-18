@@ -1,3 +1,5 @@
+# NOTE: Squel is no longer actively maintained. I only have time for occasional bugfixes and small-scale work. If you are interested in helping with squel maintenance the help would be welcome. Alternatively, please use another library.
+
 # squel - SQL query string builder
 
 [![Build Status](https://secure.travis-ci.org/hiddentao/squel.svg?branch=master)](http://travis-ci.org/hiddentao/squel)
