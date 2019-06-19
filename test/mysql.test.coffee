@@ -35,6 +35,21 @@ test['MySQL flavour'] =
     squel = require "../dist/squel"
     squel = squel.useFlavour 'mysql'
 
+  'MysqlIgnoreBlock':
+    beforeEach: ->
+      @cls = squel.cls.MysqlIgnoreBlock
+      @inst = new @cls()
+
+    'instanceof of AbstractSetFieldBlock': ->
+      assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
+
+    '_toParamString()': ->
+      @inst.ignore()
+
+      assert.same @inst._toParamString(), {
+        text: 'IGNORE'
+        values: []
+      }
 
   'MysqlOnDuplicateKeyUpdateBlock':
     beforeEach: ->
@@ -73,6 +88,21 @@ test['MySQL flavour'] =
 
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
+
+    '>> ignore().into(table).set(field, 1)':
+      beforeEach: ->
+        @inst
+          .ignore()
+          .into('table')
+          .set('field', 'some unsafe \'string')
+      toString: ->
+        assert.same @inst.toString(), "INSERT IGNORE INTO table (field) VALUES ('some unsafe \\'string')"
+
+      toParam: ->
+        assert.same @inst.toParam(), {
+          text: 'INSERT IGNORE INTO table (field) VALUES (?)'
+          values: ['some unsafe \'string']
+        }
 
     '>> into(table).set(field, 1).set(field1, 2).onDupUpdate(field, 5).onDupUpdate(field1, "str")':
       beforeEach: ->

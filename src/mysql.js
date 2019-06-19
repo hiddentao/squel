@@ -1,7 +1,34 @@
 // This file contains additional Squel commands for use with MySQL
-
 squel.flavours['mysql'] = function(_squel) {
+  const escape = require('sql-escape-string')
+
   let cls = _squel.cls;
+
+  // add default stringFormatter for MySQL
+  cls.DefaultQueryBuilderOptions.stringFormatter = function (value, formattingOptions) {
+    if (!value || formattingOptions.dontQuote) {
+      return value;
+    } else {
+      return escape(value, {
+        // MySQL use backslash to escape value by default
+        backslashSupported: true
+      });
+    }
+  }
+
+  // INSERT IGNORE ...
+  cls.MysqlIgnoreBlock = class extends cls.AbstractSetFieldBlock {
+    ignore () {
+      this._str = 'IGNORE';
+    }
+
+    _toParamString () {
+      return {
+        text: this._str || '',
+        values: [],
+      };
+    }
+  }
 
   // ON DUPLICATE KEY UPDATE ...
   cls.MysqlOnDuplicateKeyUpdateBlock = class extends cls.AbstractSetFieldBlock {
@@ -53,6 +80,7 @@ squel.flavours['mysql'] = function(_squel) {
     constructor (options, blocks = null) {
       blocks = blocks || [
         new cls.StringBlock(options, 'INSERT'),
+        new cls.MysqlIgnoreBlock(options),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
         new cls.InsertFieldsFromQueryBlock(options),

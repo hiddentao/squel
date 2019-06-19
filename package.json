@@ -7,7 +7,9 @@
     "Ramesh Nair <ram@hiddentao.com> (http://www.hiddentao.com/)",
     "Sergej Brjuchanov <serges@seznam.cz>"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "sql-escape-string": "^1.1.0"
+  },
   "devDependencies": {
     "babel-preset-env": "^1.6.0",
     "benchmark": "^2.1.4",
