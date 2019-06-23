@@ -51,6 +51,6 @@
     "url": "https://github.com/hiddentao/squel.git"
   },
   "engines": {
-    "node": ">= 0.12.0"
+    "node": "8.12.0"
   }
 }

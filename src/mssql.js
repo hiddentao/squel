@@ -33,15 +33,15 @@ squel.flavours['mssql'] = function(_squel) {
       };
 
       this.ParentBlock = class extends cls.Block {
-        constructor (parent) {
-          super(parent.options);
+        constructor (options, parent) {
+          super(options);
           this._parent = parent;
         }
       };
 
       this.LimitBlock = class extends this.ParentBlock {
-        constructor (parent) {
-          super(parent);
+        constructor (options, parent) {
+          super(options, parent);
           this.limit = _limit;
         }
 
@@ -60,8 +60,8 @@ squel.flavours['mssql'] = function(_squel) {
       };
 
       this.TopBlock = class extends this.ParentBlock {
-        constructor (parent) {
-          super(parent);
+        constructor (options, parent) {
+          super(options, parent);
           this.top = _limit;
         }
         _toParamString () {
@@ -99,15 +99,15 @@ squel.flavours['mssql'] = function(_squel) {
     }
 
     LIMIT () {
-      return new this.LimitBlock(this);
+      return new this.LimitBlock(this.options, this);
     }
 
     TOP () {
-      return new this.TopBlock(this);
+      return new this.TopBlock(this.options, this);
     }
 
     OFFSET () {
-      return new this.OffsetBlock(this);
+      return new this.OffsetBlock(this.options, this);
     }
   };
 

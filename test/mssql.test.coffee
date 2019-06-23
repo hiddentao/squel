@@ -83,6 +83,10 @@ test['MSSQL flavour'] =
         assert.same squel.select().from('table').field('field').top(10).toString(), 'SELECT TOP (10) field FROM table'
         assert.same squel.select().from('table').field('field').toString(), 'SELECT field FROM table'
 
+    '>> check flavour can be cloned':
+      toString: ->
+        assert.same squel.select().from('table').field('field').top(10).clone().toString(), 'SELECT TOP (10) field FROM table'
+
   'INSERT builder':
     beforeEach: -> @inst = squel.insert()
 
