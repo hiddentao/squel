@@ -34,6 +34,7 @@ test['DELETE builder'] =
   beforeEach: ->
     @func = squel.delete
     @inst = @func()
+    @inst.options.injectionGuard = false
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder
@@ -98,7 +99,7 @@ test['DELETE builder'] =
         assert.same @inst.toString(),
           'DELETE table1 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
       toParam: ->
-        assert.same @inst.toParam(), 
+        assert.same @inst.toParam(),
           {
             text: 'DELETE table1 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
             values: [3]
@@ -111,7 +112,7 @@ test['DELETE builder'] =
           assert.same @inst.toString(),
             'DELETE table1, table2 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
         toParam: ->
-          assert.same @inst.toParam(), 
+          assert.same @inst.toParam(),
             {
               text: 'DELETE table1, table2 FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
               values: [3]
@@ -124,7 +125,7 @@ test['DELETE builder'] =
         assert.same @inst.toString(),
           'DELETE FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = 3)'
       toParam: ->
-        assert.same @inst.toParam(), 
+        assert.same @inst.toParam(),
           {
             text: 'DELETE FROM table1 LEFT JOIN table2 ON (table1.a = table2.b) WHERE (c = ?)',
             values: [3]

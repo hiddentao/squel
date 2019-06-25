@@ -34,6 +34,7 @@ test['UPDATE builder'] =
   beforeEach: ->
     @func = squel.update
     @inst = @func()
+    @inst.options.injectionGuard = false
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder

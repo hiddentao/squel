@@ -37,7 +37,9 @@ test['MSSQL flavour'] =
     squel = squel.useFlavour 'mssql'
 
   'DATE Conversion':
-    beforeEach: -> @inst = squel.insert()
+    beforeEach: ->
+      @inst = squel.insert()
+      @inst.options.injectionGuard = false
 
     '>> into(table).set(field, new Date(2012-12-12T4:30:00Z))':
       beforeEach: -> @inst.into('table').set('field', new Date("2012-12-12T04:30:00Z"))

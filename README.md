@@ -69,17 +69,6 @@ squel.select()
     .where("t2.name <> 'Mark'")
     .where("t2.name <> 'John'")
     .toString()
-
-// SELECT `t1`.`id`, `t1`.`name` as "My name", `t1`.`started` as "Date" FROM table `t1` WHERE age IN (RANGE(1, 1.2)) ORDER BY id ASC LIMIT 20
-squel.select({ autoQuoteFieldNames: true })
-    .from("table", "t1")
-    .field("t1.id")
-    .field("t1.name", "My name")
-    .field("t1.started", "Date")
-    .where("age IN ?", squel.str('RANGE(?, ?)', 1, 1.2))
-    .order("id")
-    .limit(20)
-    .toString()
 ```
 
 You can build parameterized queries:
@@ -121,7 +110,7 @@ squel.select()
 squel.update()
     .table("test")
     .set("f1", 1)
-    .toString()
+    .toParam()
 
 // UPDATE test, test2, test3 AS `a` SET test.id = 1, test2.val = 1.2, a.name = "Ram", a.email = NULL, a.count = a.count + 1
 squel.update()
@@ -135,7 +124,7 @@ squel.update()
         "a.email": null,
         "a.count = a.count + 1": undefined
     })
-    .toString()
+    .toParam()
 ```
 
 ### INSERT
@@ -145,7 +134,7 @@ squel.update()
 squel.insert()
     .into("test")
     .set("f1", 1)
-    .toString()
+    .toParam()
 
 // INSERT INTO test (name, age) VALUES ('Thomas', 29), ('Jane', 31)
 squel.insert()
@@ -154,7 +143,7 @@ squel.insert()
         { name: "Thomas", age: 29 },
         { name: "Jane", age: 31 }    
     ])
-    .toString()
+    .toParam()
 ```
 
 ### DELETE
@@ -171,24 +160,8 @@ squel.delete()
     .where("table1.id = ?", 2)
     .order("id", false)
     .limit(2)
-```
-
-### Paramterized queries
-
-Use the `useParam()` method to obtain a parameterized query with a separate list of formatted parameter values:
-
-```javascript
-// { text: "INSERT INTO test (f1, f2, f3, f4, f5) VALUES (?, ?, ?, ?, ?)", values: [1, 1.2, "TRUE", "blah", "NULL"] }
-squel.insert()
-    .into("test")
-    .set("f1", 1)
-    .set("f2", 1.2)
-    .set("f3", true)
-    .set("f4", "blah")
-    .set("f5", null)
     .toParam()
 ```
-
 
 ### Expression builder
 
@@ -218,7 +191,7 @@ squel.expr()
                     .and("inner IN ?", ['str1', 'str2', null])
             )
     )
-    .toString()
+    .toParam()
 
 // SELECT * FROM test INNER JOIN test2 ON (test.id = test2.id) WHERE (test = 3 OR test = 4)
 squel.select()
@@ -228,8 +201,7 @@ squel.select()
 
 ### Custom value types
 
-By default Squel does not support the use of object instances as field values. Instead it lets you tell it how you want
-specific object types to be handled:
+By default Squel does not support the use of object instances as field values. Instead it lets you tell it how you want specific object types to be handled:
 
 ```javascript
 // handler for objects of type Date

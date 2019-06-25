@@ -87,6 +87,7 @@ test['Default query builder options'] =
       separator: ' '
       stringFormatter: null
       rawNesting: false
+      injectionGuard: true
     }, squel.cls.DefaultQueryBuilderOptions
 
 
@@ -135,6 +136,7 @@ test['str()'] =
   'custom value handler':
     beforeEach: ->
       @inst = squel.str('G(?,?)', 12, 23, 65)
+      @inst.options.injectionGuard = false
 
       handlerConfig = _.find squel.cls.globalValueHandlers, (hc) ->
         hc.type is squel.cls.FunctionBlock
@@ -154,15 +156,27 @@ test['rstr()'] =
     assert.same 'GETDATE(?)', f._strings[0]
     assert.same [12, 23], f._values[0]
 
-  vsStr: ->
-    f1 = squel.str('OUTER(?)', squel.str('INNER(?)', 2))
+  compared_to_str: ->
+    f1_inner = squel.str('INNER(?)', 2)
+    f1_inner.options.injectionGuard = false
+
+    f1 = squel.str('OUTER(?)', f1_inner)
+    f1.options.injectionGuard = false
+
     assert.same 'OUTER((INNER(2)))', f1.toString()
-    f2 = squel.str('OUTER(?)', squel.rstr('INNER(?)', 2))
+
+    f2_inner = squel.rstr('INNER(?)', 2)
+    f2_inner.options.injectionGuard = false
+
+    f2 = squel.str('OUTER(?)', f2_inner)
+    f2.options.injectionGuard = false
+
     assert.same 'OUTER(INNER(2))', f2.toString()
 
   'custom value handler':
     beforeEach: ->
       @inst = squel.rstr('G(?,?)', 12, 23, 65)
+      @inst.options.injectionGuard = false
 
       handlerConfig = _.find squel.cls.globalValueHandlers, (hc) ->
         hc.type is squel.cls.FunctionBlock
@@ -692,72 +706,79 @@ test['Builder base class'] =
 
 
   '_formatValueForQueryString':
-    'null': ->
-      assert.same 'NULL', @inst._formatValueForQueryString(null)
+    'throws by default due to injection guard': ->
+      assert.throws (=> @inst._formatValueForQueryString(null)), "cannot call .toString() on a parameterized query as this could result in SQL injection attacks. Please call .toParam() or disable the injectionGuard."
 
-    'boolean': ->
-      assert.same 'TRUE', @inst._formatValueForQueryString(true)
-      assert.same 'FALSE', @inst._formatValueForQueryString(false)
+    'with injection guard disabled':
+      beforeEach: ->
+        @inst.options.injectionGuard = false
 
-    'integer': ->
-      assert.same 12, @inst._formatValueForQueryString(12)
+      'null': ->
+        assert.same 'NULL', @inst._formatValueForQueryString(null)
 
-    'float': ->
-      assert.same 1.2, @inst._formatValueForQueryString(1.2)
+      'boolean': ->
+        assert.same 'TRUE', @inst._formatValueForQueryString(true)
+        assert.same 'FALSE', @inst._formatValueForQueryString(false)
 
-    'string':
-      'have string formatter function': ->
-        @inst.options.stringFormatter = (str) -> "N(#{str})"
+      'integer': ->
+        assert.same 12, @inst._formatValueForQueryString(12)
 
-        assert.same "N(test)", @inst._formatValueForQueryString('test')
+      'float': ->
+        assert.same 1.2, @inst._formatValueForQueryString(1.2)
 
-      'default': ->
-        escapedValue = undefined
-        test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+      'string':
+        'have string formatter function': ->
+          @inst.options.stringFormatter = (str) -> "N(#{str})"
 
-        assert.same "'test'", @inst._formatValueForQueryString('test')
+          assert.same "N(test)", @inst._formatValueForQueryString('test')
 
-        assert.ok @inst._escapeValue.calledWithExactly('test')
-        escapedValue = 'blah'
-        assert.same "'blah'", @inst._formatValueForQueryString('test')
+        'default': ->
+          escapedValue = undefined
+          test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
 
-      'dont quote': ->
-        escapedValue = undefined
-        test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
+          assert.same "'test'", @inst._formatValueForQueryString('test')
 
-        assert.same "test", @inst._formatValueForQueryString('test', dontQuote: true )
+          assert.ok @inst._escapeValue.calledWithExactly('test')
+          escapedValue = 'blah'
+          assert.same "'blah'", @inst._formatValueForQueryString('test')
 
-        assert.ok @inst._escapeValue.notCalled
+        'dont quote': ->
+          escapedValue = undefined
+          test.mocker.stub @inst, '_escapeValue', (str) -> escapedValue or str
 
-    'Array - recursively calls itself on each element': ->
-      spy = test.mocker.spy @inst, '_formatValueForQueryString'
+          assert.same "test", @inst._formatValueForQueryString('test', dontQuote: true )
 
-      expected = "('test', 123, TRUE, 1.2, NULL)"
-      assert.same expected, @inst._formatValueForQueryString([ 'test', 123, true, 1.2, null ])
+          assert.ok @inst._escapeValue.notCalled
 
-      assert.same 6, spy.callCount
-      assert.ok spy.calledWith 'test'
-      assert.ok spy.calledWith 123
-      assert.ok spy.calledWith true
-      assert.ok spy.calledWith 1.2
-      assert.ok spy.calledWith null
+      'Array - recursively calls itself on each element': ->
+        spy = test.mocker.spy @inst, '_formatValueForQueryString'
 
-    'BaseBuilder': ->
-      spy = test.mocker.stub @inst, '_applyNestingFormatting', (v) => "{{#{v}}}"
-      s = squel.select().from('table')
-      assert.same '{{SELECT * FROM table}}', @inst._formatValueForQueryString(s)
+        expected = "('test', 123, TRUE, 1.2, NULL)"
+        assert.same expected, @inst._formatValueForQueryString([ 'test', 123, true, 1.2, null ])
 
-    'checks to see if it is custom value type first': ->
-      test.mocker.stub @inst, '_formatCustomValue', (val, asParam) ->
-        { formatted: true, value: 12 + (if asParam then 25 else 65) }
-      test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
-      assert.same '{77}', @inst._formatValueForQueryString(123)
+        assert.same 6, spy.callCount
+        assert.ok spy.calledWith 'test'
+        assert.ok spy.calledWith 123
+        assert.ok spy.calledWith true
+        assert.ok spy.calledWith 1.2
+        assert.ok spy.calledWith null
 
-    '#292 - custom value type specifies raw nesting': ->
-      test.mocker.stub @inst, '_formatCustomValue', (val, asParam) ->
-        { rawNesting: true, formatted: true, value: 12 }
-      test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
-      assert.same 12, @inst._formatValueForQueryString(123)
+      'BaseBuilder': ->
+        spy = test.mocker.stub @inst, '_applyNestingFormatting', (v) => "{{#{v}}}"
+        s = squel.select().from('table')
+        assert.same '{{SELECT * FROM table}}', @inst._formatValueForQueryString(s)
+
+      'checks to see if it is custom value type first': ->
+        test.mocker.stub @inst, '_formatCustomValue', (val, asParam) ->
+          { formatted: true, value: 12 + (if asParam then 25 else 65) }
+        test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
+        assert.same '{77}', @inst._formatValueForQueryString(123)
+
+      '#292 - custom value type specifies raw nesting': ->
+        test.mocker.stub @inst, '_formatCustomValue', (val, asParam) ->
+          { rawNesting: true, formatted: true, value: 12 }
+        test.mocker.stub @inst, '_applyNestingFormatting', (v) -> "{#{v}}"
+        assert.same 12, @inst._formatValueForQueryString(123)
 
 
   '_applyNestingFormatting':
@@ -774,6 +795,9 @@ test['Builder base class'] =
 
 
   '_buildString':
+    beforeEach: ->
+      @inst.options.injectionGuard = false
+
     'empty': ->
       assert.same @inst._buildString('', []), {
         text: '',
@@ -872,6 +896,9 @@ test['Builder base class'] =
         }
 
   '_buildManyStrings':
+    beforeEach: ->
+      @inst.options.injectionGuard = false
+
     'empty': ->
       assert.same @inst._buildManyStrings([], []), {
         text: '',
@@ -944,6 +971,9 @@ test['Builder base class'] =
     assert.same spy.getCall(0).args[0].buildParameterized, true
 
   'toString': ->
+    beforeEach: ->
+      @inst.options.injectionGuard = false
+
     spy = test.mocker.stub @inst, '_toParamString', ->
       {
         text: 'dummy'

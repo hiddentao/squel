@@ -34,6 +34,7 @@ test['INSERT builder'] =
   beforeEach: ->
     @func = squel.insert
     @inst = @func()
+    @inst.options.injectionGuard = false
 
   'instanceof QueryBuilder': ->
     assert.instanceOf @inst, squel.cls.QueryBuilder
@@ -169,7 +170,7 @@ test['INSERT builder'] =
         beforeEach: -> @inst.set('field', squel.str('GETDATE(?, ?)', 2014, 'feb'))
         toString: ->
           assert.same 'INSERT INTO table (field) VALUES ((GETDATE(2014, \'feb\')))', @inst.toString()
-        toParam: ->  
+        toParam: ->
           assert.same { text: 'INSERT INTO table (field) VALUES ((GETDATE(?, ?)))', values: [2014, 'feb'] }, @inst.toParam()
 
       '>> fromQuery([field1, field2], select query)':

@@ -161,7 +161,9 @@ function _buildSquel(flavour = null) {
     // Function for formatting string values prior to insertion into query string
     stringFormatter: null,
     // Whether to prevent the addition of brackets () when nesting this query builder's output
-    rawNesting: false
+    rawNesting: false,
+    // Setting to false will mean Squel no longer guards against SQL query injection when calling .toString()
+    injectionGuard: true
   };
 
   // Global custom value handlers for all instances of builder
@@ -458,7 +460,11 @@ function _buildSquel(flavour = null) {
      * Format the given field value for inclusion into the query string
      */
     _formatValueForQueryString (initialValue, formattingOptions = {}) {
-      // maybe we have a cusotm value handler
+      if (this.options.injectionGuard) {
+        throw new Error('cannot call .toString() on a parameterized query as this could result in SQL injection attacks. Please call .toParam() or disable the injectionGuard.')
+      }
+
+      // maybe we have a custom value handler
       let { rawNesting, formatted, value } = this._formatCustomValue(initialValue, false, formattingOptions);
 
       // if formatting took place then return it directly

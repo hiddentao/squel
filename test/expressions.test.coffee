@@ -33,6 +33,7 @@ test = testCreator()
 test['Expression builder base class'] =
   beforeEach: ->
     @inst = squel.expr()
+    @inst.options.injectionGuard = false
 
   'extends BaseBuilder': ->
     assert.ok (@inst instanceof squel.cls.BaseBuilder)

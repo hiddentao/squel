@@ -33,9 +33,10 @@ test['Case expression builder base class'] =
   beforeEach: ->
     @func = squel.case
     @inst = @func()
-    # manual return, 
+    @inst.options.injectionGuard = false
+    # manual return,
     # otherwise @inst will be treated a promise because it has a then() method
-    return 
+    return
 
   'extends BaseBuilder': ->
     assert.ok (@inst instanceof squel.cls.BaseBuilder)
@@ -52,53 +53,54 @@ test['Case expression builder base class'] =
       })
 
       expected = _.extend({}, squel.cls.DefaultQueryBuilderOptions, {
-        separator: ',asdf'  
+        separator: ',asdf'
       })
 
       assert.same expected, e.options
 
   'build expression':
     '>> when().then()':
-      beforeEach: -> 
+      beforeEach: ->
         @inst.when('?', 'foo').then('bar')
-        # manual return, 
+        # manual return,
         # otherwise @inst will be treated a promise because it has a then() method
         return
 
       toString: ->
         assert.same @inst.toString(), 'CASE WHEN (\'foo\') THEN \'bar\' ELSE NULL END'
       toParam: ->
-        assert.same @inst.toParam(), { 
-          text: 'CASE WHEN (?) THEN \'bar\' ELSE NULL END', 
-          values: ['foo'] 
+        assert.same @inst.toParam(), {
+          text: 'CASE WHEN (?) THEN \'bar\' ELSE NULL END',
+          values: ['foo']
         }
 
     '>> when().then().else()':
-      beforeEach: -> 
+      beforeEach: ->
           @inst.when('?', 'foo').then('bar').else('foobar')
-          # manual return, 
+          # manual return,
           # otherwise @inst will be treated a promise because it has a then() method
           return
       toString: ->
         assert.same @inst.toString(), 'CASE WHEN (\'foo\') THEN \'bar\' ELSE \'foobar\' END'
       toParam: ->
-        assert.same @inst.toParam(), { 
-          text: 'CASE WHEN (?) THEN \'bar\' ELSE \'foobar\' END', 
-          values: ['foo'] 
+        assert.same @inst.toParam(), {
+          text: 'CASE WHEN (?) THEN \'bar\' ELSE \'foobar\' END',
+          values: ['foo']
         }
-        
+
   'field case':
-    beforeEach: -> 
+    beforeEach: ->
       @inst = @func('name').when('?', 'foo').then('bar')
-      # manual return, 
+      @inst.options.injectionGuard = false
+      # manual return,
       # otherwise @inst will be treated a promise because it has a then() method
-      return      
+      return
     toString: ->
       assert.same @inst.toString(), 'CASE name WHEN (\'foo\') THEN \'bar\' ELSE NULL END'
     toParam: ->
-      assert.same @inst.toParam(), { 
-        text: 'CASE name WHEN (?) THEN \'bar\' ELSE NULL END', 
-        values: ['foo'] 
+      assert.same @inst.toParam(), {
+        text: 'CASE name WHEN (?) THEN \'bar\' ELSE NULL END',
+        values: ['foo']
       }
 
 

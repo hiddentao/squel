@@ -224,7 +224,9 @@ function _buildSquel() {
     // Function for formatting string values prior to insertion into query string
     stringFormatter: null,
     // Whether to prevent the addition of brackets () when nesting this query builder's output
-    rawNesting: false
+    rawNesting: false,
+    // Setting to false will mean Squel no longer guards against SQL query injection when calling .toString()
+    injectionGuard: true
   };
 
   // Global custom value handlers for all instances of builder
@@ -548,7 +550,12 @@ function _buildSquel() {
 
         var formattingOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-        // maybe we have a cusotm value handler
+        if (this.options.injectionGuard) {
+          throw new Error('cannot call .toString() on a parameterized query as this could result in SQL injection attacks. Please call .toParam() or disable the injectionGuard.');
+        }
+
+        // maybe we have a custom value handler
+
         var _formatCustomValue2 = this._formatCustomValue(initialValue, false, formattingOptions),
             rawNesting = _formatCustomValue2.rawNesting,
             formatted = _formatCustomValue2.formatted,
@@ -2976,7 +2983,7 @@ function _buildSquel() {
   }(cls.QueryBuilder);
 
   var _squel = {
-    VERSION: '5.12.2',
+    VERSION: '6.0.0',
     flavour: flavour,
     expr: function expr(options) {
       return new cls.Expression(options);

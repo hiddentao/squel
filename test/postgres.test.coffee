@@ -36,7 +36,9 @@ test['Postgres flavour'] =
     squel = squel.useFlavour 'postgres'
 
   'INSERT builder':
-    beforeEach: -> @inst = squel.insert()
+    beforeEach: ->
+      @inst = squel.insert()
+      @inst.options.injectionGuard = false
 
     '>> into(table).set(field, 1).set(field,2).onConflict("field", {field2:2})':
       beforeEach: -> @inst.into('table').set('field', 1).set('field2', 2).onConflict('field', {"field2":2})
@@ -105,7 +107,9 @@ test['Postgres flavour'] =
         }
 
   'UPDATE builder':
-    beforeEach: -> @upd = squel.update()
+    beforeEach: ->
+      @upd = squel.update()
+      @upd.options.injectionGuard = false
 
     '>> table(table).set(field, 1).returning("*")':
       beforeEach: -> @upd.table('table').set('field', 1).returning('*')
@@ -138,7 +142,9 @@ test['Postgres flavour'] =
         }
 
   'DELETE builder':
-    beforeEach: -> @del = squel.delete()
+    beforeEach: ->
+      @del = squel.delete()
+      @del.options.injectionGuard = false
 
     '>> from(table).where(field = 1).returning("*")':
       beforeEach: -> @del.from('table').where('field = 1').returning('*')
@@ -168,6 +174,8 @@ test['Postgres flavour'] =
   'SELECT builder':
     beforeEach: ->
       @sel = squel.select()
+      @sel.options.injectionGuard = false
+
     'select':
       '>> from(table).where(field = 1)':
         beforeEach: ->

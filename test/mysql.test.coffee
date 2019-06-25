@@ -40,6 +40,7 @@ test['MySQL flavour'] =
     beforeEach: ->
       @cls = squel.cls.MysqlOnDuplicateKeyUpdateBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractSetFieldBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
@@ -72,7 +73,9 @@ test['MySQL flavour'] =
 
 
   'INSERT builder':
-    beforeEach: -> @inst = squel.insert()
+    beforeEach: ->
+      @inst = squel.insert()
+      @inst.options.injectionGuard = false
 
     '>> into(table).set(field, 1).set(field1, 2).onDupUpdate(field, 5).onDupUpdate(field1, "str")':
       beforeEach: ->
@@ -107,7 +110,9 @@ test['MySQL flavour'] =
 
 
   'REPLACE builder':
-    beforeEach: -> @inst = squel.replace()
+    beforeEach: ->
+      @inst = squel.replace()
+      @inst.options.injectionGuard = false
 
     '>> into(table).set(field, 1).set(field1, 2)':
       beforeEach: ->

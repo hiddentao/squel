@@ -34,6 +34,7 @@ test['Blocks'] =
   'Block base class':
     beforeEach: ->
       @inst = new squel.cls.Block()
+      @inst.options.injectionGuard = false
 
     'instanceof of BaseBuilder': ->
       assert.instanceOf @inst, squel.cls.BaseBuilder
@@ -84,6 +85,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.StringBlock
       @inst = new @cls
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -110,6 +112,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.FunctionBlock
       @inst = new @cls
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -146,6 +149,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.AbstractTableBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -282,6 +286,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.FromTableBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'check prefix': ->
       assert.same @inst.options.prefix, 'FROM'
@@ -306,6 +311,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.UpdateTableBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
@@ -330,6 +336,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.TargetTableBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
@@ -355,6 +362,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.IntoTableBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractTableBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractTableBlock
@@ -391,6 +399,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.GetFieldBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -586,6 +595,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.AbstractSetFieldBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -698,6 +708,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.SetFieldBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractSetFieldBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
@@ -750,6 +761,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.InsertFieldValueBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractSetFieldBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractSetFieldBlock
@@ -804,6 +816,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.InsertFieldsFromQueryBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -869,6 +882,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.DistinctBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -893,6 +907,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.GroupByBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -930,6 +945,7 @@ test['Blocks'] =
       @inst = new @cls({
         verb: 'TEST'
       })
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -976,6 +992,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.OffsetBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractVerbSingleValueBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractVerbSingleValueBlock
@@ -1017,6 +1034,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.LimitBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractVerbSingleValueBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractVerbSingleValueBlock
@@ -1060,6 +1078,7 @@ test['Blocks'] =
       @inst = new @cls {
         verb: 'ACB'
       }
+      @inst.options.injectionGuard = false
 
       class squel.cls.MockConditionBlock extends squel.cls.AbstractConditionBlock
         constructor: (options) ->
@@ -1174,6 +1193,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.WhereBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractConditionBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractConditionBlock
@@ -1214,6 +1234,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.HavingBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of AbstractConditionBlock': ->
       assert.instanceOf @inst, squel.cls.AbstractConditionBlock
@@ -1253,6 +1274,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.OrderByBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
@@ -1327,6 +1349,7 @@ test['Blocks'] =
     beforeEach: ->
       @cls = squel.cls.JoinBlock
       @inst = new @cls()
+      @inst.options.injectionGuard = false
 
     'instanceof of Block': ->
       assert.instanceOf @inst, squel.cls.Block
