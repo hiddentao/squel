@@ -42,13 +42,13 @@ test['Expression builder base class'] =
 
   'options':
     'default options': ->
-      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
+      assert.same squel.cls.getDefaultQueryBuilderOptions(), @inst.options
     'custom options': ->
       e = squel.expr({
         separator: ',asdf'
       })
 
-      expected = _.extend({}, squel.cls.DefaultQueryBuilderOptions, {
+      expected = _.extend({}, squel.cls.getDefaultQueryBuilderOptions(), {
         separator: ',asdf'
       })
 

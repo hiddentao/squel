@@ -319,7 +319,7 @@ test['Postgres flavour'] =
       separator: ' '
       stringFormatter: null
       rawNesting: false
-    }, squel.cls.DefaultQueryBuilderOptions
+    }, squel.cls.getDefaultQueryBuilderOptions()
 
 
 module?.exports[require('path').basename(__filename)] = test

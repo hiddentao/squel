@@ -39,7 +39,7 @@ test['Blocks'] =
       assert.instanceOf @inst, squel.cls.BaseBuilder
 
     'options': ->
-      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.getDefaultQueryBuilderOptions(),
         usingValuePlaceholders: true
         dummy: true
 

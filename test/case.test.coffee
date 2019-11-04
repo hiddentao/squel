@@ -45,13 +45,13 @@ test['Case expression builder base class'] =
 
   'options':
     'default options': ->
-      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
+      assert.same squel.cls.getDefaultQueryBuilderOptions(), @inst.options
     'custom options': ->
       e = @func({
         separator: ',asdf'
       })
 
-      expected = _.extend({}, squel.cls.DefaultQueryBuilderOptions, {
+      expected = _.extend({}, squel.cls.getDefaultQueryBuilderOptions(), {
         separator: ',asdf'  
       })
 
