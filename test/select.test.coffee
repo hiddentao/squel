@@ -44,7 +44,7 @@ test['SELECT builder'] =
         usingValuePlaceholders: true
         dummy: true
 
-      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.getDefaultQueryBuilderOptions(),
         usingValuePlaceholders: true
         dummy: true
 

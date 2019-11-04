@@ -87,7 +87,7 @@ test['Default query builder options'] =
       separator: ' '
       stringFormatter: null
       rawNesting: false
-    }, squel.cls.DefaultQueryBuilderOptions
+    }, squel.cls.getDefaultQueryBuilderOptions()
 
 
 
@@ -236,7 +236,7 @@ test['Builder base class'] =
   beforeEach: ->
     @cls = squel.cls.BaseBuilder
     @inst = new @cls
-
+    @default = squel.cls.getDefaultQueryBuilderOptions()
     @originalHandlers = [].concat(squel.cls.globalValueHandlers)
 
   afterEach: ->
@@ -247,7 +247,7 @@ test['Builder base class'] =
 
   'constructor':
     'default options': ->
-      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
+      assert.same @default, @inst.options
 
     'overridden options': ->
       @inst = new @cls
@@ -257,7 +257,7 @@ test['Builder base class'] =
         dummy3: true,
         globalValueHandlers: [1]
 
-      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, @default,
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true
@@ -967,7 +967,7 @@ test['QueryBuilder base class'] =
 
   'constructor':
     'default options': ->
-      assert.same squel.cls.DefaultQueryBuilderOptions, @inst.options
+      assert.same squel.cls.getDefaultQueryBuilderOptions(), @inst.options
 
     'overridden options': ->
       @inst = new @cls
@@ -976,7 +976,7 @@ test['QueryBuilder base class'] =
         usingValuePlaceholders: true
         dummy3: true
 
-      expectedOptions = _.extend {}, squel.cls.DefaultQueryBuilderOptions,
+      expectedOptions = _.extend {}, squel.cls.getDefaultQueryBuilderOptions(),
         dummy1: 'str'
         dummy2: 12.3
         usingValuePlaceholders: true

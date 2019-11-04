@@ -126,7 +126,8 @@ function _buildSquel(flavour = null) {
     return (!cls.isSquelBuilder(obj)) || !obj.options.rawNesting
   }
 
-  const _getDefaultQueryBuilderOptions = function () {
+  // default query builder options
+  cls.getDefaultQueryBuilderOptions = function() {
     return {
       // If true then table names will be rendered inside quotes. The quote character used is configurable via the nameQuoteCharacter option.
       autoQuoteTableNames: false,
@@ -164,8 +165,6 @@ function _buildSquel(flavour = null) {
       rawNesting: false
     };
   }
-  // default query builder options
-  cls.DefaultQueryBuilderOptions = _getDefaultQueryBuilderOptions();
 
   // Global custom value handlers for all instances of builder
   cls.globalValueHandlers = [];
@@ -215,18 +214,7 @@ function _buildSquel(flavour = null) {
      */
     constructor (options) {
       super();
-
-      let defaults = _getDefaultQueryBuilderOptions();
-      // for function values, etc we need to manually copy
-      ['stringFormatter'].forEach(p => {
-        defaults[p] = cls.DefaultQueryBuilderOptions[p]
-      })
-      if (!options) {
-        this.options = defaults;
-      } else {
-        this.options = _extend({}, defaults, options);
-      }
-
+      this.options = _extend({}, cls.getDefaultQueryBuilderOptions(), options);
     }
 
     /**
@@ -831,7 +819,7 @@ function _buildSquel(flavour = null) {
         this._fieldName = this._sanitizeField( fieldName );
       }
 
-      this.options = _extend({}, cls.DefaultQueryBuilderOptions, options);
+      this.options = _extend({}, cls.getDefaultQueryBuilderOptions(), options);
 
       this._cases = [];
       this._elseValue = null;
