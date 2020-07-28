@@ -18,7 +18,7 @@ Full documentation (guide and API) at [https://hiddentao.github.io/squel](https:
 * Works in node.js and in the browser.
 * Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
 * Supports non-standard commands for popular DB engines such as MySQL.
-* Supports paramterized queries for safe value escaping.
+* Supports parameterized queries for safe value escaping.
 * Can be customized to build any query or command of your choosing.
 * Uses method chaining for ease of use.
 * Small: ~7 KB minified and gzipped
@@ -173,7 +173,7 @@ squel.delete()
     .limit(2)
 ```
 
-### Paramterized queries
+### Parameterized queries
 
 Use the `useParam()` method to obtain a parameterized query with a separate list of formatted parameter values:
 
@@ -367,7 +367,7 @@ Instructions for creating a new release of squel are in `RELEASE.md`.
 
 Contributions are welcome! Please see `CONTRIBUTING.md`.
 
-## Older verions
+## Older versions
 
 **Note: The latest Squel version only works on Node 0.12 or above. Please use Squel 4.4.1 for Node <0.12. The [old 4.x docs](http://hiddentao.github.io/squel/v4/index.html) are also still available.**
 
