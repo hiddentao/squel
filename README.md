@@ -1,4 +1,4 @@
-# NOTE: Squel is no longer actively maintained. I only have time for occasional bugfixes and small-scale work. If you are interested in helping with squel maintenance the help would be welcome. Alternatively, please use another library.
+# NOTE: Squel is no longer actively maintained. I only have time for occasional bugfixes and small-scale work. If you are interested in helping with squel maintenance the help would be welcome. Alternatively, please use another library - we recommend [knex](https://knexjs.org).
 
 # squel - SQL query string builder
 
@@ -152,7 +152,7 @@ squel.insert()
     .into("test")
     .setFieldsRows([
         { name: "Thomas", age: 29 },
-        { name: "Jane", age: 31 }    
+        { name: "Jane", age: 31 }
     ])
     .toString()
 ```
