@@ -1,5 +1,8 @@
 # Changelog for [squel](https://github.com/hiddentao/squel)
 
+## 28 Jul 2020 (5.13.1)
+* Deprecate in NPM (#384)
+
 ## 18 Jun 2019 (5.13.0)
 * Added note to top of README stating that Squel is no longer actively maintained.
 
