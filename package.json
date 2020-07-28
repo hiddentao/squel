@@ -23,7 +23,7 @@
     "gulp-replace": "^0.5.4",
     "gulp-uglify": "^1.5.3",
     "gulp-umd": "^0.2.0",
-    "knex": "^0.14.6",
+    "knex": "^0.19.5",
     "load-grunt-tasks": "~0.1.0",
     "mocha": "1.9.x",
     "run-sequence": "^1.1.5",
