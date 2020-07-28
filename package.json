@@ -41,10 +41,14 @@
   "main": "dist/squel.js",
   "types": "dist/squel.d.ts",
   "scripts": {
+    "preinstall": "npx npm-force-resolutions",
     "test": "gulp",
     "test-performance": "node performance/select.js",
     "build": "gulp",
     "prepublish": "npm run build"
+  },
+  "resolutions": {
+    "graceful-fs": "4.2.4"
   },
   "repository": {
     "type": "git",
