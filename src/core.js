@@ -1605,6 +1605,24 @@ function _buildSquel(flavour = null) {
       this._setValue(limit);
     }
   }
+  
+  // FOR SHARE/FOR UPDATE
+  cls.TransactionBlock = class extends cls.AbstractVerbSingleValueBlock {
+    constructor(options) {
+      super(_extend({}, options, {
+        verb: 'FOR'
+      }));
+    }
+
+    /**
+    # Set the transact transformation.
+    #
+    # @param forUpdate {Boolean} If true, it will use the FOR UPDATE statement, else it will use the FOR SHARE statement.
+    */
+    transact (forUpdate) {
+      this._setValue(forUpdate ? ' UPDATE' : ' SHARE');
+    }
+  }
 
 
 
@@ -2090,6 +2108,7 @@ function _buildSquel(flavour = null) {
         new cls.LimitBlock(options),
         new cls.OffsetBlock(options),
         new cls.UnionBlock(options),
+        new cls.TransactionBlock(options),
       ];
 
       super(options, blocks);
