@@ -1499,7 +1499,21 @@ function _buildSquel(flavour = null) {
   }
 
 
+  // COMMENT
+  cls.CommentBlock = class extends cls.Block {
+    // Add the comment to the query.
+    comment (text) {
+      this._text = text;
+    }
 
+    _toParamString () {
+      return {
+        text: this._text ? '/* ' + this._text + ' */'   : '',
+        values: [],
+      };
+    }
+  }
+  
   // DISTINCT
   cls.DistinctBlock = class extends cls.Block {
     // Add the DISTINCT keyword to the query.
@@ -2077,6 +2091,7 @@ function _buildSquel(flavour = null) {
   cls.Select = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.CommentBlock(options),
         new cls.StringBlock(options, 'SELECT'),
         new cls.FunctionBlock(options),
         new cls.DistinctBlock(options),
@@ -2102,6 +2117,7 @@ function _buildSquel(flavour = null) {
   cls.Update = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.CommentBlock(options),
         new cls.StringBlock(options, 'UPDATE'),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
@@ -2122,6 +2138,7 @@ function _buildSquel(flavour = null) {
   cls.Delete = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.CommentBlock(options),
         new cls.StringBlock(options, 'DELETE'),
         new cls.TargetTableBlock(options),
         new cls.FromTableBlock(_extend({}, options, {
@@ -2145,6 +2162,7 @@ function _buildSquel(flavour = null) {
   cls.Insert = class extends cls.QueryBuilder {
     constructor (options, blocks = null) {
       blocks = blocks || [
+        new cls.CommentBlock(options),
         new cls.StringBlock(options, 'INSERT'),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
