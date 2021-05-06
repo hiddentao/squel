@@ -30,7 +30,7 @@
     "sinon": "1.6.x",
     "time-grunt": "~0.1.1",
     "uglify-js": "1.3.x",
-    "underscore": "1.4.x",
+    "underscore": "1.12.x",
     "yargs": "^4.7.1"
   },
   "keywords": [
