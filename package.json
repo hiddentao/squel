@@ -41,7 +41,7 @@
   "main": "dist/squel.js",
   "types": "dist/squel.d.ts",
   "scripts": {
-    "preinstall": "npx npm-force-resolutions",
+    "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
     "test": "gulp",
     "test-performance": "node performance/select.js",
     "build": "gulp",
