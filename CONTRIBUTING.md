@@ -1,28 +1,38 @@
-# Contribute to Squel
+# Contributing to squel
 
-This guide guidelines for those wishing to contribute to Squel.
+Thanks for your interest in contributing!
 
 ## Contributor license agreement
 
-By submitting code as an individual or as an entity you agree that your code is [licensed the same as Squel](README.md).
+By submitting code as an individual or as an entity you agree that your code is [licensed the same as squel](README.md).
 
 ## Issues and pull requests
 
 Issues and merge requests should be in English and contain appropriate language for audiences of all ages.
 
-We will only accept a merge requests which meets the following criteria:
+Before submitting a pull request, make sure:
 
-* Squel.js and squel.min.js have been rebuilt using `npm run build`.
-* Includes proper tests and all tests pass (unless it contains a test exposing a bug in existing code)
-* Can be merged without problems (if not please use: `git rebase master`)
-* Does not break any existing functionality
-* Fixes one specific issue or implements one specific feature (do not combine things, send separate merge requests if needed)
-* Keeps the Squel code base clean and well structured
-* Contains functionality we think other users will benefit from too
-* Doesn't add unnessecary configuration options since they complicate future changes
-* Update the docs in the `gh-pages` branch and in the master `README.md` if necessary
+- All checks pass locally: `bun run check`, `bun run typecheck`, `bun test`, `bun run build`.
+- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/). The `commit-msg` hook enforces this via commitlint. Examples:
+  - `feat: add support for CTE in postgres select`
+  - `fix: escape single quotes in default mssql options`
+  - `docs: clarify useFlavour behaviour`
+- Each PR fixes one issue or implements one feature. Split unrelated changes into separate PRs.
+- Tests accompany the change (unless it's a test itself demonstrating a bug).
+- The PR doesn't break existing functionality or change the public API without a `BREAKING CHANGE` footer in the commit.
 
+## Development setup
 
-## Release process (for core contributors)
+```bash
+bun install          # install dependencies
+bun run check        # lint/format check (biome)
+bun run typecheck    # TypeScript type checking
+bun test             # run the test suite
+bun run build        # produce dist/esm, dist/cjs, dist/types, dist/browser
+```
 
-See `RELEASE.md`.
+The test suite runs against the TypeScript source directly &mdash; no need to build before running tests.
+
+## Release process
+
+Releases are fully automated from `master`. See [`RELEASE.md`](RELEASE.md) for details.

@@ -1,55 +1,86 @@
-# NOTE: Squel is no longer actively maintained. I only have time for occasional bugfixes and small-scale work. If you are interested in helping with squel maintenance the help would be welcome. Alternatively, please use another library - we recommend [knex](https://knexjs.org).
+# squel &mdash; SQL query string builder
 
-# squel - SQL query string builder
+[![CI](https://github.com/hiddentao/squel/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/hiddentao/squel/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/squel.svg)](https://www.npmjs.com/package/squel)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
-[![Build Status](https://secure.travis-ci.org/hiddentao/squel.svg?branch=master)](http://travis-ci.org/hiddentao/squel)
-[![CDNJS](https://img.shields.io/cdnjs/v/squel.svg)](https://cdnjs.com/libraries/squel)
-[![NPM module](https://badge.fury.io/js/squel.svg)](https://badge.fury.io/js/squel)
-[![NPM downloads](https://img.shields.io/npm/dm/squel.svg?maxAge=2592000)](https://www.npmjs.com/package/squel)
-[![Join the chat at https://discord.gg/PBAR2Bz](https://img.shields.io/badge/discord-join%20chat-738bd7.svg)](https://discord.gg/PBAR2Bz)
-[![Follow on Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Follow&maxAge=2592000)](https://twitter.com/hiddentao)
+A flexible and powerful SQL query string builder for JavaScript and TypeScript.
 
-A flexible and powerful SQL query string builder for Javascript.
-
-Full documentation (guide and API) at [https://hiddentao.github.io/squel](https://hiddentao.github.io/squel).
+Full guide and API documentation at [https://hiddentao.github.io/squel](https://hiddentao.github.io/squel).
 
 ## Features
 
-* Works in node.js and in the browser.
-* Supports the standard SQL queries: SELECT, UPDATE, INSERT and DELETE.
-* Supports non-standard commands for popular DB engines such as MySQL.
-* Supports paramterized queries for safe value escaping.
-* Can be customized to build any query or command of your choosing.
-* Uses method chaining for ease of use.
-* Small: ~7 KB minified and gzipped
-* And much more, [see the guide..](https://hiddentao.github.io/squel)
+- Written in TypeScript with first-class type definitions.
+- Works in Node.js and the browser.
+- Supports the standard SQL queries: `SELECT`, `UPDATE`, `INSERT`, `DELETE`.
+- Supports non-standard commands for MySQL, PostgreSQL, and Microsoft SQL Server.
+- Supports parameterized queries for safe value escaping.
+- Extensible &mdash; build any custom query or command you need.
+- Fluent method-chaining API.
+- Ships as dual ESM + CommonJS with a minified IIFE bundle for CDN use.
 
-**WARNING: Do not ever pass queries generated on the client side to your web server for execution.** Such a configuration would make it trivial for a casual attacker to execute arbitrary queries&mdash;as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
+> **Warning:** Do not ever pass queries generated on the client side to your web server for execution. Such a configuration would make it trivial for a casual attacker to execute arbitrary queries &mdash; as with an SQL-injection vector, but much easier to exploit and practically impossible to protect against.
 
-_Note: Squel is suitable for production use, but you may wish to consider more
-actively developed alternatives such as [Knex](http://knexjs.org/)_
+Squel is suitable for production use. If you want richer ORM features you may also want to consider [Knex](https://knexjs.org/).
 
 ## Installation
 
-Install using [npm](http://npmjs.org/):
-
 ```bash
-$ npm install squel
+# npm
+npm install squel
+
+# bun
+bun add squel
+
+# yarn
+yarn add squel
+
+# pnpm
+pnpm add squel
 ```
 
-## Available files
+Squel requires Node.js 18 or newer.
 
-* `squel.js` - unminified version of Squel with the standard commands and all available non-standard commands added
-* `squel.min.js` - minified version of `squel.js`
-* `squel-basic.js` - unminified version of Squel with only the standard SQL commands
-* `squel-basic.min.js` - minified version of `squel-basic.js`
+## Usage
 
+### ESM / TypeScript
+
+```typescript
+import squel from "squel"
+
+const query = squel.select().from("books").field("title").toString()
+```
+
+### CommonJS
+
+```javascript
+const squel = require("squel").default
+// or: const { squel } = require("squel")
+
+const query = squel.select().from("books").field("title").toString()
+```
+
+### Browser (CDN)
+
+```html
+<script src="https://unpkg.com/squel/dist/browser/squel.min.js"></script>
+<script>
+  // `squel` is available on the global scope
+  const query = squel.select().from("books").field("title").toString()
+</script>
+```
+
+## Package layout
+
+The published package contains:
+
+- `dist/esm/` &mdash; ES module build (`import squel from "squel"`).
+- `dist/cjs/` &mdash; CommonJS build (`require("squel")`).
+- `dist/types/` &mdash; TypeScript declaration files.
+- `dist/browser/squel.min.js` &mdash; minified IIFE bundle for `<script>` tags (exposes `window.squel`).
 
 ## Examples
-
-Before running the examples ensure you have `squel` installed and enabled at the top of your script:
-
-    var squel = require("squel");
 
 ### SELECT
 
@@ -84,10 +115,10 @@ squel.select({ autoQuoteFieldNames: true })
 
 You can build parameterized queries:
 
-```js
+```javascript
 /*
 {
-    text: "SELECT `t1`.`id`, `t1`.`name` as "My name", `t1`.`started` as "Date" FROM table `t1` WHERE age IN (RANGE(?, ?)) ORDER BY id ASC LIMIT 20",
+    text: "SELECT `t1`.`id`, `t1`.`name` as \"My name\", `t1`.`started` as \"Date\" FROM table `t1` WHERE age IN (RANGE(?, ?)) ORDER BY id ASC LIMIT 20",
     values: [1, 1.2]
 }
 */
@@ -102,15 +133,14 @@ squel.select({ autoQuoteFieldNames: true })
     .toParam()
 ```
 
-
 You can use nested queries:
 
 ```javascript
 // SELECT s.id FROM (SELECT * FROM students) `s` INNER JOIN (SELECT id FROM marks) `m` ON (m.id = s.id)
 squel.select()
-    .from( squel.select().from('students'), 's' )
-    .field('id')
-    .join( squel.select().from('marks').field('id'), 'm', 'm.id = s.id' )
+    .from(squel.select().from("students"), "s")
+    .field("id")
+    .join(squel.select().from("marks").field("id"), "m", "m.id = s.id")
     .toString()
 ```
 
@@ -129,11 +159,11 @@ squel.update()
     .set("test.id", 1)
     .table("test2")
     .set("test2.val", 1.2)
-    .table("test3","a")
+    .table("test3", "a")
     .setFields({
         "a.name": "Ram",
         "a.email": null,
-        "a.count = a.count + 1": undefined
+        "a.count = a.count + 1": undefined,
     })
     .toString()
 ```
@@ -141,58 +171,27 @@ squel.update()
 ### INSERT
 
 ```javascript
-// INSERT INTO test (f1) VALUES (1)
+// INSERT INTO test (f1, f2) VALUES (1, 1.2)
 squel.insert()
     .into("test")
     .set("f1", 1)
-    .toString()
-
-// INSERT INTO test (name, age) VALUES ('Thomas', 29), ('Jane', 31)
-squel.insert()
-    .into("test")
-    .setFieldsRows([
-        { name: "Thomas", age: 29 },
-        { name: "Jane", age: 31 }
-    ])
+    .set("f2", 1.2)
     .toString()
 ```
 
 ### DELETE
 
 ```javascript
-// DELETE FROM test
+// DELETE FROM test WHERE (f1 = 2) ORDER BY f2 LIMIT 1
 squel.delete()
     .from("test")
+    .where("f1 = 2")
+    .order("f2")
+    .limit(1)
     .toString()
-
-// DELETE FROM table1 WHERE (table1.id = 2) ORDER BY id DESC LIMIT 2
-squel.delete()
-    .from("table1")
-    .where("table1.id = ?", 2)
-    .order("id", false)
-    .limit(2)
 ```
-
-### Paramterized queries
-
-Use the `useParam()` method to obtain a parameterized query with a separate list of formatted parameter values:
-
-```javascript
-// { text: "INSERT INTO test (f1, f2, f3, f4, f5) VALUES (?, ?, ?, ?, ?)", values: [1, 1.2, "TRUE", "blah", "NULL"] }
-squel.insert()
-    .into("test")
-    .set("f1", 1)
-    .set("f2", 1.2)
-    .set("f3", true)
-    .set("f4", "blah")
-    .set("f5", null)
-    .toParam()
-```
-
 
 ### Expression builder
-
-There is also an expression builder which allows you to build complex expressions for `WHERE` and `ON` clauses:
 
 ```javascript
 // test = 3 OR test = 4
@@ -215,168 +214,141 @@ squel.expr()
             .and("inner = ?", 4)
             .or(
                 squel.expr()
-                    .and("inner IN ?", ['str1', 'str2', null])
+                    .and("inner IN ?", ["str1", "str2", null])
             )
     )
     .toString()
 
 // SELECT * FROM test INNER JOIN test2 ON (test.id = test2.id) WHERE (test = 3 OR test = 4)
 squel.select()
-    .join( "test2", null, squel.expr().and("test.id = test2.id") )
-    .where( squel.expr().or("test = 3").or("test = 4") )
+    .join("test2", null, squel.expr().and("test.id = test2.id"))
+    .where(squel.expr().or("test = 3").or("test = 4"))
+    .toString()
 ```
 
 ### Custom value types
 
-By default Squel does not support the use of object instances as field values. Instead it lets you tell it how you want
-specific object types to be handled:
+By default Squel does not support the use of object instances as field values. Instead it lets you tell it how you want specific object types to be handled:
 
 ```javascript
 // handler for objects of type Date
-squel.registerValueHandler(Date, function(date) {
-  return date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-});
+squel.registerValueHandler(Date, (date) => {
+    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
+})
 
-squel.update().
-  .table('students')
-  .set('start_date', new Date(2013, 5, 1))
-  .toString()
+squel.update()
+    .table("students")
+    .set("start_date", new Date(2013, 5, 1))
+    .toString()
 
 // UPDATE students SET start_date = '2013/6/1'
 ```
 
-
-_Note that custom value handlers can be overridden on a per-instance basis (see the [docs](https://hiddentao.github.io/squel))_
+Custom value handlers can also be overridden on a per-instance basis (see the [docs](https://hiddentao.github.io/squel)).
 
 ### Custom queries
 
-Squel allows you to override the built-in query builders with your own as well as create your own types of queries:
+Squel lets you extend the built-in query builders or create entirely new kinds of queries:
 
 ```javascript
-// ------------------------------------------------------
-// Setup the PRAGMA query builder
-// ------------------------------------------------------
-var util = require('util');   // to use util.inherits() from node.js
-
-var CommandBlock = function() {};
-util.inherits(CommandBlock, squel.cls.Block);
-
-// private method - will not get exposed within the query builder
-CommandBlock.prototype._command = function(_command) {
-  this._command = _command;
+class CommandBlock extends squel.cls.Block {
+    command(command, arg) {
+        this._command = command
+        this._arg = arg
+    }
+    compress(level) {
+        this.command("compress", level)
+    }
+    _toParamString(options) {
+        let text = this._command.toUpperCase()
+        const values = []
+        if (options.buildParameterized) {
+            text += " ?"
+            values.push(this._arg)
+        } else {
+            text += ` ${this._arg}`
+        }
+        return { text, values }
+    }
 }
 
-// public method - will get exposed within the query builder
-CommandBlock.prototype.compress = function() {
-  this._command('compress');
-};
+class PragmaQuery extends squel.cls.QueryBuilder {
+    constructor(options) {
+        super(options, [
+            new squel.cls.StringBlock(options, "PRAGMA"),
+            new CommandBlock(options),
+        ])
+    }
+}
 
-CommandBlock.prototype.buildStr = function() {
-  return this._command.toUpperCase();
-};
+squel.pragma = (options) => new PragmaQuery(options)
 
+squel.pragma().compress(9).toString()
+// 'PRAGMA COMPRESS 9'
 
-// generic parameter block
-var ParamBlock = function() {};
-util.inherits(ParamBlock, squel.cls.Block);
-
-ParamBlock.prototype.param = function(p) {
-  this._p = p;
-};
-
-ParamBlock.prototype.buildStr = function() {
-  return this._p;
-};
-
-
-// pragma query builder
-var PragmaQuery = function(options) {
-  squel.cls.QueryBuilder.call(this, options, [
-      new squel.cls.StringBlock(options, 'PRAGMA'),
-      new CommandBlock(),
-      new ParamBlock()
-  ]);
-};
-util.inherits(PragmaQuery, squel.cls.QueryBuilder);
-
-
-// convenience method (we can override built-in squel methods this way too)
-squel.pragma = function(options) {
-  return new PragmaQuery(options)
-};
-
-
-// ------------------------------------------------------
-// Build a PRAGMA query
-// ------------------------------------------------------
-
-squel.pragma()
-  .compress()
-  .param('test')
-  .toString();
-
-// 'PRAGMA COMPRESS test'
+squel.pragma().compress(9).toParam()
+// { text: 'PRAGMA COMPRESS ?', values: [9] }
 ```
 
-Examples of custom queries in the wild:
+## Non-standard SQL flavours
 
- * https://github.com/bostrt/squel-top-start-at (blog post about it: http://blog.bostrt.net/extending-squel-js/)
+Squel supports the standard SQL commands and reserved words. A number of database engines provide their own non-standard commands; Squel makes it easy to load different "flavours" of SQL that augment the core builders with engine-specific features.
 
-
-## Non-standard SQL
-
-Squel supports the standard SQL commands and reserved words. However a number of database engines provide their own
-non-standard commands. To make things easy Squel allows for different 'flavours' of SQL to be loaded and used.
-
-At the moment Squel provides `mysql`, `mssql` and `postgres` flavours which augment query builders with additional commands (e.g. `INSERT ... RETURNING`
-for use with Postgres).
-
-To use this in node.js:
+Available flavours: `mysql`, `mssql`, `postgres` (e.g. `INSERT ... RETURNING` for Postgres, `ON DUPLICATE KEY UPDATE` for MySQL).
 
 ```javascript
-var squel = require('squel').useFlavour('postgres');
+import squel from "squel"
+
+const pg = squel.useFlavour("postgres")
+const mysql = squel.useFlavour("mysql")
+const mssql = squel.useFlavour("mssql")
 ```
 
-For the browser:
+For browser use:
 
 ```html
-<script type="text/javascript" src="https://rawgithub.com/hiddentao/squel/master/squel.min.js"></script>
-<script type="text/javascript">
-  squel = squel.useFlavour('postgres');
+<script src="https://unpkg.com/squel/dist/browser/squel.min.js"></script>
+<script>
+  const pg = squel.useFlavour("postgres")
 </script>
 ```
 
-(Internally the flavour setup method simply utilizes the [custom query mechanism](http://hiddentao.github.io/squel/#custom_queries) to effect changes).
+See the [API docs](http://hiddentao.github.io/squel/api.html) for a full reference.
 
-Read the the [API docs](http://hiddentao.github.io/squel/api.html) to find out available commands. Flavours of SQL which get added to
-Squel in the future will be usable in the above manner.
+## Migrating from v5
 
-## Building it
+v6.0.0 is a modernization release. The public API is unchanged &mdash; all your existing `squel.select()`, `squel.useFlavour('postgres')`, and related calls continue to work.
 
-To build the code and run the tests:
+The breaking changes are all about **package shape**:
 
-    $ npm install
-    $ npm test <-- this will build the code and run the tests
+- **Engines:** `engines.node` is now `>=18`. If you need support for older runtimes, stay on v5.
+- **Output layout:** the `squel.js` / `squel.min.js` / `squel-basic.js` / `squel-basic.min.js` UMD bundles have been replaced. Consumers now import from `dist/esm/`, `dist/cjs/`, or the IIFE at `dist/browser/squel.min.js` (see the [Package layout](#package-layout) section).
+- **No separate "basic" bundle.** The main entry point includes all flavours. ESM users benefit from tree-shaking; script-tag users get the single IIFE.
+- **UMD dropped.** If you loaded `squel.min.js` via `<script>`, switch to `dist/browser/squel.min.js` (same global `window.squel`).
 
-## Releasing it
+## Development
 
-Instructions for creating a new release of squel are in `RELEASE.md`.
+```bash
+bun install          # install dependencies
+bun run check        # lint & format check (biome)
+bun run typecheck    # TypeScript type checking
+bun test             # run the test suite
+bun run build        # produce dist/esm, dist/cjs, dist/types, dist/browser
+```
 
+## Releasing
+
+Releases are automated. Landing a conventional commit on `master` triggers the release workflow, which bumps the version, updates `CHANGELOG.md`, creates a tag, and publishes to npm with provenance. See [`RELEASE.md`](RELEASE.md) for details.
 
 ## Contributing
 
-Contributions are welcome! Please see `CONTRIBUTING.md`.
-
-## Older verions
-
-**Note: The latest Squel version only works on Node 0.12 or above. Please use Squel 4.4.1 for Node <0.12. The [old 4.x docs](http://hiddentao.github.io/squel/v4/index.html) are also still available.**
-
+Contributions are welcome! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Ports to other languages
 
-* .NET - https://github.com/seymourpoler/Squel.net
-* Crystal - https://github.com/seymourpoler/Squel.crystal
+- .NET &mdash; https://github.com/seymourpoler/Squel.net
+- Crystal &mdash; https://github.com/seymourpoler/Squel.crystal
 
 ## License
 
-MIT - see LICENSE.md
+MIT &mdash; see [`LICENSE.md`](LICENSE.md).
