@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 6.0.1 (2026-04-14)
+
 ## 6.0.0
 
 This is a modernization release. The public API is unchanged &mdash; existing calls to `squel.select()`, `squel.useFlavour("postgres")`, and friends continue to work.
