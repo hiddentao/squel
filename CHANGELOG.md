@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [6.0.4](https://github.com/hiddentao/squel/compare/v6.0.3...v6.0.4) (2026-04-14)
+
+
+### Documentation
+
+* add coveralls badge and scope ci badge to master ([#401](https://github.com/hiddentao/squel/issues/401)) ([e7cd480](https://github.com/hiddentao/squel/commit/e7cd480159149db97b48b5dd2262002528f8abbe))
+
 ## [6.0.3](https://github.com/hiddentao/squel/compare/v6.0.2...v6.0.3) (2026-04-14)
 
 ## [6.0.2](https://github.com/hiddentao/squel/compare/v6.0.1...v6.0.2) (2026-04-14)
