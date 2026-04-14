@@ -1,4 +1,24 @@
-# Changelog for [squel](https://github.com/hiddentao/squel)
+# Changelog
+
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## 6.0.0
+
+This is a modernization release. The public API is unchanged &mdash; existing calls to `squel.select()`, `squel.useFlavour("postgres")`, and friends continue to work.
+
+### Breaking Changes
+
+* `engines.node` raised to `>=18` (from `>=0.12`).
+* Package shape changed: the `squel.js` / `squel.min.js` / `squel-basic.js` / `squel-basic.min.js` UMD bundles are replaced by `dist/esm/`, `dist/cjs/`, and `dist/browser/squel.min.js` (IIFE for CDN / script tags).
+* The separate "basic" bundle is gone &mdash; the main entry contains all flavours. ESM tree-shaking removes unused flavours for bundler users.
+
+### Features
+
+* Source rewritten in TypeScript with first-class type declarations generated from source (no more hand-maintained `.d.ts`).
+* Dual CJS + ESM output with conditional `exports` map.
+* Biome for lint + format; Bun as the toolchain; bun:test for tests.
+* GitHub Actions CI and automated releases on `master` via commit-and-tag-version with npm provenance.
+* Conventional Commits enforced via husky + commitlint.
 
 ## 28 Jul 2020 (5.13.1)
 * Deprecate in NPM (#384)

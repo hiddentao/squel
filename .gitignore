@@ -1,6 +1,29 @@
-*.iml
-.idea/
+# Dependencies
 node_modules/
-.sass-cache/
-docs/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Coverage
+coverage/
+.nyc_output/
 test-coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
