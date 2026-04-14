@@ -1,6 +1,7 @@
 # squel &mdash; SQL query string builder
 
-[![CI](https://github.com/hiddentao/squel/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/hiddentao/squel/actions/workflows/ci.yml)
+[![CI](https://github.com/hiddentao/squel/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/hiddentao/squel/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Coverage Status](https://coveralls.io/repos/github/hiddentao/squel/badge.svg?branch=master)](https://coveralls.io/github/hiddentao/squel?branch=master)
 [![npm version](https://badge.fury.io/js/squel.svg)](https://www.npmjs.com/package/squel)
 [![NPM downloads](https://img.shields.io/npm/dm/squel.svg)](https://www.npmjs.com/package/squel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
