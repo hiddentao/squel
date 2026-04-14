@@ -77,12 +77,24 @@ jobs:
           PREV=$(node -p "require('./package.json').version")
           bunx commit-and-tag-version
           NEXT=$(node -p "require('./package.json').version")
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           if [ "$PREV" = "$NEXT" ]; then
             echo "released=false" >> "$GITHUB_OUTPUT"
-            echo "No release-worthy changes since last tag; skipping push and publish."
+            echo "No release-worthy changes since last tag; will only publish if ${NEXT} is missing from npm."
           else
             echo "released=true" >> "$GITHUB_OUTPUT"
-            echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check if current version is already on npm
+        id: npm-check
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          if npm view "squel@${VERSION}" version >/dev/null 2>&1; then
+            echo "needs_publish=false" >> "$GITHUB_OUTPUT"
+            echo "squel@${VERSION} already on npm; skipping publish."
+          else
+            echo "needs_publish=true" >> "$GITHUB_OUTPUT"
+            echo "squel@${VERSION} not on npm yet; will publish."
           fi
 
       - name: Push release commit and tag
@@ -90,5 +102,5 @@ jobs:
         run: git push --follow-tags origin HEAD:master
 
       - name: Publish to npm
-        if: steps.bump.outputs.released == 'true'
+        if: steps.npm-check.outputs.needs_publish == 'true'
         run: npm publish --provenance --access public
