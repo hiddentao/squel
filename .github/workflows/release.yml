@@ -75,14 +75,26 @@ jobs:
         id: bump
         run: |
           PREV=$(node -p "require('./package.json').version")
-          bunx commit-and-tag-version
-          NEXT=$(node -p "require('./package.json').version")
-          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
-          if [ "$PREV" = "$NEXT" ]; then
-            echo "released=false" >> "$GITHUB_OUTPUT"
-            echo "No release-worthy changes since last tag; will only publish if ${NEXT} is missing from npm."
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "")
+          RUN_BUMP="false"
+          if [ -z "$LAST_TAG" ]; then
+            RUN_BUMP="true"
+          elif git log "${LAST_TAG}..HEAD" --pretty=format:'%s%n%b' | grep -qE '^(feat|fix|perf)[(!:]|^BREAKING[- ]CHANGE:'; then
+            RUN_BUMP="true"
+          fi
+          if [ "$RUN_BUMP" = "true" ]; then
+            bunx commit-and-tag-version
+            NEXT=$(node -p "require('./package.json').version")
+            echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+            if [ "$PREV" = "$NEXT" ]; then
+              echo "released=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "released=true" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "version=$PREV" >> "$GITHUB_OUTPUT"
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            echo "No feat/fix/perf/BREAKING commits since ${LAST_TAG}; skipping bump. Will only publish if ${PREV} is missing from npm."
           fi
 
       - name: Check if current version is already on npm
