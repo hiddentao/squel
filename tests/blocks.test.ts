@@ -1,512 +1,497 @@
-import { spyOn } from "bun:test"
+import { beforeEach, describe, expect, it, spyOn } from "bun:test"
 import squel from "../src/index"
-import { assert, _, run } from "./testbase"
 
-run("Blocks", {
-  "Block base class": {
-    beforeEach(this: any) {
-      this.inst = new squel.cls.Block()
-    },
+function isEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
 
-    "instanceof of BaseBuilder"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.BaseBuilder)
-    },
+describe("Blocks", () => {
+  describe("Block base class", () => {
+    let inst: any
 
-    options(this: any) {
-      const expectedOptions = _.extend(
-        {},
-        squel.cls.DefaultQueryBuilderOptions,
-        {
-          usingValuePlaceholders: true,
-          dummy: true,
-        } as any,
-      )
+    beforeEach(() => {
+      inst = new squel.cls.Block()
+    })
 
-      this.inst = new squel.cls.Block({
+    it("instanceof of BaseBuilder", () => {
+      expect(inst).toBeInstanceOf(squel.cls.BaseBuilder)
+    })
+
+    it("options", () => {
+      const expectedOptions = {
+        ...squel.cls.DefaultQueryBuilderOptions,
+        usingValuePlaceholders: true,
+        dummy: true,
+      }
+      inst = new squel.cls.Block({
         usingValuePlaceholders: true,
         dummy: true,
       } as any)
+      expect(inst.options).toEqual(expectedOptions)
+    })
 
-      assert.same(expectedOptions, this.inst.options)
-    },
+    it("_toParamString()", () => {
+      expect(() => inst.toString()).toThrow("Not yet implemented")
+    })
 
-    "_toParamString()"(this: any) {
-      assert.throws(() => this.inst.toString(), "Not yet implemented")
-    },
-
-    "exposedMethods()": {
-      "returns methods"(this: any) {
-        this.inst.method1 = () => false
-        this.inst.method2 = () => false
-
-        const names: string[] = []
-        for (const name in this.inst.exposedMethods()) names.push(name)
-        assert.ok(["method1", "method2"], names as any)
-      },
-
-      "ignores methods prefixed with _"(this: any) {
-        this.inst._method = () => false
+    describe("exposedMethods()", () => {
+      it("returns methods", () => {
+        inst.method1 = () => false
+        inst.method2 = () => false
 
         const names: string[] = []
-        for (const name in this.inst.exposedMethods()) names.push(name)
-        assert.ok(
-          undefined === _.find(names, (name: string) => name === "_method"),
-        )
-      },
+        for (const name in inst.exposedMethods()) names.push(name)
+        expect(names).toEqual(["method1", "method2"])
+      })
 
-      "ignores toString()"(this: any) {
+      it("ignores methods prefixed with _", () => {
+        inst._method = () => false
         const names: string[] = []
-        for (const name in this.inst.exposedMethods()) names.push(name)
-        assert.ok(
-          undefined === _.find(names, (name: string) => name === "toString"),
-        )
-      },
-    },
+        for (const name in inst.exposedMethods()) names.push(name)
+        expect(names.find((name: string) => name === "_method")).toBeUndefined()
+      })
 
-    "cloning copies the options over"(this: any) {
-      this.inst.options.dummy = true
+      it("ignores toString()", () => {
+        const names: string[] = []
+        for (const name in inst.exposedMethods()) names.push(name)
+        expect(
+          names.find((name: string) => name === "toString"),
+        ).toBeUndefined()
+      })
+    })
 
-      const newinst = this.inst.clone()
+    it("cloning copies the options over", () => {
+      inst.options.dummy = true
+      const newinst = inst.clone()
+      inst.options.dummy = false
+      expect(newinst.options.dummy).toBe(true)
+    })
+  })
 
-      this.inst.options.dummy = false
+  describe("StringBlock", () => {
+    let Cls: any
+    let inst: any
 
-      assert.same(true, newinst.options.dummy)
-    },
-  },
+    beforeEach(() => {
+      Cls = squel.cls.StringBlock
+      inst = new Cls()
+    })
 
-  StringBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.StringBlock
-      this.inst = new this.cls()
-    },
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    describe("_toParamString()", () => {
+      it("non-parameterized", () => {
+        inst = new Cls({}, "TAG")
+        expect(inst._toParamString()).toEqual({ text: "TAG", values: [] })
+      })
 
-    "_toParamString()": {
-      "non-parameterized"(this: any) {
-        this.inst = new this.cls({}, "TAG")
-
-        assert.same(this.inst._toParamString(), {
+      it("parameterized", () => {
+        inst = new Cls({}, "TAG")
+        expect(inst._toParamString({ buildParameterized: true })).toEqual({
           text: "TAG",
           values: [],
         })
-      },
-      parameterized(this: any) {
-        this.inst = new this.cls({}, "TAG")
+      })
+    })
+  })
 
-        assert.same(this.inst._toParamString({ buildParameterized: true }), {
-          text: "TAG",
-          values: [],
-        })
-      },
-    },
-  },
+  describe("FunctionBlock", () => {
+    let Cls: any
+    let inst: any
 
-  FunctionBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.FunctionBlock
-      this.inst = new this.cls()
-    },
+    beforeEach(() => {
+      Cls = squel.cls.FunctionBlock
+      inst = new Cls()
+    })
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-    "initial member values"(this: any) {
-      assert.same([], this.inst._values)
-      assert.same([], this.inst._strings)
-    },
+    it("initial member values", () => {
+      expect(inst._values).toEqual([])
+      expect(inst._strings).toEqual([])
+    })
 
-    "_toParamString()": {
-      "when not set"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
-        })
-      },
-      "non-parameterized"(this: any) {
-        this.inst.function("bla")
-        this.inst.function("bla2")
+    describe("_toParamString()", () => {
+      it("when not set", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
 
-        assert.same(this.inst._toParamString(), {
+      it("non-parameterized", () => {
+        inst.function("bla")
+        inst.function("bla2")
+        expect(inst._toParamString()).toEqual({
           text: "bla bla2",
           values: [],
         })
-      },
-      parameterized(this: any) {
-        this.inst.function("bla ?", 2)
-        this.inst.function("bla2 ?", 3)
+      })
 
-        assert.same(this.inst._toParamString({ buildParameterized: true }), {
+      it("parameterized", () => {
+        inst.function("bla ?", 2)
+        inst.function("bla2 ?", 3)
+        expect(inst._toParamString({ buildParameterized: true })).toEqual({
           text: "bla ? bla2 ?",
           values: [2, 3],
         })
-      },
-    },
-  },
+      })
+    })
+  })
 
-  AbstractTableBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.AbstractTableBlock
-      this.inst = new this.cls()
-    },
+  describe("AbstractTableBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.AbstractTableBlock
+      inst = new Cls()
+    })
 
-    "initial field values"(this: any) {
-      assert.same([], this.inst._tables)
-    },
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-    "has table": {
-      no(this: any) {
-        assert.same(false, this.inst._hasTable())
-      },
-      yes(this: any) {
-        this.inst._table("blah")
-        assert.same(true, this.inst._hasTable())
-      },
-    },
+    it("initial field values", () => {
+      expect(inst._tables).toEqual([])
+    })
 
-    "_table()": {
-      "saves inputs"(this: any) {
-        this.inst._table("table1")
-        this.inst._table("table2", "alias2")
-        this.inst._table("table3")
+    describe("has table", () => {
+      it("no", () => {
+        expect(inst._hasTable()).toBe(false)
+      })
 
-        const expectedFroms = [
+      it("yes", () => {
+        inst._table("blah")
+        expect(inst._hasTable()).toBe(true)
+      })
+    })
+
+    describe("_table()", () => {
+      it("saves inputs", () => {
+        inst._table("table1")
+        inst._table("table2", "alias2")
+        inst._table("table3")
+
+        expect(inst._tables).toEqual([
           { table: "table1", alias: null },
           { table: "table2", alias: "alias2" },
           { table: "table3", alias: null },
-        ]
+        ])
+      })
 
-        assert.same(expectedFroms, this.inst._tables)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeTableSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeTable",
         ).mockReturnValue("_t")
         const sanitizeAliasSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeTableAlias",
         ).mockReturnValue("_a")
 
         try {
-          this.inst._table("table", "alias")
+          inst._table("table", "alias")
 
-          assert.ok(
+          expect(
             sanitizeTableSpy.mock.calls.some((c: any) => c[0] === "table"),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeAliasSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "alias",
             ),
-          )
+          ).toBe(true)
 
-          assert.same([{ table: "_t", alias: "_a" }], this.inst._tables)
+          expect(inst._tables).toEqual([{ table: "_t", alias: "_a" }])
         } finally {
           sanitizeTableSpy.mockRestore()
           sanitizeAliasSpy.mockRestore()
         }
-      },
+      })
 
-      "handles single-table mode"(this: any) {
-        this.inst.options.singleTable = true
+      it("handles single-table mode", () => {
+        inst.options.singleTable = true
+        inst._table("table1")
+        inst._table("table2")
+        inst._table("table3")
+        expect(inst._tables).toEqual([{ table: "table3", alias: null }])
+      })
 
-        this.inst._table("table1")
-        this.inst._table("table2")
-        this.inst._table("table3")
-
-        const expected = [{ table: "table3", alias: null }]
-
-        assert.same(expected, this.inst._tables)
-      },
-
-      "builder as table"(this: any) {
-        const sanitizeTableSpy = spyOn(this.cls.prototype, "_sanitizeTable")
-
+      it("builder as table", () => {
+        const sanitizeTableSpy = spyOn(Cls.prototype, "_sanitizeTable")
         try {
           const innerTable1 = squel.select()
           const innerTable2 = squel.select()
+          inst._table(innerTable1)
+          inst._table(innerTable2, "Inner2")
 
-          this.inst._table(innerTable1)
-          this.inst._table(innerTable2, "Inner2")
-
-          assert.ok(
+          expect(
             sanitizeTableSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === innerTable1,
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeTableSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === innerTable2,
             ),
-          )
+          ).toBe(true)
 
-          const expected = [
+          expect(inst._tables).toEqual([
             { alias: null, table: innerTable1 },
             { alias: "Inner2", table: innerTable2 },
-          ]
-
-          assert.same(expected, this.inst._tables)
+          ])
         } finally {
           sanitizeTableSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      beforeEach(this: any) {
-        this.innerTable1 = squel.select().from("inner1").where("a = ?", 3)
-      },
+    describe("_toParamString()", () => {
+      let innerTable1: any
 
-      "no table"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
-        })
-      },
+      beforeEach(() => {
+        innerTable1 = squel.select().from("inner1").where("a = ?", 3)
+      })
 
-      prefix(this: any) {
-        this.inst.options.prefix = "TEST"
+      it("no table", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
 
-        this.inst._table("table2", "alias2")
-
-        assert.same(this.inst._toParamString(), {
+      it("prefix", () => {
+        inst.options.prefix = "TEST"
+        inst._table("table2", "alias2")
+        expect(inst._toParamString()).toEqual({
           text: "TEST table2 `alias2`",
           values: [],
         })
-      },
+      })
 
-      "non-parameterized"(this: any) {
-        this.inst._table(this.innerTable1)
-        this.inst._table("table2", "alias2")
-        this.inst._table("table3")
-
-        assert.same(this.inst._toParamString(), {
+      it("non-parameterized", () => {
+        inst._table(innerTable1)
+        inst._table("table2", "alias2")
+        inst._table("table3")
+        expect(inst._toParamString()).toEqual({
           text: "(SELECT * FROM inner1 WHERE (a = 3)), table2 `alias2`, table3",
           values: [],
         })
-      },
-      parameterized(this: any) {
-        this.inst._table(this.innerTable1)
-        this.inst._table("table2", "alias2")
-        this.inst._table("table3")
+      })
 
-        assert.same(this.inst._toParamString({ buildParameterized: true }), {
+      it("parameterized", () => {
+        inst._table(innerTable1)
+        inst._table("table2", "alias2")
+        inst._table("table3")
+        expect(inst._toParamString({ buildParameterized: true })).toEqual({
           text: "(SELECT * FROM inner1 WHERE (a = ?)), table2 `alias2`, table3",
           values: [3],
         })
-      },
-    },
-  },
+      })
+    })
+  })
 
-  FromTableBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.FromTableBlock
-      this.inst = new this.cls()
-    },
+  describe("FromTableBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "check prefix"(this: any) {
-      assert.same(this.inst.options.prefix, "FROM")
-    },
+    beforeEach(() => {
+      Cls = squel.cls.FromTableBlock
+      inst = new Cls()
+    })
 
-    "instanceof of AbstractTableBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractTableBlock)
-    },
+    it("check prefix", () => {
+      expect(inst.options.prefix).toBe("FROM")
+    })
 
-    "from()": {
-      "calls base class handler"(this: any) {
+    it("instanceof of AbstractTableBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractTableBlock)
+    })
+
+    describe("from()", () => {
+      it("calls base class handler", () => {
         const baseMethodSpy = spyOn(
           squel.cls.AbstractTableBlock.prototype,
           "_table",
         ).mockImplementation(() => undefined)
-
         try {
-          this.inst.from("table1")
-          this.inst.from("table2", "alias2")
-
-          assert.same(2, baseMethodSpy.mock.calls.length)
-          assert.ok(
+          inst.from("table1")
+          inst.from("table2", "alias2")
+          expect(baseMethodSpy.mock.calls.length).toBe(2)
+          expect(
             baseMethodSpy.mock.calls.some(
               (c: any) => c.length === 2 && c[0] === "table1" && c[1] === null,
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             baseMethodSpy.mock.calls.some(
               (c: any) =>
                 c.length === 2 && c[0] === "table2" && c[1] === "alias2",
             ),
-          )
+          ).toBe(true)
         } finally {
           baseMethodSpy.mockRestore()
         }
-      },
-    },
-  },
+      })
+    })
+  })
 
-  UpdateTableBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.UpdateTableBlock
-      this.inst = new this.cls()
-    },
+  describe("UpdateTableBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of AbstractTableBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractTableBlock)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.UpdateTableBlock
+      inst = new Cls()
+    })
 
-    "check prefix"(this: any) {
-      assert.same(this.inst.options.prefix, undefined)
-    },
+    it("instanceof of AbstractTableBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractTableBlock)
+    })
 
-    "table()": {
-      "calls base class handler"(this: any) {
+    it("check prefix", () => {
+      expect(inst.options.prefix).toBeUndefined()
+    })
+
+    describe("table()", () => {
+      it("calls base class handler", () => {
         const baseMethodSpy = spyOn(
           squel.cls.AbstractTableBlock.prototype,
           "_table",
         ).mockImplementation(() => undefined)
-
         try {
-          this.inst.table("table1")
-          this.inst.table("table2", "alias2")
-
-          assert.same(2, baseMethodSpy.mock.calls.length)
-          assert.ok(
+          inst.table("table1")
+          inst.table("table2", "alias2")
+          expect(baseMethodSpy.mock.calls.length).toBe(2)
+          expect(
             baseMethodSpy.mock.calls.some(
               (c: any) => c.length === 2 && c[0] === "table1" && c[1] === null,
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             baseMethodSpy.mock.calls.some(
               (c: any) =>
                 c.length === 2 && c[0] === "table2" && c[1] === "alias2",
             ),
-          )
+          ).toBe(true)
         } finally {
           baseMethodSpy.mockRestore()
         }
-      },
-    },
-  },
+      })
+    })
+  })
 
-  TargetTableBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.TargetTableBlock
-      this.inst = new this.cls()
-    },
+  describe("TargetTableBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of AbstractTableBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractTableBlock)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.TargetTableBlock
+      inst = new Cls()
+    })
 
-    "check prefix"(this: any) {
-      assert.same(this.inst.options.prefix, undefined)
-    },
+    it("instanceof of AbstractTableBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractTableBlock)
+    })
 
-    "table()": {
-      "calls base class handler"(this: any) {
+    it("check prefix", () => {
+      expect(inst.options.prefix).toBeUndefined()
+    })
+
+    describe("table()", () => {
+      it("calls base class handler", () => {
         const baseMethodSpy = spyOn(
           squel.cls.AbstractTableBlock.prototype,
           "_table",
         ).mockImplementation(() => undefined)
-
         try {
-          this.inst.target("table1")
-          this.inst.target("table2")
-
-          assert.same(2, baseMethodSpy.mock.calls.length)
-          assert.ok(
+          inst.target("table1")
+          inst.target("table2")
+          expect(baseMethodSpy.mock.calls.length).toBe(2)
+          expect(
             baseMethodSpy.mock.calls.some((c: any) => c[0] === "table1"),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             baseMethodSpy.mock.calls.some((c: any) => c[0] === "table2"),
-          )
+          ).toBe(true)
         } finally {
           baseMethodSpy.mockRestore()
         }
-      },
-    },
-  },
+      })
+    })
+  })
 
-  IntoTableBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.IntoTableBlock
-      this.inst = new this.cls()
-    },
+  describe("IntoTableBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of AbstractTableBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractTableBlock)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.IntoTableBlock
+      inst = new Cls()
+    })
 
-    "check prefix"(this: any) {
-      assert.same(this.inst.options.prefix, "INTO")
-    },
+    it("instanceof of AbstractTableBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractTableBlock)
+    })
 
-    "single table"(this: any) {
-      assert.ok(this.inst.options.singleTable)
-    },
+    it("check prefix", () => {
+      expect(inst.options.prefix).toBe("INTO")
+    })
 
-    "into()": {
-      "calls base class handler"(this: any) {
+    it("single table", () => {
+      expect(inst.options.singleTable).toBeTruthy()
+    })
+
+    describe("into()", () => {
+      it("calls base class handler", () => {
         const baseMethodSpy = spyOn(
           squel.cls.AbstractTableBlock.prototype,
           "_table",
         ).mockImplementation(() => undefined)
-
         try {
-          this.inst.into("table1")
-          this.inst.into("table2")
-
-          assert.same(2, baseMethodSpy.mock.calls.length)
-          assert.ok(
+          inst.into("table1")
+          inst.into("table2")
+          expect(baseMethodSpy.mock.calls.length).toBe(2)
+          expect(
             baseMethodSpy.mock.calls.some((c: any) => c[0] === "table1"),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             baseMethodSpy.mock.calls.some((c: any) => c[0] === "table2"),
-          )
+          ).toBe(true)
         } finally {
           baseMethodSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      "requires table to have been provided"(this: any) {
+    describe("_toParamString()", () => {
+      it("requires table to have been provided", () => {
         try {
-          this.inst._toParamString()
+          inst._toParamString()
           throw new Error("should not reach here")
         } catch (err: any) {
-          assert.same("Error: into() needs to be called", err.toString())
+          expect(err.toString()).toBe("Error: into() needs to be called")
         }
-      },
-    },
-  },
+      })
+    })
+  })
 
-  GetFieldBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.GetFieldBlock
-      this.inst = new this.cls()
-    },
+  describe("GetFieldBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.GetFieldBlock
+      inst = new Cls()
+    })
 
-    "fields() - object": {
-      "saves inputs"(this: any) {
-        const fieldSpy = spyOn(this.inst, "field")
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-        this.inst.fields(
-          {
-            field1: null,
-            field2: "alias2",
-            field3: null,
-          },
+    describe("fields() - object", () => {
+      it("saves inputs", () => {
+        const fieldSpy = spyOn(inst, "field")
+        inst.fields(
+          { field1: null, field2: "alias2", field3: null },
           { dummy: true },
         )
 
@@ -516,41 +501,39 @@ run("Blocks", {
           { name: "field3", alias: null, options: { dummy: true } },
         ]
 
-        assert.same(3, fieldSpy.mock.calls.length)
-        assert.ok(
+        expect(fieldSpy.mock.calls.length).toBe(3)
+        expect(
           fieldSpy.mock.calls.some(
             (c: any) =>
               c[0] === "field1" &&
               c[1] === null &&
-              _.isEqual(c[2], { dummy: true }),
+              isEqual(c[2], { dummy: true }),
           ),
-        )
-        assert.ok(
+        ).toBe(true)
+        expect(
           fieldSpy.mock.calls.some(
             (c: any) =>
               c[0] === "field2" &&
               c[1] === "alias2" &&
-              _.isEqual(c[2], { dummy: true }),
+              isEqual(c[2], { dummy: true }),
           ),
-        )
-        assert.ok(
+        ).toBe(true)
+        expect(
           fieldSpy.mock.calls.some(
             (c: any) =>
               c[0] === "field3" &&
               c[1] === null &&
-              _.isEqual(c[2], { dummy: true }),
+              isEqual(c[2], { dummy: true }),
           ),
-        )
+        ).toBe(true)
+        expect(inst._fields).toEqual(expected)
+      })
+    })
 
-        assert.same(expected, this.inst._fields)
-      },
-    },
-
-    "fields() - array": {
-      "saves inputs"(this: any) {
-        const fieldSpy = spyOn(this.inst, "field")
-
-        this.inst.fields(["field1", "field2", "field3"], { dummy: true })
+    describe("fields() - array", () => {
+      it("saves inputs", () => {
+        const fieldSpy = spyOn(inst, "field")
+        inst.fields(["field1", "field2", "field3"], { dummy: true })
 
         const expected = [
           { name: "field1", alias: null, options: { dummy: true } },
@@ -558,911 +541,867 @@ run("Blocks", {
           { name: "field3", alias: null, options: { dummy: true } },
         ]
 
-        assert.same(3, fieldSpy.mock.calls.length)
-        assert.ok(
+        expect(fieldSpy.mock.calls.length).toBe(3)
+        expect(
           fieldSpy.mock.calls.some(
             (c: any) =>
               c[0] === "field1" &&
               c[1] === null &&
-              _.isEqual(c[2], { dummy: true }),
+              isEqual(c[2], { dummy: true }),
           ),
-        )
-        assert.ok(
+        ).toBe(true)
+        expect(
           fieldSpy.mock.calls.some(
             (c: any) =>
               c[0] === "field2" &&
               c[1] === null &&
-              _.isEqual(c[2], { dummy: true }),
+              isEqual(c[2], { dummy: true }),
           ),
-        )
-        assert.ok(
+        ).toBe(true)
+        expect(
           fieldSpy.mock.calls.some(
             (c: any) =>
               c[0] === "field3" &&
               c[1] === null &&
-              _.isEqual(c[2], { dummy: true }),
+              isEqual(c[2], { dummy: true }),
           ),
-        )
+        ).toBe(true)
+        expect(inst._fields).toEqual(expected)
+      })
+    })
 
-        assert.same(expected, this.inst._fields)
-      },
-    },
+    describe("field()", () => {
+      it("saves inputs", () => {
+        inst.field("field1")
+        inst.field("field2", "alias2")
+        inst.field("field3")
 
-    "field()": {
-      "saves inputs"(this: any) {
-        this.inst.field("field1")
-        this.inst.field("field2", "alias2")
-        this.inst.field("field3")
-
-        const expected = [
+        expect(inst._fields).toEqual([
           { name: "field1", alias: null, options: {} },
           { name: "field2", alias: "alias2", options: {} },
           { name: "field3", alias: null, options: {} },
-        ]
+        ])
+      })
+    })
 
-        assert.same(expected, this.inst._fields)
-      },
-    },
+    describe("field() - discard duplicates", () => {
+      it("saves inputs", () => {
+        inst.field("field1")
+        inst.field("field2", "alias2")
+        inst.field("field2", "alias2")
+        inst.field("field1", "alias1")
 
-    "field() - discard duplicates": {
-      "saves inputs"(this: any) {
-        this.inst.field("field1")
-        this.inst.field("field2", "alias2")
-        this.inst.field("field2", "alias2")
-        this.inst.field("field1", "alias1")
-
-        const expected = [
+        expect(inst._fields).toEqual([
           { name: "field1", alias: null, options: {} },
           { name: "field2", alias: "alias2", options: {} },
           { name: "field1", alias: "alias1", options: {} },
-        ]
+        ])
+      })
 
-        assert.same(expected, this.inst._fields)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeField",
         ).mockReturnValue("_f")
         const sanitizeAliasSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeFieldAlias",
         ).mockReturnValue("_a")
 
         try {
-          this.inst.field("field1", "alias1", { dummy: true })
+          inst.field("field1", "alias1", { dummy: true })
 
-          assert.ok(
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "field1",
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeAliasSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "alias1",
             ),
-          )
+          ).toBe(true)
 
-          assert.same(this.inst._fields, [
+          expect(inst._fields).toEqual([
             { name: "_f", alias: "_a", options: { dummy: true } },
           ])
         } finally {
           sanitizeFieldSpy.mockRestore()
           sanitizeAliasSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      beforeEach(this: any) {
-        this.queryBuilder = squel.select()
-        this.fromTableBlock = this.queryBuilder.getBlock(
-          squel.cls.FromTableBlock,
-        )
-      },
+    describe("_toParamString()", () => {
+      let queryBuilder: any
+      let fromTableBlock: any
 
-      "returns all fields when none provided and table is set"(this: any) {
-        this.fromTableBlock._hasTable = () => true
+      beforeEach(() => {
+        queryBuilder = squel.select()
+        fromTableBlock = queryBuilder.getBlock(squel.cls.FromTableBlock)
+      })
 
-        assert.same(
-          this.inst._toParamString({ queryBuilder: this.queryBuilder }),
-          {
-            text: "*",
+      it("returns all fields when none provided and table is set", () => {
+        fromTableBlock._hasTable = () => true
+        expect(inst._toParamString({ queryBuilder })).toEqual({
+          text: "*",
+          values: [],
+        })
+      })
+
+      it("but returns nothing if no table set", () => {
+        fromTableBlock._hasTable = () => false
+        expect(inst._toParamString({ queryBuilder })).toEqual({
+          text: "",
+          values: [],
+        })
+      })
+
+      describe("returns formatted query phrase", () => {
+        beforeEach(() => {
+          fromTableBlock._hasTable = () => true
+          inst.field(squel.str("GETDATE(?)", 3), "alias1")
+          inst.field("field2", "alias2", { dummy: true })
+          inst.field("field3")
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString({ queryBuilder })).toEqual({
+            text: '(GETDATE(3)) AS "alias1", field2 AS "alias2", field3',
             values: [],
-          },
-        )
-      },
+          })
+        })
 
-      "but returns nothing if no table set"(this: any) {
-        this.fromTableBlock._hasTable = () => false
+        it("parameterized", () => {
+          expect(
+            inst._toParamString({ queryBuilder, buildParameterized: true }),
+          ).toEqual({
+            text: '(GETDATE(?)) AS "alias1", field2 AS "alias2", field3',
+            values: [3],
+          })
+        })
+      })
+    })
+  })
 
-        assert.same(
-          this.inst._toParamString({ queryBuilder: this.queryBuilder }),
-          {
-            text: "",
-            values: [],
-          },
-        )
-      },
+  describe("AbstractSetFieldBlock", () => {
+    let Cls: any
+    let inst: any
 
-      "returns formatted query phrase": {
-        beforeEach(this: any) {
-          this.fromTableBlock._hasTable = () => true
-          this.inst.field(squel.str("GETDATE(?)", 3), "alias1")
-          this.inst.field("field2", "alias2", { dummy: true })
-          this.inst.field("field3")
-        },
-        "non-parameterized"(this: any) {
-          assert.same(
-            this.inst._toParamString({ queryBuilder: this.queryBuilder }),
-            {
-              text: '(GETDATE(3)) AS "alias1", field2 AS "alias2", field3',
-              values: [],
-            },
-          )
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._toParamString({
-              queryBuilder: this.queryBuilder,
-              buildParameterized: true,
-            }),
-            {
-              text: '(GETDATE(?)) AS "alias1", field2 AS "alias2", field3',
-              values: [3],
-            },
-          )
-        },
-      },
-    },
-  },
+    beforeEach(() => {
+      Cls = squel.cls.AbstractSetFieldBlock
+      inst = new Cls()
+    })
 
-  AbstractSetFieldBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.AbstractSetFieldBlock
-      this.inst = new this.cls()
-    },
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    describe("_set()", () => {
+      it("saves inputs", () => {
+        inst._set("field1", "value1", { dummy: 1 })
+        inst._set("field2", "value2", { dummy: 2 })
+        inst._set("field3", "value3", { dummy: 3 })
+        inst._set("field4")
 
-    "_set()": {
-      "saves inputs"(this: any) {
-        this.inst._set("field1", "value1", { dummy: 1 })
-        this.inst._set("field2", "value2", { dummy: 2 })
-        this.inst._set("field3", "value3", { dummy: 3 })
-        this.inst._set("field4")
-
-        const expectedFields = ["field1", "field2", "field3", "field4"]
-        const expectedValues = [["value1", "value2", "value3", undefined]]
-        const expectedFieldOptions = [
+        expect(inst._fields).toEqual(["field1", "field2", "field3", "field4"])
+        expect(inst._values).toEqual([
+          ["value1", "value2", "value3", undefined],
+        ])
+        expect(inst._valueOptions).toEqual([
           [{ dummy: 1 }, { dummy: 2 }, { dummy: 3 }, {}],
-        ]
+        ])
+      })
 
-        assert.same(expectedFields, this.inst._fields)
-        assert.same(expectedValues, this.inst._values)
-        assert.same(expectedFieldOptions, this.inst._valueOptions)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeField",
         ).mockReturnValue("_f")
         const sanitizeValueSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeValue",
         ).mockReturnValue("_v")
 
         try {
-          this.inst._set("field1", "value1", { dummy: true })
-
-          assert.ok(
+          inst._set("field1", "value1", { dummy: true })
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "field1",
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeValueSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "value1",
             ),
-          )
-
-          assert.same(["_f"], this.inst._fields)
-          assert.same([["_v"]], this.inst._values)
+          ).toBe(true)
+          expect(inst._fields).toEqual(["_f"])
+          expect(inst._values).toEqual([["_v"]])
         } finally {
           sanitizeFieldSpy.mockRestore()
           sanitizeValueSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_setFields()": {
-      "saves inputs"(this: any) {
-        this.inst._setFields({
+    describe("_setFields()", () => {
+      it("saves inputs", () => {
+        inst._setFields({
           field1: "value1",
           field2: "value2",
           field3: "value3",
         })
+        expect(inst._fields).toEqual(["field1", "field2", "field3"])
+        expect(inst._values).toEqual([["value1", "value2", "value3"]])
+        expect(inst._valueOptions).toEqual([[{}, {}, {}]])
+      })
 
-        const expectedFields = ["field1", "field2", "field3"]
-        const expectedValues = [["value1", "value2", "value3"]]
-        const expectedFieldOptions = [[{}, {}, {}]]
-
-        assert.same(expectedFields, this.inst._fields)
-        assert.same(expectedValues, this.inst._values)
-        assert.same(expectedFieldOptions, this.inst._valueOptions)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeField",
         ).mockReturnValue("_f")
         const sanitizeValueSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeValue",
         ).mockReturnValue("_v")
 
         try {
-          this.inst._setFields({ field1: "value1" }, { dummy: true })
-
-          assert.ok(
+          inst._setFields({ field1: "value1" }, { dummy: true })
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "field1",
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeValueSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "value1",
             ),
-          )
-
-          assert.same(["_f"], this.inst._fields)
-          assert.same([["_v"]], this.inst._values)
+          ).toBe(true)
+          expect(inst._fields).toEqual(["_f"])
+          expect(inst._values).toEqual([["_v"]])
         } finally {
           sanitizeFieldSpy.mockRestore()
           sanitizeValueSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_setFieldsRows()": {
-      "saves inputs"(this: any) {
-        this.inst._setFieldsRows([
+    describe("_setFieldsRows()", () => {
+      it("saves inputs", () => {
+        inst._setFieldsRows([
           { field1: "value1", field2: "value2", field3: "value3" },
           { field1: "value21", field2: "value22", field3: "value23" },
         ])
-
-        const expectedFields = ["field1", "field2", "field3"]
-        const expectedValues = [
+        expect(inst._fields).toEqual(["field1", "field2", "field3"])
+        expect(inst._values).toEqual([
           ["value1", "value2", "value3"],
           ["value21", "value22", "value23"],
-        ]
-        const expectedFieldOptions = [
+        ])
+        expect(inst._valueOptions).toEqual([
           [{}, {}, {}],
           [{}, {}, {}],
-        ]
+        ])
+      })
 
-        assert.same(expectedFields, this.inst._fields)
-        assert.same(expectedValues, this.inst._values)
-        assert.same(expectedFieldOptions, this.inst._valueOptions)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeField",
         ).mockReturnValue("_f")
         const sanitizeValueSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeValue",
         ).mockReturnValue("_v")
 
         try {
-          this.inst._setFieldsRows(
-            [{ field1: "value1" }, { field1: "value21" }],
-            { dummy: true },
-          )
-
-          assert.ok(
+          inst._setFieldsRows([{ field1: "value1" }, { field1: "value21" }], {
+            dummy: true,
+          })
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "field1",
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeValueSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "value1",
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeValueSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "value21",
             ),
-          )
-
-          assert.same(["_f"], this.inst._fields)
-          assert.same([["_v"], ["_v"]], this.inst._values)
+          ).toBe(true)
+          expect(inst._fields).toEqual(["_f"])
+          expect(inst._values).toEqual([["_v"], ["_v"]])
         } finally {
           sanitizeFieldSpy.mockRestore()
           sanitizeValueSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()"(this: any) {
-      assert.throws(() => this.inst._toParamString(), "Not yet implemented")
-    },
-  },
+    it("_toParamString()", () => {
+      expect(() => inst._toParamString()).toThrow("Not yet implemented")
+    })
+  })
 
-  SetFieldBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.SetFieldBlock
-      this.inst = new this.cls()
-    },
+  describe("SetFieldBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of AbstractSetFieldBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractSetFieldBlock)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.SetFieldBlock
+      inst = new Cls()
+    })
 
-    "set()": {
-      "calls to _set()"(this: any) {
-        const spy = spyOn(this.inst, "_set").mockImplementation(() => undefined)
+    it("instanceof of AbstractSetFieldBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractSetFieldBlock)
+    })
 
+    describe("set()", () => {
+      it("calls to _set()", () => {
+        const spy = spyOn(inst, "_set").mockImplementation(() => undefined)
         try {
-          this.inst.set("f", "v", { dummy: true })
-
-          assert.ok(
+          inst.set("f", "v", { dummy: true })
+          expect(
             spy.mock.calls.some(
               (c: any) =>
                 c.length === 3 &&
                 c[0] === "f" &&
                 c[1] === "v" &&
-                _.isEqual(c[2], { dummy: true }),
+                isEqual(c[2], { dummy: true }),
             ),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "setFields()": {
-      "calls to _setFields()"(this: any) {
-        const spy = spyOn(this.inst, "_setFields").mockImplementation(
+    describe("setFields()", () => {
+      it("calls to _setFields()", () => {
+        const spy = spyOn(inst, "_setFields").mockImplementation(
           () => undefined,
         )
-
         try {
-          this.inst.setFields("f", { dummy: true })
-
-          assert.ok(
+          inst.setFields("f", { dummy: true })
+          expect(
             spy.mock.calls.some(
               (c: any) =>
                 c.length === 2 &&
                 c[0] === "f" &&
-                _.isEqual(c[1], { dummy: true }),
+                isEqual(c[1], { dummy: true }),
             ),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      "needs at least one field to have been provided"(this: any) {
+    describe("_toParamString()", () => {
+      it("needs at least one field to have been provided", () => {
         try {
-          this.inst.toString()
+          inst.toString()
           throw new Error("should not reach here")
         } catch (err: any) {
-          assert.same("Error: set() needs to be called", err.toString())
+          expect(err.toString()).toBe("Error: set() needs to be called")
         }
-      },
+      })
 
-      "fields set": {
-        beforeEach(this: any) {
-          this.inst.set("field0 = field0 + 1")
-          this.inst.set("field1", "value1", { dummy: true })
-          this.inst.set("field2", "value2")
-          this.inst.set("field3", squel.str("GETDATE(?)", 4))
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+      describe("fields set", () => {
+        beforeEach(() => {
+          inst.set("field0 = field0 + 1")
+          inst.set("field1", "value1", { dummy: true })
+          inst.set("field2", "value2")
+          inst.set("field3", squel.str("GETDATE(?)", 4))
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "SET field0 = field0 + 1, field1 = 'value1', field2 = 'value2', field3 = (GETDATE(4))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "SET field0 = field0 + 1, field1 = ?, field2 = ?, field3 = (GETDATE(?))",
             values: ["value1", "value2", 4],
           })
-        },
-      },
-    },
-  },
+        })
+      })
+    })
+  })
 
-  InsertFieldValueBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.InsertFieldValueBlock
-      this.inst = new this.cls()
-    },
+  describe("InsertFieldValueBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of AbstractSetFieldBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractSetFieldBlock)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.InsertFieldValueBlock
+      inst = new Cls()
+    })
 
-    "set()": {
-      "calls to _set()"(this: any) {
-        const spy = spyOn(this.inst, "_set").mockImplementation(() => undefined)
+    it("instanceof of AbstractSetFieldBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractSetFieldBlock)
+    })
 
+    describe("set()", () => {
+      it("calls to _set()", () => {
+        const spy = spyOn(inst, "_set").mockImplementation(() => undefined)
         try {
-          this.inst.set("f", "v", { dummy: true })
-
-          assert.ok(
+          inst.set("f", "v", { dummy: true })
+          expect(
             spy.mock.calls.some(
               (c: any) =>
                 c.length === 3 &&
                 c[0] === "f" &&
                 c[1] === "v" &&
-                _.isEqual(c[2], { dummy: true }),
+                isEqual(c[2], { dummy: true }),
             ),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "setFields()": {
-      "calls to _setFields()"(this: any) {
-        const spy = spyOn(this.inst, "_setFields").mockImplementation(
+    describe("setFields()", () => {
+      it("calls to _setFields()", () => {
+        const spy = spyOn(inst, "_setFields").mockImplementation(
           () => undefined,
         )
-
         try {
-          this.inst.setFields("f", { dummy: true })
-
-          assert.ok(
+          inst.setFields("f", { dummy: true })
+          expect(
             spy.mock.calls.some(
               (c: any) =>
                 c.length === 2 &&
                 c[0] === "f" &&
-                _.isEqual(c[1], { dummy: true }),
+                isEqual(c[1], { dummy: true }),
             ),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "setFieldsRows()": {
-      "calls to _setFieldsRows()"(this: any) {
-        const spy = spyOn(this.inst, "_setFieldsRows").mockImplementation(
+    describe("setFieldsRows()", () => {
+      it("calls to _setFieldsRows()", () => {
+        const spy = spyOn(inst, "_setFieldsRows").mockImplementation(
           () => undefined,
         )
-
         try {
-          this.inst.setFieldsRows("f", { dummy: true })
-
-          assert.ok(
+          inst.setFieldsRows("f", { dummy: true })
+          expect(
             spy.mock.calls.some(
               (c: any) =>
                 c.length === 2 &&
                 c[0] === "f" &&
-                _.isEqual(c[1], { dummy: true }),
+                isEqual(c[1], { dummy: true }),
             ),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      "needs at least one field to have been provided"(this: any) {
-        assert.same("", this.inst.toString())
-      },
+    describe("_toParamString()", () => {
+      it("needs at least one field to have been provided", () => {
+        expect(inst.toString()).toBe("")
+      })
 
-      "got fields": {
-        beforeEach(this: any) {
-          this.inst.setFieldsRows([
-            { field1: 9, field2: "value2", field3: squel.str("GETDATE(?)", 5) },
+      describe("got fields", () => {
+        beforeEach(() => {
+          inst.setFieldsRows([
+            {
+              field1: 9,
+              field2: "value2",
+              field3: squel.str("GETDATE(?)", 5),
+            },
             { field1: 8, field2: true, field3: null },
           ])
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "(field1, field2, field3) VALUES (9, 'value2', (GETDATE(5))), (8, TRUE, NULL)",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "(field1, field2, field3) VALUES (?, ?, (GETDATE(?))), (?, ?, ?)",
             values: [9, "value2", 5, 8, true, null],
           })
-        },
-      },
-    },
-  },
+        })
+      })
+    })
+  })
 
-  InsertFieldsFromQueryBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.InsertFieldsFromQueryBlock
-      this.inst = new this.cls()
-    },
+  describe("InsertFieldsFromQueryBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.InsertFieldsFromQueryBlock
+      inst = new Cls()
+    })
 
-    "fromQuery()": {
-      "sanitizes field names"(this: any) {
-        const spy = spyOn(this.inst, "_sanitizeField").mockReturnValue(1 as any)
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
+    describe("fromQuery()", () => {
+      it("sanitizes field names", () => {
+        const spy = spyOn(inst, "_sanitizeField").mockReturnValue(1 as any)
         try {
           const qry = squel.select()
-
-          this.inst.fromQuery(["test", "one", "two"], qry)
-
-          assert.same(3, spy.mock.calls.length)
-          assert.ok(
+          inst.fromQuery(["test", "one", "two"], qry)
+          expect(spy.mock.calls.length).toBe(3)
+          expect(
             spy.mock.calls.some((c: any) => c.length === 1 && c[0] === "test"),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             spy.mock.calls.some((c: any) => c.length === 1 && c[0] === "one"),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             spy.mock.calls.some((c: any) => c.length === 1 && c[0] === "two"),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
+      })
 
-      "sanitizes query"(this: any) {
-        const spy = spyOn(this.inst, "_sanitizeBaseBuilder").mockReturnValue(
+      it("sanitizes query", () => {
+        const spy = spyOn(inst, "_sanitizeBaseBuilder").mockReturnValue(
           1 as any,
         )
-
         try {
           const qry = 123
-
-          this.inst.fromQuery(["test", "one", "two"], qry)
-
-          assert.same(1, spy.mock.calls.length)
-          assert.ok(
+          inst.fromQuery(["test", "one", "two"], qry)
+          expect(spy.mock.calls.length).toBe(1)
+          expect(
             spy.mock.calls.some((c: any) => c.length === 1 && c[0] === qry),
-          )
+          ).toBe(true)
         } finally {
           spy.mockRestore()
         }
-      },
+      })
 
-      "overwrites existing values"(this: any) {
-        this.inst._fields = 1
-        this.inst._query = 2
-
+      it("overwrites existing values", () => {
+        inst._fields = 1
+        inst._query = 2
         const qry = squel.select()
-        this.inst.fromQuery(["test", "one", "two"], qry)
+        inst.fromQuery(["test", "one", "two"], qry)
+        expect(inst._query).toBe(qry)
+        expect(inst._fields).toEqual(["test", "one", "two"])
+      })
+    })
 
-        assert.same(qry, this.inst._query)
-        assert.same(["test", "one", "two"], this.inst._fields)
-      },
-    },
+    describe("_toParamString()", () => {
+      it("needs fromQuery() to have been called", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
 
-    "_toParamString()": {
-      "needs fromQuery() to have been called"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
+      describe("default", () => {
+        let qry: any
+
+        beforeEach(() => {
+          qry = squel.select().from("mega").where("a = ?", 5)
+          inst.fromQuery(["test", "one", "two"], qry)
         })
-      },
 
-      default: {
-        beforeEach(this: any) {
-          this.qry = squel.select().from("mega").where("a = ?", 5)
-          this.inst.fromQuery(["test", "one", "two"], this.qry)
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "(test, one, two) (SELECT * FROM mega WHERE (a = 5))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "(test, one, two) (SELECT * FROM mega WHERE (a = ?))",
             values: [5],
           })
-        },
-      },
-    },
-  },
-
-  DistinctBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.DistinctBlock
-      this.inst = new this.cls()
-    },
-
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
-
-    "_toParamString()": {
-      "output nothing if not set"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
         })
-      },
-      "output DISTINCT if set"(this: any) {
-        this.inst.distinct()
-        assert.same(this.inst._toParamString(), {
-          text: "DISTINCT",
-          values: [],
-        })
-      },
-    },
-  },
+      })
+    })
+  })
 
-  GroupByBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.GroupByBlock
-      this.inst = new this.cls()
-    },
+  describe("DistinctBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.DistinctBlock
+      inst = new Cls()
+    })
 
-    "group()": {
-      "adds to list"(this: any) {
-        this.inst.group("field1")
-        this.inst.group("field2")
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-        assert.same(["field1", "field2"], this.inst._groups)
-      },
+    describe("_toParamString()", () => {
+      it("output nothing if not set", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
 
-      "sanitizes inputs"(this: any) {
+      it("output DISTINCT if set", () => {
+        inst.distinct()
+        expect(inst._toParamString()).toEqual({ text: "DISTINCT", values: [] })
+      })
+    })
+  })
+
+  describe("GroupByBlock", () => {
+    let Cls: any
+    let inst: any
+
+    beforeEach(() => {
+      Cls = squel.cls.GroupByBlock
+      inst = new Cls()
+    })
+
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
+
+    describe("group()", () => {
+      it("adds to list", () => {
+        inst.group("field1")
+        inst.group("field2")
+        expect(inst._groups).toEqual(["field1", "field2"])
+      })
+
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeField",
         ).mockReturnValue("_f")
-
         try {
-          this.inst.group("field1")
-
-          assert.ok(
+          inst.group("field1")
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "field1",
             ),
-          )
-
-          assert.same(["_f"], this.inst._groups)
+          ).toBe(true)
+          expect(inst._groups).toEqual(["_f"])
         } finally {
           sanitizeFieldSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "toString()": {
-      "output nothing if no fields set"(this: any) {
-        this.inst._groups = []
-        assert.same("", this.inst.toString())
-      },
+    describe("toString()", () => {
+      it("output nothing if no fields set", () => {
+        inst._groups = []
+        expect(inst.toString()).toBe("")
+      })
 
-      "output GROUP BY"(this: any) {
-        this.inst.group("field1")
-        this.inst.group("field2")
+      it("output GROUP BY", () => {
+        inst.group("field1")
+        inst.group("field2")
+        expect(inst.toString()).toBe("GROUP BY field1, field2")
+      })
+    })
+  })
 
-        assert.same("GROUP BY field1, field2", this.inst.toString())
-      },
-    },
-  },
+  describe("AbstractVerbSingleValueBlock", () => {
+    let Cls: any
+    let inst: any
 
-  AbstractVerbSingleValueBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.AbstractVerbSingleValueBlock
-      this.inst = new this.cls({ verb: "TEST" })
-    },
+    beforeEach(() => {
+      Cls = squel.cls.AbstractVerbSingleValueBlock
+      inst = new Cls({ verb: "TEST" })
+    })
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-    "offset()": {
-      "set value"(this: any) {
-        this.inst._setValue(1)
+    describe("offset()", () => {
+      it("set value", () => {
+        inst._setValue(1)
+        expect(inst._value).toBe(1)
+        inst._setValue(22)
+        expect(inst._value).toBe(22)
+      })
 
-        assert.same(1, this.inst._value)
-
-        this.inst._setValue(22)
-
-        assert.same(22, this.inst._value)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeLimitOffset",
         ).mockReturnValue(234)
-
         try {
-          this.inst._setValue(23)
-
-          assert.ok(
+          inst._setValue(23)
+          expect(
             sanitizeSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === 23,
             ),
-          )
-
-          assert.same(234, this.inst._value)
+          ).toBe(true)
+          expect(inst._value).toBe(234)
         } finally {
           sanitizeSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "toString()": {
-      "output nothing if not set"(this: any) {
-        assert.same("", this.inst.toString())
-      },
+    describe("toString()", () => {
+      it("output nothing if not set", () => {
+        expect(inst.toString()).toBe("")
+      })
 
-      "output verb"(this: any) {
-        this.inst._setValue(12)
+      it("output verb", () => {
+        inst._setValue(12)
+        expect(inst.toString()).toBe("TEST 12")
+      })
+    })
 
-        assert.same("TEST 12", this.inst.toString())
-      },
-    },
+    describe("toParam()", () => {
+      it("output nothing if not set", () => {
+        expect(inst.toParam()).toEqual({ text: "", values: [] })
+      })
 
-    "toParam()": {
-      "output nothing if not set"(this: any) {
-        assert.same({ text: "", values: [] }, this.inst.toParam())
-      },
+      it("output verb", () => {
+        inst._setValue(12)
+        expect(inst.toParam()).toEqual({ text: "TEST ?", values: [12] })
+      })
+    })
+  })
 
-      "output verb"(this: any) {
-        this.inst._setValue(12)
+  describe("OffsetBlock", () => {
+    let Cls: any
+    let inst: any
 
-        assert.same({ text: "TEST ?", values: [12] }, this.inst.toParam())
-      },
-    },
-  },
+    beforeEach(() => {
+      Cls = squel.cls.OffsetBlock
+      inst = new Cls()
+    })
 
-  OffsetBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.OffsetBlock
-      this.inst = new this.cls()
-    },
+    it("instanceof of AbstractVerbSingleValueBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractVerbSingleValueBlock)
+    })
 
-    "instanceof of AbstractVerbSingleValueBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractVerbSingleValueBlock)
-    },
-
-    "offset()": {
-      "calls base method"(this: any) {
-        const callSpy = spyOn(this.cls.prototype, "_setValue")
-
+    describe("offset()", () => {
+      it("calls base method", () => {
+        const callSpy = spyOn(Cls.prototype, "_setValue")
         try {
-          this.inst.offset(1)
-
-          assert.ok(
+          inst.offset(1)
+          expect(
             callSpy.mock.calls.some((c: any) => c.length === 1 && c[0] === 1),
-          )
+          ).toBe(true)
         } finally {
           callSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "toString()": {
-      "output nothing if not set"(this: any) {
-        assert.same("", this.inst.toString())
-      },
+    describe("toString()", () => {
+      it("output nothing if not set", () => {
+        expect(inst.toString()).toBe("")
+      })
 
-      "output verb"(this: any) {
-        this.inst.offset(12)
+      it("output verb", () => {
+        inst.offset(12)
+        expect(inst.toString()).toBe("OFFSET 12")
+      })
+    })
 
-        assert.same("OFFSET 12", this.inst.toString())
-      },
-    },
+    describe("toParam()", () => {
+      it("output nothing if not set", () => {
+        expect(inst.toParam()).toEqual({ text: "", values: [] })
+      })
 
-    "toParam()": {
-      "output nothing if not set"(this: any) {
-        assert.same({ text: "", values: [] }, this.inst.toParam())
-      },
+      it("output verb", () => {
+        inst.offset(12)
+        expect(inst.toParam()).toEqual({ text: "OFFSET ?", values: [12] })
+      })
+    })
 
-      "output verb"(this: any) {
-        this.inst.offset(12)
+    it("can be removed using null", () => {
+      inst.offset(1)
+      inst.offset(null)
+      expect(inst.toParam()).toEqual({ text: "", values: [] })
+    })
+  })
 
-        assert.same({ text: "OFFSET ?", values: [12] }, this.inst.toParam())
-      },
-    },
+  describe("LimitBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "can be removed using null"(this: any) {
-      this.inst.offset(1)
-      this.inst.offset(null)
+    beforeEach(() => {
+      Cls = squel.cls.LimitBlock
+      inst = new Cls()
+    })
 
-      assert.same({ text: "", values: [] }, this.inst.toParam())
-    },
-  },
+    it("instanceof of AbstractVerbSingleValueBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractVerbSingleValueBlock)
+    })
 
-  LimitBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.LimitBlock
-      this.inst = new this.cls()
-    },
-
-    "instanceof of AbstractVerbSingleValueBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractVerbSingleValueBlock)
-    },
-
-    "limit()": {
-      "calls base method"(this: any) {
-        const callSpy = spyOn(this.cls.prototype, "_setValue")
-
+    describe("limit()", () => {
+      it("calls base method", () => {
+        const callSpy = spyOn(Cls.prototype, "_setValue")
         try {
-          this.inst.limit(1)
-
-          assert.ok(
+          inst.limit(1)
+          expect(
             callSpy.mock.calls.some((c: any) => c.length === 1 && c[0] === 1),
-          )
+          ).toBe(true)
         } finally {
           callSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "toString()": {
-      "output nothing if not set"(this: any) {
-        assert.same("", this.inst.toString())
-      },
+    describe("toString()", () => {
+      it("output nothing if not set", () => {
+        expect(inst.toString()).toBe("")
+      })
 
-      "output verb"(this: any) {
-        this.inst.limit(12)
+      it("output verb", () => {
+        inst.limit(12)
+        expect(inst.toString()).toBe("LIMIT 12")
+      })
+    })
 
-        assert.same("LIMIT 12", this.inst.toString())
-      },
-    },
+    describe("toParam()", () => {
+      it("output nothing if not set", () => {
+        expect(inst.toParam()).toEqual({ text: "", values: [] })
+      })
 
-    "toParam()": {
-      "output nothing if not set"(this: any) {
-        assert.same({ text: "", values: [] }, this.inst.toParam())
-      },
+      it("output verb", () => {
+        inst.limit(12)
+        expect(inst.toParam()).toEqual({ text: "LIMIT ?", values: [12] })
+      })
+    })
 
-      "output verb"(this: any) {
-        this.inst.limit(12)
+    it("can be removed using null", () => {
+      inst.limit(1)
+      inst.limit(null)
+      expect(inst.toParam()).toEqual({ text: "", values: [] })
+    })
+  })
 
-        assert.same({ text: "LIMIT ?", values: [12] }, this.inst.toParam())
-      },
-    },
+  describe("AbstractConditionBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "can be removed using null"(this: any) {
-      this.inst.limit(1)
-      this.inst.limit(null)
-
-      assert.same({ text: "", values: [] }, this.inst.toParam())
-    },
-  },
-
-  AbstractConditionBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.AbstractConditionBlock
-      this.inst = new this.cls({ verb: "ACB" })
+    beforeEach(() => {
+      Cls = squel.cls.AbstractConditionBlock
+      inst = new Cls({ verb: "ACB" })
 
       class MockConditionBlock extends squel.cls.AbstractConditionBlock {
         constructor(options: any) {
-          super(_.extend({}, options, { verb: "MOCKVERB" }))
+          super({ ...options, verb: "MOCKVERB" })
         }
-
         mockCondition(condition: any, ...values: any[]): void {
-          this._condition(condition, ...values)
+          ;(this as any)._condition(condition, ...values)
         }
       }
       ;(squel.cls as any).MockConditionBlock = MockConditionBlock
@@ -1475,328 +1414,329 @@ run("Blocks", {
             new squel.cls.FromTableBlock(options),
             new MockConditionBlock(options),
           ]
-
           super(options, blocks)
         }
       }
       ;(squel.cls as any).MockSelectWithCondition = MockSelectWithCondition
-    },
+    })
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-    "_condition()": {
-      "adds to list"(this: any) {
-        this.inst._condition("a = 1")
-        this.inst._condition("b = 2 OR c = 3")
+    describe("_condition()", () => {
+      it("adds to list", () => {
+        inst._condition("a = 1")
+        inst._condition("b = 2 OR c = 3")
+        expect(inst._conditions).toEqual([
+          { expr: "a = 1", values: [] },
+          { expr: "b = 2 OR c = 3", values: [] },
+        ])
+      })
 
-        assert.same(
-          [
-            { expr: "a = 1", values: [] },
-            { expr: "b = 2 OR c = 3", values: [] },
-          ],
-          this.inst._conditions,
-        )
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeExpression",
         ).mockReturnValue("_c")
-
         try {
-          this.inst._condition("a = 1")
-
-          assert.ok(
+          inst._condition("a = 1")
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "a = 1",
             ),
-          )
-
-          assert.same([{ expr: "_c", values: [] }], this.inst._conditions)
+          ).toBe(true)
+          expect(inst._conditions).toEqual([{ expr: "_c", values: [] }])
         } finally {
           sanitizeFieldSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      "output nothing if no conditions set"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
-        })
-      },
+    describe("_toParamString()", () => {
+      it("output nothing if no conditions set", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
 
-      "output QueryBuilder ": {
-        beforeEach(this: any) {
+      describe("output QueryBuilder ", () => {
+        beforeEach(() => {
           const subquery = new (squel.cls as any).MockSelectWithCondition()
           subquery.field("col1").from("table1").mockCondition("field1 = ?", 10)
-          this.inst._condition("a in ?", subquery)
-          this.inst._condition("b = ? OR c = ?", 2, 3)
-          this.inst._condition("d in ?", [4, 5, 6])
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+          inst._condition("a in ?", subquery)
+          inst._condition("b = ? OR c = ?", 2, 3)
+          inst._condition("d in ?", [4, 5, 6])
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "ACB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "ACB (a in (SELECT col1 FROM table1 MOCKVERB (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))",
             values: [10, 2, 3, 4, 5, 6],
           })
-        },
-      },
+        })
+      })
 
-      "Fix for #64 - toString() does not change object": {
-        beforeEach(this: any) {
-          this.inst._condition("a = ?", 1)
-          this.inst._condition("b = ? OR c = ?", 2, 3)
-          this.inst._condition("d in ?", [4, 5, 6])
-          this.inst._toParamString()
-          this.inst._toParamString()
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+      describe("Fix for #64 - toString() does not change object", () => {
+        beforeEach(() => {
+          inst._condition("a = ?", 1)
+          inst._condition("b = ? OR c = ?", 2, 3)
+          inst._condition("d in ?", [4, 5, 6])
+          inst._toParamString()
+          inst._toParamString()
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "ACB (a = 1) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "ACB (a = ?) AND (b = ? OR c = ?) AND (d in (?, ?, ?))",
             values: [1, 2, 3, 4, 5, 6],
           })
-        },
-      },
+        })
+      })
 
-      "Fix for #226 - empty expressions": {
-        beforeEach(this: any) {
-          this.inst._condition("a = ?", 1)
-          this.inst._condition(squel.expr())
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+      describe("Fix for #226 - empty expressions", () => {
+        beforeEach(() => {
+          inst._condition("a = ?", 1)
+          inst._condition(squel.expr())
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "ACB (a = 1)",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "ACB (a = ?)",
             values: [1],
           })
-        },
-      },
-    },
-  },
-
-  WhereBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.WhereBlock
-      this.inst = new this.cls()
-    },
-
-    "instanceof of AbstractConditionBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractConditionBlock)
-    },
-
-    "sets verb to WHERE"(this: any) {
-      this.inst = new this.cls()
-
-      assert.same("WHERE", this.inst.options.verb)
-    },
-
-    "_toParamString()": {
-      "output nothing if no conditions set"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
         })
-      },
+      })
+    })
+  })
 
-      output: {
-        beforeEach(this: any) {
+  describe("WhereBlock", () => {
+    let Cls: any
+    let inst: any
+
+    beforeEach(() => {
+      Cls = squel.cls.WhereBlock
+      inst = new Cls()
+    })
+
+    it("instanceof of AbstractConditionBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractConditionBlock)
+    })
+
+    it("sets verb to WHERE", () => {
+      inst = new Cls()
+      expect(inst.options.verb).toBe("WHERE")
+    })
+
+    describe("_toParamString()", () => {
+      it("output nothing if no conditions set", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
+
+      describe("output", () => {
+        beforeEach(() => {
           const subquery = new squel.cls.Select()
-          subquery.field("col1").from("table1").where("field1 = ?", 10)
-          this.inst.where("a in ?", subquery)
-          this.inst.where("b = ? OR c = ?", 2, 3)
-          this.inst.where("d in ?", [4, 5, 6])
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+          ;(subquery as any)
+            .field("col1")
+            .from("table1")
+            .where("field1 = ?", 10)
+          inst.where("a in ?", subquery)
+          inst.where("b = ? OR c = ?", 2, 3)
+          inst.where("d in ?", [4, 5, 6])
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "WHERE (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))",
             values: [10, 2, 3, 4, 5, 6],
           })
-        },
-      },
-    },
-  },
-
-  HavingBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.HavingBlock
-      this.inst = new this.cls()
-    },
-
-    "instanceof of AbstractConditionBlock"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.AbstractConditionBlock)
-    },
-
-    "sets verb"(this: any) {
-      this.inst = new this.cls()
-
-      assert.same("HAVING", this.inst.options.verb)
-    },
-
-    "_toParamString()": {
-      "output nothing if no conditions set"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
         })
-      },
+      })
+    })
+  })
 
-      output: {
-        beforeEach(this: any) {
+  describe("HavingBlock", () => {
+    let Cls: any
+    let inst: any
+
+    beforeEach(() => {
+      Cls = squel.cls.HavingBlock
+      inst = new Cls()
+    })
+
+    it("instanceof of AbstractConditionBlock", () => {
+      expect(inst).toBeInstanceOf(squel.cls.AbstractConditionBlock)
+    })
+
+    it("sets verb", () => {
+      inst = new Cls()
+      expect(inst.options.verb).toBe("HAVING")
+    })
+
+    describe("_toParamString()", () => {
+      it("output nothing if no conditions set", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
+
+      describe("output", () => {
+        beforeEach(() => {
           const subquery = new squel.cls.Select()
-          subquery.field("col1").from("table1").where("field1 = ?", 10)
-          this.inst.having("a in ?", subquery)
-          this.inst.having("b = ? OR c = ?", 2, 3)
-          this.inst.having("d in ?", [4, 5, 6])
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+          ;(subquery as any)
+            .field("col1")
+            .from("table1")
+            .where("field1 = ?", 10)
+          inst.having("a in ?", subquery)
+          inst.having("b = ? OR c = ?", 2, 3)
+          inst.having("d in ?", [4, 5, 6])
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = 10))) AND (b = 2 OR c = 3) AND (d in (4, 5, 6))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "HAVING (a in (SELECT col1 FROM table1 WHERE (field1 = ?))) AND (b = ? OR c = ?) AND (d in (?, ?, ?))",
             values: [10, 2, 3, 4, 5, 6],
           })
-        },
-      },
-    },
-  },
+        })
+      })
+    })
+  })
 
-  OrderByBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.OrderByBlock
-      this.inst = new this.cls()
-    },
+  describe("OrderByBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.OrderByBlock
+      inst = new Cls()
+    })
 
-    "order()": {
-      "adds to list"(this: any) {
-        this.inst.order("field1")
-        this.inst.order("field2", false)
-        this.inst.order("field3", true)
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-        const expected = [
+    describe("order()", () => {
+      it("adds to list", () => {
+        inst.order("field1")
+        inst.order("field2", false)
+        inst.order("field3", true)
+        expect(inst._orders).toEqual([
           { field: "field1", dir: "ASC", values: [] },
           { field: "field2", dir: "DESC", values: [] },
           { field: "field3", dir: "ASC", values: [] },
-        ]
+        ])
+      })
 
-        assert.same(this.inst._orders, expected)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeFieldSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeField",
         ).mockReturnValue("_f")
-
         try {
-          this.inst.order("field1")
-
-          assert.ok(
+          inst.order("field1")
+          expect(
             sanitizeFieldSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "field1",
             ),
-          )
-
-          assert.same(this.inst._orders, [
+          ).toBe(true)
+          expect(inst._orders).toEqual([
             { field: "_f", dir: "ASC", values: [] },
           ])
         } finally {
           sanitizeFieldSpy.mockRestore()
         }
-      },
+      })
 
-      "saves additional values"(this: any) {
-        this.inst.order("field1", false, 1.2, 4)
-
-        assert.same(this.inst._orders, [
+      it("saves additional values", () => {
+        inst.order("field1", false, 1.2, 4)
+        expect(inst._orders).toEqual([
           { field: "field1", dir: "DESC", values: [1.2, 4] },
         ])
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      empty(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
+    describe("_toParamString()", () => {
+      it("empty", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
+
+      describe("default", () => {
+        beforeEach(() => {
+          inst.order("field1")
+          inst.order("field2", false)
+          inst.order("GET(?, ?)", true, 2.5, 5)
         })
-      },
 
-      default: {
-        beforeEach(this: any) {
-          this.inst.order("field1")
-          this.inst.order("field2", false)
-          this.inst.order("GET(?, ?)", true, 2.5, 5)
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "ORDER BY field1 ASC, field2 DESC, GET(2.5, 5) ASC",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "ORDER BY field1 ASC, field2 DESC, GET(?, ?) ASC",
             values: [2.5, 5],
           })
-        },
-      },
-    },
-  },
+        })
+      })
+    })
+  })
 
-  JoinBlock: {
-    beforeEach(this: any) {
-      this.cls = squel.cls.JoinBlock
-      this.inst = new this.cls()
-    },
+  describe("JoinBlock", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof of Block"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Block)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.JoinBlock
+      inst = new Cls()
+    })
 
-    "join()": {
-      "adds to list"(this: any) {
-        this.inst.join("table1")
-        this.inst.join("table2", null, "b = 1", "LEFT")
-        this.inst.join("table3", "alias3", "c = 1", "RIGHT")
-        this.inst.join("table4", "alias4", "d = 1", "OUTER")
-        this.inst.join("table5", "alias5", null, "CROSS")
+    it("instanceof of Block", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Block)
+    })
 
-        const expected = [
+    describe("join()", () => {
+      it("adds to list", () => {
+        inst.join("table1")
+        inst.join("table2", null, "b = 1", "LEFT")
+        inst.join("table3", "alias3", "c = 1", "RIGHT")
+        inst.join("table4", "alias4", "d = 1", "OUTER")
+        inst.join("table5", "alias5", null, "CROSS")
+
+        expect(inst._joins).toEqual([
           { type: "INNER", table: "table1", alias: null, condition: null },
           { type: "LEFT", table: "table2", alias: null, condition: "b = 1" },
           {
@@ -1812,94 +1752,93 @@ run("Blocks", {
             condition: "d = 1",
           },
           { type: "CROSS", table: "table5", alias: "alias5", condition: null },
-        ]
+        ])
+      })
 
-        assert.same(this.inst._joins, expected)
-      },
-
-      "sanitizes inputs"(this: any) {
+      it("sanitizes inputs", () => {
         const sanitizeTableSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeTable",
         ).mockReturnValue("_t")
         const sanitizeAliasSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeTableAlias",
         ).mockReturnValue("_a")
         const sanitizeConditionSpy = spyOn(
-          this.cls.prototype,
+          Cls.prototype,
           "_sanitizeExpression",
         ).mockReturnValue("_c")
 
         try {
-          this.inst.join("table1", "alias1", "a = 1")
-
-          assert.ok(
+          inst.join("table1", "alias1", "a = 1")
+          expect(
             sanitizeTableSpy.mock.calls.some(
               (c: any) => c.length === 2 && c[0] === "table1" && c[1] === true,
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeAliasSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "alias1",
             ),
-          )
-          assert.ok(
+          ).toBe(true)
+          expect(
             sanitizeConditionSpy.mock.calls.some(
               (c: any) => c.length === 1 && c[0] === "a = 1",
             ),
-          )
+          ).toBe(true)
 
-          const expected = [
+          expect(inst._joins).toEqual([
             { type: "INNER", table: "_t", alias: "_a", condition: "_c" },
-          ]
-
-          assert.same(this.inst._joins, expected)
+          ])
         } finally {
           sanitizeTableSpy.mockRestore()
           sanitizeAliasSpy.mockRestore()
           sanitizeConditionSpy.mockRestore()
         }
-      },
+      })
 
-      "nested queries"(this: any) {
+      it("nested queries", () => {
         const inner1 = squel.select()
         const inner2 = squel.select()
         const inner3 = squel.select()
         const inner4 = squel.select()
         const inner5 = squel.select()
         const inner6 = squel.select()
-        this.inst.join(inner1)
-        this.inst.join(inner2, null, "b = 1", "LEFT")
-        this.inst.join(inner3, "alias3", "c = 1", "RIGHT")
-        this.inst.join(inner4, "alias4", "d = 1", "OUTER")
-        this.inst.join(inner5, "alias5", "e = 1", "FULL")
-        this.inst.join(inner6, "alias6", null, "CROSS")
+        inst.join(inner1)
+        inst.join(inner2, null, "b = 1", "LEFT")
+        inst.join(inner3, "alias3", "c = 1", "RIGHT")
+        inst.join(inner4, "alias4", "d = 1", "OUTER")
+        inst.join(inner5, "alias5", "e = 1", "FULL")
+        inst.join(inner6, "alias6", null, "CROSS")
 
-        const expected = [
+        expect(inst._joins).toEqual([
           { type: "INNER", table: inner1, alias: null, condition: null },
           { type: "LEFT", table: inner2, alias: null, condition: "b = 1" },
-          { type: "RIGHT", table: inner3, alias: "alias3", condition: "c = 1" },
-          { type: "OUTER", table: inner4, alias: "alias4", condition: "d = 1" },
+          {
+            type: "RIGHT",
+            table: inner3,
+            alias: "alias3",
+            condition: "c = 1",
+          },
+          {
+            type: "OUTER",
+            table: inner4,
+            alias: "alias4",
+            condition: "d = 1",
+          },
           { type: "FULL", table: inner5, alias: "alias5", condition: "e = 1" },
           { type: "CROSS", table: inner6, alias: "alias6", condition: null },
-        ]
+        ])
+      })
+    })
 
-        assert.same(this.inst._joins, expected)
-      },
-    },
-
-    "left_join()": {
-      "calls join()"(this: any) {
-        const joinSpy = spyOn(this.inst, "join").mockImplementation(
-          () => undefined,
-        )
-
+    describe("left_join()", () => {
+      it("calls join()", () => {
+        const joinSpy = spyOn(inst, "join").mockImplementation(() => undefined)
         try {
-          this.inst.left_join("t", "a", "c")
-
-          assert.same(1, joinSpy.mock.calls.length)
-          assert.ok(
+          inst.left_join("t", "a", "c")
+          expect(joinSpy.mock.calls.length).toBe(1)
+          expect(
             joinSpy.mock.calls.some(
               (c: any) =>
                 c.length === 4 &&
@@ -1908,49 +1847,47 @@ run("Blocks", {
                 c[2] === "c" &&
                 c[3] === "LEFT",
             ),
-          )
+          ).toBe(true)
         } finally {
           joinSpy.mockRestore()
         }
-      },
-    },
+      })
+    })
 
-    "_toParamString()": {
-      "output nothing if nothing set"(this: any) {
-        assert.same(this.inst._toParamString(), {
-          text: "",
-          values: [],
-        })
-      },
+    describe("_toParamString()", () => {
+      it("output nothing if nothing set", () => {
+        expect(inst._toParamString()).toEqual({ text: "", values: [] })
+      })
 
-      "output JOINs with nested queries": {
-        beforeEach(this: any) {
+      describe("output JOINs with nested queries", () => {
+        beforeEach(() => {
           const inner2 = squel.select().function("GETDATE(?)", 2)
           const inner3 = squel.select().from("3")
           const inner4 = squel.select().from("4")
           const inner5 = squel.select().from("5")
           const expr = squel.expr().and("field1 = ?", 99)
 
-          this.inst.join("table")
-          this.inst.join(inner2, null, "b = 1", "LEFT")
-          this.inst.join(inner3, "alias3", "c = 1", "RIGHT")
-          this.inst.join(inner4, "alias4", "e = 1", "FULL")
-          this.inst.join(inner5, "alias5", expr, "CROSS")
-        },
+          inst.join("table")
+          inst.join(inner2, null, "b = 1", "LEFT")
+          inst.join(inner3, "alias3", "c = 1", "RIGHT")
+          inst.join(inner4, "alias4", "e = 1", "FULL")
+          inst.join(inner5, "alias5", expr, "CROSS")
+        })
 
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._toParamString(), {
+        it("non-parameterized", () => {
+          expect(inst._toParamString()).toEqual({
             text: "INNER JOIN table LEFT JOIN (SELECT GETDATE(2)) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1) CROSS JOIN (SELECT * FROM 5) `alias5` ON (field1 = 99)",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(this.inst._toParamString({ buildParameterized: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(inst._toParamString({ buildParameterized: true })).toEqual({
             text: "INNER JOIN table LEFT JOIN (SELECT GETDATE(?)) ON (b = 1) RIGHT JOIN (SELECT * FROM 3) `alias3` ON (c = 1) FULL JOIN (SELECT * FROM 4) `alias4` ON (e = 1) CROSS JOIN (SELECT * FROM 5) `alias5` ON (field1 = ?)",
             values: [2, 99],
           })
-        },
-      },
-    },
-  },
+        })
+      })
+    })
+  })
 })

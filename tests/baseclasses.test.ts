@@ -1,7 +1,14 @@
-import { mock, spyOn } from "bun:test"
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test"
 import pkg from "../package.json" with { type: "json" }
 import squel from "../src/index"
-import { assert, _, run } from "./testbase"
 
 function callArgsMatch(callArgs: any[], expected: any[]): boolean {
   if (callArgs.length < expected.length) return false
@@ -37,21 +44,21 @@ function spyCalledOn(spy: any, obj: any): boolean {
   return (spy.mock.contexts || []).some((ctx: any) => ctx === obj)
 }
 
-run("Base classes", {
-  afterEach() {
+describe("Base classes", () => {
+  afterEach(() => {
     mock.restore()
-  },
+  })
 
-  "Version number"() {
-    assert.same(squel.VERSION, pkg.version)
-  },
+  it("Version number", () => {
+    expect(squel.VERSION).toBe(pkg.version)
+  })
 
-  "Default flavour"() {
-    assert.isNull(squel.flavour)
-  },
+  it("Default flavour", () => {
+    expect(squel.flavour).toBeNull()
+  })
 
-  "Cloneable base class": {
-    ">> clone()"() {
+  describe("Cloneable base class", () => {
+    it(">> clone()", () => {
       class Child extends squel.cls.Cloneable {
         a: any
         b: any
@@ -71,9 +78,8 @@ run("Base classes", {
       }
 
       const child = new Child()
-
       const copy = child.clone()
-      assert.instanceOf(copy, Child)
+      expect(copy).toBeInstanceOf(Child)
 
       child.a = 2
       child.b = 3.2
@@ -82,1358 +88,1263 @@ run("Base classes", {
       child.e.push(2)
       child.f.b = 1
 
-      assert.same(copy.a, 1)
-      assert.same(copy.b, 2.2)
-      assert.same(copy.c, true)
-      assert.same(copy.d, "str")
-      assert.same(copy.e, [1])
-      assert.same(copy.f, { a: 1 })
-    },
-  },
+      expect(copy.a).toBe(1)
+      expect(copy.b).toBe(2.2)
+      expect(copy.c).toBe(true)
+      expect(copy.d).toBe("str")
+      expect(copy.e).toEqual([1])
+      expect(copy.f).toEqual({ a: 1 })
+    })
+  })
 
-  "Default query builder options": {
-    "default options"() {
-      assert.same(
-        {
-          autoQuoteTableNames: false,
-          autoQuoteFieldNames: false,
-          autoQuoteAliasNames: true,
-          useAsForTableAliasNames: false,
-          nameQuoteCharacter: "`",
-          tableAliasQuoteCharacter: "`",
-          fieldAliasQuoteCharacter: '"',
-          valueHandlers: [],
-          parameterCharacter: "?",
-          numberedParameters: false,
-          numberedParametersPrefix: "$",
-          numberedParametersStartAt: 1,
-          replaceSingleQuotes: false,
-          singleQuoteReplacement: "''",
-          separator: " ",
-          stringFormatter: null,
-          rawNesting: false,
-        },
-        squel.cls.DefaultQueryBuilderOptions,
-      )
-    },
-  },
+  describe("Default query builder options", () => {
+    it("default options", () => {
+      expect(squel.cls.DefaultQueryBuilderOptions).toEqual({
+        autoQuoteTableNames: false,
+        autoQuoteFieldNames: false,
+        autoQuoteAliasNames: true,
+        useAsForTableAliasNames: false,
+        nameQuoteCharacter: "`",
+        tableAliasQuoteCharacter: "`",
+        fieldAliasQuoteCharacter: '"',
+        valueHandlers: [],
+        parameterCharacter: "?",
+        numberedParameters: false,
+        numberedParametersPrefix: "$",
+        numberedParametersStartAt: 1,
+        replaceSingleQuotes: false,
+        singleQuoteReplacement: "''",
+        separator: " ",
+        stringFormatter: null,
+        rawNesting: false,
+      })
+    })
+  })
 
-  "Register global custom value handler": {
-    beforeEach(this: any) {
-      this.originalHandlers = ([] as any[]).concat(
-        squel.cls.globalValueHandlers,
-      )
+  describe("Register global custom value handler", () => {
+    let originalHandlers: any[]
+
+    beforeEach(() => {
+      originalHandlers = ([] as any[]).concat(squel.cls.globalValueHandlers)
       squel.cls.globalValueHandlers = []
-    },
-    afterEach(this: any) {
-      squel.cls.globalValueHandlers = this.originalHandlers
-    },
-    default() {
+    })
+
+    afterEach(() => {
+      squel.cls.globalValueHandlers = originalHandlers
+    })
+
+    it("default", () => {
       const handler = () => "test"
       squel.registerValueHandler(Date, handler)
       squel.registerValueHandler(Object, handler)
       squel.registerValueHandler("boolean", handler)
 
-      assert.same(3, squel.cls.globalValueHandlers.length)
-      assert.same({ type: Date, handler }, squel.cls.globalValueHandlers[0])
-      assert.same({ type: Object, handler }, squel.cls.globalValueHandlers[1])
-      assert.same(
-        { type: "boolean", handler },
-        squel.cls.globalValueHandlers[2],
-      )
-    },
+      expect(squel.cls.globalValueHandlers.length).toBe(3)
+      expect(squel.cls.globalValueHandlers[0]).toEqual({ type: Date, handler })
+      expect(squel.cls.globalValueHandlers[1]).toEqual({
+        type: Object,
+        handler,
+      })
+      expect(squel.cls.globalValueHandlers[2]).toEqual({
+        type: "boolean",
+        handler,
+      })
+    })
 
-    "type should be class constructor"() {
-      assert.throws(
-        () => squel.registerValueHandler(1 as any, null as any),
+    it("type should be class constructor", () => {
+      expect(() => squel.registerValueHandler(1 as any, null as any)).toThrow(
         "type must be a class constructor or string",
       )
-    },
+    })
 
-    "handler should be function"() {
+    it("handler should be function", () => {
       class MyClass {}
-      assert.throws(
-        () => squel.registerValueHandler(MyClass, 1 as any),
+      expect(() => squel.registerValueHandler(MyClass, 1 as any)).toThrow(
         "handler must be a function",
       )
-    },
+    })
 
-    "overrides existing handler"() {
+    it("overrides existing handler", () => {
       const handler = () => "test"
       const handler2 = () => "test2"
       squel.registerValueHandler(Date, handler)
       squel.registerValueHandler(Date, handler2)
 
-      assert.same(1, squel.cls.globalValueHandlers.length)
-      assert.same(
-        { type: Date, handler: handler2 },
-        squel.cls.globalValueHandlers[0],
-      )
-    },
-  },
+      expect(squel.cls.globalValueHandlers.length).toBe(1)
+      expect(squel.cls.globalValueHandlers[0]).toEqual({
+        type: Date,
+        handler: handler2,
+      })
+    })
+  })
 
-  "str()": {
-    constructor() {
+  describe("str()", () => {
+    it("constructor", () => {
       const f = squel.str("GETDATE(?)", 12, 23)
-      assert.ok(f instanceof squel.cls.FunctionBlock)
-      assert.same("GETDATE(?)", (f as any)._strings[0])
-      assert.same([12, 23], (f as any)._values[0])
-    },
+      expect(f).toBeInstanceOf(squel.cls.FunctionBlock)
+      expect((f as any)._strings[0]).toBe("GETDATE(?)")
+      expect((f as any)._values[0]).toEqual([12, 23])
+    })
 
-    "custom value handler": {
-      beforeEach(this: any) {
-        this.inst = squel.str("G(?,?)", 12, 23, 65)
+    describe("custom value handler", () => {
+      let inst: any
+      let handler: any
 
-        const handlerConfig = _.find(
-          squel.cls.globalValueHandlers,
+      beforeEach(() => {
+        inst = squel.str("G(?,?)", 12, 23, 65)
+        const handlerConfig = squel.cls.globalValueHandlers.find(
           (hc: any) => hc.type === squel.cls.FunctionBlock,
         )
+        handler = handlerConfig!.handler
+      })
 
-        this.handler = handlerConfig.handler
-      },
+      it("toString", () => {
+        expect(inst.toString()).toEqual(handler(inst))
+      })
 
-      toString(this: any) {
-        assert.same(this.inst.toString(), this.handler(this.inst))
-      },
-      toParam(this: any) {
-        assert.same(this.inst.toParam(), this.handler(this.inst, true))
-      },
-    },
-  },
+      it("toParam", () => {
+        expect(inst.toParam()).toEqual(handler(inst, true))
+      })
+    })
+  })
 
-  "rstr()": {
-    constructor() {
+  describe("rstr()", () => {
+    it("constructor", () => {
       const f = squel.rstr("GETDATE(?)", 12, 23)
-      assert.ok(f instanceof squel.cls.FunctionBlock)
-      assert.same("GETDATE(?)", (f as any)._strings[0])
-      assert.same([12, 23], (f as any)._values[0])
-    },
+      expect(f).toBeInstanceOf(squel.cls.FunctionBlock)
+      expect((f as any)._strings[0]).toBe("GETDATE(?)")
+      expect((f as any)._values[0]).toEqual([12, 23])
+    })
 
-    vsStr() {
+    it("vsStr", () => {
       const f1 = squel.str("OUTER(?)", squel.str("INNER(?)", 2))
-      assert.same("OUTER((INNER(2)))", f1.toString())
+      expect(f1.toString()).toBe("OUTER((INNER(2)))")
       const f2 = squel.str("OUTER(?)", squel.rstr("INNER(?)", 2))
-      assert.same("OUTER(INNER(2))", f2.toString())
-    },
+      expect(f2.toString()).toBe("OUTER(INNER(2))")
+    })
 
-    "custom value handler": {
-      beforeEach(this: any) {
-        this.inst = squel.rstr("G(?,?)", 12, 23, 65)
+    describe("custom value handler", () => {
+      let inst: any
+      let handler: any
 
-        const handlerConfig = _.find(
-          squel.cls.globalValueHandlers,
+      beforeEach(() => {
+        inst = squel.rstr("G(?,?)", 12, 23, 65)
+        const handlerConfig = squel.cls.globalValueHandlers.find(
           (hc: any) => hc.type === squel.cls.FunctionBlock,
         )
+        handler = handlerConfig!.handler
+      })
 
-        this.handler = handlerConfig.handler
-      },
+      it("toString", () => {
+        expect(inst.toString()).toEqual(handler(inst))
+      })
 
-      toString(this: any) {
-        assert.same(this.inst.toString(), this.handler(this.inst))
-      },
-      toParam(this: any) {
-        assert.same(this.inst.toParam(), this.handler(this.inst, true))
-      },
-    },
-  },
+      it("toParam", () => {
+        expect(inst.toParam()).toEqual(handler(inst, true))
+      })
+    })
+  })
 
-  "Load an SQL flavour": {
-    beforeEach(this: any) {
-      this.flavoursBackup = squel.flavours
+  describe("Load an SQL flavour", () => {
+    let flavoursBackup: any
+
+    beforeEach(() => {
+      flavoursBackup = squel.flavours
       squel.flavours = {}
-    },
+    })
 
-    afterEach(this: any) {
-      squel.flavours = this.flavoursBackup
-    },
+    afterEach(() => {
+      squel.flavours = flavoursBackup
+    })
 
-    "invalid flavour"() {
-      assert.throws(
-        () => squel.useFlavour("test"),
+    it("invalid flavour", () => {
+      expect(() => squel.useFlavour("test")).toThrow(
         "Flavour not available: test",
       )
-    },
+    })
 
-    "flavour reference should be a function"() {
-      ;(squel.flavours as any)["test"] = "blah"
-      assert.throws(
-        () => squel.useFlavour("test"),
+    it("flavour reference should be a function", () => {
+      ;(squel.flavours as any).test = "blah"
+      expect(() => squel.useFlavour("test")).toThrow(
         "Flavour not available: test",
       )
-    },
+    })
 
-    "flavour setup function gets executed"() {
+    it("flavour setup function gets executed", () => {
       const spy = mock(() => undefined)
-      ;(squel.flavours as any)["test"] = spy
+      ;(squel.flavours as any).test = spy
       const ret = squel.useFlavour("test")
-      assert.ok(spy.mock.calls.length === 1)
-      assert.ok(!!ret.select())
-    },
+      expect(spy.mock.calls.length).toBe(1)
+      expect(!!ret.select()).toBe(true)
+    })
 
-    "can switch flavours"() {
-      ;(squel.flavours as any)["test"] = mock((s: any) => {
+    it("can switch flavours", () => {
+      ;(squel.flavours as any).test = mock((s: any) => {
         s.cls.dummy = 1
       })
-      ;(squel.flavours as any)["test2"] = mock((s: any) => {
+      ;(squel.flavours as any).test2 = mock((s: any) => {
         s.cls.dummy2 = 2
       })
       let ret = squel.useFlavour("test")
-      assert.same(ret.cls.dummy, 1)
+      expect(ret.cls.dummy).toBe(1)
 
       ret = squel.useFlavour("test2")
-      assert.same(ret.cls.dummy, undefined)
-      assert.same(ret.cls.dummy2, 2)
+      expect(ret.cls.dummy).toBeUndefined()
+      expect(ret.cls.dummy2).toBe(2)
 
       ret = squel.useFlavour()
-      assert.same(ret.cls.dummy, undefined)
-      assert.same(ret.cls.dummy2, undefined)
-    },
+      expect(ret.cls.dummy).toBeUndefined()
+      expect(ret.cls.dummy2).toBeUndefined()
+    })
 
-    "can get current flavour"() {
+    it("can get current flavour", () => {
       const flavour = "test"
       ;(squel.flavours as any)[flavour] = mock(() => undefined)
-
       const ret = squel.useFlavour(flavour)
-      assert.same(ret.flavour, flavour)
-    },
+      expect(ret.flavour).toBe(flavour)
+    })
 
-    "can mix flavours - #255"() {
+    it("can mix flavours - #255", () => {
       ;(squel.flavours as any).flavour1 = (s: any) => s
       ;(squel.flavours as any).flavour2 = (s: any) => s
       const squel1 = squel.useFlavour("flavour1" as any)
       const squel2 = squel.useFlavour("flavour2" as any)
-
       const expr1 = squel1.expr().and("1 = 1")
-      assert.same(
-        squel2.select().from("test", "t").where(expr1).toString(),
+      expect(squel2.select().from("test", "t").where(expr1).toString()).toBe(
         "SELECT * FROM test `t` WHERE (1 = 1)",
       )
-    },
-  },
+    })
+  })
 
-  "Builder base class": {
-    beforeEach(this: any) {
-      this.cls = squel.cls.BaseBuilder
-      this.inst = new this.cls()
-      this.originalHandlers = ([] as any[]).concat(
-        squel.cls.globalValueHandlers,
-      )
-    },
+  describe("Builder base class", () => {
+    let Cls: any
+    let inst: any
+    let originalHandlers: any[]
 
-    afterEach(this: any) {
-      squel.cls.globalValueHandlers = this.originalHandlers
-    },
+    beforeEach(() => {
+      Cls = squel.cls.BaseBuilder
+      inst = new Cls()
+      originalHandlers = ([] as any[]).concat(squel.cls.globalValueHandlers)
+    })
 
-    "instanceof Cloneable"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.Cloneable)
-    },
+    afterEach(() => {
+      squel.cls.globalValueHandlers = originalHandlers
+    })
 
-    constructor: {
-      "default options"(this: any) {
-        assert.same(squel.cls.DefaultQueryBuilderOptions, this.inst.options)
-      },
+    it("instanceof Cloneable", () => {
+      expect(inst).toBeInstanceOf(squel.cls.Cloneable)
+    })
 
-      "overridden options"(this: any) {
-        this.inst = new this.cls({
+    describe("constructor", () => {
+      it("default options", () => {
+        expect(inst.options).toEqual(squel.cls.DefaultQueryBuilderOptions)
+      })
+
+      it("overridden options", () => {
+        inst = new Cls({
           dummy1: "str",
           dummy2: 12.3,
           usingValuePlaceholders: true,
           dummy3: true,
           globalValueHandlers: [1],
         })
+        const expectedOptions = {
+          ...squel.cls.DefaultQueryBuilderOptions,
+          dummy1: "str",
+          dummy2: 12.3,
+          usingValuePlaceholders: true,
+          dummy3: true,
+          globalValueHandlers: [1],
+        }
+        expect(inst.options).toEqual(expectedOptions)
+      })
+    })
 
-        const expectedOptions = _.extend(
-          {},
-          squel.cls.DefaultQueryBuilderOptions,
-          {
-            dummy1: "str",
-            dummy2: 12.3,
-            usingValuePlaceholders: true,
-            dummy3: true,
-            globalValueHandlers: [1],
-          },
-        )
-
-        assert.same(expectedOptions, this.inst.options)
-      },
-    },
-
-    registerValueHandler: {
-      afterEach() {
+    describe("registerValueHandler", () => {
+      afterEach(() => {
         squel.cls.globalValueHandlers = []
-      },
+      })
 
-      default(this: any) {
+      it("default", () => {
         const handler = () => "test"
-        this.inst.registerValueHandler(Date, handler)
-        this.inst.registerValueHandler(Object, handler)
-        this.inst.registerValueHandler("number", handler)
+        inst.registerValueHandler(Date, handler)
+        inst.registerValueHandler(Object, handler)
+        inst.registerValueHandler("number", handler)
 
-        assert.same(3, this.inst.options.valueHandlers.length)
-        assert.same({ type: Date, handler }, this.inst.options.valueHandlers[0])
-        assert.same(
-          { type: Object, handler },
-          this.inst.options.valueHandlers[1],
-        )
-        assert.same(
-          { type: "number", handler },
-          this.inst.options.valueHandlers[2],
-        )
-      },
+        expect(inst.options.valueHandlers.length).toBe(3)
+        expect(inst.options.valueHandlers[0]).toEqual({ type: Date, handler })
+        expect(inst.options.valueHandlers[1]).toEqual({ type: Object, handler })
+        expect(inst.options.valueHandlers[2]).toEqual({
+          type: "number",
+          handler,
+        })
+      })
 
-      "type should be class constructor"(this: any) {
-        assert.throws(
-          () => this.inst.registerValueHandler(1, null),
+      it("type should be class constructor", () => {
+        expect(() => inst.registerValueHandler(1, null)).toThrow(
           "type must be a class constructor or string",
         )
-      },
+      })
 
-      "handler should be function"(this: any) {
+      it("handler should be function", () => {
         class MyClass {}
-        assert.throws(
-          () => this.inst.registerValueHandler(MyClass, 1),
+        expect(() => inst.registerValueHandler(MyClass, 1)).toThrow(
           "handler must be a function",
         )
-      },
+      })
 
-      "returns instance for chainability"(this: any) {
+      it("returns instance for chainability", () => {
         const handler = () => "test"
-        assert.same(this.inst, this.inst.registerValueHandler(Date, handler))
-      },
+        expect(inst.registerValueHandler(Date, handler)).toBe(inst)
+      })
 
-      "overrides existing handler"(this: any) {
+      it("overrides existing handler", () => {
         const handler = () => "test"
         const handler2 = () => "test2"
-        this.inst.registerValueHandler(Date, handler)
-        this.inst.registerValueHandler(Date, handler2)
+        inst.registerValueHandler(Date, handler)
+        inst.registerValueHandler(Date, handler2)
 
-        assert.same(1, this.inst.options.valueHandlers.length)
-        assert.same(
-          { type: Date, handler: handler2 },
-          this.inst.options.valueHandlers[0],
-        )
-      },
+        expect(inst.options.valueHandlers.length).toBe(1)
+        expect(inst.options.valueHandlers[0]).toEqual({
+          type: Date,
+          handler: handler2,
+        })
+      })
 
-      "does not touch global value handlers list"(this: any) {
+      it("does not touch global value handlers list", () => {
         const oldGlobalHandlers = squel.cls.globalValueHandlers
-
         const handler = () => "test"
-        this.inst.registerValueHandler(Date, handler)
+        inst.registerValueHandler(Date, handler)
+        expect(squel.cls.globalValueHandlers).toBe(oldGlobalHandlers)
+      })
+    })
 
-        assert.same(oldGlobalHandlers, squel.cls.globalValueHandlers)
-      },
-    },
-
-    _sanitizeExpression: {
-      "if Expression - empty expression"(this: any) {
+    describe("_sanitizeExpression", () => {
+      it("if Expression - empty expression", () => {
         const e = squel.expr()
-        assert.same(e, this.inst._sanitizeExpression(e))
-      },
-      "if Expression - non-empty expression"(this: any) {
+        expect(inst._sanitizeExpression(e)).toBe(e)
+      })
+
+      it("if Expression - non-empty expression", () => {
         const e = squel.expr().and("s.name <> 'Fred'")
-        assert.same(e, this.inst._sanitizeExpression(e))
-      },
-      "if builder"(this: any) {
+        expect(inst._sanitizeExpression(e)).toBe(e)
+      })
+
+      it("if builder", () => {
         const s = squel.str("s")
-        assert.same(s, this.inst._sanitizeExpression(s))
-      },
-      "if string"(this: any) {
+        expect(inst._sanitizeExpression(s)).toBe(s)
+      })
+
+      it("if string", () => {
         const s = "BLA BLA"
-        assert.same("BLA BLA", this.inst._sanitizeExpression(s))
-      },
-      "if neither expression, builder nor String"(this: any) {
-        const testFn = () => this.inst._sanitizeExpression(1)
-        assert.throws(testFn, "expression must be a string or builder instance")
-      },
-    },
+        expect(inst._sanitizeExpression(s)).toBe("BLA BLA")
+      })
 
-    _sanitizeName: {
-      beforeEach(this: any) {
-        spyOn(this.inst, "_sanitizeName")
-      },
+      it("if neither expression, builder nor String", () => {
+        expect(() => inst._sanitizeExpression(1)).toThrow(
+          "expression must be a string or builder instance",
+        )
+      })
+    })
 
-      "if string"(this: any) {
-        assert.same("bla", this.inst._sanitizeName("bla"))
-      },
+    describe("_sanitizeName", () => {
+      beforeEach(() => {
+        spyOn(inst, "_sanitizeName")
+      })
 
-      "if boolean"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName(true, "bla"),
+      it("if string", () => {
+        expect(inst._sanitizeName("bla")).toBe("bla")
+      })
+
+      it("if boolean", () => {
+        expect(() => inst._sanitizeName(true, "bla")).toThrow(
           "bla must be a string",
         )
-      },
+      })
 
-      "if integer"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName(1),
+      it("if integer", () => {
+        expect(() => inst._sanitizeName(1)).toThrow(
           "undefined must be a string",
         )
-      },
+      })
 
-      "if float"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName(1.2, "meh"),
+      it("if float", () => {
+        expect(() => inst._sanitizeName(1.2, "meh")).toThrow(
           "meh must be a string",
         )
-      },
+      })
 
-      "if array"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName([1], "yes"),
+      it("if array", () => {
+        expect(() => inst._sanitizeName([1], "yes")).toThrow(
           "yes must be a string",
         )
-      },
+      })
 
-      "if object"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName(new Object(), "yes"),
+      it("if object", () => {
+        expect(() => inst._sanitizeName(new Object(), "yes")).toThrow(
           "yes must be a string",
         )
-      },
+      })
 
-      "if null"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName(null, "no"),
+      it("if null", () => {
+        expect(() => inst._sanitizeName(null, "no")).toThrow(
           "no must be a string",
         )
-      },
+      })
 
-      "if undefined"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeName(undefined, "no"),
+      it("if undefined", () => {
+        expect(() => inst._sanitizeName(undefined, "no")).toThrow(
           "no must be a string",
         )
-      },
-    },
+      })
+    })
 
-    _sanitizeField: {
-      default(this: any) {
-        const spy = spyOn(this.inst, "_sanitizeName")
+    describe("_sanitizeField", () => {
+      it("default", () => {
+        const spy = spyOn(inst, "_sanitizeName")
+        expect(inst._sanitizeField("abc")).toBe("abc")
+        expect(spyCalledWithExactly(spy, "abc", "field name")).toBe(true)
+      })
 
-        assert.same("abc", this.inst._sanitizeField("abc"))
-
-        assert.ok(spyCalledWithExactly(spy, "abc", "field name"))
-      },
-
-      QueryBuilder(this: any) {
+      it("QueryBuilder", () => {
         const s = squel.select().from("scores").field("MAX(score)")
-        assert.same(s, this.inst._sanitizeField(s))
-      },
-    },
+        expect(inst._sanitizeField(s)).toBe(s)
+      })
+    })
 
-    _sanitizeBaseBuilder: {
-      "is not base builder"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeBaseBuilder(null),
+    describe("_sanitizeBaseBuilder", () => {
+      it("is not base builder", () => {
+        expect(() => inst._sanitizeBaseBuilder(null)).toThrow(
           "must be a builder instance",
         )
-      },
+      })
 
-      "is a query builder"(this: any) {
+      it("is a query builder", () => {
         const qry = squel.select()
-        assert.same(qry, this.inst._sanitizeBaseBuilder(qry))
-      },
-    },
+        expect(inst._sanitizeBaseBuilder(qry)).toBe(qry)
+      })
+    })
 
-    _sanitizeTable: {
-      default(this: any) {
-        const spy = spyOn(this.inst, "_sanitizeName")
+    describe("_sanitizeTable", () => {
+      it("default", () => {
+        const spy = spyOn(inst, "_sanitizeName")
+        expect(inst._sanitizeTable("abc")).toBe("abc")
+        expect(spyCalledWithExactly(spy, "abc", "table")).toBe(true)
+      })
 
-        assert.same("abc", this.inst._sanitizeTable("abc"))
-
-        assert.ok(spyCalledWithExactly(spy, "abc", "table"))
-      },
-
-      "not a string"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeTable(null),
+      it("not a string", () => {
+        expect(() => inst._sanitizeTable(null)).toThrow(
           "table name must be a string or a builder",
         )
-      },
+      })
 
-      "query builder"(this: any) {
+      it("query builder", () => {
         const select = squel.select()
-        assert.same(select, this.inst._sanitizeTable(select, true))
-      },
-    },
+        expect(inst._sanitizeTable(select, true)).toBe(select)
+      })
+    })
 
-    _sanitizeFieldAlias: {
-      default(this: any) {
-        const spy = spyOn(this.inst, "_sanitizeName")
+    describe("_sanitizeFieldAlias", () => {
+      it("default", () => {
+        const spy = spyOn(inst, "_sanitizeName")
+        inst._sanitizeFieldAlias("abc")
+        expect(spyCalledWithExactly(spy, "abc", "field alias")).toBe(true)
+      })
+    })
 
-        this.inst._sanitizeFieldAlias("abc")
+    describe("_sanitizeTableAlias", () => {
+      it("default", () => {
+        const spy = spyOn(inst, "_sanitizeName")
+        inst._sanitizeTableAlias("abc")
+        expect(spyCalledWithExactly(spy, "abc", "table alias")).toBe(true)
+      })
+    })
 
-        assert.ok(spyCalledWithExactly(spy, "abc", "field alias"))
-      },
-    },
-
-    _sanitizeTableAlias: {
-      default(this: any) {
-        const spy = spyOn(this.inst, "_sanitizeName")
-
-        this.inst._sanitizeTableAlias("abc")
-
-        assert.ok(spyCalledWithExactly(spy, "abc", "table alias"))
-      },
-    },
-
-    _sanitizeLimitOffset: {
-      undefined(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeLimitOffset(),
+    describe("_sanitizeLimitOffset", () => {
+      it("undefined", () => {
+        expect(() => inst._sanitizeLimitOffset()).toThrow(
           "limit/offset must be >= 0",
         )
-      },
+      })
 
-      null(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeLimitOffset(null),
+      it("null", () => {
+        expect(() => inst._sanitizeLimitOffset(null)).toThrow(
           "limit/offset must be >= 0",
         )
-      },
+      })
 
-      float(this: any) {
-        assert.same(1, this.inst._sanitizeLimitOffset(1.2))
-      },
+      it("float", () => {
+        expect(inst._sanitizeLimitOffset(1.2)).toBe(1)
+      })
 
-      boolean(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeLimitOffset(false),
+      it("boolean", () => {
+        expect(() => inst._sanitizeLimitOffset(false)).toThrow(
           "limit/offset must be >= 0",
         )
-      },
+      })
 
-      string(this: any) {
-        assert.same(2, this.inst._sanitizeLimitOffset("2"))
-      },
+      it("string", () => {
+        expect(inst._sanitizeLimitOffset("2")).toBe(2)
+      })
 
-      array(this: any) {
-        assert.same(3, this.inst._sanitizeLimitOffset([3]))
-      },
+      it("array", () => {
+        expect(inst._sanitizeLimitOffset([3])).toBe(3)
+      })
 
-      object(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeLimitOffset(new Object()),
+      it("object", () => {
+        expect(() => inst._sanitizeLimitOffset(new Object())).toThrow(
           "limit/offset must be >= 0",
         )
-      },
+      })
 
-      "number >= 0"(this: any) {
-        assert.same(0, this.inst._sanitizeLimitOffset(0))
-        assert.same(1, this.inst._sanitizeLimitOffset(1))
-      },
+      it("number >= 0", () => {
+        expect(inst._sanitizeLimitOffset(0)).toBe(0)
+        expect(inst._sanitizeLimitOffset(1)).toBe(1)
+      })
 
-      "number < 0"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeLimitOffset(-1),
+      it("number < 0", () => {
+        expect(() => inst._sanitizeLimitOffset(-1)).toThrow(
           "limit/offset must be >= 0",
         )
-      },
-    },
+      })
+    })
 
-    _sanitizeValue: {
-      beforeEach(this: any) {
-        spyOn(this.inst, "_sanitizeValue")
-      },
+    describe("_sanitizeValue", () => {
+      beforeEach(() => {
+        spyOn(inst, "_sanitizeValue")
+      })
 
-      afterEach() {
+      afterEach(() => {
         squel.cls.globalValueHandlers = []
-      },
+      })
 
-      "if string"(this: any) {
-        assert.same("bla", this.inst._sanitizeValue("bla"))
-      },
+      it("if string", () => {
+        expect(inst._sanitizeValue("bla")).toBe("bla")
+      })
 
-      "if boolean"(this: any) {
-        assert.same(true, this.inst._sanitizeValue(true))
-        assert.same(false, this.inst._sanitizeValue(false))
-      },
+      it("if boolean", () => {
+        expect(inst._sanitizeValue(true)).toBe(true)
+        expect(inst._sanitizeValue(false)).toBe(false)
+      })
 
-      "if integer"(this: any) {
-        assert.same(-1, this.inst._sanitizeValue(-1))
-        assert.same(0, this.inst._sanitizeValue(0))
-        assert.same(1, this.inst._sanitizeValue(1))
-      },
+      it("if integer", () => {
+        expect(inst._sanitizeValue(-1)).toBe(-1)
+        expect(inst._sanitizeValue(0)).toBe(0)
+        expect(inst._sanitizeValue(1)).toBe(1)
+      })
 
-      "if float"(this: any) {
-        assert.same(-1.2, this.inst._sanitizeValue(-1.2))
-        assert.same(1.2, this.inst._sanitizeValue(1.2))
-      },
+      it("if float", () => {
+        expect(inst._sanitizeValue(-1.2)).toBe(-1.2)
+        expect(inst._sanitizeValue(1.2)).toBe(1.2)
+      })
 
-      "if array"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeValue([1]),
+      it("if array", () => {
+        expect(() => inst._sanitizeValue([1])).toThrow(
           "field value must be a string, number, boolean, null or one of the registered custom value types",
         )
-      },
+      })
 
-      "if object"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeValue(new Object()),
+      it("if object", () => {
+        expect(() => inst._sanitizeValue(new Object())).toThrow(
           "field value must be a string, number, boolean, null or one of the registered custom value types",
         )
-      },
+      })
 
-      "if null"(this: any) {
-        assert.same(null, this.inst._sanitizeValue(null))
-      },
+      it("if null", () => {
+        expect(inst._sanitizeValue(null)).toBeNull()
+      })
 
-      "if BaseBuilder"(this: any) {
+      it("if BaseBuilder", () => {
         const s = squel.select()
-        assert.same(s, this.inst._sanitizeValue(s))
-      },
+        expect(inst._sanitizeValue(s)).toBe(s)
+      })
 
-      "if undefined"(this: any) {
-        assert.throws(
-          () => this.inst._sanitizeValue(undefined),
+      it("if undefined", () => {
+        expect(() => inst._sanitizeValue(undefined)).toThrow(
           "field value must be a string, number, boolean, null or one of the registered custom value types",
         )
-      },
+      })
 
-      "custom handlers": {
-        global(this: any) {
+      describe("custom handlers", () => {
+        it("global", () => {
           squel.registerValueHandler(Date, (v: any) => v)
           const date = new Date()
-          assert.same(date, this.inst._sanitizeValue(date))
-        },
+          expect(inst._sanitizeValue(date)).toBe(date)
+        })
 
-        instance(this: any) {
-          this.inst.registerValueHandler(Date, (v: any) => v)
+        it("instance", () => {
+          inst.registerValueHandler(Date, (v: any) => v)
           const date = new Date()
-          assert.same(date, this.inst._sanitizeValue(date))
-        },
-      },
-    },
+          expect(inst._sanitizeValue(date)).toBe(date)
+        })
+      })
+    })
 
-    _escapeValue(this: any) {
-      this.inst.options.replaceSingleQuotes = false
-      assert.same("te'st", this.inst._escapeValue("te'st"))
+    it("_escapeValue", () => {
+      inst.options.replaceSingleQuotes = false
+      expect(inst._escapeValue("te'st")).toBe("te'st")
 
-      this.inst.options.replaceSingleQuotes = true
-      assert.same("te''st", this.inst._escapeValue("te'st"))
+      inst.options.replaceSingleQuotes = true
+      expect(inst._escapeValue("te'st")).toBe("te''st")
 
-      this.inst.options.singleQuoteReplacement = "--"
-      assert.same("te--st", this.inst._escapeValue("te'st"))
+      inst.options.singleQuoteReplacement = "--"
+      expect(inst._escapeValue("te'st")).toBe("te--st")
 
-      this.inst.options.singleQuoteReplacement = "--"
-      assert.same(undefined, this.inst._escapeValue())
-    },
+      inst.options.singleQuoteReplacement = "--"
+      expect(inst._escapeValue()).toBeUndefined()
+    })
 
-    _formatTableName: {
-      default(this: any) {
-        assert.same("abc", this.inst._formatTableName("abc"))
-      },
+    describe("_formatTableName", () => {
+      it("default", () => {
+        expect(inst._formatTableName("abc")).toBe("abc")
+      })
 
-      "auto quote names": {
-        beforeEach(this: any) {
-          this.inst.options.autoQuoteTableNames = true
-        },
+      describe("auto quote names", () => {
+        beforeEach(() => {
+          inst.options.autoQuoteTableNames = true
+        })
 
-        "default quote character"(this: any) {
-          assert.same("`abc`", this.inst._formatTableName("abc"))
-        },
+        it("default quote character", () => {
+          expect(inst._formatTableName("abc")).toBe("`abc`")
+        })
 
-        "custom quote character"(this: any) {
-          this.inst.options.nameQuoteCharacter = "|"
-          assert.same("|abc|", this.inst._formatTableName("abc"))
-        },
-      },
-    },
+        it("custom quote character", () => {
+          inst.options.nameQuoteCharacter = "|"
+          expect(inst._formatTableName("abc")).toBe("|abc|")
+        })
+      })
+    })
 
-    _formatTableAlias: {
-      default(this: any) {
-        assert.same("`abc`", this.inst._formatTableAlias("abc"))
-      },
+    describe("_formatTableAlias", () => {
+      it("default", () => {
+        expect(inst._formatTableAlias("abc")).toBe("`abc`")
+      })
 
-      "custom quote character"(this: any) {
-        this.inst.options.tableAliasQuoteCharacter = "~"
-        assert.same("~abc~", this.inst._formatTableAlias("abc"))
-      },
+      it("custom quote character", () => {
+        inst.options.tableAliasQuoteCharacter = "~"
+        expect(inst._formatTableAlias("abc")).toBe("~abc~")
+      })
 
-      "auto quote alias names is OFF"(this: any) {
-        this.inst.options.autoQuoteAliasNames = false
-        assert.same("abc", this.inst._formatTableAlias("abc"))
-      },
+      it("auto quote alias names is OFF", () => {
+        inst.options.autoQuoteAliasNames = false
+        expect(inst._formatTableAlias("abc")).toBe("abc")
+      })
 
-      "AS is turned ON"(this: any) {
-        this.inst.options.autoQuoteAliasNames = false
-        this.inst.options.useAsForTableAliasNames = true
-        assert.same("AS abc", this.inst._formatTableAlias("abc"))
-      },
-    },
+      it("AS is turned ON", () => {
+        inst.options.autoQuoteAliasNames = false
+        inst.options.useAsForTableAliasNames = true
+        expect(inst._formatTableAlias("abc")).toBe("AS abc")
+      })
+    })
 
-    _formatFieldAlias: {
-      default(this: any) {
-        assert.same('"abc"', this.inst._formatFieldAlias("abc"))
-      },
+    describe("_formatFieldAlias", () => {
+      it("default", () => {
+        expect(inst._formatFieldAlias("abc")).toBe('"abc"')
+      })
 
-      "custom quote character"(this: any) {
-        this.inst.options.fieldAliasQuoteCharacter = "~"
-        assert.same("~abc~", this.inst._formatFieldAlias("abc"))
-      },
+      it("custom quote character", () => {
+        inst.options.fieldAliasQuoteCharacter = "~"
+        expect(inst._formatFieldAlias("abc")).toBe("~abc~")
+      })
 
-      "auto quote alias names is OFF"(this: any) {
-        this.inst.options.autoQuoteAliasNames = false
-        assert.same("abc", this.inst._formatFieldAlias("abc"))
-      },
-    },
+      it("auto quote alias names is OFF", () => {
+        inst.options.autoQuoteAliasNames = false
+        expect(inst._formatFieldAlias("abc")).toBe("abc")
+      })
+    })
 
-    _formatFieldName: {
-      default(this: any) {
-        assert.same("abc", this.inst._formatFieldName("abc"))
-      },
+    describe("_formatFieldName", () => {
+      it("default", () => {
+        expect(inst._formatFieldName("abc")).toBe("abc")
+      })
 
-      "auto quote names": {
-        beforeEach(this: any) {
-          this.inst.options.autoQuoteFieldNames = true
-        },
+      describe("auto quote names", () => {
+        beforeEach(() => {
+          inst.options.autoQuoteFieldNames = true
+        })
 
-        "default quote character"(this: any) {
-          assert.same("`abc`.`def`", this.inst._formatFieldName("abc.def"))
-        },
+        it("default quote character", () => {
+          expect(inst._formatFieldName("abc.def")).toBe("`abc`.`def`")
+        })
 
-        "do not quote *"(this: any) {
-          assert.same("`abc`.*", this.inst._formatFieldName("abc.*"))
-        },
+        it("do not quote *", () => {
+          expect(inst._formatFieldName("abc.*")).toBe("`abc`.*")
+        })
 
-        "custom quote character"(this: any) {
-          this.inst.options.nameQuoteCharacter = "|"
-          assert.same("|abc|.|def|", this.inst._formatFieldName("abc.def"))
-        },
+        it("custom quote character", () => {
+          inst.options.nameQuoteCharacter = "|"
+          expect(inst._formatFieldName("abc.def")).toBe("|abc|.|def|")
+        })
 
-        "ignore periods when quoting"(this: any) {
-          assert.same(
-            "`abc.def`",
-            this.inst._formatFieldName("abc.def", {
+        it("ignore periods when quoting", () => {
+          expect(
+            inst._formatFieldName("abc.def", {
               ignorePeriodsForFieldNameQuotes: true,
             }),
-          )
-        },
-      },
-    },
+          ).toBe("`abc.def`")
+        })
+      })
+    })
 
-    _formatCustomValue: {
-      "not a custom value type"(this: any) {
-        assert.same(
-          { formatted: false, value: null },
-          this.inst._formatCustomValue(null),
-        )
-        assert.same(
-          { formatted: false, value: "abc" },
-          this.inst._formatCustomValue("abc"),
-        )
-        assert.same(
-          { formatted: false, value: 12 },
-          this.inst._formatCustomValue(12),
-        )
-        assert.same(
-          { formatted: false, value: 1.2 },
-          this.inst._formatCustomValue(1.2),
-        )
-        assert.same(
-          { formatted: false, value: true },
-          this.inst._formatCustomValue(true),
-        )
-        assert.same(
-          { formatted: false, value: false },
-          this.inst._formatCustomValue(false),
-        )
-      },
+    describe("_formatCustomValue", () => {
+      it("not a custom value type", () => {
+        expect(inst._formatCustomValue(null)).toEqual({
+          formatted: false,
+          value: null,
+        })
+        expect(inst._formatCustomValue("abc")).toEqual({
+          formatted: false,
+          value: "abc",
+        })
+        expect(inst._formatCustomValue(12)).toEqual({
+          formatted: false,
+          value: 12,
+        })
+        expect(inst._formatCustomValue(1.2)).toEqual({
+          formatted: false,
+          value: 1.2,
+        })
+        expect(inst._formatCustomValue(true)).toEqual({
+          formatted: false,
+          value: true,
+        })
+        expect(inst._formatCustomValue(false)).toEqual({
+          formatted: false,
+          value: false,
+        })
+      })
 
-      "custom value type": {
-        global(this: any) {
+      describe("custom value type", () => {
+        it("global", () => {
           class MyClass {}
           const myObj = new MyClass()
 
           squel.registerValueHandler(MyClass, () => 3.14)
           squel.registerValueHandler("boolean", (v: any) => `a${v}`)
 
-          assert.same(
-            { formatted: true, value: 3.14 },
-            this.inst._formatCustomValue(myObj),
-          )
-          assert.same(
-            { formatted: true, value: "atrue" },
-            this.inst._formatCustomValue(true),
-          )
-        },
+          expect(inst._formatCustomValue(myObj)).toEqual({
+            formatted: true,
+            value: 3.14,
+          })
+          expect(inst._formatCustomValue(true)).toEqual({
+            formatted: true,
+            value: "atrue",
+          })
+        })
 
-        instance(this: any) {
+        it("instance", () => {
           class MyClass {}
           const myObj = new MyClass()
 
-          this.inst.registerValueHandler(MyClass, () => 3.14)
-          this.inst.registerValueHandler("number", (v: any) => `${v}a`)
+          inst.registerValueHandler(MyClass, () => 3.14)
+          inst.registerValueHandler("number", (v: any) => `${v}a`)
 
-          assert.same(
-            { formatted: true, value: 3.14 },
-            this.inst._formatCustomValue(myObj),
-          )
-          assert.same(
-            { formatted: true, value: "5.2a" },
-            this.inst._formatCustomValue(5.2),
-          )
-        },
+          expect(inst._formatCustomValue(myObj)).toEqual({
+            formatted: true,
+            value: 3.14,
+          })
+          expect(inst._formatCustomValue(5.2)).toEqual({
+            formatted: true,
+            value: "5.2a",
+          })
+        })
 
-        "instance handler takes precedence over global"(this: any) {
-          this.inst.registerValueHandler(Date, () => "hello")
+        it("instance handler takes precedence over global", () => {
+          inst.registerValueHandler(Date, () => "hello")
           squel.registerValueHandler(Date, () => "goodbye")
 
-          assert.same(
-            { formatted: true, value: "hello" },
-            this.inst._formatCustomValue(new Date()),
-          )
-
-          this.inst = new this.cls({ valueHandlers: [] })
-          assert.same(
-            { formatted: true, value: "goodbye" },
-            this.inst._formatCustomValue(new Date()),
-          )
-        },
-
-        "whether to format for parameterized output"(this: any) {
-          this.inst.registerValueHandler(Date, (_d: any, asParam: any) => {
-            return asParam ? "foo" : "bar"
+          expect(inst._formatCustomValue(new Date())).toEqual({
+            formatted: true,
+            value: "hello",
           })
 
+          inst = new Cls({ valueHandlers: [] })
+          expect(inst._formatCustomValue(new Date())).toEqual({
+            formatted: true,
+            value: "goodbye",
+          })
+        })
+
+        it("whether to format for parameterized output", () => {
+          inst.registerValueHandler(Date, (_d: any, asParam: any) =>
+            asParam ? "foo" : "bar",
+          )
           const val = new Date()
+          expect(inst._formatCustomValue(val, true)).toEqual({
+            formatted: true,
+            value: "foo",
+          })
+          expect(inst._formatCustomValue(val)).toEqual({
+            formatted: true,
+            value: "bar",
+          })
+        })
 
-          assert.same(
-            { formatted: true, value: "foo" },
-            this.inst._formatCustomValue(val, true),
-          )
-          assert.same(
-            { formatted: true, value: "bar" },
-            this.inst._formatCustomValue(val),
-          )
-        },
-
-        "additional formatting options"(this: any) {
-          this.inst.registerValueHandler(
+        it("additional formatting options", () => {
+          inst.registerValueHandler(
             Date,
-            (_d: any, _asParam: any, options: any) => {
-              return options.dontQuote ? "foo" : '"foo"'
-            },
+            (_d: any, _asParam: any, options: any) =>
+              options.dontQuote ? "foo" : '"foo"',
           )
-
           const val = new Date()
+          expect(
+            inst._formatCustomValue(val, true, { dontQuote: true }),
+          ).toEqual({
+            formatted: true,
+            value: "foo",
+          })
+          expect(
+            inst._formatCustomValue(val, true, { dontQuote: false }),
+          ).toEqual({
+            formatted: true,
+            value: '"foo"',
+          })
+        })
 
-          assert.same(
-            { formatted: true, value: "foo" },
-            this.inst._formatCustomValue(val, true, { dontQuote: true }),
-          )
-          assert.same(
-            { formatted: true, value: '"foo"' },
-            this.inst._formatCustomValue(val, true, { dontQuote: false }),
-          )
-        },
-
-        "return raw"(this: any) {
-          this.inst.registerValueHandler(Date, () => ({
+        it("return raw", () => {
+          inst.registerValueHandler(Date, () => ({
             rawNesting: true,
             value: "foo",
           }))
-
           const val = new Date()
+          expect(inst._formatCustomValue(val, true)).toEqual({
+            rawNesting: true,
+            formatted: true,
+            value: "foo",
+          })
+        })
+      })
+    })
 
-          assert.same(
-            { rawNesting: true, formatted: true, value: "foo" },
-            this.inst._formatCustomValue(val, true),
-          )
-        },
-      },
-    },
-
-    _formatValueForParamArray: {
-      "Query builder"(this: any) {
+    describe("_formatValueForParamArray", () => {
+      it("Query builder", () => {
         const s = squel.select().from("table")
-        assert.same(s, this.inst._formatValueForParamArray(s))
-      },
+        expect(inst._formatValueForParamArray(s)).toBe(s)
+      })
 
-      "else calls _formatCustomValue"(this: any) {
-        const spy = spyOn(this.inst, "_formatCustomValue").mockImplementation(
+      it("else calls _formatCustomValue", () => {
+        const spy = spyOn(inst, "_formatCustomValue").mockImplementation(
           (_v: any, asParam: any) => ({
             formatted: true,
             value: `test${asParam ? "foo" : "bar"}`,
           }),
         )
 
-        assert.same("testfoo", this.inst._formatValueForParamArray(null))
-        assert.same("testfoo", this.inst._formatValueForParamArray("abc"))
-        assert.same("testfoo", this.inst._formatValueForParamArray(12))
-        assert.same("testfoo", this.inst._formatValueForParamArray(1.2))
+        expect(inst._formatValueForParamArray(null)).toBe("testfoo")
+        expect(inst._formatValueForParamArray("abc")).toBe("testfoo")
+        expect(inst._formatValueForParamArray(12)).toBe("testfoo")
+        expect(inst._formatValueForParamArray(1.2)).toBe("testfoo")
 
         const opts = { dummy: true }
-        assert.same("testfoo", this.inst._formatValueForParamArray(true, opts))
+        expect(inst._formatValueForParamArray(true, opts)).toBe("testfoo")
+        expect(inst._formatValueForParamArray(false)).toBe("testfoo")
 
-        assert.same("testfoo", this.inst._formatValueForParamArray(false))
+        expect(spy.mock.calls.length).toBe(6)
+        expect((spy.mock.calls[4] as any)[2]).toBe(opts)
+      })
 
-        assert.same(6, spy.mock.calls.length)
-
-        assert.same(spy.mock.calls[4][2], opts)
-      },
-
-      "Array - recursively calls itself on each element"(this: any) {
-        const spy = spyOn(this.inst, "_formatValueForParamArray")
-
+      it("Array - recursively calls itself on each element", () => {
+        const spy = spyOn(inst, "_formatValueForParamArray")
         const v = [squel.select().from("table"), 1.2]
-
         const opts = { dummy: true }
-        const res = this.inst._formatValueForParamArray(v, opts)
+        const res = inst._formatValueForParamArray(v, opts)
+        expect(res).toEqual(v)
+        expect(spy.mock.calls.length).toBe(3)
+        expect(spyCalledWith(spy, v[0])).toBe(true)
+        expect(spyCalledWith(spy, v[1])).toBe(true)
+        expect((spy.mock.calls[1] as any)[1]).toBe(opts)
+      })
+    })
 
-        assert.same(v, res)
+    describe("_formatValueForQueryString", () => {
+      it("null", () => {
+        expect(inst._formatValueForQueryString(null)).toBe("NULL")
+      })
 
-        assert.same(3, spy.mock.calls.length)
-        assert.ok(spyCalledWith(spy, v[0]))
-        assert.ok(spyCalledWith(spy, v[1]))
+      it("boolean", () => {
+        expect(inst._formatValueForQueryString(true)).toBe("TRUE")
+        expect(inst._formatValueForQueryString(false)).toBe("FALSE")
+      })
 
-        assert.same(spy.mock.calls[1][1], opts)
-      },
-    },
+      it("integer", () => {
+        expect(inst._formatValueForQueryString(12)).toBe(12)
+      })
 
-    _formatValueForQueryString: {
-      null(this: any) {
-        assert.same("NULL", this.inst._formatValueForQueryString(null))
-      },
+      it("float", () => {
+        expect(inst._formatValueForQueryString(1.2)).toBe(1.2)
+      })
 
-      boolean(this: any) {
-        assert.same("TRUE", this.inst._formatValueForQueryString(true))
-        assert.same("FALSE", this.inst._formatValueForQueryString(false))
-      },
+      describe("string", () => {
+        it("have string formatter function", () => {
+          inst.options.stringFormatter = (str: string) => `N(${str})`
+          expect(inst._formatValueForQueryString("test")).toBe("N(test)")
+        })
 
-      integer(this: any) {
-        assert.same(12, this.inst._formatValueForQueryString(12))
-      },
-
-      float(this: any) {
-        assert.same(1.2, this.inst._formatValueForQueryString(1.2))
-      },
-
-      string: {
-        "have string formatter function"(this: any) {
-          this.inst.options.stringFormatter = (str: string) => `N(${str})`
-
-          assert.same("N(test)", this.inst._formatValueForQueryString("test"))
-        },
-
-        default(this: any) {
+        it("default", () => {
           let escapedValue: any
-          const spy = spyOn(this.inst, "_escapeValue").mockImplementation(
+          const spy = spyOn(inst, "_escapeValue").mockImplementation(
             (str: any) => escapedValue || str,
           )
-
-          assert.same("'test'", this.inst._formatValueForQueryString("test"))
-
-          assert.ok(spyCalledWithExactly(spy, "test"))
+          expect(inst._formatValueForQueryString("test")).toBe("'test'")
+          expect(spyCalledWithExactly(spy, "test")).toBe(true)
           escapedValue = "blah"
-          assert.same("'blah'", this.inst._formatValueForQueryString("test"))
-        },
+          expect(inst._formatValueForQueryString("test")).toBe("'blah'")
+        })
 
-        "dont quote"(this: any) {
+        it("dont quote", () => {
           let escapedValue: any
-          const spy = spyOn(this.inst, "_escapeValue").mockImplementation(
+          const spy = spyOn(inst, "_escapeValue").mockImplementation(
             (str: any) => escapedValue || str,
           )
+          expect(
+            inst._formatValueForQueryString("test", { dontQuote: true }),
+          ).toBe("test")
+          expect(spy.mock.calls.length).toBe(0)
+        })
+      })
 
-          assert.same(
-            "test",
-            this.inst._formatValueForQueryString("test", { dontQuote: true }),
-          )
-
-          assert.ok(spy.mock.calls.length === 0)
-        },
-      },
-
-      "Array - recursively calls itself on each element"(this: any) {
-        const spy = spyOn(this.inst, "_formatValueForQueryString")
-
+      it("Array - recursively calls itself on each element", () => {
+        const spy = spyOn(inst, "_formatValueForQueryString")
         const expected = "('test', 123, TRUE, 1.2, NULL)"
-        assert.same(
-          expected,
-          this.inst._formatValueForQueryString(["test", 123, true, 1.2, null]),
-        )
+        expect(
+          inst._formatValueForQueryString(["test", 123, true, 1.2, null]),
+        ).toBe(expected)
 
-        assert.same(6, spy.mock.calls.length)
-        assert.ok(spyCalledWith(spy, "test"))
-        assert.ok(spyCalledWith(spy, 123))
-        assert.ok(spyCalledWith(spy, true))
-        assert.ok(spyCalledWith(spy, 1.2))
-        assert.ok(spyCalledWith(spy, null))
-      },
+        expect(spy.mock.calls.length).toBe(6)
+        expect(spyCalledWith(spy, "test")).toBe(true)
+        expect(spyCalledWith(spy, 123)).toBe(true)
+        expect(spyCalledWith(spy, true)).toBe(true)
+        expect(spyCalledWith(spy, 1.2)).toBe(true)
+        expect(spyCalledWith(spy, null)).toBe(true)
+      })
 
-      BaseBuilder(this: any) {
-        spyOn(this.inst, "_applyNestingFormatting").mockImplementation(
+      it("BaseBuilder", () => {
+        spyOn(inst, "_applyNestingFormatting").mockImplementation(
           (v: any) => `{{${v}}}`,
         )
         const s = squel.select().from("table")
-        assert.same(
+        expect(inst._formatValueForQueryString(s)).toBe(
           "{{SELECT * FROM table}}",
-          this.inst._formatValueForQueryString(s),
         )
-      },
+      })
 
-      "checks to see if it is custom value type first"(this: any) {
-        spyOn(this.inst, "_formatCustomValue").mockImplementation(
+      it("checks to see if it is custom value type first", () => {
+        spyOn(inst, "_formatCustomValue").mockImplementation(
           (_val: any, asParam: any) => ({
             formatted: true,
             value: 12 + (asParam ? 25 : 65),
           }),
         )
-        spyOn(this.inst, "_applyNestingFormatting").mockImplementation(
+        spyOn(inst, "_applyNestingFormatting").mockImplementation(
           (v: any) => `{${v}}`,
         )
-        assert.same("{77}", this.inst._formatValueForQueryString(123))
-      },
+        expect(inst._formatValueForQueryString(123)).toBe("{77}")
+      })
 
-      "#292 - custom value type specifies raw nesting"(this: any) {
-        spyOn(this.inst, "_formatCustomValue").mockImplementation(() => ({
+      it("#292 - custom value type specifies raw nesting", () => {
+        spyOn(inst, "_formatCustomValue").mockImplementation(() => ({
           rawNesting: true,
           formatted: true,
           value: 12,
         }))
-        spyOn(this.inst, "_applyNestingFormatting").mockImplementation(
+        spyOn(inst, "_applyNestingFormatting").mockImplementation(
           (v: any) => `{${v}}`,
         )
-        assert.same(12, this.inst._formatValueForQueryString(123))
-      },
-    },
+        expect(inst._formatValueForQueryString(123)).toBe(12)
+      })
+    })
 
-    _applyNestingFormatting: {
-      default(this: any) {
-        assert.same("(77)", this.inst._applyNestingFormatting("77"))
-        assert.same("((77)", this.inst._applyNestingFormatting("(77"))
-        assert.same("(77))", this.inst._applyNestingFormatting("77)"))
-        assert.same("(77)", this.inst._applyNestingFormatting("(77)"))
-      },
-      "no nesting"(this: any) {
-        assert.same("77", this.inst._applyNestingFormatting("77", false))
-      },
-      "rawNesting turned on"(this: any) {
-        this.inst = new this.cls({ rawNesting: true })
-        assert.same("77", this.inst._applyNestingFormatting("77"))
-      },
-    },
+    describe("_applyNestingFormatting", () => {
+      it("default", () => {
+        expect(inst._applyNestingFormatting("77")).toBe("(77)")
+        expect(inst._applyNestingFormatting("(77")).toBe("((77)")
+        expect(inst._applyNestingFormatting("77)")).toBe("(77))")
+        expect(inst._applyNestingFormatting("(77)")).toBe("(77)")
+      })
 
-    _buildString: {
-      empty(this: any) {
-        assert.same(this.inst._buildString("", []), {
-          text: "",
-          values: [],
-        })
-      },
-      "no params": {
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._buildString("abc = 3", []), {
+      it("no nesting", () => {
+        expect(inst._applyNestingFormatting("77", false)).toBe("77")
+      })
+
+      it("rawNesting turned on", () => {
+        inst = new Cls({ rawNesting: true })
+        expect(inst._applyNestingFormatting("77")).toBe("77")
+      })
+    })
+
+    describe("_buildString", () => {
+      it("empty", () => {
+        expect(inst._buildString("", [])).toEqual({ text: "", values: [] })
+      })
+
+      describe("no params", () => {
+        it("non-parameterized", () => {
+          expect(inst._buildString("abc = 3", [])).toEqual({
             text: "abc = 3",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildString("abc = 3", [], { buildParameterized: true }),
-            {
-              text: "abc = 3",
-              values: [],
-            },
-          )
-        },
-      },
-      "non-array": {
-        "non-parameterized"(this: any) {
-          assert.same(
-            this.inst._buildString("a = ? ? ? ?", [2, "abc", false, null]),
-            {
-              text: "a = 2 'abc' FALSE NULL",
-              values: [],
-            },
-          )
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildString("a = ? ? ? ?", [2, "abc", false, null], {
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildString("abc = 3", [], { buildParameterized: true }),
+          ).toEqual({ text: "abc = 3", values: [] })
+        })
+      })
+
+      describe("non-array", () => {
+        it("non-parameterized", () => {
+          expect(
+            inst._buildString("a = ? ? ? ?", [2, "abc", false, null]),
+          ).toEqual({ text: "a = 2 'abc' FALSE NULL", values: [] })
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildString("a = ? ? ? ?", [2, "abc", false, null], {
               buildParameterized: true,
             }),
-            {
-              text: "a = ? ? ? ?",
-              values: [2, "abc", false, null],
-            },
-          )
-        },
-      },
-      array: {
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._buildString("a = ?", [[1, 2, 3]]), {
+          ).toEqual({ text: "a = ? ? ? ?", values: [2, "abc", false, null] })
+        })
+      })
+
+      describe("array", () => {
+        it("non-parameterized", () => {
+          expect(inst._buildString("a = ?", [[1, 2, 3]])).toEqual({
             text: "a = (1, 2, 3)",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildString("a = ?", [[1, 2, 3]], {
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildString("a = ?", [[1, 2, 3]], {
               buildParameterized: true,
             }),
-            {
-              text: "a = (?, ?, ?)",
-              values: [1, 2, 3],
-            },
-          )
-        },
-      },
-      "nested builder": {
-        beforeEach(this: any) {
-          this.s = squel.select().from("master").where("b = ?", 5)
-        },
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._buildString("a = ?", [this.s]), {
+          ).toEqual({ text: "a = (?, ?, ?)", values: [1, 2, 3] })
+        })
+      })
+
+      describe("nested builder", () => {
+        let s: any
+
+        beforeEach(() => {
+          s = squel.select().from("master").where("b = ?", 5)
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._buildString("a = ?", [s])).toEqual({
             text: "a = (SELECT * FROM master WHERE (b = 5))",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildString("a = ?", [this.s], {
-              buildParameterized: true,
-            }),
-            {
-              text: "a = (SELECT * FROM master WHERE (b = ?))",
-              values: [5],
-            },
-          )
-        },
-      },
-      "return nested output": {
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._buildString("a = ?", [3], { nested: true }), {
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildString("a = ?", [s], { buildParameterized: true }),
+          ).toEqual({
+            text: "a = (SELECT * FROM master WHERE (b = ?))",
+            values: [5],
+          })
+        })
+      })
+
+      describe("return nested output", () => {
+        it("non-parameterized", () => {
+          expect(inst._buildString("a = ?", [3], { nested: true })).toEqual({
             text: "(a = 3)",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildString("a = ?", [3], {
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildString("a = ?", [3], {
               buildParameterized: true,
               nested: true,
             }),
-            {
-              text: "(a = ?)",
-              values: [3],
-            },
-          )
-        },
-      },
-      "string formatting options"(this: any) {
-        const options = {
-          formattingOptions: {
-            dontQuote: true,
-          },
-        }
+          ).toEqual({ text: "(a = ?)", values: [3] })
+        })
+      })
 
-        assert.same(this.inst._buildString("a = ?", ["NOW()"], options), {
+      it("string formatting options", () => {
+        const options = { formattingOptions: { dontQuote: true } }
+        expect(inst._buildString("a = ?", ["NOW()"], options)).toEqual({
           text: "a = NOW()",
           values: [],
         })
-      },
-      "passes formatting options even when doing parameterized query"(
-        this: any,
-      ) {
-        const spy = spyOn(this.inst, "_formatValueForParamArray")
+      })
 
+      it("passes formatting options even when doing parameterized query", () => {
+        const spy = spyOn(inst, "_formatValueForParamArray")
         const options = {
           buildParameterized: true,
-          formattingOptions: {
-            dontQuote: true,
-          },
+          formattingOptions: { dontQuote: true },
         }
+        inst._buildString("a = ?", [3], options)
+        expect((spy.mock.calls[0] as any)[1]).toBe(options.formattingOptions)
+      })
 
-        this.inst._buildString("a = ?", [3], options)
+      describe("custom parameter character", () => {
+        beforeEach(() => {
+          inst.options.parameterCharacter = "@@"
+        })
 
-        assert.same(spy.mock.calls[0][1], options.formattingOptions)
-      },
-      "custom parameter character": {
-        beforeEach(this: any) {
-          this.inst.options.parameterCharacter = "@@"
-        },
-
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._buildString("a = @@", [[1, 2, 3]]), {
+        it("non-parameterized", () => {
+          expect(inst._buildString("a = @@", [[1, 2, 3]])).toEqual({
             text: "a = (1, 2, 3)",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildString("a = @@", [[1, 2, 3]], {
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildString("a = @@", [[1, 2, 3]], {
               buildParameterized: true,
             }),
-            {
-              text: "a = (@@, @@, @@)",
-              values: [1, 2, 3],
-            },
-          )
-        },
-      },
-    },
-
-    _buildManyStrings: {
-      empty(this: any) {
-        assert.same(this.inst._buildManyStrings([], []), {
-          text: "",
-          values: [],
+          ).toEqual({ text: "a = (@@, @@, @@)", values: [1, 2, 3] })
         })
-      },
-      simple: {
-        beforeEach(this: any) {
-          this.strings = ["a = ?", "b IN ? AND c = ?"]
+      })
+    })
 
-          this.values = [["elephant"], [[1, 2, 3], 4]]
-        },
+    describe("_buildManyStrings", () => {
+      it("empty", () => {
+        expect(inst._buildManyStrings([], [])).toEqual({ text: "", values: [] })
+      })
 
-        "non-parameterized"(this: any) {
-          assert.same(this.inst._buildManyStrings(this.strings, this.values), {
+      describe("simple", () => {
+        let strings: string[]
+        let values: any[][]
+
+        beforeEach(() => {
+          strings = ["a = ?", "b IN ? AND c = ?"]
+          values = [["elephant"], [[1, 2, 3], 4]]
+        })
+
+        it("non-parameterized", () => {
+          expect(inst._buildManyStrings(strings, values)).toEqual({
             text: "a = 'elephant' b IN (1, 2, 3) AND c = 4",
             values: [],
           })
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildManyStrings(this.strings, this.values, {
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildManyStrings(strings, values, {
               buildParameterized: true,
             }),
-            {
-              text: "a = ? b IN (?, ?, ?) AND c = ?",
-              values: ["elephant", 1, 2, 3, 4],
-            },
-          )
-        },
-      },
-
-      "return nested": {
-        "non-parameterized"(this: any) {
-          assert.same(
-            this.inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]], {
-              nested: true,
-            }),
-            {
-              text: "(a = 1 b = 2)",
-              values: [],
-            },
-          )
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]], {
-              buildParameterized: true,
-              nested: true,
-            }),
-            {
-              text: "(a = ? b = ?)",
-              values: [1, 2],
-            },
-          )
-        },
-      },
-
-      "custom separator": {
-        beforeEach(this: any) {
-          this.inst.options.separator = "|"
-        },
-        "non-parameterized"(this: any) {
-          assert.same(
-            this.inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]]),
-            {
-              text: "a = 1|b = 2",
-              values: [],
-            },
-          )
-        },
-        parameterized(this: any) {
-          assert.same(
-            this.inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]], {
-              buildParameterized: true,
-            }),
-            {
-              text: "a = ?|b = ?",
-              values: [1, 2],
-            },
-          )
-        },
-      },
-    },
-
-    toParam(this: any) {
-      const spy = spyOn(this.inst, "_toParamString").mockImplementation(() => ({
-        text: "dummy",
-        values: [1],
-      }))
-
-      const options = { test: 2 }
-      assert.same(this.inst.toParam(options), {
-        text: "dummy",
-        values: [1],
+          ).toEqual({
+            text: "a = ? b IN (?, ?, ?) AND c = ?",
+            values: ["elephant", 1, 2, 3, 4],
+          })
+        })
       })
 
-      assert.ok(spy.mock.calls.length === 1)
-      assert.same((spy.mock.calls[0] as any)[0].test, 2)
-      assert.same((spy.mock.calls[0] as any)[0].buildParameterized, true)
-    },
+      describe("return nested", () => {
+        it("non-parameterized", () => {
+          expect(
+            inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]], {
+              nested: true,
+            }),
+          ).toEqual({ text: "(a = 1 b = 2)", values: [] })
+        })
 
-    toString(this: any) {
-      const spy = spyOn(this.inst, "_toParamString").mockImplementation(() => ({
+        it("parameterized", () => {
+          expect(
+            inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]], {
+              buildParameterized: true,
+              nested: true,
+            }),
+          ).toEqual({ text: "(a = ? b = ?)", values: [1, 2] })
+        })
+      })
+
+      describe("custom separator", () => {
+        beforeEach(() => {
+          inst.options.separator = "|"
+        })
+
+        it("non-parameterized", () => {
+          expect(
+            inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]]),
+          ).toEqual({ text: "a = 1|b = 2", values: [] })
+        })
+
+        it("parameterized", () => {
+          expect(
+            inst._buildManyStrings(["a = ?", "b = ?"], [[1], [2]], {
+              buildParameterized: true,
+            }),
+          ).toEqual({ text: "a = ?|b = ?", values: [1, 2] })
+        })
+      })
+    })
+
+    it("toParam", () => {
+      const spy = spyOn(inst, "_toParamString").mockImplementation(() => ({
         text: "dummy",
         values: [1],
       }))
-
       const options = { test: 2 }
-      assert.same(this.inst.toString(options), "dummy")
+      expect(inst.toParam(options)).toEqual({ text: "dummy", values: [1] })
+      expect(spy.mock.calls.length).toBe(1)
+      expect((spy.mock.calls[0] as any)[0].test).toBe(2)
+      expect((spy.mock.calls[0] as any)[0].buildParameterized).toBe(true)
+    })
 
-      assert.ok(spy.mock.calls.length === 1)
-      assert.same(spy.mock.calls[0][0], options)
-    },
-  },
+    it("toString", () => {
+      const spy = spyOn(inst, "_toParamString").mockImplementation(() => ({
+        text: "dummy",
+        values: [1],
+      }))
+      const options = { test: 2 }
+      expect(inst.toString(options)).toBe("dummy")
+      expect(spy.mock.calls.length).toBe(1)
+      expect(spy.mock.calls[0][0]).toEqual(options)
+    })
+  })
 
-  "QueryBuilder base class": {
-    beforeEach(this: any) {
-      this.cls = squel.cls.QueryBuilder
-      this.inst = new this.cls()
-    },
+  describe("QueryBuilder base class", () => {
+    let Cls: any
+    let inst: any
 
-    "instanceof base builder"(this: any) {
-      assert.instanceOf(this.inst, squel.cls.BaseBuilder)
-    },
+    beforeEach(() => {
+      Cls = squel.cls.QueryBuilder
+      inst = new Cls()
+    })
 
-    constructor: {
-      "default options"(this: any) {
-        assert.same(squel.cls.DefaultQueryBuilderOptions, this.inst.options)
-      },
+    it("instanceof base builder", () => {
+      expect(inst).toBeInstanceOf(squel.cls.BaseBuilder)
+    })
 
-      "overridden options"(this: any) {
-        this.inst = new this.cls({
+    describe("constructor", () => {
+      it("default options", () => {
+        expect(inst.options).toEqual(squel.cls.DefaultQueryBuilderOptions)
+      })
+
+      it("overridden options", () => {
+        inst = new Cls({
           dummy1: "str",
           dummy2: 12.3,
           usingValuePlaceholders: true,
           dummy3: true,
         })
+        const expectedOptions = {
+          ...squel.cls.DefaultQueryBuilderOptions,
+          dummy1: "str",
+          dummy2: 12.3,
+          usingValuePlaceholders: true,
+          dummy3: true,
+        }
+        expect(inst.options).toEqual(expectedOptions)
+      })
 
-        const expectedOptions = _.extend(
-          {},
-          squel.cls.DefaultQueryBuilderOptions,
-          {
-            dummy1: "str",
-            dummy2: 12.3,
-            usingValuePlaceholders: true,
-            dummy3: true,
-          },
-        )
+      it("default blocks - none", () => {
+        expect(inst.blocks).toEqual([])
+      })
 
-        assert.same(expectedOptions, this.inst.options)
-      },
-
-      "default blocks - none"(this: any) {
-        assert.same([], this.inst.blocks)
-      },
-
-      "blocks passed in": {
-        "exposes block methods"(this: any) {
+      describe("blocks passed in", () => {
+        it("exposes block methods", () => {
           const limitExposedMethodsSpy = spyOn(
             squel.cls.LimitBlock.prototype,
             "exposedMethods",
@@ -1453,122 +1364,100 @@ run("Base classes", {
             new squel.cls.DistinctBlock(),
           ]
 
-          this.inst = new this.cls({}, blocks)
+          inst = new Cls({}, blocks)
 
-          assert.ok(limitExposedMethodsSpy.mock.calls.length === 1)
-          assert.ok(distinctExposedMethodsSpy.mock.calls.length === 1)
+          expect(limitExposedMethodsSpy.mock.calls.length).toBe(1)
+          expect(distinctExposedMethodsSpy.mock.calls.length).toBe(1)
 
-          assert.typeOf(this.inst.distinct, "function")
-          assert.typeOf(this.inst.limit, "function")
+          expect(typeof inst.distinct).toBe("function")
+          expect(typeof inst.limit).toBe("function")
 
-          assert.same(this.inst, this.inst.limit(2))
-          assert.ok(limitSpy.mock.calls.length === 1)
-          assert.ok(spyCalledOn(limitSpy, blocks[0]))
+          expect(inst.limit(2)).toBe(inst)
+          expect(limitSpy.mock.calls.length).toBe(1)
+          expect(spyCalledOn(limitSpy, blocks[0])).toBe(true)
 
-          assert.same(this.inst, this.inst.distinct())
-          assert.ok(distinctSpy.mock.calls.length === 1)
-          assert.ok(spyCalledOn(distinctSpy, blocks[1]))
-        },
+          expect(inst.distinct()).toBe(inst)
+          expect(distinctSpy.mock.calls.length).toBe(1)
+          expect(spyCalledOn(distinctSpy, blocks[1])).toBe(true)
+        })
 
-        "cannot expose the same method twice"(this: any) {
+        it("cannot expose the same method twice", () => {
           const blocks = [
             new squel.cls.DistinctBlock(),
             new squel.cls.DistinctBlock(),
           ]
-
           try {
-            this.inst = new this.cls({}, blocks)
+            inst = new Cls({}, blocks)
             throw new Error("should not reach here")
           } catch (err: any) {
-            assert.same(
+            expect(err.toString()).toBe(
               "Error: Builder already has a builder method called: distinct",
-              err.toString(),
             )
           }
-        },
-      },
-    },
-
-    "updateOptions()": {
-      "updates query builder options"(this: any) {
-        const oldOptions = _.extend({}, this.inst.options)
-
-        this.inst.updateOptions({
-          updated: false,
         })
+      })
+    })
 
-        const expected = _.extend(oldOptions, {
-          updated: false,
-        })
+    describe("updateOptions()", () => {
+      it("updates query builder options", () => {
+        const oldOptions = { ...inst.options }
+        inst.updateOptions({ updated: false })
+        const expected = { ...oldOptions, updated: false }
+        expect(inst.options).toEqual(expected)
+      })
 
-        assert.same(expected, this.inst.options)
-      },
+      it("updates building block options", () => {
+        inst.blocks = [new squel.cls.Block()]
+        const oldOptions = { ...inst.blocks[0].options }
+        inst.updateOptions({ updated: false })
+        const expected = { ...oldOptions, updated: false }
+        expect(inst.blocks[0].options).toEqual(expected)
+      })
+    })
 
-      "updates building block options"(this: any) {
-        this.inst.blocks = [new squel.cls.Block()]
-        const oldOptions = _.extend({}, this.inst.blocks[0].options)
+    describe("toString()", () => {
+      it("returns empty if no blocks", () => {
+        expect(inst.toString()).toBe("")
+      })
 
-        this.inst.updateOptions({
-          updated: false,
-        })
+      it("skips empty block strings", () => {
+        inst.blocks = [new squel.cls.StringBlock({}, "")]
+        expect(inst.toString()).toBe("")
+      })
 
-        const expected = _.extend(oldOptions, {
-          updated: false,
-        })
-
-        assert.same(expected, this.inst.blocks[0].options)
-      },
-    },
-
-    "toString()": {
-      "returns empty if no blocks"(this: any) {
-        assert.same("", this.inst.toString())
-      },
-
-      "skips empty block strings"(this: any) {
-        this.inst.blocks = [new squel.cls.StringBlock({}, "")]
-
-        assert.same("", this.inst.toString())
-      },
-
-      "returns final query string"(this: any) {
+      it("returns final query string", () => {
         let i = 1
         const toStringSpy = spyOn(
           squel.cls.StringBlock.prototype,
           "_toParamString",
-        ).mockImplementation(() => ({
-          text: `ret${++i}`,
-          values: [],
-        }))
+        ).mockImplementation(() => ({ text: `ret${++i}`, values: [] }))
 
-        this.inst.blocks = [
+        inst.blocks = [
           new squel.cls.StringBlock({}, "STR1"),
           new squel.cls.StringBlock({}, "STR2"),
           new squel.cls.StringBlock({}, "STR3"),
         ]
 
-        assert.same("ret2 ret3 ret4", this.inst.toString())
+        expect(inst.toString()).toBe("ret2 ret3 ret4")
+        expect(toStringSpy.mock.calls.length).toBe(3)
+        expect(spyCalledOn(toStringSpy, inst.blocks[0])).toBe(true)
+        expect(spyCalledOn(toStringSpy, inst.blocks[1])).toBe(true)
+        expect(spyCalledOn(toStringSpy, inst.blocks[2])).toBe(true)
+      })
+    })
 
-        assert.ok(toStringSpy.mock.calls.length === 3)
-        assert.ok(spyCalledOn(toStringSpy, this.inst.blocks[0]))
-        assert.ok(spyCalledOn(toStringSpy, this.inst.blocks[1]))
-        assert.ok(spyCalledOn(toStringSpy, this.inst.blocks[2]))
-      },
-    },
+    describe("toParam()", () => {
+      it("returns empty if no blocks", () => {
+        expect(inst.toParam()).toEqual({ text: "", values: [] })
+      })
 
-    "toParam()": {
-      "returns empty if no blocks"(this: any) {
-        assert.same({ text: "", values: [] }, this.inst.toParam())
-      },
+      it("skips empty block strings", () => {
+        inst.blocks = [new squel.cls.StringBlock({}, "")]
+        expect(inst.toParam()).toEqual({ text: "", values: [] })
+      })
 
-      "skips empty block strings"(this: any) {
-        this.inst.blocks = [new squel.cls.StringBlock({}, "")]
-
-        assert.same({ text: "", values: [] }, this.inst.toParam())
-      },
-
-      "returns final query string"(this: any) {
-        this.inst.blocks = [
+      it("returns final query string", () => {
+        inst.blocks = [
           new squel.cls.StringBlock({}, "STR1"),
           new squel.cls.StringBlock({}, "STR2"),
           new squel.cls.StringBlock({}, "STR3"),
@@ -1578,40 +1467,30 @@ run("Base classes", {
         const toStringSpy = spyOn(
           squel.cls.StringBlock.prototype,
           "_toParamString",
-        ).mockImplementation(() => ({
-          text: `ret${++i}`,
-          values: [],
-        }))
+        ).mockImplementation(() => ({ text: `ret${++i}`, values: [] }))
 
-        assert.same({ text: "ret2 ret3 ret4", values: [] }, this.inst.toParam())
+        expect(inst.toParam()).toEqual({ text: "ret2 ret3 ret4", values: [] })
+        expect(toStringSpy.mock.calls.length).toBe(3)
+        expect(spyCalledOn(toStringSpy, inst.blocks[0])).toBe(true)
+        expect(spyCalledOn(toStringSpy, inst.blocks[1])).toBe(true)
+        expect(spyCalledOn(toStringSpy, inst.blocks[2])).toBe(true)
+      })
 
-        assert.ok(toStringSpy.mock.calls.length === 3)
-        assert.ok(spyCalledOn(toStringSpy, this.inst.blocks[0]))
-        assert.ok(spyCalledOn(toStringSpy, this.inst.blocks[1]))
-        assert.ok(spyCalledOn(toStringSpy, this.inst.blocks[2]))
-      },
-
-      "returns query with unnumbered parameters"(this: any) {
-        this.inst.blocks = [new squel.cls.WhereBlock({})]
-
-        this.inst.blocks[0]._toParamString = mock(() => ({
+      it("returns query with unnumbered parameters", () => {
+        inst.blocks = [new squel.cls.WhereBlock({})]
+        inst.blocks[0]._toParamString = mock(() => ({
           text: "a = ? AND b in (?, ?)",
           values: [1, 2, 3],
         }))
-
-        assert.same(
-          { text: "a = ? AND b in (?, ?)", values: [1, 2, 3] },
-          this.inst.toParam(),
-        )
-      },
-
-      "returns query with numbered parameters"(this: any) {
-        this.inst = new this.cls({
-          numberedParameters: true,
+        expect(inst.toParam()).toEqual({
+          text: "a = ? AND b in (?, ?)",
+          values: [1, 2, 3],
         })
+      })
 
-        this.inst.blocks = [new squel.cls.WhereBlock({})]
-
+      it("returns query with numbered parameters", () => {
+        inst = new Cls({ numberedParameters: true })
+        inst.blocks = [new squel.cls.WhereBlock({})]
         spyOn(
           squel.cls.WhereBlock.prototype,
           "_toParamString",
@@ -1619,21 +1498,18 @@ run("Base classes", {
           text: "a = ? AND b in (?, ?)",
           values: [1, 2, 3],
         }))
-
-        assert.same(this.inst.toParam(), {
+        expect(inst.toParam()).toEqual({
           text: "a = $1 AND b in ($2, $3)",
           values: [1, 2, 3],
         })
-      },
+      })
 
-      "returns query with numbered parameters and custom prefix"(this: any) {
-        this.inst = new this.cls({
+      it("returns query with numbered parameters and custom prefix", () => {
+        inst = new Cls({
           numberedParameters: true,
           numberedParametersPrefix: "&%",
         })
-
-        this.inst.blocks = [new squel.cls.WhereBlock({})]
-
+        inst.blocks = [new squel.cls.WhereBlock({})]
         spyOn(
           squel.cls.WhereBlock.prototype,
           "_toParamString",
@@ -1641,81 +1517,71 @@ run("Base classes", {
           text: "a = ? AND b in (?, ?)",
           values: [1, 2, 3],
         }))
-
-        assert.same(this.inst.toParam(), {
+        expect(inst.toParam()).toEqual({
           text: "a = &%1 AND b in (&%2, &%3)",
           values: [1, 2, 3],
         })
-      },
-    },
+      })
+    })
 
-    cloning: {
-      "blocks get cloned properly"(this: any) {
+    describe("cloning", () => {
+      it("blocks get cloned properly", () => {
         spyOn(squel.cls.StringBlock.prototype, "clone")
+        inst.blocks = [new squel.cls.StringBlock({}, "TEST")]
+        const newinst = inst.clone()
+        inst.blocks[0].str = "TEST2"
+        expect(newinst.blocks[0].toString()).toBe("TEST")
+      })
+    })
 
-        this.inst.blocks = [new squel.cls.StringBlock({}, "TEST")]
+    describe("registerValueHandler", () => {
+      let originalHandlers: any[]
 
-        const newinst = this.inst.clone()
-        this.inst.blocks[0].str = "TEST2"
+      beforeEach(() => {
+        originalHandlers = ([] as any[]).concat(squel.cls.globalValueHandlers)
+      })
 
-        assert.same("TEST", newinst.blocks[0].toString())
-      },
-    },
+      afterEach(() => {
+        squel.cls.globalValueHandlers = originalHandlers
+      })
 
-    registerValueHandler: {
-      beforeEach(this: any) {
-        this.originalHandlers = ([] as any[]).concat(
-          squel.cls.globalValueHandlers,
-        )
-      },
-      afterEach(this: any) {
-        squel.cls.globalValueHandlers = this.originalHandlers
-      },
-
-      "calls through to base class method"(this: any) {
+      it("calls through to base class method", () => {
         const baseBuilderSpy = spyOn(
           squel.cls.BaseBuilder.prototype,
           "registerValueHandler",
         )
-
         const handler = () => "test"
-        this.inst.registerValueHandler(Date, handler)
-        this.inst.registerValueHandler("number", handler)
+        inst.registerValueHandler(Date, handler)
+        inst.registerValueHandler("number", handler)
+        expect(baseBuilderSpy.mock.calls.length).toBe(2)
+        expect(spyCalledOn(baseBuilderSpy, inst)).toBe(true)
+      })
 
-        assert.ok(baseBuilderSpy.mock.calls.length === 2)
-        assert.ok(spyCalledOn(baseBuilderSpy, this.inst))
-      },
-
-      "returns instance for chainability"(this: any) {
+      it("returns instance for chainability", () => {
         const handler = () => "test"
-        assert.same(this.inst, this.inst.registerValueHandler(Date, handler))
-      },
+        expect(inst.registerValueHandler(Date, handler)).toBe(inst)
+      })
 
-      "calls through to blocks"(this: any) {
-        this.inst.blocks = [new squel.cls.StringBlock({}, "")]
-
-        const baseBuilderSpy = spyOn(
-          this.inst.blocks[0],
-          "registerValueHandler",
-        )
-
+      it("calls through to blocks", () => {
+        inst.blocks = [new squel.cls.StringBlock({}, "")]
+        const baseBuilderSpy = spyOn(inst.blocks[0], "registerValueHandler")
         const handler = () => "test"
-        this.inst.registerValueHandler(Date, handler)
+        inst.registerValueHandler(Date, handler)
+        expect(baseBuilderSpy.mock.calls.length).toBe(1)
+        expect(spyCalledOn(baseBuilderSpy, inst.blocks[0])).toBe(true)
+      })
+    })
 
-        assert.ok(baseBuilderSpy.mock.calls.length === 1)
-        assert.ok(spyCalledOn(baseBuilderSpy, this.inst.blocks[0]))
-      },
-    },
-
-    "get block": {
-      valid(this: any) {
+    describe("get block", () => {
+      it("valid", () => {
         const block = new squel.cls.FunctionBlock()
-        this.inst.blocks.push(block)
-        assert.same(block, this.inst.getBlock(squel.cls.FunctionBlock))
-      },
-      invalid(this: any) {
-        assert.same(undefined, this.inst.getBlock(squel.cls.FunctionBlock))
-      },
-    },
-  },
+        inst.blocks.push(block)
+        expect(inst.getBlock(squel.cls.FunctionBlock)).toBe(block)
+      })
+
+      it("invalid", () => {
+        expect(inst.getBlock(squel.cls.FunctionBlock)).toBeUndefined()
+      })
+    })
+  })
 })

@@ -48,10 +48,16 @@ export interface QueryBuilderOptions {
   separator?: string
   stringFormatter?: ((value: string) => string) | null
   rawNesting?: boolean
+  /** Internal: prefix string used by AbstractTableBlock subclasses (e.g. "FROM"). */
   prefix?: string
+  /** Internal: restrict AbstractTableBlock to a single table (e.g. INTO). */
   singleTable?: boolean
+  /** Internal: SQL keyword used by AbstractConditionBlock subclasses (e.g. "WHERE"). */
   verb?: string
+  /** Internal: marks MssqlUpdateDeleteOutputBlock as a DELETE-output. */
   forDelete?: boolean
+  /** Allow flavour-specific or test-time additions. */
+  [key: string]: unknown
 }
 
 export interface ToParamOptions {
@@ -205,7 +211,7 @@ export type FlavourRegistration = (squel: Squel) => void
 
 export interface Squel {
   VERSION: string
-  flavour: Flavour | null
+  flavour: Flavour | string | null
   flavours: { [name: string]: FlavourRegistration }
   cls: ClsRegistry
   expr(options?: QueryBuilderOptions): Expression
@@ -230,7 +236,7 @@ export interface Squel {
  */
 export interface ClsRegistry {
   isSquelBuilder(obj: unknown): boolean
-  DefaultQueryBuilderOptions: Required<QueryBuilderOptions>
+  DefaultQueryBuilderOptions: QueryBuilderOptions
   globalValueHandlers: ValueHandlerEntry[]
   registerValueHandler(type: ValueType, handler: ValueHandler): void
   Cloneable: new () => Cloneable
