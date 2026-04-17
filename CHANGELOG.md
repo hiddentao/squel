@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [6.0.6](https://github.com/hiddentao/squel/compare/v6.0.5...v6.0.6) (2026-04-17)
+
+
+### Bug Fixes
+
+* **mssql:** add support for .having() in select builder ([#402](https://github.com/hiddentao/squel/issues/402)) ([f05e43e](https://github.com/hiddentao/squel/commit/f05e43eabcd5b2c2d136663833663d6c83c548ec))
+
 ## [6.0.5](https://github.com/hiddentao/squel/compare/v6.0.4...v6.0.5) (2026-04-14)
 
 ## [6.0.4](https://github.com/hiddentao/squel/compare/v6.0.3...v6.0.4) (2026-04-14)
