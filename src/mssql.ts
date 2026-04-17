@@ -207,6 +207,7 @@ squel.flavours.mssql = (_squel: Squel) => {
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
+        new cls.HavingBlock(options),
         new cls.OrderByBlock(options),
         limitOffsetTopBlock.OFFSET(),
         limitOffsetTopBlock.LIMIT(),

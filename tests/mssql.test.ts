@@ -115,6 +115,18 @@ describe("MSSQL flavour", () => {
         )
       })
     })
+
+    describe(">> from(table).group(field).having(COUNT(*) > ?, 1)", () => {
+      beforeEach(() => {
+        sel.from("table").group("field").having("COUNT(*) > ?", 1)
+      })
+
+      it("toString", () => {
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table GROUP BY field HAVING (COUNT(*) > 1)",
+        )
+      })
+    })
   })
 
   describe("INSERT builder", () => {
