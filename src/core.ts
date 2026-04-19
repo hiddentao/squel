@@ -648,8 +648,8 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
 
     exposedMethods(): Record<string, (...args: any[]) => any> {
       const ret: Record<string, (...args: any[]) => any> = {}
-      let obj: any = this
-      while (obj) {
+      const collect = (obj: any): void => {
+        if (!obj) return
         for (const prop of Object.getOwnPropertyNames(obj)) {
           if (
             prop !== "constructor" &&
@@ -660,8 +660,9 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
             ret[prop] = obj[prop]
           }
         }
-        obj = Object.getPrototypeOf(obj)
+        collect(Object.getPrototypeOf(obj))
       }
+      collect(this)
       return ret
     }
   }
