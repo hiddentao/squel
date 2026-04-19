@@ -333,46 +333,63 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       const {
         rawNesting,
         formatted,
-        value: fv,
+        value: customValue,
       } = this._formatCustomValue(initialValue, false, formattingOptions)
-      let value = fv
+
       if (formatted) {
-        if (rawNesting) return value
+        if (rawNesting) {
+          return customValue
+        }
         return this._applyNestingFormatting(
-          value,
+          customValue,
           _shouldApplyNesting(initialValue),
         )
       }
-      if (_isArray(value)) {
-        value = value.map((v: any) => this._formatValueForQueryString(v))
-        value = this._applyNestingFormatting(
-          value.join(", "),
+
+      if (_isArray(customValue)) {
+        const formattedValues = customValue.map((v: any) =>
+          this._formatValueForQueryString(v),
+        )
+        return this._applyNestingFormatting(
+          formattedValues.join(", "),
+          _shouldApplyNesting(formattedValues),
+        )
+      }
+
+      return this._formatBaseValue(customValue, formattingOptions)
+    }
+
+    _formatBaseValue(value: any, formattingOptions: FormattingOptions): any {
+      const typeofValue = typeof value
+
+      if (value === null) {
+        return "NULL"
+      }
+
+      if (typeofValue === "boolean") {
+        return value ? "TRUE" : "FALSE"
+      }
+
+      if (cls.isSquelBuilder(value)) {
+        return this._applyNestingFormatting(
+          value.toString(),
           _shouldApplyNesting(value),
         )
-      } else {
-        const typeofValue = typeof value
-        if (value === null) {
-          value = "NULL"
-        } else if (typeofValue === "boolean") {
-          value = value ? "TRUE" : "FALSE"
-        } else if (cls.isSquelBuilder(value)) {
-          value = this._applyNestingFormatting(
-            value.toString(),
-            _shouldApplyNesting(value),
-          )
-        } else if (typeofValue !== "number") {
-          if (typeofValue === "string" && this.options.stringFormatter) {
-            return this.options.stringFormatter(value)
-          }
-          if (formattingOptions.dontQuote) {
-            value = `${value}`
-          } else {
-            const escapedValue = this._escapeValue(value)
-            value = `'${escapedValue}'`
-          }
-        }
       }
-      return value
+
+      if (typeofValue === "number") {
+        return value
+      }
+
+      if (typeofValue === "string" && this.options.stringFormatter) {
+        return this.options.stringFormatter(value)
+      }
+
+      if (formattingOptions.dontQuote) {
+        return `${value}`
+      }
+
+      return `'${this._escapeValue(value)}'`
     }
 
     _applyNestingFormatting(str: any, nesting = true): any {
@@ -382,29 +399,32 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         nesting &&
         !this.options.rawNesting
       ) {
-        let alreadyHasBrackets =
-          str.charAt(0) === "(" && str.charAt(str.length - 1) === ")"
-        if (alreadyHasBrackets) {
-          let idx = 0
-          let open = 1
-          while (str.length - 1 > ++idx) {
-            const c = str.charAt(idx)
-            if (c === "(") {
-              open++
-            } else if (c === ")") {
-              open--
-              if (open < 1) {
-                alreadyHasBrackets = false
-                break
-              }
-            }
-          }
-        }
-        if (!alreadyHasBrackets) {
-          str = `(${str})`
+        if (!this._alreadyHasBrackets(str)) {
+          return `(${str})`
         }
       }
       return str
+    }
+
+    _alreadyHasBrackets(str: string): boolean {
+      if (str.charAt(0) !== "(" || str.charAt(str.length - 1) !== ")") {
+        return false
+      }
+
+      let open = 1
+      for (let idx = 1; idx < str.length - 1; ++idx) {
+        const c = str.charAt(idx)
+        if (c === "(") {
+          open++
+        } else if (c === ")") {
+          open--
+          if (open < 1) {
+            return false
+          }
+        }
+      }
+
+      return true
     }
 
     _buildString(
