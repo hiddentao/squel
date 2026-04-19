@@ -359,6 +359,10 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       return this._formatBaseValue(customValue, formattingOptions)
     }
 
+    /**
+     * Formats a basic value (null, boolean, number, string, or builder) for a query string.
+     * @private
+     */
     _formatBaseValue(value: any, formattingOptions: FormattingOptions): any {
       const typeofValue = typeof value
 
@@ -406,6 +410,11 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       return str
     }
 
+    /**
+     * Checks if a string is already enclosed in brackets, ensuring that the
+     * brackets are balanced and not prematurely closed.
+     * @private
+     */
     _alreadyHasBrackets(str: string): boolean {
       if (str.charAt(0) !== "(" || str.charAt(str.length - 1) !== ")") {
         return false
@@ -432,7 +441,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       values: any[],
       options: BuildStringOptions = {},
     ): ParamString {
-      const { nested, buildParameterized, formattingOptions } = options
+      const { nested } = options
       values = values || []
       str = str || ""
       let formattedStr = ""
@@ -442,32 +451,12 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       let idx = 0
       while (str.length > idx) {
         if (str.substring(idx, idx + paramChar.length) === paramChar) {
-          let value = values[++curValue]
-          if (buildParameterized) {
-            if (cls.isSquelBuilder(value)) {
-              const ret = value._toParamString({
-                buildParameterized,
-                nested: true,
-              })
-              formattedStr += ret.text
-              ret.values.forEach((v: any) => formattedValues.push(v))
-            } else {
-              value = this._formatValueForParamArray(value, formattingOptions)
-              if (_isArray(value)) {
-                const tmpStr = value.map(() => paramChar).join(", ")
-                formattedStr += `(${tmpStr})`
-                value.forEach((val: any) => formattedValues.push(val))
-              } else {
-                formattedStr += paramChar
-                formattedValues.push(value)
-              }
-            }
-          } else {
-            formattedStr += this._formatValueForQueryString(
-              value,
-              formattingOptions,
-            )
-          }
+          const value = values[++curValue]
+          formattedStr += this._handleParamPlaceholder(
+            value,
+            formattedValues,
+            options,
+          )
           idx += paramChar.length
         } else {
           formattedStr += str.charAt(idx)
@@ -478,6 +467,51 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         text: this._applyNestingFormatting(formattedStr, !!nested),
         values: formattedValues,
       }
+    }
+
+    /**
+     * Handles the formatting of a value that corresponds to a parameter placeholder ('?').
+     * If buildParameterized is true, it collects values for parameterized queries.
+     * Otherwise, it formats the value directly for the query string.
+     * @param value The value to format.
+     * @param formattedValues The array to collect formatted values.
+     * @param options The build options.
+     * @returns The formatted value.
+     */
+    _handleParamPlaceholder(
+      value: any,
+      formattedValues: any[],
+      options: BuildStringOptions,
+    ): string {
+      const { buildParameterized, formattingOptions } = options
+      const paramChar = this.options.parameterCharacter
+
+      if (!buildParameterized) {
+        return this._formatValueForQueryString(value, formattingOptions)
+      }
+
+      if (cls.isSquelBuilder(value)) {
+        const ret = value._toParamString({
+          buildParameterized,
+          nested: true,
+        })
+        ret.values.forEach((v: any) => formattedValues.push(v))
+        return ret.text
+      }
+
+      const formattedValue = this._formatValueForParamArray(
+        value,
+        formattingOptions,
+      )
+      if (_isArray(formattedValue)) {
+        const tmpStr = formattedValue.map(() => paramChar).join(", ")
+        formattedValue.forEach((val: any) => formattedValues.push(val))
+        return `(${tmpStr})`
+      }
+
+      formattedValues.push(formattedValue)
+
+      return paramChar
     }
 
     _buildManyStrings(
@@ -605,6 +639,8 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       return this
     }
 
+    // disable sonar rule for this function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     then(result: unknown): this {
       if (this._cases.length === 0) {
         throw new Error("when() needs to be called first")
