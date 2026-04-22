@@ -307,7 +307,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       )
       if (customHandler) {
         value = customHandler(value, asParam, formattingOptions)
-        if (value && value.rawNesting) {
+        if (value?.rawNesting) {
           return { formatted: true, rawNesting: true, value: value.value }
         }
       }
@@ -333,67 +333,46 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       const {
         rawNesting,
         formatted,
-        value: customValue,
+        value: fv,
       } = this._formatCustomValue(initialValue, false, formattingOptions)
-
+      let value = fv
       if (formatted) {
-        if (rawNesting) {
-          return customValue
-        }
+        if (rawNesting) return value
         return this._applyNestingFormatting(
-          customValue,
+          value,
           _shouldApplyNesting(initialValue),
         )
       }
-
-      if (_isArray(customValue)) {
-        const formattedValues = customValue.map((v: any) =>
-          this._formatValueForQueryString(v),
-        )
-        return this._applyNestingFormatting(
-          formattedValues.join(", "),
-          _shouldApplyNesting(formattedValues),
-        )
-      }
-
-      return this._formatBaseValue(customValue, formattingOptions)
-    }
-
-    /**
-     * Formats a basic value (null, boolean, number, string, or builder) for a query string.
-     * @private
-     */
-    _formatBaseValue(value: any, formattingOptions: FormattingOptions): any {
-      const typeofValue = typeof value
-
-      if (value === null) {
-        return "NULL"
-      }
-
-      if (typeofValue === "boolean") {
-        return value ? "TRUE" : "FALSE"
-      }
-
-      if (cls.isSquelBuilder(value)) {
-        return this._applyNestingFormatting(
-          value.toString(),
+      if (_isArray(value)) {
+        value = value.map((v: any) => this._formatValueForQueryString(v))
+        value = this._applyNestingFormatting(
+          value.join(", "),
           _shouldApplyNesting(value),
         )
+      } else {
+        const typeofValue = typeof value
+        if (value === null) {
+          value = "NULL"
+        } else if (typeofValue === "boolean") {
+          value = value ? "TRUE" : "FALSE"
+        } else if (cls.isSquelBuilder(value)) {
+          value = this._applyNestingFormatting(
+            value.toString(),
+            _shouldApplyNesting(value),
+          )
+        } else if (typeofValue !== "number") {
+          if (typeofValue === "string" && this.options.stringFormatter) {
+            return this.options.stringFormatter(value)
+          }
+          if (formattingOptions.dontQuote) {
+            value = `${value}`
+          } else {
+            const escapedValue = this._escapeValue(value)
+            value = `'${escapedValue}'`
+          }
+        }
       }
-
-      if (typeofValue === "number") {
-        return value
-      }
-
-      if (typeofValue === "string" && this.options.stringFormatter) {
-        return this.options.stringFormatter(value)
-      }
-
-      if (formattingOptions.dontQuote) {
-        return `${value}`
-      }
-
-      return `'${this._escapeValue(value)}'`
+      return value
     }
 
     _applyNestingFormatting(str: any, nesting = true): any {
@@ -403,37 +382,28 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         nesting &&
         !this.options.rawNesting
       ) {
-        if (!this._alreadyHasBrackets(str)) {
-          return `(${str})`
+        let alreadyHasBrackets = str.startsWith("(") && str.endsWith(")")
+        if (alreadyHasBrackets) {
+          let idx = 0
+          let open = 1
+          while (str.length - 1 > ++idx) {
+            const c = str.charAt(idx)
+            if (c === "(") {
+              open++
+            } else if (c === ")") {
+              open--
+              if (open < 1) {
+                alreadyHasBrackets = false
+                break
+              }
+            }
+          }
+        }
+        if (!alreadyHasBrackets) {
+          str = `(${str})`
         }
       }
       return str
-    }
-
-    /**
-     * Checks if a string is already enclosed in brackets, ensuring that the
-     * brackets are balanced and not prematurely closed.
-     * @private
-     */
-    _alreadyHasBrackets(str: string): boolean {
-      if (str.charAt(0) !== "(" || str.charAt(str.length - 1) !== ")") {
-        return false
-      }
-
-      let open = 1
-      for (let idx = 1; idx < str.length - 1; ++idx) {
-        const c = str.charAt(idx)
-        if (c === "(") {
-          open++
-        } else if (c === ")") {
-          open--
-          if (open < 1) {
-            return false
-          }
-        }
-      }
-
-      return true
     }
 
     _buildString(
@@ -441,7 +411,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       values: any[],
       options: BuildStringOptions = {},
     ): ParamString {
-      const { nested } = options
+      const { nested, buildParameterized, formattingOptions } = options
       values = values || []
       str = str || ""
       let formattedStr = ""
@@ -451,12 +421,32 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       let idx = 0
       while (str.length > idx) {
         if (str.substring(idx, idx + paramChar.length) === paramChar) {
-          const value = values[++curValue]
-          formattedStr += this._handleParamPlaceholder(
-            value,
-            formattedValues,
-            options,
-          )
+          let value = values[++curValue]
+          if (buildParameterized) {
+            if (cls.isSquelBuilder(value)) {
+              const ret = value._toParamString({
+                buildParameterized,
+                nested: true,
+              })
+              formattedStr += ret.text
+              ret.values.forEach((v: any) => formattedValues.push(v))
+            } else {
+              value = this._formatValueForParamArray(value, formattingOptions)
+              if (_isArray(value)) {
+                const tmpStr = value.map(() => paramChar).join(", ")
+                formattedStr += `(${tmpStr})`
+                value.forEach((val: any) => formattedValues.push(val))
+              } else {
+                formattedStr += paramChar
+                formattedValues.push(value)
+              }
+            }
+          } else {
+            formattedStr += this._formatValueForQueryString(
+              value,
+              formattingOptions,
+            )
+          }
           idx += paramChar.length
         } else {
           formattedStr += str.charAt(idx)
@@ -467,51 +457,6 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         text: this._applyNestingFormatting(formattedStr, !!nested),
         values: formattedValues,
       }
-    }
-
-    /**
-     * Handles the formatting of a value that corresponds to a parameter placeholder ('?').
-     * If buildParameterized is true, it collects values for parameterized queries.
-     * Otherwise, it formats the value directly for the query string.
-     * @param value The value to format.
-     * @param formattedValues The array to collect formatted values.
-     * @param options The build options.
-     * @returns The formatted value.
-     */
-    _handleParamPlaceholder(
-      value: any,
-      formattedValues: any[],
-      options: BuildStringOptions,
-    ): string {
-      const { buildParameterized, formattingOptions } = options
-      const paramChar = this.options.parameterCharacter
-
-      if (!buildParameterized) {
-        return this._formatValueForQueryString(value, formattingOptions)
-      }
-
-      if (cls.isSquelBuilder(value)) {
-        const ret = value._toParamString({
-          buildParameterized,
-          nested: true,
-        })
-        ret.values.forEach((v: any) => formattedValues.push(v))
-        return ret.text
-      }
-
-      const formattedValue = this._formatValueForParamArray(
-        value,
-        formattingOptions,
-      )
-      if (_isArray(formattedValue)) {
-        const tmpStr = formattedValue.map(() => paramChar).join(", ")
-        formattedValue.forEach((val: any) => formattedValues.push(val))
-        return `(${tmpStr})`
-      }
-
-      formattedValues.push(formattedValue)
-
-      return paramChar
     }
 
     _buildManyStrings(
@@ -627,10 +572,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         name = this._sanitizeField(fieldName) as string
       }
       this._fieldName = name
-      this.options = _extend(
-        Object.assign({}, cls.DefaultQueryBuilderOptions),
-        options,
-      )
+      this.options = _extend({ ...cls.DefaultQueryBuilderOptions }, options)
       this._cases = []
     }
 
@@ -639,8 +581,6 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       return this
     }
 
-    // disable sonar rule for this function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     then(result: unknown): this {
       if (this._cases.length === 0) {
         throw new Error("when() needs to be called first")
@@ -684,21 +624,20 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
 
     exposedMethods(): Record<string, (...args: any[]) => any> {
       const ret: Record<string, (...args: any[]) => any> = {}
-      const collect = (obj: any): void => {
-        if (!obj) return
+      let obj: any = this
+      while (obj) {
         for (const prop of Object.getOwnPropertyNames(obj)) {
           if (
             prop !== "constructor" &&
             typeof obj[prop] === "function" &&
-            prop.charAt(0) !== "_" &&
+            !prop.startsWith("_") &&
             !cls.Block.prototype[prop]
           ) {
             ret[prop] = obj[prop]
           }
         }
-        collect(Object.getPrototypeOf(obj))
+        obj = Object.getPrototypeOf(obj)
       }
-      collect(this)
       return ret
     }
   }
@@ -898,7 +837,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       }
       if (!totalStr.length) {
         const fromTableBlock = queryBuilder?.getBlock(cls.FromTableBlock)
-        if (fromTableBlock && fromTableBlock._hasTable()) {
+        if (fromTableBlock?._hasTable()) {
           totalStr = "*"
         }
       }
@@ -1525,7 +1464,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     }
 
     getBlock<T>(blockType: new (...args: any[]) => T): T | undefined {
-      return this.blocks.filter((b) => b instanceof blockType)[0]
+      return this.blocks.find((b) => b instanceof blockType)
     }
   }
 

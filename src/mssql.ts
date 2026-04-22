@@ -1,6 +1,11 @@
 import { _extend, _pad, squel } from "./core"
 import type { Squel } from "./types"
 
+const _limit = function (this: any, max: number): void {
+  max = this._sanitizeLimitOffset(max)
+  this._parent._limits = max
+}
+
 squel.flavours.mssql = (_squel: Squel) => {
   const cls = _squel.cls as any
 
@@ -25,11 +30,6 @@ squel.flavours.mssql = (_squel: Squel) => {
       super(options)
       this._limits = null
       this._offsets = null
-
-      const _limit = function (this: any, max: number): void {
-        max = this._sanitizeLimitOffset(max)
-        this._parent._limits = max
-      }
 
       this.ParentBlock = class extends cls.Block {
         _parent: any
