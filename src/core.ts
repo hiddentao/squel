@@ -307,7 +307,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       )
       if (customHandler) {
         value = customHandler(value, asParam, formattingOptions)
-        if (value && value.rawNesting) {
+        if (value?.rawNesting) {
           return { formatted: true, rawNesting: true, value: value.value }
         }
       }
@@ -382,8 +382,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         nesting &&
         !this.options.rawNesting
       ) {
-        let alreadyHasBrackets =
-          str.charAt(0) === "(" && str.charAt(str.length - 1) === ")"
+        let alreadyHasBrackets = str.startsWith("(") && str.endsWith(")")
         if (alreadyHasBrackets) {
           let idx = 0
           let open = 1
@@ -573,10 +572,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         name = this._sanitizeField(fieldName) as string
       }
       this._fieldName = name
-      this.options = _extend(
-        Object.assign({}, cls.DefaultQueryBuilderOptions),
-        options,
-      )
+      this.options = _extend({ ...cls.DefaultQueryBuilderOptions }, options)
       this._cases = []
     }
 
@@ -634,7 +630,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
           if (
             prop !== "constructor" &&
             typeof obj[prop] === "function" &&
-            prop.charAt(0) !== "_" &&
+            !prop.startsWith("_") &&
             !cls.Block.prototype[prop]
           ) {
             ret[prop] = obj[prop]
@@ -841,7 +837,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       }
       if (!totalStr.length) {
         const fromTableBlock = queryBuilder?.getBlock(cls.FromTableBlock)
-        if (fromTableBlock && fromTableBlock._hasTable()) {
+        if (fromTableBlock?._hasTable()) {
           totalStr = "*"
         }
       }
@@ -1468,7 +1464,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     }
 
     getBlock<T>(blockType: new (...args: any[]) => T): T | undefined {
-      return this.blocks.filter((b) => b instanceof blockType)[0]
+      return this.blocks.find((b) => b instanceof blockType)
     }
   }
 
