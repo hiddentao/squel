@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [6.0.7](https://github.com/hiddentao/squel/compare/v6.0.6...v6.0.7) (2026-04-23)
+
+
+### Code Refactoring
+
+* enhance code quality and resolve sonar technical debt across core builders ([#403](https://github.com/hiddentao/squel/issues/403)) ([62466bd](https://github.com/hiddentao/squel/commit/62466bd7290c0a732644e43b32643da1f700ab74))
+
 ## [6.0.6](https://github.com/hiddentao/squel/compare/v6.0.5...v6.0.6) (2026-04-17)
 
 
