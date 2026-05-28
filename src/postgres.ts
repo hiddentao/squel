@@ -141,6 +141,16 @@ squel.flavours.postgres = (_squel: Squel) => {
     }
   }
 
+  cls.UsingBlock = class extends cls.AbstractTableBlock {
+    constructor(options: any) {
+      super({ ...options, prefix: "USING" })
+    }
+
+    using(table: unknown, alias: string | null = null): void {
+      this._table(table, alias)
+    }
+  }
+
   cls.DistinctOnBlock = class extends cls.Block {
     _useDistinct = false
     _distinctFields: any[]
@@ -230,6 +240,7 @@ squel.flavours.postgres = (_squel: Squel) => {
         new cls.StringBlock(options, "DELETE"),
         new cls.TargetTableBlock(options),
         new cls.FromTableBlock({ ...options, singleTable: true }),
+        new cls.UsingBlock(options),
         new cls.JoinBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),

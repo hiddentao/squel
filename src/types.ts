@@ -198,6 +198,7 @@ export interface Insert extends QueryBuilder {
 export interface Delete extends QueryBuilder {
   target(table: string): this
   from(table: string, alias?: string): this
+  using?(table: string, alias?: string): this
   where(condition: Conditional, ...values: unknown[]): this
   order(
     field: string,

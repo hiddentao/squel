@@ -318,6 +318,49 @@ describe("Postgres flavour", () => {
         })
       })
     })
+
+    describe('>> from(table).using(other_table).where("field = ?")', () => {
+      beforeEach(() => {
+        del.from("table").using("other_table").where("field = ?", 1)
+      })
+
+      it("toString", () => {
+        expect(del.toString()).toBe(
+          "DELETE FROM table USING other_table WHERE (field = 1)",
+        )
+      })
+
+      it("toParam", () => {
+        expect(del.toParam()).toEqual({
+          text: "DELETE FROM table USING other_table WHERE (field = $1)",
+          values: [1],
+        })
+      })
+    })
+
+    describe('>> from(table).using(other_table, alias).where("field = 1")', () => {
+      beforeEach(() => {
+        del.from("table").using("other_table", "ot").where("field = 1")
+      })
+
+      it("toString", () => {
+        expect(del.toString()).toBe(
+          "DELETE FROM table USING other_table AS ot WHERE (field = 1)",
+        )
+      })
+    })
+
+    describe(">> from(table).using(t1).using(t2).where(...)", () => {
+      beforeEach(() => {
+        del.from("table").using("t1").using("t2").where("t1.id = table.id")
+      })
+
+      it("toString", () => {
+        expect(del.toString()).toBe(
+          "DELETE FROM table USING t1, t2 WHERE (t1.id = table.id)",
+        )
+      })
+    })
   })
 
   describe("SELECT builder", () => {
