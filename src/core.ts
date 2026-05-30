@@ -1379,6 +1379,26 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     }
   }
 
+  cls.ForBlock = class extends cls.Block {
+    _forStr: string | null
+
+    constructor(options?: QueryBuilderOptions) {
+      super(options)
+      this._forStr = null
+    }
+
+    for(str: string): void {
+      this._forStr = str
+    }
+
+    _toParamString(): ParamString {
+      return {
+        text: this._forStr !== null ? `FOR ${this._forStr}` : "",
+        values: [],
+      }
+    }
+  }
+
   cls.QueryBuilder = class extends cls.BaseBuilder {
     blocks: any[];
     [methodName: string]: any
@@ -1484,6 +1504,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         new cls.LimitBlock(options),
         new cls.OffsetBlock(options),
         new cls.UnionBlock(options),
+        new cls.ForBlock(options),
       ]
       super(options, blocks)
     }

@@ -186,6 +186,7 @@ squel.flavours.postgres = (_squel: Squel) => {
         new cls.LimitBlock(options),
         new cls.OffsetBlock(options),
         new cls.UnionBlock(options),
+        new cls.ForBlock(options),
       ]
       super(options, blocks)
     }

@@ -921,5 +921,65 @@ describe("SELECT builder", () => {
         })
       })
     })
+
+    describe("FOR clause", () => {
+      describe(">> from(table).for('UPDATE')", () => {
+        beforeEach(() => {
+          inst.from("table").for("UPDATE")
+        })
+
+        it("toString", () => {
+          expect(inst.toString()).toBe("SELECT * FROM table FOR UPDATE")
+        })
+
+        it("toParam", () => {
+          expect(inst.toParam()).toEqual({
+            text: "SELECT * FROM table FOR UPDATE",
+            values: [],
+          })
+        })
+      })
+
+      describe(">> from(table).where(field = ?).for('UPDATE SKIP LOCKED')", () => {
+        beforeEach(() => {
+          inst.from("table").where("id = ?", 1).for("UPDATE SKIP LOCKED")
+        })
+
+        it("toString", () => {
+          expect(inst.toString()).toBe(
+            "SELECT * FROM table WHERE (id = 1) FOR UPDATE SKIP LOCKED",
+          )
+        })
+
+        it("toParam", () => {
+          expect(inst.toParam()).toEqual({
+            text: "SELECT * FROM table WHERE (id = ?) FOR UPDATE SKIP LOCKED",
+            values: [1],
+          })
+        })
+      })
+
+      describe(">> from(table).for('UPDATE OF table NOWAIT')", () => {
+        beforeEach(() => {
+          inst.from("table").for("UPDATE OF table NOWAIT")
+        })
+
+        it("toString", () => {
+          expect(inst.toString()).toBe(
+            "SELECT * FROM table FOR UPDATE OF table NOWAIT",
+          )
+        })
+      })
+
+      describe(">> from(table) [no for() call]", () => {
+        beforeEach(() => {
+          inst.from("table")
+        })
+
+        it("toString omits FOR clause", () => {
+          expect(inst.toString()).toBe("SELECT * FROM table")
+        })
+      })
+    })
   })
 })

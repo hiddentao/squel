@@ -156,6 +156,7 @@ export interface Select extends QueryBuilder {
   ): this
   union(table: Joinable, type?: string): this
   union_all(table: Joinable): this
+  for(str: string): this
   function(str: string, ...values: unknown[]): this
   with?(alias: string, table: QueryBuilder): this
 }
@@ -275,6 +276,7 @@ export interface ClsRegistry {
   OrderByBlock: new (options?: QueryBuilderOptions) => BaseBuilder
   JoinBlock: new (options?: QueryBuilderOptions) => BaseBuilder
   UnionBlock: new (options?: QueryBuilderOptions) => BaseBuilder
+  ForBlock: new (options?: QueryBuilderOptions) => BaseBuilder
   QueryBuilder: new (
     options?: QueryBuilderOptions,
     blocks?: unknown[],
