@@ -406,6 +406,24 @@ squel.useFlavour("mssql")
 // INSERT INTO users (name) OUTPUT INSERTED.id VALUES ('John')
 ```
 
+#### CROSS/OUTER APPLY (MSSQL)
+
+Provides `CROSS APPLY` and `OUTER APPLY` support for the MSSQL flavour:
+
+```javascript
+// MSSQL CROSS/OUTER APPLY
+squel.useFlavour("mssql")
+    .select()
+    .from("table1")
+    .cross_apply("table2", "t2")
+    .outer_apply(
+        squel.select().from("bar").where("bar.id = table1.id"),
+        "s"
+    )
+    .toString()
+// SELECT * FROM table1 CROSS APPLY table2 t2 OUTER APPLY (SELECT * FROM bar WHERE (bar.id = table1.id)) s
+```
+
 ## Non-standard SQL flavours
 
 Squel supports the standard SQL commands and reserved words. A number of database engines provide their own non-standard commands; Squel makes it easy to load different "flavours" of SQL that augment the core builders with engine-specific features.

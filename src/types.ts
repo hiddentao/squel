@@ -167,6 +167,9 @@ export interface Select extends QueryBuilder {
     alias?: string | null,
     condition?: Conditional | null,
   ): this
+  apply?(table: Joinable, alias?: string | null, type?: string): this
+  cross_apply?(table: Joinable, alias?: string | null): this
+  outer_apply?(table: Joinable, alias?: string | null): this
   union(table: Joinable, type?: string): this
   union_all(table: Joinable): this
   for(str: string): this
