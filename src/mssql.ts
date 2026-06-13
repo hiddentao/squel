@@ -214,6 +214,34 @@ squel.flavours.mssql = (_squel: Squel) => {
     }
   }
 
+  cls.MssqlJoinBlock = class extends cls.JoinBlock {
+    apply(table: unknown, alias: string | null = null, type = "CROSS"): void {
+      table = this._sanitizeTable(table, true)
+      alias = alias ? this._sanitizeTableAlias(alias) : alias
+
+      let applyType = type.toUpperCase()
+      if (!applyType.endsWith("APPLY")) {
+        applyType = `${applyType} APPLY`
+      }
+
+      this._joins.push({
+        type: applyType,
+        table,
+        alias,
+        condition: null,
+        isApply: true,
+      })
+    }
+
+    cross_apply(table: unknown, alias: string | null = null): void {
+      this.apply(table, alias, "CROSS")
+    }
+
+    outer_apply(table: unknown, alias: string | null = null): void {
+      this.apply(table, alias, "OUTER")
+    }
+  }
+
   cls.Select = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       const limitOffsetTopBlock = new cls.MssqlLimitOffsetTopBlock(options)
@@ -224,7 +252,7 @@ squel.flavours.mssql = (_squel: Squel) => {
         limitOffsetTopBlock.TOP(),
         new cls.GetFieldBlock(options),
         new cls.FromTableBlock(options),
-        new cls.JoinBlock(options),
+        new cls.MssqlJoinBlock(options),
         new cls.WhereBlock(options),
         new cls.GroupByBlock(options),
         new cls.HavingBlock(options),

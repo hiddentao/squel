@@ -1430,6 +1430,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     table: unknown
     alias: string | null
     condition: unknown
+    isApply?: boolean
   }
 
   cls.JoinBlock = class extends cls.Block {
@@ -1503,7 +1504,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     _toParamString(options: ToParamOptions = {}): ParamString {
       let totalStr = ""
       const totalValues: any[] = []
-      for (const { type, table, alias, condition } of this._joins) {
+      for (const { type, table, alias, condition, isApply } of this._joins) {
         totalStr = _pad(totalStr, this.options.separator)
         let tableStr: string
         if (cls.isSquelBuilder(table)) {
@@ -1516,7 +1517,11 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         } else {
           tableStr = this._formatTableName(table)
         }
-        totalStr += `${type} JOIN ${tableStr}`
+        if (isApply) {
+          totalStr += `${type} ${tableStr}`
+        } else {
+          totalStr += `${type} JOIN ${tableStr}`
+        }
         if (alias) totalStr += ` ${this._formatTableAlias(alias)}`
         if (condition) {
           totalStr += " ON "

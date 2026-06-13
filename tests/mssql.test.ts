@@ -127,6 +127,52 @@ describe("MSSQL flavour", () => {
         )
       })
     })
+
+    describe("APPLY (cross/outer apply)", () => {
+      it("cross_apply with table name", () => {
+        sel.from("table1").cross_apply("table2", "t2")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 CROSS APPLY table2 t2",
+        )
+      })
+
+      it("outer_apply with table name", () => {
+        sel.from("table1").outer_apply("table2", "t2")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 OUTER APPLY table2 t2",
+        )
+      })
+
+      it("generic apply with uppercase type", () => {
+        sel.from("table1").apply("table2", "t2", "CROSS")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 CROSS APPLY table2 t2",
+        )
+      })
+
+      it("generic apply with lowercase/partial suffix type", () => {
+        sel.from("table1").apply("table2", "t2", "outer apply")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 OUTER APPLY table2 t2",
+        )
+      })
+
+      it("cross_apply with subquery and parameters", () => {
+        const sub = squel
+          .select()
+          .from("bar")
+          .where("bar.id = table1.id")
+          .where("bar.status = ?", "active")
+        sel.from("table1").cross_apply(sub, "s")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 CROSS APPLY (SELECT * FROM bar WHERE (bar.id = table1.id) AND (bar.status = 'active')) s",
+        )
+        expect(sel.toParam()).toEqual({
+          text: "SELECT * FROM table1 CROSS APPLY (SELECT * FROM bar WHERE (bar.id = table1.id) AND (bar.status = ?)) s",
+          values: ["active"],
+        })
+      })
+    })
   })
 
   describe("INSERT builder", () => {

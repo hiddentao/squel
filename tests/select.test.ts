@@ -639,6 +639,14 @@ describe("SELECT builder", () => {
     })
   })
 
+  describe("APPLY (not available on generic select)", () => {
+    it("does not expose apply methods on generic select", () => {
+      expect(inst.apply).toBeUndefined()
+      expect(inst.cross_apply).toBeUndefined()
+      expect(inst.outer_apply).toBeUndefined()
+    })
+  })
+
   describe("cloning", () => {
     it("basic", () => {
       const newinst = inst.from("students").limit(10).clone()
