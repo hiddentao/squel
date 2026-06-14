@@ -104,8 +104,11 @@ export interface QueryBuilder extends BaseBuilder {
   blocks: unknown[]
   updateOptions(options: QueryBuilderOptions): void
   getBlock<T>(blockType: new (...args: any[]) => T): T | undefined
-  with(alias: string, table: QueryBuilder): this
-  withRecursive(alias: string, table: QueryBuilder): this
+  // `table` only needs to be renderable; the WithBlock just forwards to
+  // `table._toParamString(...)` at build time, so any BaseBuilder is fine
+  // (including the raw-string builders returned by `rstr(...)`).
+  with(alias: string, table: BaseBuilder): this
+  withRecursive(alias: string, table: BaseBuilder): this
   [method: string]: unknown
 }
 
