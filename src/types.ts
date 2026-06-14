@@ -79,8 +79,8 @@ export interface BaseBuilder extends Cloneable {
 }
 
 export interface Expression extends BaseBuilder {
-  and(expr: string | Expression | QueryBuilder, ...params: unknown[]): this
-  or(expr: string | Expression | QueryBuilder, ...params: unknown[]): this
+  and(expr: Conditional, ...params: unknown[]): this
+  or(expr: Conditional, ...params: unknown[]): this
 }
 
 export interface Case extends BaseBuilder {
