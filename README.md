@@ -424,6 +424,20 @@ squel.useFlavour("mssql")
 // SELECT * FROM table1 CROSS APPLY table2 t2 OUTER APPLY (SELECT * FROM bar WHERE (bar.id = table1.id)) s
 ```
 
+#### Query planner hints (Postgres `pg_hint_plan`)
+
+The Postgres flavour can prepend a [`pg_hint_plan`](https://pg-hint-plan.readthedocs.io/) hint comment to a `SELECT`, `INSERT`, `UPDATE` or `DELETE`. Repeated `hint(...)` calls accumulate into a single comment. The comment is inert unless the `pg_hint_plan` extension is loaded on the server.
+
+```javascript
+squel.useFlavour("postgres")
+    .select()
+    .hint("IndexScan(users users_email_idx)")
+    .hint("SeqScan(orders)")
+    .from("users")
+    .toString()
+// /*+ IndexScan(users users_email_idx) SeqScan(orders) */ SELECT * FROM users
+```
+
 ## Non-standard SQL flavours
 
 Squel supports the standard SQL commands and reserved words. A number of database engines provide their own non-standard commands; Squel makes it easy to load different "flavours" of SQL that augment the core builders with engine-specific features.
