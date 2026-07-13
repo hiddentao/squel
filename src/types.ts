@@ -79,8 +79,8 @@ export interface BaseBuilder extends Cloneable {
 }
 
 export interface Expression extends BaseBuilder {
-  and(expr: string | Expression | QueryBuilder, ...params: unknown[]): this
-  or(expr: string | Expression | QueryBuilder, ...params: unknown[]): this
+  and(expr: Conditional, ...params: unknown[]): this
+  or(expr: Conditional, ...params: unknown[]): this
 }
 
 export interface Case extends BaseBuilder {
@@ -104,8 +104,8 @@ export interface QueryBuilder extends BaseBuilder {
   blocks: unknown[]
   updateOptions(options: QueryBuilderOptions): void
   getBlock<T>(blockType: new (...args: any[]) => T): T | undefined
-  with(alias: string, table: QueryBuilder): this
-  withRecursive(alias: string, table: QueryBuilder): this
+  with(alias: string, table: BaseBuilder): this
+  withRecursive(alias: string, table: BaseBuilder): this
   /**
    * Postgres flavour only: prepend a pg_hint_plan hint comment to the
    * statement, e.g. `hint("IndexScan(t)")`. Repeated calls accumulate into a

@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [6.3.1](https://github.com/hiddentao/squel/compare/v6.3.0...v6.3.1) (2026-06-17)
+
 ## [6.3.0](https://github.com/hiddentao/squel/compare/v6.2.1...v6.3.0) (2026-06-13)
 
 
