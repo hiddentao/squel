@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [6.4.0](https://github.com/hiddentao/squel/compare/v6.3.1...v6.4.0) (2026-08-08)
+
+
+### Features
+
+* **postgres:** add pg_hint_plan hint support to the postgres flavour ([#411](https://github.com/hiddentao/squel/issues/411)) ([3c8ad75](https://github.com/hiddentao/squel/commit/3c8ad75cc877854ab81b6f6d3f4238cdeba3a09c))
+
+
+### Bug Fixes
+
+* **ci:** float release node version to satisfy npm's engine requirement ([#412](https://github.com/hiddentao/squel/issues/412)) ([862a8f7](https://github.com/hiddentao/squel/commit/862a8f7b4c0e9af7a2804fb2a6ef05b91629d4c4))
+
 ## [6.3.1](https://github.com/hiddentao/squel/compare/v6.3.0...v6.3.1) (2026-06-17)
 
 ## [6.3.0](https://github.com/hiddentao/squel/compare/v6.2.1...v6.3.0) (2026-06-13)
