@@ -149,9 +149,32 @@ squel.flavours.postgres = (_squel: Squel) => {
     }
   }
 
+  // Renders a pg_hint_plan hint comment (e.g. `/*+ IndexScan(t) */`) at the very
+  // start of the statement. Multiple hints accumulate space-separated inside a
+  // single comment. Requires the pg_hint_plan extension to have any effect; it is
+  // an inert SQL comment otherwise. See https://pg-hint-plan.readthedocs.io/
+  cls.PgHintPlanBlock = class extends cls.Block {
+    _hints: string[]
+
+    constructor(options: any) {
+      super(options)
+      this._hints = []
+    }
+
+    hint(hintStr: string): void {
+      this._hints.push(hintStr)
+    }
+
+    _toParamString(): any {
+      const text = this._hints.length ? `/*+ ${this._hints.join(" ")} */` : ""
+      return { text, values: [] }
+    }
+  }
+
   cls.Select = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       blocks = blocks || [
+        new cls.PgHintPlanBlock(options),
         new cls.WithBlock(options),
         new cls.StringBlock(options, "SELECT"),
         new cls.FunctionBlock(options),
@@ -175,6 +198,7 @@ squel.flavours.postgres = (_squel: Squel) => {
   cls.Insert = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       blocks = blocks || [
+        new cls.PgHintPlanBlock(options),
         new cls.WithBlock(options),
         new cls.StringBlock(options, "INSERT"),
         new cls.IntoTableBlock(options),
@@ -190,6 +214,7 @@ squel.flavours.postgres = (_squel: Squel) => {
   cls.Update = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       blocks = blocks || [
+        new cls.PgHintPlanBlock(options),
         new cls.WithBlock(options),
         new cls.StringBlock(options, "UPDATE"),
         new cls.UpdateTableBlock(options),
@@ -207,6 +232,7 @@ squel.flavours.postgres = (_squel: Squel) => {
   cls.Delete = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       blocks = blocks || [
+        new cls.PgHintPlanBlock(options),
         new cls.WithBlock(options),
         new cls.StringBlock(options, "DELETE"),
         new cls.TargetTableBlock(options),

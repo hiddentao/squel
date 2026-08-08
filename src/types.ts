@@ -106,6 +106,12 @@ export interface QueryBuilder extends BaseBuilder {
   getBlock<T>(blockType: new (...args: any[]) => T): T | undefined
   with(alias: string, table: BaseBuilder): this
   withRecursive(alias: string, table: BaseBuilder): this
+  /**
+   * Postgres flavour only: prepend a pg_hint_plan hint comment to the
+   * statement, e.g. `hint("IndexScan(t)")`. Repeated calls accumulate into a
+   * single comment. See https://pg-hint-plan.readthedocs.io/
+   */
+  hint(hintStr: string): this
   [method: string]: unknown
 }
 

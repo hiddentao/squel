@@ -669,6 +669,89 @@ describe("Postgres flavour", () => {
     })
   })
 
+  describe("pg_hint_plan hints", () => {
+    describe(">> select().hint(...)", () => {
+      it("prepends a hint comment", () => {
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t idx)")
+            .field("id")
+            .from("t")
+            .toString(),
+        ).toBe("/*+ IndexScan(t idx) */ SELECT id FROM t")
+      })
+
+      it("accumulates multiple hints into a single comment", () => {
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t idx)")
+            .hint("SeqScan(u)")
+            .from("t")
+            .toString(),
+        ).toBe("/*+ IndexScan(t idx) SeqScan(u) */ SELECT * FROM t")
+      })
+
+      it("renders nothing when unused", () => {
+        expect(squel.select().from("t").toString()).toBe("SELECT * FROM t")
+      })
+
+      it("does not affect parameter numbering", () => {
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t)")
+            .from("t")
+            .where("a = ?", 1)
+            .toParam(),
+        ).toEqual({
+          text: "/*+ IndexScan(t) */ SELECT * FROM t WHERE (a = $1)",
+          values: [1],
+        })
+      })
+
+      it("comes before a CTE", () => {
+        const cte = squel.select().from("u")
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t)")
+            .with("c", cte)
+            .from("t")
+            .toString(),
+        ).toBe(
+          "/*+ IndexScan(t) */ WITH c AS (SELECT * FROM u) SELECT * FROM t",
+        )
+      })
+
+      it("survives clone()", () => {
+        const sel = squel.select().hint("IndexScan(t)").from("t")
+        expect(sel.clone().toString()).toBe(
+          "/*+ IndexScan(t) */ SELECT * FROM t",
+        )
+      })
+    })
+
+    it(">> insert().hint(...)", () => {
+      expect(
+        squel.insert().hint("IndexScan(t)").into("t").set("a", 1).toString(),
+      ).toBe("/*+ IndexScan(t) */ INSERT INTO t (a) VALUES (1)")
+    })
+
+    it(">> update().hint(...)", () => {
+      expect(
+        squel.update().hint("IndexScan(t)").table("t").set("a", 1).toString(),
+      ).toBe("/*+ IndexScan(t) */ UPDATE t SET a = 1")
+    })
+
+    it(">> delete().hint(...)", () => {
+      expect(squel.delete().hint("IndexScan(t)").from("t").toString()).toBe(
+        "/*+ IndexScan(t) */ DELETE FROM t",
+      )
+    })
+  })
+
   it("Default query builder options", () => {
     expect(squel.cls.DefaultQueryBuilderOptions).toEqual({
       replaceSingleQuotes: false,
