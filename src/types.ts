@@ -11,7 +11,12 @@ export type ValueHandler<T = unknown> = (
   formattingOptions?: FormattingOptions,
 ) => string | ParamString | unknown
 
-export type ValueType = string | (new (...args: unknown[]) => unknown)
+export type ValueType =
+  | string
+  | (new (
+      ...args: unknown[]
+    ) => unknown)
+  | { prototype: unknown }
 
 export interface ValueHandlerEntry {
   type: ValueType
