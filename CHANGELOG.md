@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [6.5.0](https://github.com/hiddentao/squel/compare/v6.4.0...v6.5.0) (2026-08-09)
+
+
+### Features
+
+* **types:** add support for private constructors ([#406](https://github.com/hiddentao/squel/issues/406)) ([de06e16](https://github.com/hiddentao/squel/commit/de06e16d065e4e1bb36c1dc7069cef88dd960cca))
+
 ## [6.4.0](https://github.com/hiddentao/squel/compare/v6.3.1...v6.4.0) (2026-08-08)
 
 
