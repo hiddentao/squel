@@ -84,8 +84,8 @@ export interface BaseBuilder extends Cloneable {
 }
 
 export interface Expression extends BaseBuilder {
-  and(expr: string | Expression | QueryBuilder, ...params: unknown[]): this
-  or(expr: string | Expression | QueryBuilder, ...params: unknown[]): this
+  and(expr: Conditional, ...params: unknown[]): this
+  or(expr: Conditional, ...params: unknown[]): this
 }
 
 export interface Case extends BaseBuilder {
@@ -94,10 +94,29 @@ export interface Case extends BaseBuilder {
   else(elseValue: unknown): this
 }
 
+export interface Over extends BaseBuilder {
+  partitionBy(...fields: any[]): this
+  orderBy(
+    field: unknown,
+    dir?: boolean | string | null,
+    ...values: unknown[]
+  ): this
+  rowsBetween(start: any, end?: any): this
+  rangeBetween(start: any, end?: any): this
+}
+
 export interface QueryBuilder extends BaseBuilder {
   blocks: unknown[]
   updateOptions(options: QueryBuilderOptions): void
   getBlock<T>(blockType: new (...args: any[]) => T): T | undefined
+  with(alias: string, table: BaseBuilder): this
+  withRecursive(alias: string, table: BaseBuilder): this
+  /**
+   * Postgres flavour only: prepend a pg_hint_plan hint comment to the
+   * statement, e.g. `hint("IndexScan(t)")`. Repeated calls accumulate into a
+   * single comment. See https://pg-hint-plan.readthedocs.io/
+   */
+  hint(hintStr: string): this
   [method: string]: unknown
 }
 
@@ -159,10 +178,13 @@ export interface Select extends QueryBuilder {
     alias?: string | null,
     condition?: Conditional | null,
   ): this
+  apply?(table: Joinable, alias?: string | null, type?: string): this
+  cross_apply?(table: Joinable, alias?: string | null): this
+  outer_apply?(table: Joinable, alias?: string | null): this
   union(table: Joinable, type?: string): this
   union_all(table: Joinable): this
+  for(str: string): this
   function(str: string, ...values: unknown[]): this
-  with?(alias: string, table: QueryBuilder): this
 }
 
 export interface Update extends QueryBuilder {
@@ -179,6 +201,13 @@ export interface Update extends QueryBuilder {
     ...values: unknown[]
   ): this
   limit(limit: number | null): this
+  returning(
+    field: any,
+    alias?: string | null,
+    options?: FormattingOptions,
+  ): this
+  output(field: any, alias?: string | null): this
+  outputs(outputs: { [field: string]: string | null }): this
 }
 
 export interface Insert extends QueryBuilder {
@@ -193,6 +222,17 @@ export interface Insert extends QueryBuilder {
     valueOptions?: FormattingOptions,
   ): this
   fromQuery(fields: string[], selectQuery: Select): this
+  returning(
+    field: any,
+    alias?: string | null,
+    options?: FormattingOptions,
+  ): this
+  output(field: any, alias?: string | null): this
+  outputs(outputs: { [field: string]: string | null }): this
+  onConflict?(conflictFields?: any, fields?: any): this
+  doUpdate?(): PostgresOnConflictUpdateHelper
+  doNothing?(): this
+  onDuplicateKeyUpdate?(): MysqlOnDuplicateKeyUpdateHelper
   onDupUpdate?(
     field: string,
     value?: unknown,
@@ -200,9 +240,38 @@ export interface Insert extends QueryBuilder {
   ): this
 }
 
+export interface PostgresOnConflictUpdateHelper extends Omit<Insert, "set"> {
+  set(field: string, value?: unknown, options?: FormattingOptions): this
+}
+
+export interface MysqlOnDuplicateKeyUpdateHelper extends Omit<Insert, "set"> {
+  set(field: string, value?: unknown, options?: FormattingOptions): this
+}
+
+export interface MergeMatchedClauseHelper {
+  update(fields: { [field: string]: unknown }): Merge
+  delete(): Merge
+}
+
+export interface MergeNotMatchedClauseHelper {
+  insert(fields: { [field: string]: unknown }): Merge
+}
+
+export interface Merge extends QueryBuilder {
+  into(table: string, alias?: string | null): this
+  using(
+    source: string | QueryBuilder,
+    alias?: string | null,
+    condition?: Conditional | null,
+  ): this
+  whenMatched(condition?: Conditional | null): MergeMatchedClauseHelper
+  whenNotMatched(condition?: Conditional | null): MergeNotMatchedClauseHelper
+}
+
 export interface Delete extends QueryBuilder {
   target(table: string): this
   from(table: string, alias?: string): this
+  using?(table: string, alias?: string): this
   where(condition: Conditional, ...values: unknown[]): this
   order(
     field: string,
@@ -210,6 +279,13 @@ export interface Delete extends QueryBuilder {
     ...values: unknown[]
   ): this
   limit(limit: number | null): this
+  returning(
+    field: any,
+    alias?: string | null,
+    options?: FormattingOptions,
+  ): this
+  output(field: any, alias?: string | null): this
+  outputs(outputs: { [field: string]: string | null }): this
 }
 
 export type FlavourRegistration = (squel: Squel) => void
@@ -232,6 +308,9 @@ export interface Squel {
   registerValueHandler(type: ValueType, handler: ValueHandler): void
   useFlavour(flavour?: Flavour | string | null): Squel
   replace?(options?: QueryBuilderOptions, blocks?: unknown[]): Insert
+  merge?(options?: QueryBuilderOptions, blocks?: unknown[]): Merge
+  over(funcExpr: any, ...funcParams: any[]): Over
+  jsonExtract(field: any, path: string): BaseBuilder
 }
 
 /**
@@ -252,6 +331,16 @@ export interface ClsRegistry {
     fieldName?: string | QueryBuilderOptions,
     options?: QueryBuilderOptions,
   ) => Case
+  Over: new (
+    funcExpr: any,
+    funcParams?: any[],
+    options?: QueryBuilderOptions,
+  ) => Over
+  JsonExtract: new (
+    field: any,
+    path: string,
+    options?: QueryBuilderOptions,
+  ) => BaseBuilder
   StringBlock: new (
     options: QueryBuilderOptions | undefined,
     str: string,
@@ -280,6 +369,7 @@ export interface ClsRegistry {
   OrderByBlock: new (options?: QueryBuilderOptions) => BaseBuilder
   JoinBlock: new (options?: QueryBuilderOptions) => BaseBuilder
   UnionBlock: new (options?: QueryBuilderOptions) => BaseBuilder
+  ForBlock: new (options?: QueryBuilderOptions) => BaseBuilder
   QueryBuilder: new (
     options?: QueryBuilderOptions,
     blocks?: unknown[],

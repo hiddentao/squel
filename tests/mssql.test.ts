@@ -127,6 +127,52 @@ describe("MSSQL flavour", () => {
         )
       })
     })
+
+    describe("APPLY (cross/outer apply)", () => {
+      it("cross_apply with table name", () => {
+        sel.from("table1").cross_apply("table2", "t2")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 CROSS APPLY table2 t2",
+        )
+      })
+
+      it("outer_apply with table name", () => {
+        sel.from("table1").outer_apply("table2", "t2")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 OUTER APPLY table2 t2",
+        )
+      })
+
+      it("generic apply with uppercase type", () => {
+        sel.from("table1").apply("table2", "t2", "CROSS")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 CROSS APPLY table2 t2",
+        )
+      })
+
+      it("generic apply with lowercase/partial suffix type", () => {
+        sel.from("table1").apply("table2", "t2", "outer apply")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 OUTER APPLY table2 t2",
+        )
+      })
+
+      it("cross_apply with subquery and parameters", () => {
+        const sub = squel
+          .select()
+          .from("bar")
+          .where("bar.id = table1.id")
+          .where("bar.status = ?", "active")
+        sel.from("table1").cross_apply(sub, "s")
+        expect(sel.toString()).toBe(
+          "SELECT * FROM table1 CROSS APPLY (SELECT * FROM bar WHERE (bar.id = table1.id) AND (bar.status = 'active')) s",
+        )
+        expect(sel.toParam()).toEqual({
+          text: "SELECT * FROM table1 CROSS APPLY (SELECT * FROM bar WHERE (bar.id = table1.id) AND (bar.status = ?)) s",
+          values: ["active"],
+        })
+      })
+    })
   })
 
   describe("INSERT builder", () => {
@@ -144,6 +190,45 @@ describe("MSSQL flavour", () => {
       it("toString", () => {
         expect(inst.toString()).toBe(
           "INSERT INTO table (field) OUTPUT INSERTED.id VALUES (1)",
+        )
+      })
+    })
+
+    describe(">> into(table).set(field, 1).output(id, ident)", () => {
+      beforeEach(() => {
+        inst.into("table").output("id", "ident").set("field", 1)
+      })
+
+      it("toString", () => {
+        expect(inst.toString()).toBe(
+          "INSERT INTO table (field) OUTPUT INSERTED.id AS ident VALUES (1)",
+        )
+      })
+    })
+
+    describe(">> into(table).set(field, 1).outputs({ id: 'ident', name: 'naming' })", () => {
+      beforeEach(() => {
+        inst
+          .into("table")
+          .outputs({ id: "ident", name: "naming" })
+          .set("field", 1)
+      })
+
+      it("toString", () => {
+        expect(inst.toString()).toBe(
+          "INSERT INTO table (field) OUTPUT INSERTED.id AS ident, INSERTED.name AS naming VALUES (1)",
+        )
+      })
+    })
+
+    describe(">> into(table).set(field, 1).output([id, name])", () => {
+      beforeEach(() => {
+        inst.into("table").output(["id", "name"]).set("field", 1)
+      })
+
+      it("toString", () => {
+        expect(inst.toString()).toBe(
+          "INSERT INTO table (field) OUTPUT INSERTED.id, INSERTED.name VALUES (1)",
         )
       })
     })
@@ -247,6 +332,93 @@ describe("MSSQL flavour", () => {
     })
   })
 
+  describe("MERGE builder", () => {
+    let merge: any
+
+    beforeEach(() => {
+      merge = squel.merge()
+    })
+
+    describe(">> basic MERGE with UPDATE and INSERT using column references", () => {
+      beforeEach(() => {
+        merge
+          .into("target_table", "t")
+          .using("source_table", "s", "t.id = s.id")
+          .whenMatched()
+          .update({ "t.name": squel.str("s.name"), "t.val": 42 })
+          .whenNotMatched()
+          .insert({ name: squel.str("s.name"), val: 100 })
+      })
+
+      it("toString", () => {
+        expect(merge.toString()).toBe(
+          "MERGE INTO target_table AS t USING source_table AS s ON (t.id = s.id) WHEN MATCHED THEN UPDATE SET t.name = s.name, t.val = 42 WHEN NOT MATCHED THEN INSERT (name, val) VALUES (s.name, 100);",
+        )
+      })
+
+      it("toParam", () => {
+        const param = merge.toParam()
+        expect(param.text).toBe(
+          "MERGE INTO target_table AS t USING source_table AS s ON (t.id = s.id) WHEN MATCHED THEN UPDATE SET t.name = s.name, t.val = ? WHEN NOT MATCHED THEN INSERT (name, val) VALUES (s.name, ?);",
+        )
+        expect(param.values).toEqual([42, 100])
+      })
+    })
+
+    describe(">> MERGE with source query, delete action and matched conditions", () => {
+      beforeEach(() => {
+        const sourceQuery = squel
+          .select()
+          .from("source_table")
+          .where("active = ?", true)
+        merge
+          .into("target_table")
+          .using(sourceQuery, "s", "target_table.id = s.id")
+          .whenMatched("s.delete_flag = 1")
+          .delete()
+      })
+
+      it("toString", () => {
+        expect(merge.toString()).toBe(
+          "MERGE INTO target_table USING (SELECT * FROM source_table WHERE (active = TRUE)) AS s ON (target_table.id = s.id) WHEN MATCHED AND s.delete_flag = 1 THEN DELETE;",
+        )
+      })
+
+      it("toParam", () => {
+        const param = merge.toParam()
+        expect(param.text).toBe(
+          "MERGE INTO target_table USING (SELECT * FROM source_table WHERE (active = ?)) AS s ON (target_table.id = s.id) WHEN MATCHED AND s.delete_flag = 1 THEN DELETE;",
+        )
+        expect(param.values).toEqual([true])
+      })
+    })
+
+    describe(">> MERGE with builder expression as condition", () => {
+      beforeEach(() => {
+        const cond = squel.expr().and("t.id = s.id").and("t.active = ?", 1)
+        merge
+          .into("target_table", "t")
+          .using("source_table", "s", cond)
+          .whenMatched()
+          .delete()
+      })
+
+      it("toString", () => {
+        expect(merge.toString()).toBe(
+          "MERGE INTO target_table AS t USING source_table AS s ON (t.id = s.id AND t.active = 1) WHEN MATCHED THEN DELETE;",
+        )
+      })
+
+      it("toParam", () => {
+        const param = merge.toParam()
+        expect(param.text).toBe(
+          "MERGE INTO target_table AS t USING source_table AS s ON (t.id = s.id AND t.active = ?) WHEN MATCHED THEN DELETE;",
+        )
+        expect(param.values).toEqual([1])
+      })
+    })
+  })
+
   it("Default query builder options", () => {
     expect(squel.cls.DefaultQueryBuilderOptions).toEqual({
       autoQuoteTableNames: false,
@@ -266,6 +438,7 @@ describe("MSSQL flavour", () => {
       separator: " ",
       stringFormatter: null,
       rawNesting: false,
+      useRecursiveKeyword: false,
     })
   })
 })

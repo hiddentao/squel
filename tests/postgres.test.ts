@@ -83,6 +83,96 @@ describe("Postgres flavour", () => {
       })
     })
 
+    describe('>> into(table).set(field, 1).onConflict("email").doUpdate().set("updated_at", date)', () => {
+      beforeEach(() => {
+        inst
+          .into("table")
+          .set("email", "john@example.com")
+          .onConflict("email")
+          .doUpdate()
+          .set("updated_at", "date")
+      })
+
+      it("toString", () => {
+        expect(inst.toString()).toBe(
+          "INSERT INTO table (email) VALUES ('john@example.com') ON CONFLICT (email) DO UPDATE SET updated_at = 'date'",
+        )
+      })
+
+      it("toParam", () => {
+        expect(inst.toParam()).toEqual({
+          text: "INSERT INTO table (email) VALUES ($1) ON CONFLICT (email) DO UPDATE SET updated_at = $2",
+          values: ["john@example.com", "date"],
+        })
+      })
+
+      it("toString chained directly on the proxy helper", () => {
+        const proxy = inst
+          .onConflict("email")
+          .doUpdate()
+          .set("updated_at", "date")
+        expect(proxy.toString()).toBe(
+          "INSERT INTO table (email) VALUES ('john@example.com') ON CONFLICT (email) DO UPDATE SET updated_at = 'date'",
+        )
+      })
+
+      it("toParam chained directly on the proxy helper", () => {
+        const proxy = inst
+          .onConflict("email")
+          .doUpdate()
+          .set("updated_at", "date")
+        expect(proxy.toParam()).toEqual({
+          text: "INSERT INTO table (email) VALUES ($1) ON CONFLICT (email) DO UPDATE SET updated_at = $2",
+          values: ["john@example.com", "date"],
+        })
+      })
+
+      it("custom attribute access on proxy helper", () => {
+        const proxy = inst.onConflict("email").doUpdate()
+        expect(proxy.blocks).toBeDefined()
+      })
+    })
+
+    describe('>> into(table).set(field, 1).onConflict("email").doUpdate().set("updated_at = EXCLUDED.updated_at")', () => {
+      beforeEach(() => {
+        inst
+          .into("table")
+          .set("email", "john@example.com")
+          .onConflict("email")
+          .doUpdate()
+          .set("updated_at = EXCLUDED.updated_at")
+      })
+
+      it("toString", () => {
+        expect(inst.toString()).toBe(
+          "INSERT INTO table (email) VALUES ('john@example.com') ON CONFLICT (email) DO UPDATE SET updated_at = EXCLUDED.updated_at",
+        )
+      })
+
+      it("toParam", () => {
+        expect(inst.toParam()).toEqual({
+          text: "INSERT INTO table (email) VALUES ($1) ON CONFLICT (email) DO UPDATE SET updated_at = EXCLUDED.updated_at",
+          values: ["john@example.com"],
+        })
+      })
+    })
+
+    describe('>> into(table).set(field, 1).onConflict("email").doNothing()', () => {
+      beforeEach(() => {
+        inst
+          .into("table")
+          .set("email", "john@example.com")
+          .onConflict("email")
+          .doNothing()
+      })
+
+      it("toString", () => {
+        expect(inst.toString()).toBe(
+          "INSERT INTO table (email) VALUES ('john@example.com') ON CONFLICT (email) DO NOTHING",
+        )
+      })
+    })
+
     describe('>> into(table).set(field, 1).returning("*")', () => {
       beforeEach(() => {
         inst.into("table").set("field", 1).returning("*")
@@ -318,6 +408,49 @@ describe("Postgres flavour", () => {
         })
       })
     })
+
+    describe('>> from(table).using(other_table).where("field = ?")', () => {
+      beforeEach(() => {
+        del.from("table").using("other_table").where("field = ?", 1)
+      })
+
+      it("toString", () => {
+        expect(del.toString()).toBe(
+          "DELETE FROM table USING other_table WHERE (field = 1)",
+        )
+      })
+
+      it("toParam", () => {
+        expect(del.toParam()).toEqual({
+          text: "DELETE FROM table USING other_table WHERE (field = $1)",
+          values: [1],
+        })
+      })
+    })
+
+    describe('>> from(table).using(other_table, alias).where("field = 1")', () => {
+      beforeEach(() => {
+        del.from("table").using("other_table", "ot").where("field = 1")
+      })
+
+      it("toString", () => {
+        expect(del.toString()).toBe(
+          "DELETE FROM table USING other_table AS ot WHERE (field = 1)",
+        )
+      })
+    })
+
+    describe(">> from(table).using(t1).using(t2).where(...)", () => {
+      beforeEach(() => {
+        del.from("table").using("t1").using("t2").where("t1.id = table.id")
+      })
+
+      it("toString", () => {
+        expect(del.toString()).toBe(
+          "DELETE FROM table USING t1, t2 WHERE (t1.id = table.id)",
+        )
+      })
+    })
   })
 
   describe("SELECT builder", () => {
@@ -533,6 +666,89 @@ describe("Postgres flavour", () => {
           })
         })
       })
+    })
+  })
+
+  describe("pg_hint_plan hints", () => {
+    describe(">> select().hint(...)", () => {
+      it("prepends a hint comment", () => {
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t idx)")
+            .field("id")
+            .from("t")
+            .toString(),
+        ).toBe("/*+ IndexScan(t idx) */ SELECT id FROM t")
+      })
+
+      it("accumulates multiple hints into a single comment", () => {
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t idx)")
+            .hint("SeqScan(u)")
+            .from("t")
+            .toString(),
+        ).toBe("/*+ IndexScan(t idx) SeqScan(u) */ SELECT * FROM t")
+      })
+
+      it("renders nothing when unused", () => {
+        expect(squel.select().from("t").toString()).toBe("SELECT * FROM t")
+      })
+
+      it("does not affect parameter numbering", () => {
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t)")
+            .from("t")
+            .where("a = ?", 1)
+            .toParam(),
+        ).toEqual({
+          text: "/*+ IndexScan(t) */ SELECT * FROM t WHERE (a = $1)",
+          values: [1],
+        })
+      })
+
+      it("comes before a CTE", () => {
+        const cte = squel.select().from("u")
+        expect(
+          squel
+            .select()
+            .hint("IndexScan(t)")
+            .with("c", cte)
+            .from("t")
+            .toString(),
+        ).toBe(
+          "/*+ IndexScan(t) */ WITH c AS (SELECT * FROM u) SELECT * FROM t",
+        )
+      })
+
+      it("survives clone()", () => {
+        const sel = squel.select().hint("IndexScan(t)").from("t")
+        expect(sel.clone().toString()).toBe(
+          "/*+ IndexScan(t) */ SELECT * FROM t",
+        )
+      })
+    })
+
+    it(">> insert().hint(...)", () => {
+      expect(
+        squel.insert().hint("IndexScan(t)").into("t").set("a", 1).toString(),
+      ).toBe("/*+ IndexScan(t) */ INSERT INTO t (a) VALUES (1)")
+    })
+
+    it(">> update().hint(...)", () => {
+      expect(
+        squel.update().hint("IndexScan(t)").table("t").set("a", 1).toString(),
+      ).toBe("/*+ IndexScan(t) */ UPDATE t SET a = 1")
+    })
+
+    it(">> delete().hint(...)", () => {
+      expect(squel.delete().hint("IndexScan(t)").from("t").toString()).toBe(
+        "/*+ IndexScan(t) */ DELETE FROM t",
+      )
     })
   })
 

@@ -4,9 +4,41 @@ import type { Squel } from "./types"
 squel.flavours.mysql = (_squel: Squel) => {
   const cls = _squel.cls as any
 
+  class MysqlOnDuplicateKeyUpdateHelper {
+    constructor(
+      public builder: any,
+      public block: any,
+    ) {}
+  }
+
   cls.MysqlOnDuplicateKeyUpdateBlock = class extends cls.AbstractSetFieldBlock {
     onDupUpdate(field: any, value: any, options?: any): void {
       this._set(field, value, options)
+    }
+
+    onDuplicateKeyUpdate(): any {
+      const helper = new MysqlOnDuplicateKeyUpdateHelper(
+        this._queryBuilder,
+        this,
+      )
+      return new Proxy(helper, {
+        get(target, prop, receiver) {
+          if (prop === "set") {
+            return (field: any, value: any, options?: any) => {
+              target.block._set(field, value, options)
+              return receiver
+            }
+          }
+          const val = target.builder[prop]
+          if (typeof val === "function") {
+            return (...args: any[]) => {
+              const ret = val.apply(target.builder, args)
+              return ret === target.builder ? receiver : ret
+            }
+          }
+          return val
+        },
+      })
     }
 
     _toParamString(options: any = {}): any {
@@ -42,6 +74,7 @@ squel.flavours.mysql = (_squel: Squel) => {
   cls.Insert = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, "INSERT"),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
@@ -55,6 +88,7 @@ squel.flavours.mysql = (_squel: Squel) => {
   cls.Replace = class extends cls.QueryBuilder {
     constructor(options?: any, blocks: any = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, "REPLACE"),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),

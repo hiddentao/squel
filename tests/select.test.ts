@@ -602,6 +602,51 @@ describe("SELECT builder", () => {
     })
   })
 
+  describe("various join types", () => {
+    it("right_join", () => {
+      inst.from("table1").right_join("table2", "t2", "table1.id = t2.id")
+      expect(inst.toString()).toBe(
+        "SELECT * FROM table1 RIGHT JOIN table2 `t2` ON (table1.id = t2.id)",
+      )
+    })
+
+    it("outer_join", () => {
+      inst.from("table1").outer_join("table2", "t2", "table1.id = t2.id")
+      expect(inst.toString()).toBe(
+        "SELECT * FROM table1 OUTER JOIN table2 `t2` ON (table1.id = t2.id)",
+      )
+    })
+
+    it("left_outer_join", () => {
+      inst.from("table1").left_outer_join("table2", "t2", "table1.id = t2.id")
+      expect(inst.toString()).toBe(
+        "SELECT * FROM table1 LEFT OUTER JOIN table2 `t2` ON (table1.id = t2.id)",
+      )
+    })
+
+    it("full_join", () => {
+      inst.from("table1").full_join("table2", "t2", "table1.id = t2.id")
+      expect(inst.toString()).toBe(
+        "SELECT * FROM table1 FULL JOIN table2 `t2` ON (table1.id = t2.id)",
+      )
+    })
+
+    it("cross_join", () => {
+      inst.from("table1").cross_join("table2", "t2", "table1.id = t2.id")
+      expect(inst.toString()).toBe(
+        "SELECT * FROM table1 CROSS JOIN table2 `t2` ON (table1.id = t2.id)",
+      )
+    })
+  })
+
+  describe("APPLY (not available on generic select)", () => {
+    it("does not expose apply methods on generic select", () => {
+      expect(inst.apply).toBeUndefined()
+      expect(inst.cross_apply).toBeUndefined()
+      expect(inst.outer_apply).toBeUndefined()
+    })
+  })
+
   describe("cloning", () => {
     it("basic", () => {
       const newinst = inst.from("students").limit(10).clone()
@@ -919,6 +964,249 @@ describe("SELECT builder", () => {
           text: "SELECT * FROM generate_series(?,?,?) `tblfn(odds)`",
           values: [1, 10, 2],
         })
+      })
+    })
+
+    describe("FOR clause", () => {
+      describe(">> from(table).for('UPDATE')", () => {
+        beforeEach(() => {
+          inst.from("table").for("UPDATE")
+        })
+
+        it("toString", () => {
+          expect(inst.toString()).toBe("SELECT * FROM table FOR UPDATE")
+        })
+
+        it("toParam", () => {
+          expect(inst.toParam()).toEqual({
+            text: "SELECT * FROM table FOR UPDATE",
+            values: [],
+          })
+        })
+      })
+
+      describe(">> from(table).where(field = ?).for('UPDATE SKIP LOCKED')", () => {
+        beforeEach(() => {
+          inst.from("table").where("id = ?", 1).for("UPDATE SKIP LOCKED")
+        })
+
+        it("toString", () => {
+          expect(inst.toString()).toBe(
+            "SELECT * FROM table WHERE (id = 1) FOR UPDATE SKIP LOCKED",
+          )
+        })
+
+        it("toParam", () => {
+          expect(inst.toParam()).toEqual({
+            text: "SELECT * FROM table WHERE (id = ?) FOR UPDATE SKIP LOCKED",
+            values: [1],
+          })
+        })
+      })
+
+      describe(">> from(table).for('UPDATE OF table NOWAIT')", () => {
+        beforeEach(() => {
+          inst.from("table").for("UPDATE OF table NOWAIT")
+        })
+
+        it("toString", () => {
+          expect(inst.toString()).toBe(
+            "SELECT * FROM table FOR UPDATE OF table NOWAIT",
+          )
+        })
+      })
+
+      describe(">> from(table) [no for() call]", () => {
+        beforeEach(() => {
+          inst.from("table")
+        })
+
+        it("toString omits FOR clause", () => {
+          expect(inst.toString()).toBe("SELECT * FROM table")
+        })
+      })
+    })
+
+    describe("CTE (WITH) queries", () => {
+      it("select with CTE on default flavour", () => {
+        const sub = squel.select().from("users").where("active = ?", true)
+        const query = squel
+          .select()
+          .with("active_users", sub)
+          .from("active_users")
+        expect(query.toString()).toBe(
+          "WITH active_users AS (SELECT * FROM users WHERE (active = TRUE)) SELECT * FROM active_users",
+        )
+        expect(query.toParam()).toEqual({
+          text: "WITH active_users AS (SELECT * FROM users WHERE (active = ?)) SELECT * FROM active_users",
+          values: [true],
+        })
+      })
+
+      it("insert with CTE on default flavour", () => {
+        const sub = squel.select().from("users").where("active = ?", true)
+        const query = squel
+          .insert()
+          .with("active_users", sub)
+          .into("new_users")
+          .set("id", 1)
+        expect(query.toString()).toBe(
+          "WITH active_users AS (SELECT * FROM users WHERE (active = TRUE)) INSERT INTO new_users (id) VALUES (1)",
+        )
+      })
+
+      it("recursive CTE on default flavour", () => {
+        const sub = squel.select().from("employees")
+        const query = squel
+          .select()
+          .withRecursive("employee_tree", sub)
+          .from("employee_tree")
+        expect(query.toString()).toBe(
+          "WITH RECURSIVE employee_tree AS (SELECT * FROM employees) SELECT * FROM employee_tree",
+        )
+      })
+
+      it("recursive CTE on mssql flavour (no RECURSIVE keyword)", () => {
+        const mssqlSquel = squel.useFlavour("mssql")
+        const sub = mssqlSquel.select().from("employees")
+        const query = mssqlSquel
+          .select()
+          .withRecursive("employee_tree", sub)
+          .from("employee_tree")
+        expect(query.toString()).toBe(
+          "WITH employee_tree AS (SELECT * FROM employees) SELECT * FROM employee_tree",
+        )
+      })
+    })
+
+    describe("Window Functions (OVER clause)", () => {
+      it("basic OVER", () => {
+        const query = squel
+          .select()
+          .from("employees")
+          .field(squel.over("AVG(salary)"), "avg_sal")
+        expect(query.toString()).toBe(
+          'SELECT AVG(salary) OVER () AS "avg_sal" FROM employees',
+        )
+      })
+
+      it("OVER with partitionBy and orderBy", () => {
+        const query = squel
+          .select()
+          .from("employees")
+          .field(
+            squel
+              .over("AVG(salary)")
+              .partitionBy("department")
+              .orderBy("hire_date", false),
+            "avg_sal",
+          )
+        expect(query.toString()).toBe(
+          'SELECT AVG(salary) OVER (PARTITION BY department ORDER BY hire_date DESC) AS "avg_sal" FROM employees',
+        )
+      })
+
+      it("OVER with partitionBy, orderBy, and rowsBetween", () => {
+        const query = squel
+          .select()
+          .from("employees")
+          .field(
+            squel
+              .over("SUM(salary)")
+              .partitionBy("department", "team")
+              .orderBy("hire_date", true)
+              .rowsBetween("UNBOUNDED PRECEDING", "CURRENT ROW"),
+            "running_total",
+          )
+        expect(query.toString()).toBe(
+          'SELECT SUM(salary) OVER (PARTITION BY department, team ORDER BY hire_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS "running_total" FROM employees',
+        )
+      })
+
+      it("OVER with partitionBy, orderBy, and rangeBetween", () => {
+        const query = squel
+          .select()
+          .from("employees")
+          .field(
+            squel
+              .over("SUM(salary)")
+              .partitionBy("department")
+              .orderBy("hire_date", true)
+              .rangeBetween("UNBOUNDED PRECEDING"),
+            "running_total",
+          )
+        expect(query.toString()).toBe(
+          'SELECT SUM(salary) OVER (PARTITION BY department ORDER BY hire_date ASC RANGE BETWEEN UNBOUNDED PRECEDING) AS "running_total" FROM employees',
+        )
+      })
+
+      it("OVER with parameterized function expressions and toParam()", () => {
+        const query = squel
+          .select()
+          .from("employees")
+          .field(
+            squel
+              .over("SUM(salary) + ?", 100)
+              .partitionBy("department")
+              .orderBy("hire_date", true),
+            "total",
+          )
+        expect(query.toString()).toBe(
+          'SELECT SUM(salary) + 100 OVER (PARTITION BY department ORDER BY hire_date ASC) AS "total" FROM employees',
+        )
+        expect(query.toParam()).toEqual({
+          text: 'SELECT SUM(salary) + ? OVER (PARTITION BY department ORDER BY hire_date ASC) AS "total" FROM employees',
+          values: [100],
+        })
+      })
+    })
+
+    describe("JSON Query extraction (jsonExtract)", () => {
+      it("default / mysql flavour", () => {
+        const query = squel
+          .select()
+          .from("users")
+          .where(squel.jsonExtract("profile", "$.name") + " = ?", "John")
+        expect(query.toString()).toBe(
+          "SELECT * FROM users WHERE (json_extract(profile, '$.name') = 'John')",
+        )
+        expect(query.toParam()).toEqual({
+          text: "SELECT * FROM users WHERE (json_extract(profile, '$.name') = ?)",
+          values: ["John"],
+        })
+      })
+
+      it("postgres flavour (single key)", () => {
+        const pgSquel = squel.useFlavour("postgres")
+        const query = pgSquel
+          .select()
+          .from("users")
+          .where(pgSquel.jsonExtract("profile", "$.name") + " = ?", "John")
+        expect(query.toString()).toBe(
+          "SELECT * FROM users WHERE (profile->>'name' = 'John')",
+        )
+      })
+
+      it("postgres flavour (nested path)", () => {
+        const pgSquel = squel.useFlavour("postgres")
+        const query = pgSquel
+          .select()
+          .from("users")
+          .where(pgSquel.jsonExtract("profile", "$.user.name") + " = ?", "John")
+        expect(query.toString()).toBe(
+          "SELECT * FROM users WHERE (profile->'user'->>'name' = 'John')",
+        )
+      })
+
+      it("mssql flavour", () => {
+        const mssqlSquel = squel.useFlavour("mssql")
+        const query = mssqlSquel
+          .select()
+          .from("users")
+          .where(mssqlSquel.jsonExtract("profile", "$.name") + " = ?", "John")
+        expect(query.toString()).toBe(
+          "SELECT * FROM users WHERE (JSON_VALUE(profile, '$.name') = 'John')",
+        )
       })
     })
   })

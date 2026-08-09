@@ -47,7 +47,7 @@ function _clone<T>(src: T): T {
   if (_isPlainObject(src) || _isArray(src)) {
     const ret = new anySrc.constructor()
     for (const key of Object.getOwnPropertyNames(src)) {
-      if (typeof anySrc[key] !== "function") {
+      if (typeof anySrc[key] !== "function" && key !== "_queryBuilder") {
         ret[key] = _clone(anySrc[key])
       }
     }
@@ -614,6 +614,205 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         totalStr = this._formatValueForQueryString(this._elseValue)
       }
       return { text: totalStr, values: totalValues }
+    }
+  }
+
+  cls.Over = class extends cls.BaseBuilder {
+    _funcExpr: any
+    _funcParams: any[]
+    _partitionFields: any[]
+    _orderFields: any[]
+    _rows: string | null
+    _range: string | null
+
+    constructor(
+      funcExpr: any,
+      funcParams: any[] = [],
+      options?: QueryBuilderOptions,
+    ) {
+      super(options)
+      this._funcExpr = funcExpr
+      this._funcParams = funcParams || []
+      this._partitionFields = []
+      this._orderFields = []
+      this._rows = null
+      this._range = null
+    }
+
+    partitionBy(...fields: any[]): this {
+      let flatFields: any[] = []
+      for (const field of fields) {
+        if (_isArray(field)) {
+          flatFields = flatFields.concat(field)
+        } else {
+          flatFields.push(field)
+        }
+      }
+      for (const field of flatFields) {
+        this._partitionFields.push(this._sanitizeField(field))
+      }
+      return this
+    }
+
+    orderBy(
+      field: unknown,
+      dir?: boolean | string | null,
+      ...values: unknown[]
+    ): this {
+      field = this._sanitizeField(field)
+      let direction: string | null
+      if (typeof dir === "string") {
+        direction = dir
+      } else if (dir === undefined) {
+        direction = "ASC"
+      } else if (dir === null) {
+        direction = null
+      } else {
+        direction = dir ? "ASC" : "DESC"
+      }
+      this._orderFields.push({ field, dir: direction, values: values || [] })
+      return this
+    }
+
+    rowsBetween(start: any, end?: any): this {
+      if (end === undefined) {
+        this._rows = `ROWS BETWEEN ${start}`
+      } else {
+        this._rows = `ROWS BETWEEN ${start} AND ${end}`
+      }
+      this._range = null
+      return this
+    }
+
+    rangeBetween(start: any, end?: any): this {
+      if (end === undefined) {
+        this._range = `RANGE BETWEEN ${start}`
+      } else {
+        this._range = `RANGE BETWEEN ${start} AND ${end}`
+      }
+      this._rows = null
+      return this
+    }
+
+    _toParamString(options: ToParamOptions = {}): ParamString {
+      const values: any[] = []
+      let funcRet: any
+      if (cls.isSquelBuilder(this._funcExpr)) {
+        funcRet = this._funcExpr._toParamString({
+          buildParameterized: options.buildParameterized,
+        })
+      } else {
+        funcRet = this._buildString(this._funcExpr, this._funcParams, {
+          buildParameterized: options.buildParameterized,
+        })
+      }
+      funcRet.values.forEach((v: any) => values.push(v))
+
+      let overPartsStr = ""
+
+      if (this._partitionFields.length > 0) {
+        let partitionStr = ""
+        for (const field of this._partitionFields) {
+          partitionStr = _pad(partitionStr, ", ")
+          if (cls.isSquelBuilder(field)) {
+            const ret = field._toParamString({
+              buildParameterized: options.buildParameterized,
+            })
+            partitionStr += ret.text
+            ret.values.forEach((v: any) => values.push(v))
+          } else {
+            partitionStr += this._formatFieldName(field)
+          }
+        }
+        overPartsStr = `PARTITION BY ${partitionStr}`
+      }
+
+      if (this._orderFields.length > 0) {
+        let orderStr = ""
+        for (const { field, dir, values: orderVals } of this._orderFields) {
+          orderStr = _pad(orderStr, ", ")
+          let ret: any
+          if (cls.isSquelBuilder(field)) {
+            ret = field._toParamString({
+              buildParameterized: options.buildParameterized,
+            })
+          } else {
+            ret = this._buildString(field as string, orderVals as any[], {
+              buildParameterized: options.buildParameterized,
+            })
+          }
+          orderStr += ret.text
+          ret.values.forEach((v: any) => values.push(v))
+          if (dir !== null) {
+            orderStr += ` ${dir}`
+          }
+        }
+        overPartsStr = _pad(overPartsStr, " ") + `ORDER BY ${orderStr}`
+      }
+
+      const frameClause = this._rows || this._range
+      if (frameClause) {
+        overPartsStr = _pad(overPartsStr, " ") + frameClause
+      }
+
+      return {
+        text: `${funcRet.text} OVER (${overPartsStr})`,
+        values,
+      }
+    }
+  }
+
+  cls.JsonExtract = class extends cls.BaseBuilder {
+    _field: any
+    _path: string
+
+    constructor(field: any, path: string, options?: QueryBuilderOptions) {
+      super(options)
+      this._field = field
+      this._path = path
+    }
+
+    _toParamString(options: ToParamOptions = {}): ParamString {
+      const values: any[] = []
+      let fieldStr = ""
+
+      if (cls.isSquelBuilder(this._field)) {
+        const ret = this._field._toParamString({
+          buildParameterized: options.buildParameterized,
+        })
+        fieldStr = ret.text
+        ret.values.forEach((v: any) => values.push(v))
+      } else {
+        fieldStr = this._formatFieldName(this._field)
+      }
+
+      let cleanPath = this._path
+      if (cleanPath.startsWith("$")) {
+        cleanPath = cleanPath.slice(1)
+      }
+      if (cleanPath.startsWith(".")) {
+        cleanPath = cleanPath.slice(1)
+      }
+      const parts = cleanPath.split(".").filter(Boolean)
+
+      let sql = ""
+      if (flavour === "postgres") {
+        if (parts.length === 0) {
+          sql = fieldStr
+        } else {
+          sql = fieldStr
+          for (let i = 0; i < parts.length; i++) {
+            const op = i === parts.length - 1 ? "->>" : "->"
+            sql += `${op}'${parts[i]}'`
+          }
+        }
+      } else if (flavour === "mssql") {
+        sql = `JSON_VALUE(${fieldStr}, '${this._path}')`
+      } else {
+        sql = `json_extract(${fieldStr}, '${this._path}')`
+      }
+
+      return { text: sql, values }
     }
   }
 
@@ -1231,6 +1430,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     table: unknown
     alias: string | null
     condition: unknown
+    isApply?: boolean
   }
 
   cls.JoinBlock = class extends cls.Block {
@@ -1304,7 +1504,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     _toParamString(options: ToParamOptions = {}): ParamString {
       let totalStr = ""
       const totalValues: any[] = []
-      for (const { type, table, alias, condition } of this._joins) {
+      for (const { type, table, alias, condition, isApply } of this._joins) {
         totalStr = _pad(totalStr, this.options.separator)
         let tableStr: string
         if (cls.isSquelBuilder(table)) {
@@ -1317,7 +1517,11 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         } else {
           tableStr = this._formatTableName(table)
         }
-        totalStr += `${type} JOIN ${tableStr}`
+        if (isApply) {
+          totalStr += `${type} ${tableStr}`
+        } else {
+          totalStr += `${type} JOIN ${tableStr}`
+        }
         if (alias) totalStr += ` ${this._formatTableAlias(alias)}`
         if (condition) {
           totalStr += " ON "
@@ -1379,6 +1583,110 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
     }
   }
 
+  cls.ForBlock = class extends cls.Block {
+    _forStr: string | null
+
+    constructor(options?: QueryBuilderOptions) {
+      super(options)
+      this._forStr = null
+    }
+
+    for(str: string): void {
+      this._forStr = str
+    }
+
+    _toParamString(): ParamString {
+      return {
+        text: this._forStr !== null ? `FOR ${this._forStr}` : "",
+        values: [],
+      }
+    }
+  }
+
+  cls.WithBlock = class extends cls.Block {
+    _tables: any[]
+
+    constructor(options: any) {
+      super(options)
+      this._tables = []
+    }
+
+    with(alias: any, table: any): void {
+      this._tables.push({ alias, table, recursive: false })
+    }
+
+    withRecursive(alias: any, table: any): void {
+      this._tables.push({ alias, table, recursive: true })
+    }
+
+    _toParamString(options: any = {}): any {
+      const parts: string[] = []
+      const values: any[] = []
+      let anyRecursive = false
+      for (const { alias, table, recursive } of this._tables) {
+        if (recursive) {
+          anyRecursive = true
+        }
+        const ret = table._toParamString({
+          buildParameterized: options.buildParameterized,
+          nested: true,
+        })
+        parts.push(`${alias} AS ${ret.text}`)
+        ret.values.forEach((v: any) => values.push(v))
+      }
+      if (!parts.length) {
+        return { text: "", values: [] }
+      }
+      const isMssql = this.options.useRecursiveKeyword === false
+      const prefix = anyRecursive && !isMssql ? "WITH RECURSIVE" : "WITH"
+      return {
+        text: `${prefix} ${parts.join(", ")}`,
+        values,
+      }
+    }
+  }
+
+  cls.ReturningBlock = class extends cls.Block {
+    _fields: any[]
+
+    constructor(options: any) {
+      super(options)
+      this._fields = []
+    }
+
+    returning(field: any, alias: any = null, options: any = {}): any {
+      alias = alias ? this._sanitizeFieldAlias(alias) : alias
+      field = this._sanitizeField(field)
+      const existingField = this._fields.filter(
+        (f: any) => f.name === field && f.alias === alias,
+      )
+      if (existingField.length) return this
+      this._fields.push({ name: field, alias, options })
+    }
+
+    _toParamString(options: any = {}): any {
+      const { buildParameterized } = options
+      let totalStr = ""
+      const totalValues: any[] = []
+      for (const field of this._fields) {
+        totalStr = _pad(totalStr, ", ")
+        const { name, alias, options: fieldOptions } = field
+        if (typeof name === "string") {
+          totalStr += this._formatFieldName(name, fieldOptions)
+        } else {
+          const ret = name._toParamString({ nested: true, buildParameterized })
+          totalStr += ret.text
+          ret.values.forEach((v: any) => totalValues.push(v))
+        }
+        if (alias) totalStr += ` AS ${this._formatFieldAlias(alias)}`
+      }
+      return {
+        text: totalStr.length > 0 ? `RETURNING ${totalStr}` : "",
+        values: totalValues,
+      }
+    }
+  }
+
   cls.QueryBuilder = class extends cls.BaseBuilder {
     blocks: any[];
     [methodName: string]: any
@@ -1387,6 +1695,12 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       super(options)
       this.blocks = blocks || []
       for (const block of this.blocks) {
+        Object.defineProperty(block, "_queryBuilder", {
+          value: this,
+          enumerable: false,
+          writable: true,
+          configurable: true,
+        })
         const exposedMethods = block.exposedMethods()
         for (const methodName in exposedMethods) {
           const methodBody = exposedMethods[methodName]
@@ -1397,7 +1711,10 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
           }
           ;((b, name, body) => {
             this[name] = (...args: any[]) => {
-              body.call(b, ...args)
+              const ret = body.call(b, ...args)
+              if (ret !== undefined && ret !== b) {
+                return ret
+              }
               return this
             }
           })(block, methodName, methodBody)
@@ -1471,6 +1788,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
   cls.Select = class extends cls.QueryBuilder {
     constructor(options?: QueryBuilderOptions, blocks: any = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, "SELECT"),
         new cls.FunctionBlock(options),
         new cls.DistinctBlock(options),
@@ -1484,6 +1802,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         new cls.LimitBlock(options),
         new cls.OffsetBlock(options),
         new cls.UnionBlock(options),
+        new cls.ForBlock(options),
       ]
       super(options, blocks)
     }
@@ -1492,12 +1811,14 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
   cls.Update = class extends cls.QueryBuilder {
     constructor(options?: QueryBuilderOptions, blocks: any = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, "UPDATE"),
         new cls.UpdateTableBlock(options),
         new cls.SetFieldBlock(options),
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
+        new cls.ReturningBlock(options),
       ]
       super(options, blocks)
     }
@@ -1506,6 +1827,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
   cls.Delete = class extends cls.QueryBuilder {
     constructor(options?: QueryBuilderOptions, blocks: any = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, "DELETE"),
         new cls.TargetTableBlock(options),
         new cls.FromTableBlock(_extend({}, options, { singleTable: true })),
@@ -1513,6 +1835,7 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
         new cls.WhereBlock(options),
         new cls.OrderByBlock(options),
         new cls.LimitBlock(options),
+        new cls.ReturningBlock(options),
       ]
       super(options, blocks)
     }
@@ -1521,10 +1844,12 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
   cls.Insert = class extends cls.QueryBuilder {
     constructor(options?: QueryBuilderOptions, blocks: any = null) {
       blocks = blocks || [
+        new cls.WithBlock(options),
         new cls.StringBlock(options, "INSERT"),
         new cls.IntoTableBlock(options),
         new cls.InsertFieldValueBlock(options),
         new cls.InsertFieldsFromQueryBlock(options),
+        new cls.ReturningBlock(options),
       ]
       super(options, blocks)
     }
@@ -1556,6 +1881,9 @@ function _buildSquel(flavour: Flavour | null = null): Squel {
       ;(inst as any).function(...args)
       return inst
     },
+    over: (funcExpr: any, ...funcParams: any[]) =>
+      new cls.Over(funcExpr, funcParams),
+    jsonExtract: (field: any, path: string) => new cls.JsonExtract(field, path),
     registerValueHandler: cls.registerValueHandler,
   }
 

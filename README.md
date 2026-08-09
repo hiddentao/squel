@@ -16,6 +16,10 @@ Full guide and API documentation at [https://hiddentao.github.io/squel](https://
 - Written in TypeScript with first-class type definitions.
 - Works in Node.js and the browser.
 - Supports the standard SQL queries: `SELECT`, `UPDATE`, `INSERT`, `DELETE`.
+- Supports dialect-specific modern SQL: Common Table Expressions (CTEs), Recursive CTEs, Postgres/MySQL UPSERT, MS SQL Server `MERGE`.
+- Supports Window Functions via the fluent `OVER` clause builder.
+- Supports dialect-aware JSON value extraction via `jsonExtract`.
+- Supports Postgres/SQLite `RETURNING` and SQL Server `OUTPUT` clauses.
 - Supports non-standard commands for MySQL, PostgreSQL, and Microsoft SQL Server.
 - Supports parameterized queries for safe value escaping.
 - Extensible &mdash; build any custom query or command you need.
@@ -290,6 +294,148 @@ squel.pragma().compress(9).toString()
 
 squel.pragma().compress(9).toParam()
 // { text: 'PRAGMA COMPRESS ?', values: [9] }
+```
+
+### Modern SQL Features
+
+Squel includes first-class support for advanced SQL query patterns across dialects.
+
+#### Common Table Expressions (CTE) & Recursive CTEs
+
+```javascript
+const subQuery = squel.select().from("users").where("active = ?", true);
+
+squel.select()
+    .with("active_users", subQuery)
+    .from("active_users")
+    .toString()
+// WITH active_users AS (SELECT * FROM users WHERE (active = TRUE)) SELECT * FROM active_users
+
+// Recursive CTE (dialects automatically format, e.g. SQL Server omits RECURSIVE)
+squel.select()
+    .withRecursive("employee_tree", squel.select().from("employees"))
+    .from("employee_tree")
+    .toString()
+```
+
+#### Window Functions (OVER clause)
+
+```javascript
+squel.select()
+    .from("employees")
+    .field("name")
+    .field(
+        squel.over("AVG(salary)")
+            .partitionBy("department")
+            .orderBy("hire_date", false), // DESC
+        "avg_dept_salary"
+    )
+    .toString()
+// SELECT name, AVG(salary) OVER (PARTITION BY department ORDER BY hire_date DESC) AS "avg_dept_salary" FROM employees
+```
+
+#### JSON extraction helper (`jsonExtract`)
+
+Provides dialect-aware JSON field path extraction:
+
+```javascript
+squel.select()
+    .from("users")
+    .where(squel.jsonExtract("profile", "$.name") + " = ?", "John")
+    .toString()
+// Default/MySQL: SELECT * FROM users WHERE (json_extract(profile, '$.name') = 'John')
+// Postgres:     SELECT * FROM users WHERE (profile->>'name' = 'John')
+// SQL Server:   SELECT * FROM users WHERE (JSON_VALUE(profile, '$.name') = 'John')
+```
+
+#### Upsert/MERGE
+
+Fluent Postgres/MySQL UPSERT and SQL Server MERGE support:
+
+```javascript
+// Postgres UPSERT
+squel.useFlavour("postgres")
+    .insert()
+    .into("users")
+    .set("email", "john@example.com")
+    .onConflict("email")
+    .doUpdate()
+    .set("updated_at", new Date())
+    .toString()
+
+// MySQL ON DUPLICATE KEY UPDATE
+squel.useFlavour("mysql")
+    .insert()
+    .into("users")
+    .set("email", "john@example.com")
+    .onDuplicateKeyUpdate()
+    .set("updated_at", new Date())
+    .toString()
+
+// SQL Server MERGE
+squel.useFlavour("mssql")
+    .merge()
+    .into("target_table", "t")
+    .using("source_table", "s", "t.id = s.id")
+    .whenMatched()
+        .update({ "t.val": squel.str("s.val") })
+    .whenNotMatched()
+        .insert({ id: squel.str("s.id"), val: squel.str("s.val") })
+    .toString()
+```
+
+#### RETURNING & OUTPUT
+
+```javascript
+// Postgres RETURNING
+squel.useFlavour("postgres")
+    .insert()
+    .into("users")
+    .set("name", "John")
+    .returning("id")
+    .toString()
+// INSERT INTO users (name) VALUES ('John') RETURNING id
+
+// SQL Server OUTPUT
+squel.useFlavour("mssql")
+    .insert()
+    .into("users")
+    .set("name", "John")
+    .output("id")
+    .toString()
+// INSERT INTO users (name) OUTPUT INSERTED.id VALUES ('John')
+```
+
+#### CROSS/OUTER APPLY (MSSQL)
+
+Provides `CROSS APPLY` and `OUTER APPLY` support for the MSSQL flavour:
+
+```javascript
+// MSSQL CROSS/OUTER APPLY
+squel.useFlavour("mssql")
+    .select()
+    .from("table1")
+    .cross_apply("table2", "t2")
+    .outer_apply(
+        squel.select().from("bar").where("bar.id = table1.id"),
+        "s"
+    )
+    .toString()
+// SELECT * FROM table1 CROSS APPLY table2 t2 OUTER APPLY (SELECT * FROM bar WHERE (bar.id = table1.id)) s
+```
+
+#### Query planner hints (Postgres `pg_hint_plan`)
+
+The Postgres flavour can prepend a [`pg_hint_plan`](https://pg-hint-plan.readthedocs.io/) hint comment to a `SELECT`, `INSERT`, `UPDATE` or `DELETE`. Repeated `hint(...)` calls accumulate into a single comment. The comment is inert unless the `pg_hint_plan` extension is loaded on the server.
+
+```javascript
+squel.useFlavour("postgres")
+    .select()
+    .hint("IndexScan(users users_email_idx)")
+    .hint("SeqScan(orders)")
+    .from("users")
+    .toString()
+// /*+ IndexScan(users users_email_idx) SeqScan(orders) */ SELECT * FROM users
 ```
 
 ## Non-standard SQL flavours
